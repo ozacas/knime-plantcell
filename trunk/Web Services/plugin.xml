@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+   
+   <extension
+         point="org.knime.workbench.repository.nodes">
+         
+      <node
+            category-path="/Bioinformatics/Web Services"
+            factory-class="au.edu.unimelb.plantcell.io.ws.uniprot.UniProtAccessorNodeFactory"
+            id="au.edu.unimelb.plantcell.io.ws.uniprot"/>
+            
+      <node
+            category-path="/Bioinformatics/Web Services/Nectar Cloud"
+            factory-class="au.edu.unimelb.plantcell.io.ws.signalp_nectar.SignalPAccessorNodeFactory"
+            id="au.edu.unimelb.plantcell.io.ws.signalp_nectar"/>
+     
+      <node
+            category-path="/Bioinformatics/Web Services/Nectar Cloud"
+            factory-class="au.edu.unimelb.plantcell.io.ws.estscan_nectar.ESTScanNodeFactory"
+            id="au.edu.unimelb.plantcell.io.ws.estscan_nectar"/>
+            
+      <node
+            category-path="/Bioinformatics/Web Services/Nectar Cloud"
+            factory-class="au.edu.unimelb.plantcell.io.ws.tmhmm.TMHMMAccessorNodeFactory"
+            id="au.edu.unimelb.plantcell.io.ws.tmhmm"/>
+            
+      <node
+            category-path="/Bioinformatics/Web Services/Nectar Cloud"
+            factory-class="au.edu.unimelb.plantcell.io.ws.netsurfp.NetSurfPAccessorNodeFactory"
+            id="au.edu.unimelb.plantcell.io.ws.netsurfp"/>
+            
+            
+      <node
+            category-path="/Bioinformatics/Web Services/Nectar Cloud"
+            factory-class="au.edu.unimelb.plantcell.io.ws.netphos_nectar.NetPhosAccessorNodeFactory"
+            id="au.edu.unimelb.plantcell.io.ws.netphos"/>
+            
+       <node
+            category-path="/Bioinformatics/Web Services/Nectar Cloud"
+            factory-class="au.edu.unimelb.plantcell.io.ws.targetp_nectar.TargetPAccessorNodeFactory"
+            id="au.edu.unimelb.plantcell.io.ws.targetp"/>
+            
+       <node
+            category-path="/Bioinformatics/Web Services"
+            factory-class="au.edu.unimelb.plantcell.io.ws.quickgo.QuickGOSourceNodeFactory"
+            id="au.edu.unimelb.plantcell.io.ws.quickgo"/>
+       
+        <node
+            category-path="/Bioinformatics/Web Services"
+            factory-class="au.edu.unimelb.plantcell.io.ws.picr.PICRAccessorNodeFactory"
+            id="au.edu.unimelb.plantcell.io.ws.picr"/>
+       
+        <node
+            category-path="/Bioinformatics/Web Services"
+            factory-class="au.edu.unimelb.plantcell.io.ws.phobius.PhobiusSourceNodeFactory"
+            id="au.edu.unimelb.plantcell.io.ws.phobius"/>
+               
+        <node
+            category-path="/Bioinformatics/Web Services"
+            factory-class="au.edu.unimelb.plantcell.io.ws.interpro.InterProNodeFactory"
+            id="au.edu.unimelb.plantcell.io.ws.interpro"/>    
+            
+        <node
+            category-path="/Bioinformatics/Under Development/Deprecated"
+            factory-class="au.edu.unimelb.plantcell.io.ws.interproscan.InterProScanNodeFactory"
+            id="au.edu.unimelb.plantcell.io.ws.interproscan"/>    
+            
+        <node
+            category-path="/Bioinformatics/Web Services"
+            factory-class="au.edu.unimelb.plantcell.io.ws.blast.wublast.WUBlastNodeFactory"
+            id="au.edu.unimelb.plantcell.io.ws.blast.wublast"/>
+            
+        <node
+            category-path="/Bioinformatics/Web Services"
+            factory-class="au.edu.unimelb.plantcell.io.ws.aacon.AAConNodeFactory"
+            id="au.edu.unimelb.plantcell.io.ws.aacon"/>
+            
+        <node
+            category-path="/Bioinformatics/Web Services/TogoWS"
+            factory-class="au.edu.unimelb.plantcell.io.ws.togows.KeywordSearchNodeFactory"
+            id="au.edu.unimelb.plantcell.io.ws.togows.ksearch"/>
+            
+        <node
+            category-path="/Bioinformatics/Web Services/TogoWS"
+            factory-class="au.edu.unimelb.plantcell.io.ws.togows.EntryReaderNodeFactory"
+            id="au.edu.unimelb.plantcell.io.ws.togows.ereader"/>
+            
+        <node
+            category-path="/Bioinformatics/Web Services"
+            factory-class="au.edu.unimelb.plantcell.io.ws.golgip.GolgiPNodeFactory"
+            id="au.edu.unimelb.plantcell.io.ws.golgip"/>
+            
+        <node
+            category-path="/Bioinformatics/Web Services/Nectar Cloud"
+            factory-class="au.edu.unimelb.plantcell.io.ws.psort.PSortNodeFactory"
+            id="au.edu.unimelb.plantcell.io.ws.psort"/>
+            
+        <node
+            category-path="/Bioinformatics/Web Services"
+            factory-class="au.edu.unimelb.plantcell.io.ws.suba.SubaNodeFactory"
+            id="au.edu.unimelb.plantcell.io.ws.suba"/>
+   </extension>
+   
+</plugin>

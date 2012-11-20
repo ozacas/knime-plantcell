@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Source">
+    <name>Ortholog Finder</name>
+    
+    <shortDescription>
+        Given two blast results (sequence A against database B and sequence B against database A) this node computes orthologous genes using Reciprocal Blast Hit (RBH) and other algorithms
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>Uses Reciprocal BLAST(Best) Hit to identify putative orthologs between
+        two organisms. This node expects two separate BLAST result files to be specified
+        in the configuration, one for each organism. Where a sequence A (in database A)
+        BLASTs onto sequence B (database B) and B BLASTs onto A, an output row is 
+        generated with the accessions indicating a potential ortholog relationship between the two. The user is 
+        expected to validate putative orthologs.
+        </intro>
+        
+        
+        <option name="BLAST results for A">The <tt>-m 7</tt> format BLAST results for organism A</option>
+        <option name="BLAST results for B">The <tt>-m 7</tt> format BLAST results for organism B</option>
+    </fullDescription>
+    
+    <ports>
+        <outPort index="0" name="Putative Orthologs">Accessions which might be indicative of an orthologue relationship</outPort>
+        <outPort index="1" name="Raw BLAST records">Output from BLAST for both organisms</outPort>
+        
+        <!-- possibly more output ports here-->
+    </ports>    
+   
+</knimeNode>

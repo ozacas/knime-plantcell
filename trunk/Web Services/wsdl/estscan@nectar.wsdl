@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:ns="http://nectar.plantcell.unimelb.edu.au" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://nectar.plantcell.unimelb.edu.au">
+    <wsdl:documentation>
+		Please Type your service description here
+	</wsdl:documentation>
+    <wsdl:types>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://nectar.plantcell.unimelb.edu.au">
+            <xs:element name="submit">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="nucleotide_sequence_as_fasta" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="scoring_model" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="submitResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getStatus">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="jobID" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getStatusResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getResult">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="job_id" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getResultResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAvailableScoreModels">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAvailableScoreModelsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:message name="submitRequest">
+        <wsdl:part name="parameters" element="ns:submit"/>
+    </wsdl:message>
+    <wsdl:message name="submitResponse">
+        <wsdl:part name="parameters" element="ns:submitResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getAvailableScoreModelsRequest">
+        <wsdl:part name="parameters" element="ns:getAvailableScoreModels"/>
+    </wsdl:message>
+    <wsdl:message name="getAvailableScoreModelsResponse">
+        <wsdl:part name="parameters" element="ns:getAvailableScoreModelsResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getStatusRequest">
+        <wsdl:part name="parameters" element="ns:getStatus"/>
+    </wsdl:message>
+    <wsdl:message name="getStatusResponse">
+        <wsdl:part name="parameters" element="ns:getStatusResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getResultRequest">
+        <wsdl:part name="parameters" element="ns:getResult"/>
+    </wsdl:message>
+    <wsdl:message name="getResultResponse">
+        <wsdl:part name="parameters" element="ns:getResultResponse"/>
+    </wsdl:message>
+    <wsdl:portType name="ESTScanServicePortType">
+        <wsdl:operation name="submit">
+            <wsdl:input message="ns:submitRequest" wsaw:Action="urn:submit"/>
+            <wsdl:output message="ns:submitResponse" wsaw:Action="urn:submitResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="getAvailableScoreModels">
+            <wsdl:input message="ns:getAvailableScoreModelsRequest" wsaw:Action="urn:getAvailableScoreModels"/>
+            <wsdl:output message="ns:getAvailableScoreModelsResponse" wsaw:Action="urn:getAvailableScoreModelsResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="getStatus">
+            <wsdl:input message="ns:getStatusRequest" wsaw:Action="urn:getStatus"/>
+            <wsdl:output message="ns:getStatusResponse" wsaw:Action="urn:getStatusResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="getResult">
+            <wsdl:input message="ns:getResultRequest" wsaw:Action="urn:getResult"/>
+            <wsdl:output message="ns:getResultResponse" wsaw:Action="urn:getResultResponse"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="ESTScanServiceSoap11Binding" type="ns:ESTScanServicePortType">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="submit">
+            <soap:operation soapAction="urn:submit" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getAvailableScoreModels">
+            <soap:operation soapAction="urn:getAvailableScoreModels" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getStatus">
+            <soap:operation soapAction="urn:getStatus" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getResult">
+            <soap:operation soapAction="urn:getResult" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="ESTScanServiceSoap12Binding" type="ns:ESTScanServicePortType">
+        <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="submit">
+            <soap12:operation soapAction="urn:submit" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getAvailableScoreModels">
+            <soap12:operation soapAction="urn:getAvailableScoreModels" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getStatus">
+            <soap12:operation soapAction="urn:getStatus" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getResult">
+            <soap12:operation soapAction="urn:getResult" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="ESTScanServiceHttpBinding" type="ns:ESTScanServicePortType">
+        <http:binding verb="POST"/>
+        <wsdl:operation name="submit">
+            <http:operation location="submit"/>
+            <wsdl:input>
+                <mime:content type="application/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="application/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getAvailableScoreModels">
+            <http:operation location="getAvailableScoreModels"/>
+            <wsdl:input>
+                <mime:content type="application/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="application/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getStatus">
+            <http:operation location="getStatus"/>
+            <wsdl:input>
+                <mime:content type="application/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="application/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getResult">
+            <http:operation location="getResult"/>
+            <wsdl:input>
+                <mime:content type="application/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="application/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="ESTScanService">
+        <wsdl:port name="ESTScanServiceHttpSoap11Endpoint" binding="ns:ESTScanServiceSoap11Binding">
+            <soap:address location="http://115.146.93.92:8080/production/services/ESTScanService.ESTScanServiceHttpSoap11Endpoint/"/>
+        </wsdl:port>
+        <wsdl:port name="ESTScanServiceHttpSoap12Endpoint" binding="ns:ESTScanServiceSoap12Binding">
+            <soap12:address location="http://115.146.93.92:8080/production/services/ESTScanService.ESTScanServiceHttpSoap12Endpoint/"/>
+        </wsdl:port>
+        <wsdl:port name="ESTScanServiceHttpEndpoint" binding="ns:ESTScanServiceHttpBinding">
+            <http:address location="http://115.146.93.92:8080/production/services/ESTScanService.ESTScanServiceHttpEndpoint/"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

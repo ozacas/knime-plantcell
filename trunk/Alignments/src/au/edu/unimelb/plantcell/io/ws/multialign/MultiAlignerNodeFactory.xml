@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./multialignment-icon-16x16.png" type="Manipulator">
+    <name>Multiple Sequence Aligner</name>
+    
+    <shortDescription>
+        
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>Using an Internet connection, this node aligns the specified 
+        sequences (protein, nucleotide) using the chosen algorithm: MUSCLE, T-Coffee
+        and Clustal Omega are the only algorithms currently supported.
+        
+        Never align only two sequences with these algorithms, a much better result will
+        usually be produced using a two-sequence only algorithm eg. Smith-Waterman. A separate
+        node is available for this.
+        
+        <p>
+        <b>WARNING:</b> this node exposes your data to the Internet and to the European
+        Bioinformatics Institute (EBI) and is subject to their terms and conditions. 
+        This node is deliberately slow and has limits designed not to operate safely within limits
+        imposed by EBI.
+        </p>
+        
+        </intro>
+        
+        
+        <option name="Algorithm">Each algorithm has its own strengths, please consult EBI <a href="http://www.ebi.ac.uk/Tools/msa/">for more details</a></option>
+        <option name="Email Address">In case of problems, EBI require an email address
+        to contact - a valid email must be provided.</option>
+        <option name="List of sequences">Select the collection column of sequences which represent
+        what is to be aligned. Typically, this is done using the GroupBy 'list' or 'set' option on the sequences</option>
+        <option name="List of accessions">Select the collection column of accessions which represent.
+        This <b>must</b> in the same order as the list of sequences</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input data incl. sequences">Input data must contain two collection columns: sequences &amp; accessions</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="Alignment results">Input columns with alignment results</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+   
+    <views>
+            <view index="0" name="Alignment view">View the alignment(s) in the chosen row</view>
+    </views>
+</knimeNode>

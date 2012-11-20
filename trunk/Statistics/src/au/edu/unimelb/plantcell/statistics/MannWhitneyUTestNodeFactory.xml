@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./mw.png" type="Manipulator">
+    <name>Mann-Whitney U Test</name>
+    
+    <shortDescription>
+        Tests for two observed samples having the same mean
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+        Implements the Mann-Whitney U Test using <a href="http://commons.apache.org/math/apidocs/org/apache/commons/math3/stat/inference/MannWhitneyUTest.html">Apache Commons Math library</a>,
+        also known as the Wilcoxon rank-sum test. Necessary requirements for successful node operation:
+        <ul>
+  		  	<li>All observations in the two samples are independent</li>
+    		<li>The observations are at least ordinal (continuous are also ordinal)</li>
+        </ul>
+        </intro>
+        
+        
+        <option name="Alpha (significance level)">What significance level for testing the null hypothesis (that all
+        samples are from the same population). Default is 0.05, must be in the range [0,1]</option>
+      
+        <option name="Columns containing samples">Data for each sample must be arranged 
+        in columns, select the columns here. At least two must be chosen. If more than two are
+        chosen, test statistics for all possible pairs are reported.</option>
+             
+      </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input data">Input data of independent samples</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="Mann-Whitney U test results">Results from the test</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+  
+</knimeNode>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Source">
+    <name>Taxonomy-aware Fasta Reader</name>
+    
+    <shortDescription>
+        Used to extract sequences from a FASTA file which match a given column of taxa. Regular expressions can be provided to match the taxa entry from the description in the FASTA file. Taxa desired form the input to the node.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>Naively loads only those sequences from a FASTA file which match one
+        of the species names given via the input port. You must configure:
+        <ul>
+        	<li>FASTA file to load eg. nr.fasta.gz</li>
+        	<li>The column which contains only those taxonomy names to accept</li>
+        	<li>The regular expression used to extract the taxonomy name from each FASTA sequence.
+        	The default regular expression seems to work for NCBI NR fasta-formatted files. This regexp
+        	must contain exactly one set of parentheses to match the taxonomy name</li>
+        </ul>
+        </intro>
+        
+        
+        <option name="FASTA file">FASTA file to process looking for sequences with of a desired species</option>
+       
+        <option name="Taxonomy regular expression">A regular expression with a single match group (parentheses)
+        that describes which part of the description contains the species. By default, all
+        data between square brackets (like NCBI NR does) is processed. This option may need
+        to be customised if you are using another sequence database eg. UniProtKB</option>
+        
+        <option name="Accession &amp; Description regexp">Another regular expression which must have two
+        match groups (parentheses). The first contains the accession, the second contains the description.
+        The default, although not always ideal, usually suffices for most needs.</option>
+        
+        <option name="Species column">Column containing the <i>desired</i> species to find</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Desired species">Taxonomy name column to filter FASTA file for</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="Matching sequences">Matching FASTA sequences, with the taxonomy name that matched</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+  
+</knimeNode>

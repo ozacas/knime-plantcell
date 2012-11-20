@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./alignment-icon-16x16.png" type="Manipulator">
+    <name>Sequence Aligner</name>
+    
+    <shortDescription>
+        Performs an alignment, performed by http://jaligner.sourceforge.net of two sequences using the chosen parameters
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>To use this node you can arrange the sequences to be aligned in several ways:
+        <ul>
+        	<li>As a single column: the node pairs all the entries in the chosen column, against each other, for alignment (pairwise).</li>
+        	<li>As two columns, one sequence per column: no pairing is done. One alignment per row is performed using the two sequences. In this case
+        	    the results are appended to the provided columns, existing columns are preserved. If the second column is a collection
+        	    column, the first sequence will be aligned with all sequences in the collection.</li>
+        </ul>
+        
+        <p>
+        You need to choose a scoring matrix (used to rank alternatives based on the amino acids being compared) appropriate to the type of
+        sequence being compared. Alternatively, you can use a simple match/penalty scoring function if you are using JAligner.
+        </p>
+        
+        <p>
+        Although this node supports alignment of nucleotide sequences, most scoring matrices are intended for protein sequence (except IDENTITY). This node performs no
+        sequence conversion. This node supports only nucleotide bases (A, C, G, T), in particular ambiguous base calls are not permitted (currently).</p>
+        </intro>
+        
+        
+        <option name="Score Matrix">Refer to <a href="http://www.ncbi.nlm.nih.gov/blast/options.shtml">NCBI Blast options</a> for more details</option>
+        <option name="Alignment Type">For now, only local alignments are supported.</option>
+        <option name="Alignment Format">Format alignment results in FASTA, CLUSTALW or BLAST format</option>
+        <option name="Gap Open Penalty">Penalty to apply for creating a new gap in an alignment</option>
+        <option name="Gap Extend Penalty">Penalty to apply for extending an existing gap in an alignment</option>
+        <option name="Sequences to align...">Determines where sequence data is retrieved from and how alignments are done. The remaining options inform
+        the node for key data required to do the alignment ie. which contains contain the sequence and accession data.</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input sequences">Sequence data to align</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="Alignment Results">Identity, Similarity and Score for the alignments performed</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+   
+</knimeNode>

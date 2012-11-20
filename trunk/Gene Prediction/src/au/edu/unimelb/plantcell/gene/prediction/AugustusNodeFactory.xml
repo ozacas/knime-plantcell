@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>Augustus (local)</name>
+    
+    <shortDescription>
+        Runs augustus (http://augustus.gobics.de) on the local computer and loads its predictions into a KNIME table.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+        Using <a href="http://augustus.gobics.de">Augustus</a> this node offers
+        gene predictions (genomic and predicted protein sequences) to the user at the
+        respective output ports. Augustus must be separately installed. This node <b>will not work</b>
+        until you can run it successfully from the command line 
+        (cygwin/cmd.exe for Windows or Terminal for Mac users). Tips
+        for doing this correctly are as follows:
+        <table>
+        	<tr><th>Platform</th><th>Notes</th></tr>
+        	<tr><td>Win32</td> <td>Compile using cygwin. Be sure that c:\cygwin\bin
+        	is added to the DOS path (a reboot may be necessary).</td></tr>
+        	
+        	<tr><td>Mac</td><td>GCC is recommended, although perhaps a pre-built
+        	executable is available from the Augustus website.</td></tr>
+        </table>
+        
+        <p><b>Note:</b> this node is only tested with Augustus v2.5.5, other versions are untested.
+        </p>
+        </intro>
+        
+        
+        <option name="FASTA file">Which file (can not be compressed) to load sequences from. FASTA files only for now.</option>
+        <option name="Predict on ... strands?">Report predictions considering both strands, by default. Or select the strand of interest.</option>
+    	<option name="Gene model">Which gene model to use for prediction. The node automatically scans
+    	the augustus <b>config/species</b> folder to identify those species which are available.</option>
+    	<option name="Predict strands independently?">If checked (yes) then permit overlapping gene predictions
+    	from opposing strands. This turns off UTR prediction unless you specify otherwise.</option>
+    	<option name="Other arguments">For advanced users only, that understand augustus command-line arguments.
+    	If you want to keep UTR prediction, despite independent strand prediction, add <b>--UTR=on</b>, but this
+    	is only support for a gene models. Any text presented here will be passed thru to augustus.</option>
+    </fullDescription>
+    
+    <ports>
+        <outPort index="0" name="Genomic predictions">Coding sequence, exon, gene and transcript predictions</outPort>
+        <!-- possibly more input ports here-->
+        <outPort index="1" name="Predicted proteins">Predicted protein translations from identified coding sequences</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+   
+</knimeNode>

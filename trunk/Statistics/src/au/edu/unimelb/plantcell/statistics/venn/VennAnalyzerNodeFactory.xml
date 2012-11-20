@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>Venn Analyzer</name>
+    
+    <shortDescription>
+        Performs an n-way (3 or 4 recommended) venn analysis based over the values in chosen columns based on a group-by column.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>This node constructs the necessary data for a Venn Diagram based on the input to the node.
+        It groups into each "pie" of the venn diagram on the distinct values present in the group-by column,
+        up to a maximum number of values as specified by the configuration of the node. Values are
+        extracted from individual collection column values or string columns.
+        This node has two output ports: 
+        <ol>
+        <li>the first with the counts in each pie of the venn diagram</li>
+        <li>the second with the values in each category</li>
+        </ol>
+        This node calculates in terms of set semantics (multiple occurences of a given value count as one).
+        <p>
+        More details about venn analyses can be found at <a href="http://en.wikipedia.org/wiki/Venn_diagram">wikipedia</a>.
+        Although the node does not currently visualise the venn dataset, enough begs to the author may change that <tt>;-)</tt>.
+        </p>
+        </intro>
+        
+        <option name="Group by">The column which contains the names for each pie</option>
+        <option name="Use at most N categories">A maximum of N pies will be computed for, if that many distinct values are
+        found in the group by column</option>
+        <option name="Value columns">you may select multiple columns (either string collection or string cell's may be chosen) for
+        construction of the venn data</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input data">Input data (must contain both value columns and group-by column)</inPort>
+
+        <outPort index="0" name="Venn counts">Counts for each portion of the venn diagram</outPort>
+       	<outPort index="1" name="Venn values">Values for each category: category names correspond to first output port</outPort>
+    </ports>    
+   
+</knimeNode>

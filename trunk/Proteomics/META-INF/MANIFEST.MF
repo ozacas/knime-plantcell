@@ -1,0 +1,22 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Proteomics
+Bundle-SymbolicName: au.edu.unimelb.plantcell.proteomics; singleton:=true
+Bundle-Version: 1.2.3
+Bundle-ClassPath: insilicodigestor.jar,
+ lib/jpl-commons-collection-1.0.jar,
+ lib/jpl-core-1.0.jar,
+ lib/jpl-io-1.0.jar,
+ lib/jpl-commons-base-1.0.jar,
+ lib/collections-generic-4.01.jar
+Bundle-Vendor: http://www.plantcell.unimelb.edu.au/bioinformatics
+Require-Bundle: org.eclipse.core.runtime,
+ org.knime.workbench.core,
+ org.knime.workbench.repository,
+ org.knime.base,
+ au.edu.unimelb.plantcell.core;bundle-version="1.0.8",
+ org.apache.xerces;bundle-version="2.9.0"
+Bundle-ActivationPolicy: lazy
+Export-Package: au.edu.unimelb.plantcell.proteomics.digestion
+Import-Package: org.apache.commons.logging
+

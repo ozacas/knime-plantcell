@@ -1,0 +1,249 @@
+<?xml version="1.0"?>
+<wsdl:definitions 
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+ xmlns:tns="http://www.cbs.dtu.dk/ws/WSNetPhos_3_1b_ws1" 
+ xmlns:common="http://www.cbs.dtu.dk/ws/ws-common" 
+ xmlns:netphos="http://www.cbs.dtu.dk/ws/ws-netphos" 
+ xmlns:soapenv="http://schemas.xmlsoap.org/wsdl/soap/" 
+ xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" 
+ xmlns="http://schemas.xmlsoap.org/wsdl/" 
+ targetNamespace="http://www.cbs.dtu.dk/ws/WSNetPhos_3_1b_ws1">
+	<wsdl:types>
+		<xsd:schema targetNamespace="http://www.cbs.dtu.dk/ws/WSNetPhos_3_1b_ws1">
+			<!-- XSD -->
+			<xsd:import 
+			 namespace="http://www.cbs.dtu.dk/ws/ws-common" 
+			 schemaLocation="ws_common_1_0b.xsd"
+			 />
+			<!-- XSD -->
+			<xsd:import 
+			 namespace="http://www.cbs.dtu.dk/ws/ws-netphos" 
+			 schemaLocation="ws_netphos_3_1_ws1.xsd"
+			/>
+		</xsd:schema>
+		<schema targetNamespace="http://www.cbs.dtu.dk/ws/WSNetPhos_3_1b_ws1" 
+		 xmlns="http://www.w3.org/2001/XMLSchema" 
+		 xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" 
+		 xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/">
+			<xsd:element name="runService" type="netphos:runService"/>
+			<xsd:element name="runServiceResponse" type="common:runServiceResponse"/>
+			<xsd:element name="fetchResult" type="common:fetchResult"/>
+			<xsd:element name="fetchResultResponse" type="netphos:fetchResultResponse"/>
+			<xsd:element name="pollQueue" type="common:pollQueue"/>
+			<xsd:element name="pollQueueResponse" type="common:pollQueueResponse"/>
+		</schema>
+	</wsdl:types>
+
+	<!-- ==================================================================== -->
+
+	<message name="runServiceRequest">
+		<part name="parameters" element="tns:runService"/>
+	</message>
+	<message name="runServiceResponse">
+		<part name="parameters" element="tns:runServiceResponse"/>
+	</message>
+
+	<message name="fetchResultRequest">
+		<part name="parameters" element="tns:fetchResult"/>
+	</message>
+	<message name="fetchResultResponse">
+		<part name="parameters" element="tns:fetchResultResponse"/>
+	</message>
+
+	<message name="pollQueueRequest">
+		<part name="job" element="tns:pollQueue"/>
+	</message>
+	<message name="pollQueueResponse">
+		<part name="queueentry" element="tns:pollQueueResponse"/>
+	</message>
+
+	<!-- ==================================================================== -->
+
+	<portType name="WSNetPhos_3_1b_ws1">
+		<operation name="runService">
+			<input name="runServiceRequest" message="tns:runServiceRequest"/>
+			<output name="runServiceResponse" message="tns:runServiceResponse"/>
+		</operation>
+		<operation name="pollQueue">
+			<input name="pollQueueRequest" message="tns:pollQueueRequest"/>
+			<output name="pollQueueResponse" message="tns:pollQueueResponse"/>
+		</operation>
+		<operation name="fetchResult">
+			<input name="fetchResultRequest" message="tns:fetchResultRequest"/>
+			<output name="fetchResultResponse" message="tns:fetchResultResponse"/>
+		</operation>
+	</portType>
+
+	<!-- ==================================================================== -->
+
+	<binding name="WSNetPhos_3_1b_ws1" type="tns:WSNetPhos_3_1b_ws1">
+		<soapenv:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<operation name="pollQueue">
+			<soapenv:operation soapAction="http://www.cbs.dtu.dk/ws/WSNetPhos_3_1b_ws1#pollQueue"/>
+			<input>
+				<soapenv:body use="literal" namespace="http://www.cbs.dtu.dk/ws/WSNetPhos_3_1b_ws1"/>
+			</input>
+			<output>
+				<soapenv:body use="literal" namespace="http://www.cbs.dtu.dk/ws/WSNetPhos_3_1b_ws1"/>
+			</output>
+		</operation>
+		<operation name="runService">
+			<soapenv:operation soapAction="http://www.cbs.dtu.dk/ws/WSNetPhos_3_1b_ws1#runService"/>
+			<input>
+				<soapenv:body use="literal" namespace="http://www.cbs.dtu.dk/ws/WSNetPhos_3_1b_ws1"/>
+			</input>
+			<output>
+				<soapenv:body use="literal" namespace="http://www.cbs.dtu.dk/ws/WSNetPhos_3_1b_ws1"/>
+			</output>
+		</operation>
+		<operation name="fetchResult">
+			<soapenv:operation soapAction="http://www.cbs.dtu.dk/ws/WSNetPhos_3_1b_ws1#fetchResult"/>
+			<input>
+				<soapenv:body use="literal" namespace="http://www.cbs.dtu.dk/ws/WSNetPhos_3_1b_ws1"/>
+			</input>
+			<output>
+				<soapenv:body use="literal" namespace="http://www.cbs.dtu.dk/ws/WSNetPhos_3_1b_ws1"/>
+			</output>
+		</operation>
+	</binding>
+	
+       	<!-- ==================================================================== -->
+
+	<service name="WSNetPhos_3_1b_ws1">
+		<documentation>
+		
+		INTRODUCTION
+		This Web Service implements NetPhos v. 3.1b.ws0. It predicts serine, threonine
+		and tyrosine phosphorylation sites in eukaryotic proteins using ensembles
+		of neural networks. Both generic and kinase specific predictions are
+		performed. The method is described in detail in the following articles.
+
+		Generic predictions:
+
+		"Sequence and structure-based prediction of eukaryotic protein
+		phosphorylation sites".
+		Blom N, Gammeltoft S, Brunak S (1999). 
+		J Mol Biol. 1999 Dec 17;294(5):1351-62.
+
+		Kinase specific predictions:
+
+		"Prediction of post-translational glycosylation and phosphorylation
+		of proteins from the amino acid sequence".
+		Blom N, Sicheritz-Ponten T, Gupta R, Gammeltoft S, Brunak S (2004).  
+		Proteomics. 2004 4(6):1633-49. Review.
+
+		Alongside this Web Service the NetPhos method is also implemented as
+		two traditional paste-and-click WWW servers at:
+		    http://www.cbs.dtu.dk/services/NetPhos/  (generic predictions)
+		    http://www.cbs.dtu.dk/services/NetPhosK/ (kinase specific predictions)
+
+		The traditional servers offer more detailed output (graphics), extended
+		functionality  and comprehensive documentation. They are suitable for
+		close investigation of few proteins; this service is recommended for high
+		throughput projects.
+
+		NetPhos is also available as a stand-alone software package to install
+		and run at the user's site, with the same functionality. For academic
+		users there is a download page at:
+
+		    http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netphos
+
+		Other users are requested to write to software@cbs.dtu.dk for details.
+
+
+		WEB SERVICE OPERATION
+
+      		This Web Service is fully asynchronous; the usage is split into the
+		following three operations:
+
+		1. runService    
+
+		   Input:  The following parameters and data
+         
+		        *  'ser'               Predict only on the S (serine) residues
+					      (no value, just presence/absence);
+				 OR
+			*  'thr'               Predict  only on the T (threonine) residues
+			                        (no value, just presence/absence);
+				 OR
+																			
+			*  'tyr'               Predict  only on the Y (tyrosine) residues
+			                       (no value, just presence/absence);
+																				
+																																						
+			*  'genericPred'       Run  generic predictions only, as in NetPhos 2.0
+			                        (no value, just presence/absence). 
+						Information on the NetPhos-2.0 can be found at:
+				                http://www.cbs.dtu.dk/services/NetPhos-2.0/
+																				
+			*  'bestScore'         Report only the best (highest) score for each residue
+			                        (no value, just presence/absence);
+																				
+			*  'kinaseSpec'        Run  kinase specific predictions only, as in NetPhosK 1.0
+			                       (no value, just presence/absence). 
+						Information on the NetPhosK 1.0 can be found at: 
+						http://www.cbs.dtu.dk/services/NetPhosK-1.0/
+																				
+			*  'cutoff'            Report only the scores higher than cutoff. 
+			                       Choosing 0.5 implies reporting only the predicted sites.
+				
+																				
+			*  'sequencedata'      mulitple elements of type 'sequence':
+                    	   *  'sequence'         answers to one sequence:
+                       		 *  'id'              unique identifier for the sequence;
+                      		 *  'comment'         optional comment;
+                      		 *  'seq'             protein sequence. The sequence must be written 
+                                            	      using the one letter amino acid code:
+                                            	      `acdefghiklmnpqrstvwy' or `ACDEFGHIKLMNPQRSTVWY'.
+                                            	      Other letters will be converted to `X' and treated
+                                            	      as unknown amino acids. Other symbols, 
+                                            	      such as whitespace and numbers, will be ignored.
+
+
+	            Output: Unique job identifier
+
+		2. pollQueue
+
+		    Input:  Unique job identifier
+
+		    Output: 'jobstatus' - the status of the job
+			     Possible values are QUEUED, ACTIVE, FINISHED, WAITING,
+			     REJECTED, UNKNOWN JOBID or QUEUE DOWN
+
+		3. fetchResult
+
+		    Input:  Unique job identifier of a FINISHED job
+
+		    Output: *  'annsource'
+                       'method'       name of the method, here always 'NetPhos';
+                       'version'      version of the method: here always '3.1b ws0';
+
+                       'ann'          annotations - one element per input sequence;
+                       	'sequence'     standard sequence object;
+                         'id'          sequence identifier;
+                       'annrecords/annrecord'
+                         'feature'     active kinase ('unsp' for generic predictions);
+                         'pos'         always present, indicates the position of the residue in the sequence; 
+                         'score'
+                           'key'       score key name, here always 'main', indicating the main prediction score;
+                           'value'     prediction score value, if higher than 0.5 the residue
+			               is a predicted phosphorylation site, the higher
+			               the score the more secure the prediction;
+                         'comment'     appears only when the score is higher than 0.5, contains the word 'YES'.
+				 
+				 
+		CONTACT
+
+		Questions concerning the scientific aspects of the NetPhos method should
+		go to Thomas Sicheritz, thomas@cbs.dtu.dk; technical questions concerning
+		the Web Service should go to Karunakar Bayyapu, karun@cbs.dtu.dk or
+		Kristoffer Rapacki, rapacki@cbs.dtu.dk.
+		
+	   </documentation>
+	
+     <port name="WSNetPhos_3_1b_ws1" binding="tns:WSNetPhos_3_1b_ws1">
+	<soapenv:address location="http://wss.cbs.dtu.dk:80/cgi-bin/soap/ws/quasi.fcgi"/>
+     </port>
+   </service>
+
+</wsdl:definitions>

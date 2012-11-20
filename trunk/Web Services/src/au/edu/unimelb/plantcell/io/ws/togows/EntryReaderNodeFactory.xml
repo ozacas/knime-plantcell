@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>TogoWS: Entry Reader</name>
+    
+    <shortDescription>
+        Provides access to the TogoWS entry REST service
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+            <p>
+            In essence, this provides access to most of the databases in widespread use today, including:
+            uniprot, kegg, ncbi, ebi and other data sources. This node requires the user to
+            select the available database (over ninety databases are currently available) and
+            the search terms. The results are each hit ID (eg. accession) from the chosen database with
+            can subsequently be downloaded by the <b>TogoWS: Entry Reader</b> node.
+            </p>
+            
+            <p>
+            <b>WARNING:</b> the node gets data over the Internet and makes your search term
+            public - be careful with the data you make available!
+            
+            Provides access to the TogoWS databases using the REST and SOAP API's as described
+            in the following publication:
+            </p>
+            
+            <p>
+            	Toshiaki Katayama, Mitsuteru Nakao, and Toshihisa Takagi
+				<i>TogoWS: integrated SOAP and REST APIs for interoperable bioinformatics Web services</i> Nucl. Acids Res. (2010) 38(suppl 2): W706-W711 first published online May 14, 2010 doi:10.1093/nar/gkq386 
+            </p>
+            
+           
+        </intro>
+ 	</fullDescription>
+    
+    <ports>
+	   <inPort  index="0" name="Input data">One column is used to provide the IDs for the entry</inPort>
+
+       <outPort index="0" name="Results">Matching database entries for the user-supplied terms</outPort>
+    </ports>    
+   
+</knimeNode>

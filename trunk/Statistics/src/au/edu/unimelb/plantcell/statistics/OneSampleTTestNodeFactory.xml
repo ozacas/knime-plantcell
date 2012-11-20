@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./one-sample-ttest.png" type="Manipulator">
+    <name>One sample T-Test</name>
+    
+    <shortDescription>
+        Basic one sample Students t-test
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+        Computes one sample t-test statistics for the chosen significance level the chosen samples
+        (ie. columns) as specified in the node configuration. Reported P-Values
+        are for two-sided tests, Boolean true/false values are based on a two-sided null hypothesis.
+        </intro>
+        
+        
+        <option name="Alpha (significance level)">What significance level for testing the null hypothesis (that all
+        samples are from the same population). Default is 0.05, must be in the range [0,1]</option>
+      
+        <option name="Columns containing samples">Data for each sample must be arranged 
+        in columns, select the columns here. At least two must be chosen.</option>
+             
+        <option name="mu">Specify the mean to compare to the chosen columns</option>
+       
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input data">Input data with independent samples for analysis</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="One sample t-test results">t-statistics and p-value for every chosen sample</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+  
+</knimeNode>

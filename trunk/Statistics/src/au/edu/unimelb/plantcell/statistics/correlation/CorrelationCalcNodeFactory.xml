@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>Correlation Calculator</name>
+    
+    <shortDescription>
+        Unlike the builtin knime node, this can perform large scale correlations by not storing the results into a matrix. I use it for AffyMetrix 21k gene correlations
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>Performs correlation analysis from the first input port, using the list of Row IDs (second input port) defining
+        the target variables of interest. Able to perform large-scale correlations as the entire matrix is not stored in memory.
+        Two separate algorithms: linear (Pearson correlation) and rank (Spearman's correlation) are available.        
+        
+        <p>
+        If the second input port is empty, then all target variables (ie. numeric columns) in the first input port are assumed
+        to be the set of target variables. If the second input is not empty, the RowID's must contain the target variables of
+        interest: that is, the column names of variables which you want reported. For example, if the input ports are (in order):
+        </p>
+      
+        <table>
+        	<tr><th>Row ID</th><th>Sample1</th><th>Sample2</th><th>Sample3</th></tr>
+        	<tr><td>Timepoint 1</td><td>5.0</td><td>10.0</td><td>7.0</td></tr>
+        	<tr><td>Timepoint 2</td><td>2.0</td><td>7.0</td><td>9.0</td></tr>
+        	<tr><td>Timepoint 3</td><td>0.01</td><td>4.0</td><td>17.0</td></tr>
+        	<tr><td>Timepoint 4</td><td>3.0</td><td>2.0</td><td>71.0</td></tr>
+        </table>
+        
+        <table>
+        	<tr><th>Row ID</th></tr>
+        	<tr><td>Sample1</td></tr>
+        	<tr><td>Sample2</td></tr>
+        </table>
+        
+        <p>
+        This will cause the node to report any correlation involving <i>Sample1 or Sample2</i> which is
+        above the chosen threshold (either positive or negative correlation). Sample3 will only
+        be reported if it correlates with either Sample1 or Sample2.
+        </p>
+        
+        <p>
+        	<b>Note: </b> this implementation uses Apache Commons Math v3 to perform the correlation. Caveats apply:
+        	<a href="http://commons.apache.org/math/apidocs/org/apache/commons/math3/stat/correlation/package-summary.html">see this webpage</a> for more information.
+        </p>
+        </intro>
+        
+        
+        <option name="Method">Which correlation method to use:
+        <ul>
+        	<li>Linear (Pearson) product moment correlation coefficient</li>
+        	<li>Spearman rank correlation</li>
+        </ul>
+        </option>
+        
+        <option name="Minimum magnitude to report">Specify the magnitude of the correlation required
+        to be reported eg. 0.5 will report all correlations between [-1,-0.5] and [0.5,1]
+        and silently ignore all others. Outliers are only reported for the chosen magnitude as well.</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Data to be correlated">Each target variable (column) with datapoints (rows) to be correlated</inPort>
+        <inPort index="1" name="Target variable RowIDs">RowIDs to identify variables for correlation</inPort>
+
+		<outPort index="0" name="Output correlations">Contains variables, correlation value, 95%CI and significance test of the correlation</outPort>
+		<outPort index="1" name="Grubb outliers">As Pearson correlation can be sensitive to outliers, we report the results of Grubb outlier tests for each correlation pair with at least one outlier</outPort>
+    </ports>    
+    
+</knimeNode>

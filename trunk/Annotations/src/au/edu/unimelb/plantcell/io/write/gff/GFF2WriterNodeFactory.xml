@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Sink">
+    <name>GFFv2 Writer</name>
+    
+    <shortDescription>
+        Writes a GFF (version 2) compatible file from a user-specified track
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>Saves a GFF (version 2) file from a user-specified track. For details about
+        this format consult <a href="http://www.sanger.ac.uk/resources/software/gff/spec.html">the Sanger website</a>.
+        This node will automatically convert incompatible data to a suitable GFF form, even if
+        it is slightly changed from the KNIME data.</intro>
+        
+        
+        <option name="Filename">Where to save the data to</option>
+        <option name="Sequence">Which column to use for the sequence data</option>
+        <option name="Track to save">Features are extracted from the specified track. For now, only a single
+        track may be saved, although this may change in future</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Annotated sequences">Annotated sequences with a track to save in GFF v3 format</inPort>
+        <!-- possibly more input ports here-->
+    </ports>    
+ 
+</knimeNode>

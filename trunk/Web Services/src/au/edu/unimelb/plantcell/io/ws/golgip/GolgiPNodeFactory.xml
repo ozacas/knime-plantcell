@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>GolgiP Accessor</name>
+    
+    <shortDescription>
+        Provides access to the GolgiP web server using klunky CGI-access
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+            <p>
+		Provides access to the GolgiP server, <a href="http://csbl1.bmb.uga.edu/GolgiP/">http://csbl1.bmb.uga.edu/GolgiP/</a> from
+		within KNIME, to provide subcellular localisation clues for
+		possible Golgi-related proteins within the cell. Requires
+	    a column of protein sequences to predict on. GolgiP is published work:
+            </p>
+                 
+            <p>
+Bioinformatics. 2010 October 1; 26(19): 2464–2465.
+Published online 2010 August 23. doi:  10.1093/bioinformatics/btq446
+	
+<i>GolgiP: prediction of Golgi-resident proteins in plants</i>
+Wen-Chi Chou Yanbin Yin and Ying Xu*
+Associate Editor: Burkhard Rost
+Received May 12, 2010; Revised July 16, 2010; Accepted July 31, 2010.
+            </p>
+            
+            <p>
+            <b>WARNING:</b> the node gets data over the Internet and this makes 
+		your search data public - be careful with the data you give to this node.
+            </p>
+            
+            <p>
+            <b>WARNING:</b> this node uses <a href="http://en.wikipedia.org/wiki/Screenscraping">screen scraping (actually web scraping)</a> to
+            obtain the data. If the GolgiP website is changed, the node might produce incorrect results. Caveat emptor!
+            </p>
+    
+        </intro>
+ 	</fullDescription>
+    
+    <ports>
+	   <inPort  index="0" name="Input data">One column is used to provide the protein sequences to predict on</inPort>
+
+       <outPort index="1" name="Protein prediction results">For each sequence, the golgi localisation is predicted as computed by the remote server. This node
+       does not add a graphical track to the sequence data</outPort>
+	<outPort index="0" name="Conserved domain results">Any predicted conserved domains for the input sequences are also reported</outPort>
+    </ports>    
+   
+</knimeNode>

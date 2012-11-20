@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="default.png" type="Visualizer">
+    <name>NMF Consensus</name>
+    
+    <shortDescription>
+        Executes an NMF algorithm to produce a consensus cluster of the user-supplied data matrix.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+        <p>
+ 		Produces an NMF consensus cluster from the supplied data matrix as described in:
+ 		<i>Lee, D.D and Seung, H.S. (1999), ‘Learning the parts of objects by nonnegative
+            matrix factorization’, Nature 401, 788-793.</i> as implemented by the
+        <tt>NMF Consensus</tt> GenePattern module. The module is written in R and is reportedly
+        slow, so be careful using this algorithm with more than a thousand genes - it can
+        take hours to compute!
+        </p>
+        
+        <p><b>WARNING:</b> by using this node you are making your dataset available to the Internet,
+        and trusting that the downloaded heatmap software does no harm to your computer. You
+        should only use approved genepattern servers as your organisation.You should only download
+        from servers you trust!</p>
+        
+        <p>
+        Once the 5MB of software has downloaded, a heatmap of the supplied numeric matrix
+        is presented. This node expects the Row ID's to contain the row (gene) names, 
+        the column names are used for the samples. Additionally, a column may be specified
+        with descriptions of each gene (row) with user specified text. Only numeric
+        columns are selected will display in the matrix.
+        </p>
+        </intro>
+        
+        
+        <option name="GenePattern Server URL">eg. <a href="http://genepattern.broadinstitute.org/gp">GenePattern public server</a></option>
+        <option name="Username">Username (or email address) for authentication. May be blank</option>
+        <option name="Password">Password to authenticate to the server.</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Matrix to display">Numeric matrix to cluster using NMF</inPort>
+    </ports>    
+    
+    <views>
+        <view index="0" name="Output files">Output clustered datasets and graphics</view>
+    </views>
+</knimeNode>

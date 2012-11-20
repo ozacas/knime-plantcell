@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>TargetP@Nectar</name>
+    
+    <shortDescription>
+        Integrates the CBS TargetP web service into KNIME providing subcellular location predictions of given protein sequences
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>This web service node provides access to CBS (<a href="http://www.cbs.dtu.dk/index.shtml">Centre for Biological Sequence Analysis</a>) TargetP from within KNIME
+        on the <a href="http://www.nectar.org.au">Nectar research cloud</a>. For a good
+        description of this system, refer to:
+        
+        <p>
+        <i>Locating proteins in the cell using TargetP, SignalP, and related tools</i>.
+        Olof Emanuelsson, Søren Brunak, Gunnar von Heijne, Henrik Nielsen Nature Protocols 2, 953-971 (2007).</p>
+        
+        <p>
+        <b>Note:</b> Access to this server is restricted to the <a href="http://www.plantcell.unimelb.edu.au">University of Melbourne</a> researchers and collaborators.
+        </p>
+        
+        <p>
+        <b>Warning:</b> Input sequences should contain the 130 N-terminal residues, partial
+        protein sequence is unlikely to provide a meaningful prediction: the location assignment is based on the predicted presence of any of the N-terminal 
+        presequences: chloroplast transit peptide (cTP), mitochondrial targeting peptide (mTP) or secretory pathway signal peptide (SP). </p>
+        
+        <p>
+        <b>Warning</b>: the scores are <i>not</i> probabilities and do not usually add to one. The lower
+        the RC number (1-5: one being best), the more reliable the prediction (usually).
+        </p>
+        </intro>
+        
+        
+        <option name="Protein Sequence">The column which specifies the protein sequence data to send to CBS</option>
+        <option name="Organism">Key parameter to set correctly, based on origin of proteins presented</option>
+        <option name="cutoff scores?">Specifies four values below which result scores should not be used for a prediction. See the TargetP
+        website for the 90% or 95% specificity cutoff scores</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input sequences">Input data include protein sequences to be searched</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="Input data and predictions">Key scores and prediction for each sequence</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+  
+</knimeNode>

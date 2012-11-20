@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>SignalP@Nectar</name>
+    
+    <shortDescription>
+        Provides a KNIME interface to signal peptide predictions via CBS' signalP algorithms
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+        <p>
+        Uses a local server in the Nectar Research cloud to provide much improved throughput compared to the 
+        <a href="http://www.cbs.dtu.dk/ws/ws.php?entry=SignalP">CBS server in Denmark</a>. 
+        This server provides access to v4.0e of SignalP. This provides two algorithms:
+        <ul>
+        	<li>Best: an algorithm which tries to distinguish between transmembrane helices
+        	and signal peptides</li>
+        	<li>no-TM: backward-compatible algorithm with SignalP v3</li>
+        </ul>
+        </p>
+        
+        <p>
+        <b>Note: </b> this node is only workable for University of Melbourne staff/students and collaborators as it
+        uses a server only accessible from on-campus.
+        </p>
+        
+        <p>This algorithm is extensively published and users are <b>strongly recommended</b> to
+        read the publications to get the best from the node:</p>
+        
+        <table>
+        	<tr><td>Ver. 4.0</td>
+        	<td>"SignalP 4.0 - Discrimination between Signal Peptides and Transmembrane Regions"
+       			Thomas  Nordahl  Petersen,  Søren  Brunak, Gunnar von Heijne and Henrik Nielsen. Under review.
+       		</td></tr>
+       		
+       		<tr><td>Ver. 3.0</td>
+       		<td>"Improved prediction of signal peptides - SignalP 3.0" Jannick  Dyrloev
+       Bendtsen,  Henrik  Nielsen,  Gunnar  von  Heijne  (*) and Soren Brunak.
+       Journal of Molecular Biology: accepted 2004.</td></tr>
+       
+      		<tr><td>Ver. 2.0</td>
+       		<td>"Prediction of signal peptides and signal anchors by  a  hidden  Markov
+       model",  Henrik  Nielsen  and Anders Krogh In: Proceedings of the Sixth
+       International Conference on Intelligent Systems for  Molecular  Biology
+       (ISMB 6), AAAI Press, Menlo Park, California, pages 122-130, 1998.</td></tr>
+       
+       		<tr><td>Ver. 1.1 (original paper)</td>
+       		<td> "Identification  of prokaryotic and eukaryotic signal peptides and pre‐
+       diction of their cleavage sites", Henrik  Nielsen,  Jacob  Engelbrecht,
+       Soren  Brunak  and  Gunnar von Heijne (*) Protein Engineering, vol. 10,
+       pages 1-6, 1997.</td>
+       		</tr>
+        </table>
+       
+        </intro>
+        
+        <option name="Protein sequences from">the input must column a protein sequence column (eg. as created by the FASTA Reader), choose the column here</option>
+   		<option name="Organism type">Select from eukaryotic (eg. human, plant, animal) or gram+ or gram- (prokaryotic)</option>
+   		<option name="SignalP algorithm">Choose from the best (v4) or no-TM (SignalP v3 compatible) algorithm. In some
+   		cases you may wish to try both to verify the stability of the prediction</option>
+   		<option name="Analyse ... N-terminal residues">How many N-terminal residues to examine for a signal peptide (default 70)</option>
+   		<option name="TM Cutoff">Score cutoff for TM network prediction. See the SignalP paper for details
+   		on how to set this. Similarly, no-TM cutoff.</option>
+   		<option name="Endpoint Address">Reserved for future use</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Protein Sequences">Input table with a protein sequence column</inPort>
+       	
+        <outPort index="0" name="Protein summary">Predictions of phosphorylation sites from NetPhos</outPort>
+        <outPort index="1" name="Annotated Sequences">Annotated sequences including prediction sites as a track</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+ 
+</knimeNode>

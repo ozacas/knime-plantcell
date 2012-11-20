@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="default.png" type="Visualizer">
+    <name>Consensus Clustering</name>
+    
+    <shortDescription>
+      Produces a consensus heatmap and output data used to identify the stability of clusters
+      formed using a particular algorithm eg. NMF, SOM, etc.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+ 		Produces a consensus heatmap and output data used to identify the stability of clusters
+      formed using a particular algorithm eg. NMF, SOM, etc.
+        
+        <p><b>WARNING:</b> by using this node you are making your dataset available to the Internet,
+        and trusting that the downloaded SOM viewing software does no harm to your computer. You
+        should only use approved GenePattern servers as your organisation. You should only download
+        from servers you trust!</p>
+        
+        </intro>
+        
+        
+        <option name="GenePattern Server URL">eg. <a href="http://genepattern.broadinstitute.org/gp">GenePattern public server</a></option>
+        <option name="Username">Username (or email address) for authentication. May be blank</option>
+        <option name="Password">Password to authenticate to the server.</option>
+        
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input matrix">Numeric matrix to cluster (non-numeric data columns ignored)</inPort>
+    </ports>    
+    
+    <views>
+        <view index="0" name="Output files">All output files produced by the GenePattern module</view>
+    </views>
+</knimeNode>

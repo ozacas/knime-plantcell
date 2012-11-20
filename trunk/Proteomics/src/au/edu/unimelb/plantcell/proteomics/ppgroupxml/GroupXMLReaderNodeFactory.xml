@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./protein-pilot.png" type="Source">
+    <name>ProteinPilot XML Reader</name>
+    
+    <shortDescription>
+        This node reads ProteinPilot-produced XML files, produced from 
+		group2xml.exe. This program is part of AB SCIEX' ProteinPilot
+		from release version 3
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+        	This node reads ProteinPilot-produced XML files, produced from 
+			group2xml.exe. This program (group2xml.exe) is part of 
+			<a href="http://www.absciex.com/products/software/proteinpilot-software">AB SCIEX' ProteinPilot</a>
+			from release version 3.
+        </intro>
+        
+    </fullDescription>
+    
+    <ports>
+        <outPort index="0" name="Peptide identifications">Identified peptides from ProteinPilot .group file (converted to XML)</outPort>
+      
+        <outPort index="1" name="Protein inferences">Based on identified peptides, this port reports identified proteins as computed by ProteinPilot</outPort>
+        
+        <outPort index="2" name="Quantitation">Quantitation results at MS/MS spectrum level. Only iTRAQ is currently supported.</outPort>
+    </ports>    
+    
+</knimeNode>

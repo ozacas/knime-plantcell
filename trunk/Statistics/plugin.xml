@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+
+	<extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Statistics"
+            factory-class="au.edu.unimelb.plantcell.statistics.MannWhitneyUTestNodeFactory"
+            id="au.edu.unimelb.plantcell.statistics.correlation.MannWhitneyUTestNodeFactory"/>
+   </extension>
+   
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Statistics"
+            factory-class="au.edu.unimelb.plantcell.statistics.correlation.CorrelationCalcNodeFactory"
+            id="au.edu.unimelb.plantcell.statistics.correlation.CorrelationCalcNodeFactory"/>
+   </extension>
+   
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Statistics"
+            factory-class="au.edu.unimelb.plantcell.statistics.venn.VennAnalyzerNodeFactory"
+            id="au.edu.unimelb.plantcell.statistics.venn.VennAnalyzerNodeFactory"/>
+   </extension>
+   
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Statistics"
+            factory-class="au.edu.unimelb.plantcell.statistics.OneSampleTTestNodeFactory"
+            id="au.edu.unimelb.plantcell.statistics.OneSampleTTestNodeFactory"/>
+   </extension>
+   
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Statistics"
+            factory-class="au.edu.unimelb.plantcell.statistics.TwoSampleTTestNodeFactory"
+            id="au.edu.unimelb.plantcell.statistics.TwoSampleTTestNodeFactory"/>
+   </extension>
+   
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Statistics"
+            factory-class="au.edu.unimelb.plantcell.statistics.ANOVA1WayNodeFactory"
+            id="au.edu.unimelb.plantcell.statistics.ANOVA1WayNodeFactory"/>
+   </extension>
+   
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Statistics"
+            factory-class="au.edu.unimelb.plantcell.statistics.RankerNodeFactory"
+            id="au.edu.unimelb.plantcell.statistics.RankerNodeFactory"/>
+   </extension>
+   
+    <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Statistics"
+            factory-class="au.edu.unimelb.plantcell.statistics.DescriptiveStatisticsNodeFactory"
+            id="au.edu.unimelb.plantcell.statistics.DescriptiveStatisticsNodeFactory"/>
+   </extension>
+</plugin>

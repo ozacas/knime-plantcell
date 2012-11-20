@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="heatmap.png" type="Visualizer">
+    <name>Heatmap</name>
+    
+    <shortDescription>
+       Node to produce a heatmap of the supplied numeric matrix, by downloading a java
+       applet from the user-specified genepattern server. You should only download
+       from servers you trust!
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+ 		Node to produce a heatmap of the supplied numeric matrix, by downloading a java
+        applet from the user-specified genepattern server. 
+        
+        <p><b>WARNING:</b> by using this node you are making your dataset available to the Internet,
+        and trusting that the downloaded heatmap software does no harm to your computer. You
+        should only use approved genepattern servers as your organisation.You should only download
+        from servers you trust!</p>
+        
+        <p>
+        Once the 5MB of software has downloaded, a heatmap of the supplied numeric matrix
+        is presented. This node expects the Row ID's to contain the row (gene) names, 
+        the column names are used for the samples. Additionally, a column may be specified
+        with descriptions of each gene (row) with user specified text. Only numeric
+        columns are selected will display in the matrix.
+        </p>
+        </intro>
+        
+        
+        <option name="GenePattern Server URL">eg. <a href="http://genepattern.broadinstitute.org/gp">GenePattern public server</a></option>
+        <option name="Username">Username (or email address) for authentication. May be blank</option>
+        <option name="Password">Password to authenticate to the server.</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Matrix to display">Numeric matrix to plot as a heatmap (other columns ignored)</inPort>
+    </ports>    
+    
+    <views>
+        <view index="0" name="Heatmap">GenePattern heatmap display application for input data</view>
+    </views>
+</knimeNode>

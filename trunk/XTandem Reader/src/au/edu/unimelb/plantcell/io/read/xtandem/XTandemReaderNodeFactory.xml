@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Source">
+    <name>XTandem Reader</name>
+    
+    <shortDescription>
+        Uses the xtandem reader codebase, http://code.google.com/p/xtandem-parser/, to load identified spectra from XTandem and scores into KNIME.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+        Using the XTandem! Reader library:
+        <p>
+        	<i>XTandem Parser: an open-source library to parse and analyse X!Tandem MS/MS search results</i>. Muth et al: Proteomics 2010 Apr;10(7):1522-4. 
+        </p>
+        this node reads the user-specified XTandem! results files and loads them into three
+        outputs:
+        <ol>
+        	<li>Spectra level: identified spectra-level results</li>
+        	<li>Peptide level: peptides identified from spectra</li>
+        	<li>Protein level: proteins inferenced from identified peptides</li>
+        </ol>
+        </intro>
+        
+        
+        <option name="XTandem result files">Enter the list of XTandem! search result files to load</option>
+    </fullDescription>
+    
+    <ports>
+        <outPort index="0" name="Spectra results">Results from identified spectra</outPort>
+        <outPort index="1" name="Peptide results">Peptide-spectra match results</outPort>
+        <outPort index="2" name="Protein results">Proteins inferenced from identified peptides (by XTandem!)</outPort>
+    </ports>    
+   
+</knimeNode>

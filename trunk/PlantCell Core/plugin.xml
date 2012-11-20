@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+
+  	<extension point="org.knime.workbench.repository.categories">
+  		
+   		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
+   		          icon="icons/default.png"
+   		          level-id="Bioinformatics"
+   		          name="Bioinformatics"
+   		          path="/" />
+   		          
+   	    <category
+           after="Write"
+           description="Nodes written by http://www.plantcell.unimelb.edu.au"
+           icon="icons/default.png"
+           level-id="Under Development"
+           name="Under Development"
+           path="/Bioinformatics"/>
+           
+   		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
+   				  icon="icons/default.png"
+   				  level-id="Web Services"
+   				  name="Web Services"
+   				  path="/Bioinformatics" />
+   		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
+   				  icon="icons/default.png"
+   				  level-id="TogoWS"
+   				  name="TogoWS"
+   				  path="/Bioinformatics/Web Services" />
+   		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
+   				  icon="icons/default.png"
+   				  level-id="Ensembl"
+   				  name="Ensembl"
+   				  path="/Bioinformatics/Web Services" />
+   		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
+   				  icon="icons/nectar.png"
+   				  level-id="Nectar Cloud"
+   				  name="Nectar Cloud"
+   				  path="/Bioinformatics/Web Services" />
+   		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
+   				  icon="icons/read.png"
+   				  level-id="Read"
+   				  name="Read"
+   				  path="/Bioinformatics" />
+   		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
+   				  icon="icons/write.png"
+   				  level-id="Write"
+   				  name="Write"
+   				  path="/Bioinformatics" />
+   		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
+   				  icon="icons/default.png"
+   				  level-id="Views"
+   				  name="Views"
+   				  path="/Bioinformatics" />
+   		<category description="Nodes written to support GenePattern integration http://genepattern.broadinstitute.org"
+   				  icon="icons/genepattern.png"
+   				  level-id="GenePattern (Remote)"
+   				  name="GenePattern (Remote)"
+   				  path="/Bioinformatics" />
+   		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
+   				  icon="icons/default.png"
+   				  level-id="Mass Spectrometry"
+   				  name="Mass Spectrometry"
+   				  path="/Bioinformatics" />	 
+   		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
+   				  icon="icons/default.png"
+   				  level-id="Sequence Analysis"
+   				  name="Sequence Analysis"
+   				  path="/Bioinformatics" />
+   		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
+   				  icon="icons/default.png"
+   				  level-id="Gene Prediction"
+   				  name="Gene Prediction"
+   				  path="/Bioinformatics/Sequence Analysis" />
+   		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
+   				  icon="icons/default.png"
+   				  level-id="Annotations"
+   				  name="Annotations"
+   				  path="/Bioinformatics/Sequence Analysis" />
+   		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
+   				  icon="icons/default.png"
+   				  level-id="Phylogenetics"
+   				  name="Phylogenetics"
+   				  path="/Bioinformatics" />
+   		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
+   				  icon="icons/default.png"
+   				  level-id="Statistics"
+   				  name="Statistics"
+   				  path="/Bioinformatics" />		
+   		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
+   				  icon="icons/default.png"
+   				  level-id="Proteomics"
+   				  name="Proteomics"
+   				  path="/Bioinformatics/Mass Spectrometry" />
+   		<category description="Nodes written to support JavaProtLib http://javaprotlib.sourceforge.net/"
+   				  icon="icons/javaprotlib.png"
+   				  level-id="JavaProtLib"
+   				  name="JavaProtLib"
+   				  path="/Bioinformatics/Mass Spectrometry/Proteomics" />
+   		<category description="Nodes written to support jEMBOSS http://emboss.sourceforge.net/Jemboss/"
+   				  icon="icons/default.png"
+   				  level-id="JEmboss"
+   				  name="JEmboss"
+   				  path="/Bioinformatics/Sequence Analysis" />
+   		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
+   				  icon="icons/default.png"
+   				  level-id="Protein Inference"
+   				  name="Protein Inference"
+   				  path="/Bioinformatics/Mass Spectrometry/Proteomics" />
+   	
+           
+   		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
+   				  icon="icons/default.png"
+   				  level-id="Deprecated"
+   				  name="Deprecated"
+   				  path="/Bioinformatics/Under Development" />
+   		
+   		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
+   				  icon="icons/ncbi.png"
+   				  level-id="NCBI BLAST"
+   				  name="NCBI BLAST"
+   				  path="/Bioinformatics/Sequence Analysis" />
+   </extension>
+   
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Read"
+            factory-class="au.edu.unimelb.plantcell.io.read.fasta.FastaReaderNodeFactory"
+            id="au.edu.unimelb.plantcell.io.read.fasta"/>
+   </extension>
+   
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Write"
+            factory-class="au.edu.unimelb.plantcell.io.write.fasta.FastaWriterNodeFactory"
+            id="au.edu.unimelb.plantcell.io.write.fasta"/>
+   </extension>
+   
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Read"
+            factory-class="au.edu.unimelb.plantcell.io.read.fasta.SequenceExtractorNodeFactory"
+            id="au.edu.unimelb.plantcell.io.read.fasta.extractor"/>
+   </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="au.edu.unimelb.plantcell.core.PreferencePage"
+            id="au.edu.unimelb.plantcell.core.PreferencePage"
+            name="PlantCell Preferences">
+      </page>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="au.edu.unimelb.plantcell.core.PreferenceInitializer">
+      </initializer>
+   </extension>
+   
+</plugin>

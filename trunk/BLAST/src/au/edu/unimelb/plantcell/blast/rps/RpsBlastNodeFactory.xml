@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>Sequence RPSBLAST+ (Local)</name>
+    
+    <shortDescription>
+        Supports local execution of RPSBLAST (which must be  installed separately)
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>Supports local execution of <a href="ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/">rpsblast</a>
+        (which must be  installed separately) and direct integration of the RPSBLAST results into
+        the KNIME workflow. Query sequences are obtained from the user-specified column.
+        Similarly, the database to search is also a .loo file (as made by makeprofiledb from the NCBI BLAST+ suite).
+       
+        <p>
+         
+        <b>WARNINGS</b>: 
+        <ul>
+       		<li>this node is tested with NCBI BLAST+ v2.2.26, other versions are untested</li>
+       		<li>the node outputs string columns which must be converted to numeric columns. This
+       		ensure no error if a column has a strange value in it. Use the String to Number node for this</li>
+       		<li>RPSBLAST can use considerable memory: at least 8GB RAM and a 64-bit Operating System is recommended for the CDD database.</li>
+        </ul>
+       
+        <b>Note:</b> this node does not create a database, you must create it using <i>makeprofiledb</i>, 
+        consult the NCBI BLAST+ documentation for information about how to do this.
+        </p>
+        
+        <p>
+        This node permits rapid identification of conserved domains which may be used to
+        classify protein sequence into a family. Useful for large-scale RNA-seq experiments where
+        you want to know what has been identified where you are unable to produce a significant
+        hit via sequence similarity search.
+        </p>
+        
+        <p>
+        The configure options are not documented here, they are the same as for the
+        <b>Sequence BLAST+ (local)</b> node.</p>
+		</intro>
+        
+     </fullDescription>
+    
+    <ports>
+    	<inPort index="0" name="Input sequences">Input table with a sequence column to choose</inPort>
+        <outPort index="0" name="BLAST Results">High-Scoring Pair output with all TSV columns preserved</outPort>
+   		<outPort index="1" name="Annotated sequences">Sequence cells with annotations representing the domains identified. Only
+   		sequences with at least one domain hit are reported here.</outPort>
+    </ports>    
+   
+</knimeNode>

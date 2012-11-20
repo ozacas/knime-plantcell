@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry exported="true" kind="lib" path="lib/asm-1.5.3.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/biojava3-core-3.0.3.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/cglib-2.1_3.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/ensembl-config-1.68.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/ensembl-data-access-1.13.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/ensembl-data-access-interface-1.13.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/ensembl-datamapper-1.13-javadoc.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/ensembl-datamapper-1.13.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/ensembl-datasource-aware-model-1.13.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/ensembl-model-1.13.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/ensembl-test-1.13.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/google-collections-1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/mybatis-3.0.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/mysql-connector-java-5.1.6.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

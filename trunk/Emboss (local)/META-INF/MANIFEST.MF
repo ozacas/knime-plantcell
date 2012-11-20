@@ -1,0 +1,28 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: JEmboss nodes
+Bundle-SymbolicName: au.edu.unimelb.plantcell.io.jemboss.local;singleton:=true
+Bundle-Version: 1.2.6
+Bundle-ClassPath: jembossprocessor.jar,
+ lib/jemboss.jar,
+ lib/mime-util-2.1.3.jar,
+ lib/slf4j-nop-1.6.1.jar,
+ lib/slf4j-api-1.6.1.jar
+Bundle-Vendor: http://www.plantcell.unimelb.edu.au/bioinformatics
+Require-Bundle: org.eclipse.core.runtime,
+ org.knime.workbench.core,
+ org.knime.workbench.repository,
+ org.knime.base,
+ au.edu.unimelb.plantcell.io.ws.multialign;bundle-version="1.0.0",
+ au.edu.unimelb.plantcell.core;bundle-version="1.0.14"
+Bundle-ActivationPolicy: lazy
+Export-Package: org.slf4j,
+ org.slf4j.helpers,
+ org.slf4j.impl,
+ org.slf4j.spi
+Import-Package: org.biojava.bio,
+ org.biojava.bio.program.gff,
+ org.biojava.utils,
+ org.knime.workbench.ui,
+ pal.misc
+

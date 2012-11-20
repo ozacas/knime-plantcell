@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="au.edu.unimelb.plantcell.www"
+      label="PlantCell KNIME nodes"
+      version="1.2.11"
+      provider-name="http://www.plantcell.unimelb.edu.au/"
+      exclusive="true">
+
+   <description url="http://www.plantcell.unimelb.edu.au/bioinformatics">
+      Some general purpose nodes to help with bioinformatics problems:
+1) European Bioinformatics Institute web services (www.ebi.ac.uk)
+2) jEMBOSS integration (emboss.sourceforge.net)
+3) Proteomics &amp;amp; Mass Spectrometry
+4) Sequence Analysis
+5) Misc. string and XML nodes
+These nodes are distributed under the LGPL license, with dependencies
+being re-distributed under the  respective licenses of each package.
+See the source code distribution or the website for details.
+   </description>
+
+   <copyright url="http://www.plantcell.unimelb.edu.au/bioinformatics/copyright">
+      This software is licensed under the GNU Lesser GPL license (LGPL).
+See http://www.gnu.org/licenses/lgpl.html for details.
+The works of the respective authors eg. biojava, javaprotlib,
+jEMBOSS, GenePattern and others is subject to the license terms
+of the respective package.
+   </copyright>
+
+   <license url="http://www.gnu.org/licenses/lgpl.html">
+      This software is licensed under the GNU Lesser GPL license (LGPL).
+See http://www.gnu.org/licenses/lgpl.html for details.
+
+This extension includes the work of many third party libraries
+eg. biojava, javaprotlib, jEMBOSS, GenePattern and others. 
+
+Each is subject to the license terms of the respective software package.
+   </license>
+
+   <url>
+      <update label="PlantCell Bioinformatics - KNIME" url="http://www.plantcell.unimelb.edu.au/bioinformatics/knime/"/>
+   </url>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.algorithms.StringFinder"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.core"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.gp"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.io.jemboss.local"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.io.ntf"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.io.read.genbank"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.io.read.mascot"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.io.read.multiexcel"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.io.read.pepxml"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.io.read.spectra"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.io.read.xml"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.io.write.png"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.io.write.spectra"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.io.write.xml"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.io.ws.multialign"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.misc.biojava"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.proteomics.inference"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.proteomics.peakextractor"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.proteomics.phosphorylation"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.proteomics.proteinselector"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.proteomics.spectra.quality"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.xml.query"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.org.plantcellwalls.io.read.xtandem"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.proteomics"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.statistics"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.io.ws"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.blast"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.gene.prediction"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.annotations"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+</feature>

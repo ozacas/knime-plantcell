@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>Change Track</name>
+    
+    <shortDescription>
+        Removes or renames the selected tracks from the specified annotated sequences
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>Removes or renames the selected track from the specified annotated sequences.
+        </intro>
+        
+        <option name="Input sequence column">Column with annotated sequences to remove tracks from</option>
+        
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input table">Input table including sequences (with tracks of data)</inPort>
+        <outPort index="0" name="Output table">Same input data but with the annotated sequences tracks removed</outPort>
+        
+    </ports>    
+ 
+</knimeNode>

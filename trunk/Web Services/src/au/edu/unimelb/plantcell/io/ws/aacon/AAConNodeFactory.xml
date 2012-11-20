@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./dundee-logo.png" type="Manipulator">
+    <name>AACon Accessor</name>
+    
+    <shortDescription>
+        Provides access to the AACon service provided by JabaWS instance, somewhere on the cloud.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+            This node scores amino acid conservation for the alignments presented to the node as described in:
+            
+            <p>
+            Valdar, W. S.J. (2002), <i>Scoring residue conservation</i>.
+            Proteins, 48: 227–241. <a href="http://onlinelibrary.wiley.com/doi/10.1002/prot.10146/full">doi: 10.1002/prot.10146</a>
+            </p>
+            
+            <p>
+            <b>WARNING</b>: this node puts your sequence data on the Internet, it is up to you to determine whether this is acceptable.
+            </p>
+            
+            <p>
+            The user must specify where the jabaws server is located, more details on this server can be found at <a
+            href="http://www.compbio.dundee.ac.uk/jabaws/">the Barton Group at Dundee University</a>. They provide a publically
+            available server: <tt>http://www.compbio.dundee.ac.uk:80/jabaws</tt> if you dont have your own, use that.
+            </p>
+        </intro>
+ 	</fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input sequence data">Provides the alignment column which is to be analyzed</inPort>
+       
+        <outPort index="0" name="Results">Results from AACon for each alignment at input</outPort>
+    </ports>    
+   
+</knimeNode>

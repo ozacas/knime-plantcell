@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="som.png" type="Visualizer">
+    <name>SOM Clustering</name>
+    
+    <shortDescription>
+       Clusters the supplied data matrix using the SOM clustering module builtin to
+       GenePattern.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+ 		Clusters the supplied data matrix using the SOM clustering module builtin to
+        GenePattern.
+        
+        <p><b>WARNING:</b> by using this node you are making your dataset available to the Internet,
+        and trusting that the downloaded SOM viewing software does no harm to your computer. You
+        should only use approved GenePattern servers as your organisation. You should only download
+        from servers you trust!</p>
+        
+        </intro>
+        
+        
+        <option name="GenePattern Server URL">eg. <a href="http://genepattern.broadinstitute.org/gp">GenePattern public server</a></option>
+        <option name="Username">Username (or email address) for authentication. May be blank</option>
+        <option name="Password">Password to authenticate to the server.</option>
+        
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input matrix">Numeric matrix to cluster (non-numeric data columns ignored)</inPort>
+   		<outPort index="0" name="Output clustered matrix">Output matrix and cluster data</outPort>
+    </ports>    
+    
+    <views>
+        <view index="0" name="Output files">Output files computed by SOM module</view>
+  
+        <view index="1" name="SOM Cluster">Visual representation of SOM clustering as provided by GenePattern</view>
+    </views>
+</knimeNode>

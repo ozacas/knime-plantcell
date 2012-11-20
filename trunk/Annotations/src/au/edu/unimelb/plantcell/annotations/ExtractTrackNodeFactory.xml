@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./track-filter.png" type="Manipulator">
+    <name>Track 2 Columns (deprecated)</name>
+    
+    <shortDescription>
+       Extracts data from a chosen track (or summary annotation) for further analysis as columns
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+        Extracts data from a track of your choice (or comment) from a sequence as columns. This
+        node permits non-track aware sequence nodes to process data.
+        
+        <p><b>THIS NODE IS NO LONGER USED:</b> it has been replaced by the more capable String2Columns node instead.</p>
+        </intro>
+       
+        <option name="Column to process">Select the column of sequences with at least two annotated tracks
+        (with regions) for comparison. For example, sequences annotated with TMHMM (transmembrane helix prediction)and 
+        StringFinder nodes (eg. identified peptides)can be used here. Tracks can come from many other nodes too
+        (eg. BLAST or InterPro)</option>
+        
+        <option name="Opt2">description of second option</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input table">Input table including column with two tracks of annotations</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="Hits">Outputs events between two tracks satisfying the configure settings</outPort>
+        <outPort index="1" name="Filtered and annotated sequences">Contains those annotated sequences 
+        which pass the filter and includes the hits as an additional track for further analysis.
+        </outPort>
+       
+    </ports>    
+ 
+</knimeNode>

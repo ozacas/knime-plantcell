@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+   
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Sequence Analysis/NCBI BLAST"
+            factory-class="au.edu.unimelb.plantcell.blast.BLASTPlusNodeFactory"
+            id="au.edu.unimelb.plantcell.blast.BLASTPlusNodeFactory"/>
+   </extension>
+   
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Sequence Analysis/NCBI BLAST"
+            factory-class="au.edu.unimelb.plantcell.blast.SequenceBLASTNodeFactory"
+            id="au.edu.unimelb.plantcell.blast.SequenceBLASTNodeFactory"/>
+   </extension>
+   
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Sequence Analysis/NCBI BLAST"
+            factory-class="au.edu.unimelb.plantcell.blast.rps.RpsBlastNodeFactory"
+            id="au.edu.unimelb.plantcell.blast.rps.RpsBlastNodeFactory"/>
+   </extension>
+   
+</plugin>

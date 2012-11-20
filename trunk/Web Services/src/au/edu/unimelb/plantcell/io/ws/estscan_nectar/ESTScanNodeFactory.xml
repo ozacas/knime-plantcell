@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>ESTScan@Nectar</name>
+    
+    <shortDescription>
+        Provides a KNIME interface to the ESTScan program, estscan.sourceforge.net as an attempt
+        to identify possible coding sequences for further analysis.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+        <p>
+        Provides access to <a href="http://estscan.sourceforge.net">ESTScan</a> program (version 3.0.3)
+        within KNIME. This node can be used to identify coding sequences with high-specificity and sensitivity. This node submits batches of up to 100 sequences at a time, so can be used to
+        scan large sequencing datasets if desired. It is <b>strongly</b> recommended to read the 
+        documentation for ESTScan: in particular, the performance may be poor if an unsuitable model is used.
+        </p>
+        
+        <p>
+        <b>Note: </b> this node is only workable for University of Melbourne staff/students and collaborators as it
+        uses a server only accessible from on-campus.
+        </p>
+        </intro>
+        
+        <option name="Nucleotide sequences">Column to obtain the protein sequences from. Each output
+        sequence will have the same ID as the input sequence for each cross-comparison.</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Nucleotide Sequences">Input table must contain one Sequence
+         column with nucleotide sequences.</inPort>
+       
+        <outPort index="0" name="Nucleotide sequences">Reported nucleotide sequences</outPort>
+        <outPort index="1" name="Protein sequences">Reported protein sequences</outPort>
+    </ports>    
+ 
+</knimeNode>

@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: NCBI BLAST+ nodes
+Bundle-SymbolicName: au.edu.unimelb.plantcell.blast; singleton:=true
+Bundle-Version: 1.2.1
+Bundle-ClassPath: blastplus.jar
+Bundle-Vendor: http://www.plantcell.unimelb.edu.au/
+Require-Bundle: org.eclipse.core.runtime,
+ org.knime.workbench.core,
+ org.knime.workbench.repository,
+ org.knime.base,
+ au.edu.unimelb.plantcell.core;bundle-version="1.0.14"
+Bundle-ActivationPolicy: lazy
+Export-Package: au.edu.unimelb.plantcell.blast
+Import-Package: org.apache.commons.exec,
+ org.knime.workbench.ui
+

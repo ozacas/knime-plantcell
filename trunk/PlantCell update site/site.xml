@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <description name="Plant Cell Biology KNIME nodes" url="http://www.plantcell.unimelb.edu.au/bioinformatics/knime">
+      A set of nodes aimed at providing support for Proteomics, Phylogenetics and Cell Biology.
+      
+      An initial set of capabilities is now available, but things are rough and incomplete/buggy. This release
+      should be considered an alpha release and users are encouraged to submit bug reports
+      and make feature requests. Software patches very welcome!
+      
+      Currently the release includes integration of many other java-based projects: biojava,
+      javaprotlib, EBI web services, jEMBOSS, GLPK and many others. Without their work, this
+      release would not be possible. Please read the LICENSE and ACKNOWLEDGEMENTS files with
+      this release for more information.
+   </description>
+   <feature url="features/au.edu.unimelb.plantcell.www_1.2.11.jar" id="au.edu.unimelb.plantcell.www" version="1.2.11">
+      <category name="Cell Biology"/>
+   </feature>
+   <category-def name="Cell Biology" label="PlantCell KNIME nodes">
+      <description>
+         These nodes give basic functionality (multiple alignment, blast, sequence manipulation) to KNIME.
+      </description>
+   </category-def>
+</site>
