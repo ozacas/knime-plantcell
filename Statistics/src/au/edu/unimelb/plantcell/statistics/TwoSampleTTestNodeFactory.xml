@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>Two sample T-Test</name>
+    
+    <shortDescription>
+        Basic two sample Students t-test
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+        Computes two sample t-test statistics for the chosen significance level over pairs of samples
+        (ie. columns) for every chosen column as specified in the node configuration. Reported P-Values
+        are for two-sided tests, Boolean true/false values are based on a two-sided null hypothesis.
+       
+       <p>
+        The sample data may be paired or unpaired (the default). If paired datapoints are chosen
+        only samples with equal numbers of datapoints will be compared and reported.
+        </p>
+        </intro>
+        
+        
+        <option name="Alpha (significance level)">What significance level for testing the null hypothesis (that all
+        samples are from the same population). Default is 0.05, must be in the range [0,1]</option>
+      
+        <option name="Columns containing samples">Data for each sample must be arranged 
+        in columns, select the columns here. At least two must be chosen.</option>
+             
+        <option name="paired?">if a paired t-test should be used check this box. Sample pairs
+        not having the same number of data points will <b>not</b> be reported if this option is selected.</option>
+        
+        <option name="assume equal variance?">if the samples can be assumed to 
+        have equal <a href="http://en.wikipedia.org/wiki/Variance">statistical variance</a>, check this box</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input data">Input data with independent samples for analysis</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="Two sample t-test results">t-statistics and p-value for each pair of samples</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+  
+</knimeNode>

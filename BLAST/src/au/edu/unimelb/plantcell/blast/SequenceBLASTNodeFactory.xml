@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>Sequence BLAST+ (Local)</name>
+    
+    <shortDescription>
+        Supports local execution of NCBI BLAST+ executables (which must be  installed separately)
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>Supports local execution of <a href="ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/">NCBI BLAST+ executables</a>
+        (which must be  installed separately) and direct integration of the results into
+        the KNIME workflow. Query sequences are obtained from the user-specified column and must be of a suitable type for the BLAST program configured.
+        Similarly, the database to search is also a FASTA file (a BLAST index of the database
+        will be made automatically if it does not already exist).
+       
+        <p>
+        <b>WARNINGS</b>: 
+        	<ul>
+        		<li>this node is tested with NCBI BLAST+ v2.2.26, other versions are untested</li>
+        		<li>the node outputs string columns which must be converted to numeric columns. This
+        		ensure no error if a column has a strange value in it. Use the String to Number node for this.</li>
+        	</ul>
+        </p>
+		</intro>
+        
+        
+        <option name="Which sequences to BLAST?">Query sequences as contained within the specified column. Be <b>sure</b> to choose the right blast program for the type of sequence in the column!</option>
+        <option name="What database?">The FASTA file which contains the similar sequences of interest. A BLAST database
+        will be created automatically as required.</option>
+        <option name="Which BLAST software?">The software install location for the NCBI BLAST+ software installed on your computer. It
+        is recommended that this be version 2.26+ or later, but earlier versions may work too.</option>
+       <option name="Program">blastp for protein queries against a protein database, blastn for nucleotide queries against a nucleotide database
+        etc. More details can be found at <a href="http://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&amp;PAGE_TYPE=BlastDocs&amp;DOC_TYPE=ProgSelectionGuide">the NCBI BLAST+ help</a></option>
+     
+        <option name="E-value cutoff">The cutoff e-value where hits will be unreported. Smaller value means fewer hits, <tt>1e-5</tt> is a good start.</option>
+        <option name="Number of threads">How many CPU cores to keep busy at once: as a general rule use one less than the
+        number of cores in your computer, typically 2-4. If unsure set to 1.</option>
+        <option name="Advanced: Scoring Matrix">Score matrix to use</option>
+        <option name="Advanced: filter low complexity sequence">Ignore spurious alignments from low complexity sequence: DUST for nucleotide queries, SEG for protein.</option>
+        <option name="Advanced: additional arguments">Enter additional command line arguments for each BLAST here.</option>
+    </fullDescription>
+    
+    <ports>
+    	<inPort  index="0" name="Input sequence">Input table including a sequence column eg. from String2Sequence node</inPort>
+        <outPort index="0" name="BLAST Results">High-Scoring Pair output with all TSV columns preserved</outPort>
+        <outPort index="1" name="Annotated sequences">Sequences with BLAST hits will be output here with numerous tracks of BLAST results for further analysis.</outPort>
+    </ports>    
+   
+</knimeNode>

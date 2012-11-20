@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>Find (1 input)</name>
+    
+    <shortDescription>
+        Similar to Find (2 inputs) but this node assumes the string to be searched and the search strings are already in the same row. Each row, in other words, is an independent search. Results are specific to each row.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+        Similar to <b>Find (2 inputs)</b> node, but this node requires the string to be searched and the search strings are already in the same row. Each row, in other words, is an independent search. Results are specific to each row. The search strings must be a list or set cell (see the <b>GroupBy</b>  node for details on how to do this).
+    
+<p> 
+Please refer to the documentation for <b>Find (global)</b> for what the configure options are and for the types of results from the search which can be reported. 
+</p>
+        </intro>
+        
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input data">Data to match against and data to search for</inPort>
+        
+        <outPort index="0" name="Match Results">Results of the match, all input columns in the input data are preserved</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+ 
+</knimeNode>

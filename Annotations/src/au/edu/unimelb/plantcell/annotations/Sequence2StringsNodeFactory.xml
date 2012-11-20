@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./seq2str.png" type="Manipulator">
+    <name>Sequence to Columns</name>
+    
+    <shortDescription>
+        Extracts the user configured data from sequence cells into separate columns for
+        further analysis. See the related String2Sequence node for further information.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>Extracts the user configured data from sequence cells into separate columns for
+        further analysis. Specify only the sequence column to use and the attributes to be extracted, as described below:
+        
+        <table>
+        	<tr>
+        		<th>Data to extract</th><th>Notes</th>
+        	</tr>
+        	
+        	<tr>
+        		<td>Sequence ID</td>
+        		<td>The primary sequence ID</td>
+        	</tr>
+        	
+        	<tr>
+        		<td>Annotated Sequence</td>
+        		<td>The sequence with all tracks and annotation</td>
+        	</tr>
+        	
+        	<tr>
+        		<td>Description (primary)</td>
+        		<td>The primary textual description associated with the sequence eg. predicted protein</td>
+        	</tr>
+        	
+        	<tr>
+        		<td>Sequence (single-letter)</td>
+        		<td>A string column with single-letter residues</td>
+        	</tr>
+        	
+        	<tr>
+        		<td>Track ...</td>
+        		<td>Extract a track's data into separate columns, one row per feature. Extracting multiple
+        		tracks using one node is not recommended, as this causes a large, sparse, table as a result. Better to use
+        		multiple nodes (one per track) in this case.</td>
+        	</tr>
+        </table>
+        </intro>
+        
+        <option name="Annotated sequences">Column to obtain the data from</option>
+        <option name="Data to extract">Specify the data desired. See above table for details.</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input sequences">Data including annotated sequences</inPort>
+        
+        <outPort index="0" name="Output sequence data">Columns of data as configured</outPort>
+    </ports>    
+ 
+</knimeNode>

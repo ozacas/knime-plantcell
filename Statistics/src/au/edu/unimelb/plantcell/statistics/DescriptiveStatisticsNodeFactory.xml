@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./dstats.png" type="Manipulator">
+    <name>Descriptive Statistics</name>
+    
+    <shortDescription>
+        Computes common descriptive statistics (mean, min, max etc.) for all the chosen columns
+    </shortDescription>
+    
+    <fullDescription>
+        <intro><p>Using the <a href="">Apache Commons Math (v3)</a> library, this
+        node computes common descriptive statistics (mean, min, max etc.) for all the chosen columns.
+        Each column <b>is assumed to be an independent sample</b>. The node can scale to large datasets and large numbers of columns (samples). Missing
+        values are <b>not</b> included in the calculations. Details for each statistic are as described below:</p>
+        
+        <table>
+        	<tr><th>Statistic</th><th>Notes</th></tr>
+        	
+        	<tr><td>Minimum</td><td>eg. 3,5,6 will return 3</td></tr>
+        	<tr><td>Maximum</td><td>eg. 3,5,6 will return 6</td></tr>
+        	<tr><td>Mean</td><td>eg. 3,5,6 will return 3+5+6/3=4.666...</td></tr>
+        	<tr><td>Geometric Mean</td> <td>As described at http://en.wikipedia.org/wiki/Geometric_mean</td></tr>
+        	<tr><td>Sum</td><td>eg. 3,5,6 will be 14</td></tr>
+        	<tr><td>Variance</td><td>Computes the unbiased sample variance as described at: http://commons.apache.org/math/apidocs/org/apache/commons/math/stat/descriptive/moment/Variance.html</td></tr>
+        	<tr><td>Sum of squares</td><td>Computes the sum of each value-squared eg. 3,5,6 = 3*3 + 5*5 + 6*6 = 70</td></tr>
+        	<tr><td>Standard deviation</td><td>Computes the sample standard deviation (bias corrected) as described at http://commons.apache.org/math/apidocs/org/apache/commons/math/stat/descriptive/moment/StandardDeviation.html</td></tr>
+        	<tr><td>Standard Error (of the mean)</td><td>Computed as the standard deviation divided by the square root of N</td></tr>
+        	<tr><td>N</td><td>The number of non-missing values present in the chosen column. Also used to compute the standard
+        	error (of the mean)</td></tr>
+        	<tr><td>Kurtosis</td><td>Unbiased formula as described at: http://commons.apache.org/math/apidocs/org/apache/commons/math/stat/descriptive/moment/Kurtosis.html</td></tr>
+        	<tr><td>Skewness</td><td>Unbiased formula as described at: http://commons.apache.org/math/apidocs/org/apache/commons/math/stat/descriptive/moment/Skewness.html</td></tr>
+        </table>
+        </intro>
+        
+        
+        <option name="Columns to rank">Select the columns to compute descriptive statistics for</option>
+        
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input data">Data including at least one numeric column</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="Descriptive Statistics">Table of descriptive statistics with one row per column</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+  
+</knimeNode>

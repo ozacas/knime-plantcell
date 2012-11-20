@@ -1,0 +1,1114 @@
+/*********************************************************************
+*
+*      Copyright (C) 2002 Andrew Khan
+*
+* This library is free software; you can redistribute it and/or
+* modify it under the terms of the GNU Lesser General Public
+* License as published by the Free Software Foundation; either
+* version 2.1 of the License, or (at your option) any later version.
+*
+* This library is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* Lesser General Public License for more details.
+*
+* You should have received a copy of the GNU Lesser General Public
+* License along with this library; if not, write to the Free Software
+* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+***************************************************************************/
+
+package jxl.read.biff;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+
+import common.Assert;
+import jxl.Sheet;
+import jxl.Cell;
+import jxl.DateCell;
+import jxl.CellType;
+import jxl.LabelCell;
+import jxl.Hyperlink;
+import jxl.Range;
+import jxl.biff.IntegerHelper;
+import jxl.biff.Type;
+import jxl.biff.FormattingRecords;
+import jxl.biff.EmptyCell;
+
+/**
+ * Represents a sheet within a workbook.  Provides a handle to the individual
+ * cells, or lines of cells (grouped by Row or Column)
+ */
+public class SheetImpl implements Sheet
+{
+  /**
+   * The excel file
+   */
+  private File excelFile;
+  /**
+   * A handle to the shared string table
+   */
+  private SSTRecord sharedStrings;
+
+  /**
+   * A handle to the sheet BOF record, which indicates the stream type
+   */
+  private BOFRecord sheetBof;
+
+  /**
+   * A handle to the workbook BOF record, which indicates the stream type
+   */
+  private BOFRecord workbookBof;
+  
+  /**
+   * A handle to the formatting records
+   */
+  private FormattingRecords formattingRecords;
+
+  /**
+   * The name of this sheet
+   */
+  private String name;
+  
+  /**
+   * Flag indicating the visibility of this sheet
+   */
+  private boolean hidden;
+
+  /**
+   * The  number of rows
+   */
+  private int numRows;
+
+  /**
+   * The number of columns
+   */
+  private int numCols;
+
+  /**
+   * The cells
+   */
+  private Cell[][] cells;
+
+  /**
+   * The start position in the stream of this sheet
+   */
+  private int startPosition;
+
+  /**
+   * The list of specified (ie. non default) column widths
+   */
+  private ColumnInfoRecord[] columnInfos;
+
+  /**
+   * The array of row records
+   */
+  private RowRecord[] rowRecords;
+  
+  /**
+   * The list of non-default row properties
+   */
+  private ArrayList rowProperties;
+
+  /**
+   * An array of column info records.  They are held this way before
+   * they are transferred to the more convenient array
+   */
+  private ArrayList columnInfosArray;
+
+  /**
+   * A list of shared formula groups
+   */
+  private ArrayList sharedFormulas;
+
+  /**
+   * A list of hyperlinks on this page
+   */
+  private ArrayList hyperlinks;
+
+  /**
+   * A list of merged cells on this page
+   */
+  private MergedCellsRecord mergedCells;
+
+  /**
+   * Indicates whether the columnInfos array has been initialized
+   */
+  private boolean columnInfosInitialized;
+
+  /**
+   * Indicates whether the rowRecords array has been initialized
+   */
+  private boolean rowRecordsInitialized;
+
+  /**
+   * Indicates whether or not the dates are based around the 1904 date system
+   */
+  private boolean nineteenFour;
+
+  /**
+   * The page header
+   */
+  private HeaderRecord header;
+  /**
+   * The page footer
+   */
+  private FooterRecord footer;
+  /**
+   * The page setup record
+   */
+  private SetupRecord setup;
+
+  /**
+   * The horizontal page breaks contained on this sheet
+   */
+  private int[] rowBreaks;
+
+  /**
+   * A handle to the workbook which contains this sheet.  Some of the records
+   * need this in order to reference external sheets
+   */
+  private WorkbookParser workbook;
+
+  /**
+   * Constructor
+   * 
+   * @param fr 
+   * @param sst the shared string table
+   * @param f the excel file
+   * @param sb the bof record which indicates the start of the sheet
+   * @param wb the bof record which indicates the start of the sheet
+   * @param wp the workbook which this sheet belongs to
+   * @exception BiffException 
+   */
+  SheetImpl(File f, SSTRecord sst, FormattingRecords fr, BOFRecord sb,
+            BOFRecord wb,
+            boolean nf, WorkbookParser wp) 
+    throws BiffException
+  {
+    excelFile = f;
+    sharedStrings = sst;
+    formattingRecords = fr;
+    sheetBof = sb;
+    workbookBof = wb;
+    columnInfosArray = new ArrayList();
+    sharedFormulas = new ArrayList();
+    hyperlinks = new ArrayList();
+    rowProperties = new ArrayList(10);
+    columnInfosInitialized = false;
+    rowRecordsInitialized = false;
+    nineteenFour = nf;
+    workbook = wp;
+
+    // Mark the position in the stream, and then skip on until the end
+    startPosition = f.getPos();
+    Record r = null;
+    int bofs = 1;
+
+    while (bofs >= 1)
+    {  
+      r = f.next();
+
+      // use this form for quick performance
+      if (r.getCode() == Type.EOF.value)
+      {
+        bofs--;
+      } 
+
+      if (r.getCode() == Type.BOF.value)
+      {
+        bofs++;
+      } 
+    }
+  }
+
+  /**
+   * Returns the cell specified at this row and at this column
+   * 
+   * @param row the row number
+   * @param column the column number
+   * @return the cell at the specified co-ordinates
+   */
+  public Cell getCell(int column, int row)
+  {
+    // just in case this has been cleared, but something else holds  
+    // a reference to it
+    if (cells == null)
+    {
+      readSheet();
+    }
+
+    Cell c = cells[row][column];
+
+    if (c == null)
+    {
+      c = new EmptyCell(column, row);
+      addCell(c);
+    }
+    
+    return c;
+  }
+
+  /**
+   * Gets the cell whose contents match the string passed in.
+   * If no match is found, then null is returned.  The search is performed
+   * on a row by row basis, so the lower the row number, the more
+   * efficiently the algorithm will perform
+   *
+   * @param  contents the string to match
+   * @return the Cell whose contents match the paramter, null if not found
+   */
+  public Cell findCell(String contents)
+  {
+    Cell cell = null;
+    boolean found = false;
+    
+    for (int i = 0 ; i < getRows() && found == false; i++)
+    {
+      Cell[] row = getRow(i);
+      for (int j = 0 ; j < row.length && found == false; j++)
+      {
+        if (row[j].getContents().equals(contents))
+        {
+          cell = row[j];
+          found = true;
+        }
+      }
+    }
+
+    return cell;
+  }
+
+  /**
+   * Gets the cell whose contents match the string passed in.
+   * If no match is found, then null is returned.  The search is performed
+   * on a row by row basis, so the lower the row number, the more
+   * efficiently the algorithm will perform.  This method differs
+   * from the findCell methods in that only cells with labels are
+   * queried - all numerical cells are ignored.  This should therefore
+   * improve performance.
+   *
+   * @param  contents the string to match
+   * @return the Cell whose contents match the paramter, null if not found
+   */
+  public LabelCell findLabelCell(String contents)
+  {
+    LabelCell cell = null;
+    boolean found = false;
+    
+    for (int i = 0 ; i < getRows() && found == false; i++)
+    {
+      Cell[] row = getRow(i);
+      for (int j = 0 ; j < row.length && found == false; j++)
+      {
+        if ( ( row[j].getType() == CellType.LABEL ||
+               row[j].getType() == CellType.STRING_FORMULA) &&
+            row[j].getContents().equals(contents))
+        {
+          cell = (LabelCell) row[j];
+          found = true;
+        }
+      }
+    }
+
+    return cell;
+  }
+
+  /**
+   * Returns the number of rows in this sheet
+   * 
+   * @return the number of rows in this sheet
+   */
+  public int getRows()
+  {
+    // just in case this has been cleared, but something else holds  
+    // a reference to it
+    if (cells == null)
+    {
+      readSheet();
+    }
+
+    return numRows;
+  }
+
+  /**
+   * Returns the number of columns in this sheet
+   * 
+   * @return the number of columns in this sheet
+   */
+  public int getColumns()
+  {
+    // just in case this has been cleared, but something else holds  
+    // a reference to it
+    if (cells == null)
+    {
+      readSheet();
+    }
+
+    return numCols;
+  }
+
+  /**
+   * Gets all the cells on the specified row.  The returned array will
+   * be stripped of all trailing empty cells
+   * 
+   * @param row the rows whose cells are to be returned
+   * @return the cells on the given row
+   */
+  public Cell[] getRow(int row)
+  {
+    // just in case this has been cleared, but something else holds  
+    // a reference to it
+    if (cells == null)
+    {
+      readSheet();
+    }
+
+    // Find the last non-null cell
+    boolean found = false;
+    int col = numCols - 1;
+    while (col >= 0 && !found)
+    {
+      if (cells[row][col] != null)
+      {
+        found = true;
+      }
+      else
+      {
+        col--;
+      }
+    }
+
+    // Only create entries for non-null cells
+    Cell[] cells = new Cell[col+1];
+
+    for (int i = 0; i <= col; i++)
+    {
+      cells[i] = getCell(i, row);
+    }
+    return cells;
+  }
+
+  /**
+   * Gets all the cells on the specified column.  The returned array
+   * will be stripped of all trailing empty cells
+   * 
+   * @param col the column whose cells are to be returned
+   * @return the cells on the specified column
+   */
+  public Cell[] getColumn(int col)
+  {
+    // just in case this has been cleared, but something else holds  
+    // a reference to it
+    if (cells == null)
+    {
+      readSheet();
+    }
+
+    // Find the last non-null cell
+    boolean found = false;
+    int row = numRows - 1;
+    while (row >= 0 && !found)
+    {
+      if (cells[row][col] != null)
+      {
+        found = true;
+      }
+      else
+      {
+        row--;
+      }
+    }
+
+    // Only create entries for non-null cells
+    Cell[] cells = new Cell[row+1];
+
+    for (int i = 0; i <= row; i++)
+    {
+      cells[i] = getCell(col, i);
+    }
+    return cells;
+  }
+
+  /**
+   * Gets the name of this sheet
+   * 
+   * @return the name of the sheet
+   */
+  public String getName()
+  {
+    return name;
+  }
+
+  /**
+   * Sets the name of this sheet
+   * 
+   * @param s 
+   */
+  final void setName(String s)
+  {
+    name = s;
+  }
+
+  /**
+   * Determines whether the sheet is hidden
+   *
+   * @return whether or not the sheet is hidden
+   */
+  public boolean isHidden()
+  {
+    return hidden;
+  }
+
+  /**
+   * Gets the column info record for the specified column.  If no
+   * column is specified, null is returned
+   *
+   * @return the ColumnInfoRecord if specified, NULL otherwise
+   */
+  public ColumnInfoRecord getColumnInfo(int col)
+  {
+    if (!columnInfosInitialized)
+    {
+      // Iniitialize the array
+      Iterator i = columnInfosArray.iterator();
+      ColumnInfoRecord cir = null;
+      while (i.hasNext())
+      {
+        cir = (ColumnInfoRecord) i.next();
+
+        int startcol = Math.max(0, cir.getStartColumn());
+        int endcol = Math.min(columnInfos.length - 1, cir.getEndColumn());
+
+        for (int c = startcol; c <= endcol; c++)
+        {
+          columnInfos[c] = cir;
+        }
+      }
+
+      columnInfosInitialized = true;
+    }
+    return columnInfos[col];
+  }
+
+  /**
+   * Sets the visibility of this sheet
+   *
+   * @param h
+   */
+  final void setHidden(boolean h)
+  {
+    hidden = h;
+  }
+
+  /**
+   * Clears out the array of cells.  This is done for memory allocation
+   * reasons when reading very large sheets
+   */
+  final void clear()
+  {
+    cells = null;
+    mergedCells = null;
+    columnInfosArray.clear();
+    sharedFormulas.clear();
+    hyperlinks.clear();
+    columnInfosInitialized = false;
+
+    System.gc();
+  }
+
+  /**
+   * Adds the cell to the array
+   * 
+   * @param cell 
+   */
+  private void addCell(Cell cell)
+  {
+    Assert.verify(cells[cell.getRow()][cell.getColumn()] == null);
+    cells[cell.getRow()][cell.getColumn()] = cell;
+  }
+
+  /**
+   * Reads in the contents of this sheet
+   */
+  final void readSheet()
+  {
+    // If this sheet contains only a chart, then set everything to
+    // empty and do not bother parsing the sheet
+    // Thanks to steve.brophy for spotting this
+    if (!sheetBof.isWorksheet())
+    {
+      numRows = 0;
+      numCols = 0;
+      cells = new Cell[0][0];
+      return;
+    }
+
+    Record r = null;
+    BaseSharedFormulaRecord sharedFormula = null;
+    boolean sharedFormulaAdded = false;
+
+    boolean cont = true;
+
+    // Set the position within the file
+    excelFile.setPos(startPosition);
+
+    while(cont)
+    {
+      r = excelFile.next();
+      
+      if (r.getType() == Type.DIMENSION)
+      {
+        DimensionRecord dr = null;
+
+        if (workbookBof.isBiff8())
+        {
+          dr = new DimensionRecord(r);
+        }
+        else
+        {
+          dr = new DimensionRecord(r, DimensionRecord.biff7);
+        }
+        numRows = dr.getNumberOfRows();
+        numCols = dr.getNumberOfColumns();
+        cells = new Cell[numRows][numCols];
+        columnInfos = new ColumnInfoRecord[numCols];
+      }
+
+      if (r.getType() == Type.LABELSST) 
+      {
+        LabelSSTRecord label = new LabelSSTRecord(r, 
+                                                  sharedStrings, 
+                                                  formattingRecords,
+                                                  this);
+        addCell(label);
+      }
+
+      if (r.getType() == Type.RK || r.getType() == Type.RK2) 
+      {
+        RKRecord rkr = new RKRecord(r, formattingRecords, this);
+
+        if (formattingRecords.isDate(rkr.getXFIndex()))
+        {
+          DateCell dc = new DateRecord
+            (rkr, rkr.getXFIndex(), formattingRecords, nineteenFour, this);
+          addCell(dc);
+        }
+        else
+        {
+          addCell(rkr);
+        }
+      }
+
+      if (r.getType() == Type.HLINK)
+      {
+        HyperlinkRecord hr = new HyperlinkRecord(r,this);
+        hyperlinks.add(hr);
+      }
+
+      if (r.getType() == Type.MERGEDCELLS)
+      {
+        Assert.verify(mergedCells == null);
+        mergedCells = new MergedCellsRecord(r, this);
+      }
+
+      if (r.getType() == Type.MULRK)
+      {
+        MulRKRecord mulrk = new MulRKRecord(r);
+
+        // Get the individual cell records from the multiple record
+        int num = mulrk.getNumberOfColumns();
+        int ixf = 0;
+        for (int i = 0 ; i < num; i++)
+        {
+          ixf = mulrk.getXFIndex(i);
+
+          NumberValue nv = new NumberValue
+            (mulrk.getRow(), 
+             mulrk.getFirstColumn() + i,
+             RKHelper.getDouble(mulrk.getRKNumber(i)),
+             ixf,
+             formattingRecords,
+             this);
+
+          
+          if (formattingRecords.isDate(ixf))
+          {
+            DateCell dc = new DateRecord(nv, ixf, formattingRecords, 
+                                         nineteenFour, this);
+            addCell(dc);
+          }
+          else
+          {
+            nv.setNumberFormat(formattingRecords.getNumberFormat(ixf));
+            addCell(nv);
+          }
+        }
+      }
+
+      if (r.getType() == Type.NUMBER) 
+      {
+        NumberRecord nr = new NumberRecord(r, formattingRecords, this);
+
+        if (formattingRecords.isDate(nr.getXFIndex()))
+        {
+          DateCell dc = new DateRecord
+            (nr, nr.getXFIndex(),formattingRecords,
+             nineteenFour, this);
+          addCell(dc);
+        }
+        else
+        {
+          addCell(nr);
+        }
+      }
+
+      if (r.getType() == Type.BOOLERR)
+      {
+        BooleanRecord br = new BooleanRecord(r, formattingRecords, this);
+
+        if (br.isError())
+        {
+          ErrorRecord er = new ErrorRecord(br.getRecord(), formattingRecords, 
+                                           this);
+          addCell(er);
+        }
+        else
+        {
+          addCell(br);
+        }
+      }
+
+      if (r.getType() == Type.CONTINUE)
+      {
+        ;//System.out.println("continue");
+      }
+
+      if (r.getType() == Type.NOTE)
+      {
+        ;//System.out.println("note");
+      }
+
+      if (r.getType() == Type.ARRAY)
+      {
+        //System.out.println("array");
+      }
+      
+      if (r.getType() == Type.SHAREDFORMULA)
+      {
+        SharedFormulaRecord sfr = new SharedFormulaRecord
+                                    (r, sharedFormula, workbook, this);
+        sharedFormulas.add(sfr);
+        sharedFormula = null;
+      }
+
+      if (r.getType() == Type.FORMULA || r.getType() == Type.FORMULA2)
+      {
+        FormulaRecord fr = new FormulaRecord(r, excelFile, 
+                                             formattingRecords, workbook, 
+                                             this);
+
+        if (fr.isShared())
+        {
+          BaseSharedFormulaRecord prevSharedFormula = sharedFormula;
+          sharedFormula = (BaseSharedFormulaRecord) fr.getFormula();
+          
+          // See if it fits in any of the shared formulas
+          sharedFormulaAdded = addToSharedFormulas(sharedFormula);
+
+          if (sharedFormulaAdded)
+          {
+            sharedFormula = null;
+          }
+
+          // If we still haven't added the previous base shared formula,
+          // revert it to an ordinary formula and add it to the cell
+          if (!sharedFormulaAdded && prevSharedFormula != null)
+          {
+            // Do nothing.  It's possible for the biff file to contain the
+            // record sequence
+            // FORMULA-SHRFMLA-FORMULA-SHRFMLA-FORMULA-FORMULA-FORMULA
+            // ie. it first lists all the formula templates, then it
+            // lists all the individual formulas
+
+            //  addCell(revertSharedFormula(prevSharedFormula));
+          }
+        }
+        else
+        {
+          Cell cell = fr.getFormula();
+
+          // See if the formula evaluates to date
+          if (fr.getFormula().getType() == CellType.NUMBER_FORMULA)
+          {
+            NumberFormulaRecord nfr = (NumberFormulaRecord) fr.getFormula();
+            if (formattingRecords.isDate(nfr.getXFIndex()))
+            {
+              cell = new DateFormulaRecord(nfr,
+                                           formattingRecords, 
+                                           workbook,
+                                           nineteenFour, 
+                                           this);
+            }
+          }
+          
+          addCell(cell);
+        }
+      }
+
+      if (r.getType() == Type.LABEL)
+      {
+        LabelRecord lr = null;
+
+        if (workbookBof.isBiff8())
+        { 
+          lr = new LabelRecord(r, formattingRecords, this);
+        }
+        else
+        {
+          lr = new LabelRecord(r, formattingRecords, this, LabelRecord.biff7);
+        }
+        addCell(lr);
+      }
+
+      if (r.getType() == Type.RSTRING)
+      {
+        RStringRecord lr = null;
+
+        // RString records are obsolete in biff 8
+        Assert.verify(!workbookBof.isBiff8());
+        {
+          lr = new RStringRecord(r, formattingRecords, 
+                                 this, RStringRecord.biff7);
+        }
+        addCell(lr);
+      }
+
+      if (r.getType() == Type.NAME)
+      {
+        ;//System.out.println("name");
+      }
+
+      if (r.getType() == Type.ROW)
+      {
+        RowRecord rr = new RowRecord(r);
+
+        // See if the row has anything funny about it
+        if (!rr.isDefaultHeight() || rr.isCollapsed() || rr.isZeroHeight())
+        {
+          rowProperties.add(rr);
+        }
+      }
+
+      if (r.getType() == Type.BLANK)
+      {
+        BlankCell bc = new BlankCell(r, formattingRecords, this);
+        addCell(bc);
+      }
+
+      if (r.getType() == Type.MULBLANK)
+      {
+        MulBlankRecord mulblank = new MulBlankRecord(r);
+
+        // Get the individual cell records from the multiple record
+        int num = mulblank.getNumberOfColumns();
+        int ixf = 0;
+        for (int i = 0 ; i < num; i++)
+        {
+          ixf = mulblank.getXFIndex(i);
+
+          MulBlankCell mbc = new MulBlankCell
+            (mulblank.getRow(), 
+             mulblank.getFirstColumn() + i,
+             ixf,
+             formattingRecords,
+             this);
+          
+          addCell(mbc);
+        }
+      }
+
+      if (r.getType() == Type.COLINFO)
+      {
+        ColumnInfoRecord cir = new ColumnInfoRecord(r);
+        columnInfosArray.add(cir);
+      }
+
+      if (r.getType() == Type.HEADER)
+      {
+        if (workbookBof.isBiff8())
+        {
+          header = new HeaderRecord(r);
+        }
+        else
+        {
+          header = new HeaderRecord(r, HeaderRecord.biff7);
+        }
+      }
+
+      if (r.getType() == Type.FOOTER)
+      {
+        
+        if (workbookBof.isBiff8())
+        {
+          footer = new FooterRecord(r);
+        }
+        else
+        {
+          footer = new FooterRecord(r, FooterRecord.biff7);
+        }
+      }
+
+      if (r.getType() == Type.SETUP)
+      {
+        setup = new SetupRecord(r);
+      }
+
+      if (r.getType() == Type.HORIZONTALPAGEBREAKS)
+      {
+        HorizontalPageBreaksRecord dr = null;
+
+        if (workbookBof.isBiff8())
+        {
+          dr = new HorizontalPageBreaksRecord(r);
+        }
+        else
+        {
+          dr = new HorizontalPageBreaksRecord
+            (r, HorizontalPageBreaksRecord.biff7);
+        }
+
+        rowBreaks = dr.getRowBreaks();
+      }
+
+      if (r.getType() == Type.OBJ)
+      {
+      }
+
+      if (r.getType() == Type.MSODRAWING)
+      {
+      }
+
+      if (r.getType() == Type.BOF)
+      {
+        BOFRecord br = new BOFRecord(r);
+        Assert.verify(!br.isWorksheet());
+        
+        int startpos = excelFile.getPos() - r.getLength() - 4;
+
+        // Skip to the end of the nested bof.  Thanks to Rohit for
+        // spotting this
+        Record r2 = excelFile.next();
+        while (r2.getCode() != Type.EOF.value)
+        {
+          r2 = excelFile.next();
+        }
+      }
+
+      if (r.getType() == Type.EOF)
+      {
+        cont = false;
+      }
+    }
+
+    // Restore the file to its accurate position
+    excelFile.restorePos();
+
+    // Add all the shared formulas to the sheet as individual formulas
+    Iterator i = sharedFormulas.iterator();
+
+    while (i.hasNext())
+    {
+      SharedFormulaRecord sfr = (SharedFormulaRecord) i.next();
+
+      Cell[] sfnr = sfr.getFormulas(formattingRecords, nineteenFour); 
+      
+      for (int sf = 0; sf < sfnr.length ; sf++)
+      {
+        addCell(sfnr[sf]);
+      }
+    }
+
+    // If the last base shared formula wasn't added to the sheet, then
+    // revert it to an ordinary formula and add it
+    if (!sharedFormulaAdded && sharedFormula != null)
+    {
+      addCell(revertSharedFormula(sharedFormula));
+    }
+  }
+
+  /**
+   * Gets the hyperlinks on this sheet
+   *
+   * @return an array of hyperlinks
+   */
+  public Hyperlink[] getHyperlinks()
+  {
+    Hyperlink[] hl = new Hyperlink[hyperlinks.size()];
+
+    for (int i = 0; i < hyperlinks.size(); i++)
+    {
+      hl[i] = (Hyperlink) hyperlinks.get(i);
+    }
+
+    return hl;
+  }
+
+  /**
+   * Gets the cells which have been merged on this sheet
+   *
+   * @return an array of range objects
+   */
+  public Range[] getMergedCells()
+  {
+    if (mergedCells == null)
+    {
+      return new Range[0];
+    }
+
+    return mergedCells.getRanges();
+  }
+
+  /**
+   * Gets the non-default rows.  Used when copying spreadsheets
+   *
+   * @return an array of row properties
+   */
+  public RowRecord[] getRowProperties()
+  {
+    RowRecord[] rp = new RowRecord[rowProperties.size()];
+    for (int i = 0; i < rp.length ; i++)
+    {
+      rp[i] = (RowRecord) rowProperties.get(i);
+    }
+
+    return rp;
+  }
+
+  /**
+   * Gets the row record.  Usually called by the cell in the specified
+   * row in order to determine its size
+   *
+   * @param r the row
+   * @return the RowRecord for the specified row
+   */
+  RowRecord getRowInfo(int r)
+  {
+    if (!rowRecordsInitialized)
+    {
+      rowRecords = new RowRecord[getRows()];
+      Iterator i = rowProperties.iterator();
+
+      RowRecord rr = null;
+      while (i.hasNext())
+      {
+        rr = (RowRecord) i.next();
+        rowRecords[rr.getRowNumber()] = rr;
+      }
+    }
+
+    return rowRecords[r];
+  }
+
+  /**
+   * Gets the header.  Called when copying sheets
+   *
+   * @return the page header
+   */
+  public final HeaderRecord getHeader()
+  {
+    return header;
+  }
+
+  /**
+   * Gets the footer.  Called when copying sheets
+   *
+   * @return the page footer
+   */
+  public final FooterRecord getFooter()
+  {
+    return footer;
+  }
+
+  /**
+   * Gets the setup record.  Called when copying sheets
+   *
+   * @return the page setup
+   */
+  public final SetupRecord getSetup()
+  {
+    return setup;
+  }
+
+
+  /**
+   * Gets the row breaks.  Called when copying sheets
+   *
+   * @return the explicit row breaks
+   */
+  public final int[] getRowPageBreaks()
+  {
+    return rowBreaks;
+  }
+
+  /**
+   * Sees if the shared formula belongs to any of the shared formula
+   * groups
+   * 
+   * @param fr the candidate shared formula
+   */
+  private boolean addToSharedFormulas(BaseSharedFormulaRecord fr)
+  {
+    Iterator i = sharedFormulas.iterator();
+    boolean added = false;
+    SharedFormulaRecord sfr = null;
+
+    while (i.hasNext() && !added)
+    {
+      sfr = (SharedFormulaRecord) i.next();
+      added = sfr.add(fr);
+    }
+
+    return added;
+  }
+
+  /**
+   * Reverts the shared formula passed in to an ordinary formula and adds
+   * it to the list
+   *
+   * @return the formula
+   */
+  private Cell revertSharedFormula(BaseSharedFormulaRecord f)
+  {
+    FormulaRecord fr = new FormulaRecord(f.getRecord(),
+                                         excelFile,
+                                         formattingRecords,
+                                         workbook,
+                                         FormulaRecord.ignoreSharedFormula,
+                                         this);
+            
+    Cell cell = fr.getFormula();
+            
+    // See if the formula evaluates to date
+    if (fr.getFormula().getType() == CellType.NUMBER_FORMULA)
+    {
+      NumberFormulaRecord nfr = (NumberFormulaRecord) fr.getFormula();
+      if (formattingRecords.isDate(fr.getXFIndex()))
+      {
+        cell = new DateFormulaRecord(nfr,
+                                     formattingRecords, 
+                                     workbook,
+                                     nineteenFour,
+                                     this);
+      }
+    }
+    
+    return cell;
+  }
+}
+
+
+
+
+
+

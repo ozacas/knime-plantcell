@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./ranker.png" type="Manipulator">
+    <name>Natural ranking</name>
+    
+    <shortDescription>
+        Basic descriptive and inferential statistics support built using the apache commons math v3 library.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro><p>Using the <a href="http://commons.apache.org/math/apidocs/org/apache/commons/math3/stat/ranking/NaturalRanking.html">Apache Commons Math (v3)</a> library, this
+        node computes <i>natural ranking</i> of the specified column. In the event that two
+        values match or the data contains missing/infinite values the user may control how the rank is computed
+        using the options described below.</p>
+        
+       	<table>
+       		<tr><th>Tie Method</th> <th>Example data</th> <th>Resulting rank</th></tr>
+       		<tr><td>Average</td> <td>1, 2, 2, 4</td> <td>1, 2.5, 2.5, 4</td> </tr>
+       		<tr><td>Sequential</td> <td>1, 2, 2, 4</td> <td>1, 2, 3, 4</td></tr>
+       		<tr><td>Random</td> <td>1, 2, 2, 2, 4</td> <td>eg. 1, 3, 4, 2, 5</td></tr>
+       		<tr><td>Minimum</td> <td>1, 2, 2, 4</td> <td>1, 2, 2, 4</td></tr>
+       		<tr><td>Maximum</td> <td>1, 2, 2, 4</td> <td>1, 3, 3, 4</td></tr>
+       	</table>
+       	
+       	<table>
+       		<tr><th>NaN Method (with Sequential tie method)</th> <th>Example data</th> <th>Resulting rank</th></tr>
+       		<tr><td>Fixed</td> <td>1, ?, 2, 4</td>    <td>1, NaN, 2, 3</td> </tr>
+       		<tr><td>Remove</td> <td>1, 2, NaN, 4</td> <td>1, 2, 3</td> </tr>
+       		<tr><td>Minimal</td> <td>1, ?, 2, 4</td>  <td>2, 1, 3, 4</td></tr>
+       		<tr><td>Maximal</td> <td>1, ?, 2, 4</td>  <td>1, 4, 2, 3</td></tr>
+       	</table>
+        </intro>
+        
+        
+        <option name="Column to rank">Numeric (integer or decimal) columns are shown here to choose for the ranking</option>
+        <option name="Tie method">controls what the node does when two values have the same value - see the above table for details
+        </option>
+        
+        <option name="NaN method"><b>NaN</b> means <b>n</b>ot <b>a</b> <b>n</b>umber" - when the data contains missing or infinite values are represented this
+        option controls the resulting rank for these items</option>
+        
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input data">Data including at least one numeric column for ranking</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="Ranked data">Input data with ranking as desired</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+  
+</knimeNode>

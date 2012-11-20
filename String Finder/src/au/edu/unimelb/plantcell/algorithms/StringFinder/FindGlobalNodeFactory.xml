@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>Find (2 inputs)</name>
+    
+    <shortDescription>
+        Matches a set of strings from a column in the second (lower) input port against a column to be searched in the input table. All input columns 
+are preserved, you may choose the type of match data to be added as extra columns.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>This nodes takes two inputs:
+        <ul>
+        	<li>A column to be searched</li>
+        	<li>A column of search strings: which describe what data in the first input to match. These strings can be interpreted either as literal strings (case sensitive, exact matching)
+        	or regular expressions (see below)</li>
+        </ul>
+        and applies each search string against each cell in the chosen column. A wide range of match options can be controlled by the user.
+      
+        <p>
+            The user can configure the node to output only those columns desired (the more chosen, the slower the search).
+        	Lists are guaranteed to be in the left-to-right match order of the input string, sets are not.
+        </p>
+        
+      	<table>
+      		<tr>
+      			<th>Output column</th>
+      			<th>Description</th>
+      		</tr>
+      		
+      		<tr>
+      			<td>Matches (list)</td>
+      			<td>a list of all strings matched by all patterns (KNIME collection cell)</td>
+      		</tr>
+      		
+      		<tr>
+      			<td>Match positions (list)</td>
+      			<td>a list of strings of the form: start-end for every match (positions start at 0)</td>
+      		</tr>
+      		
+      		<tr>
+      			<td>Unique Match Count</td>
+      			<td>the number of distinct (case sensitive) match strings found</td>
+      		</tr>
+      		
+      		<tr>
+      			<td>Unique Matches</td>
+      			<td>a set of distinct (case sensitive) matched strings</td>
+      		</tr>
+      		
+      		<tr>
+      			<td>Match Count</td>
+      			<td>the number of strings matched in the search string (a single pattern can match multiple times)</td>
+      		</tr>
+      		
+      		<tr>
+      			<td>Start positions (list)</td>
+      			<td>a list of integers with values where matches start (positions start at 0)</td>
+      		</tr>
+      		
+      		<tr>
+      			<td>Extent of matches (list)</td>
+      			<td>the length of each match as a list of integers</td>
+      		</tr>
+      		
+      		<tr>
+      			<td>Match Extent (substring)</td>
+      			<td>the region of the matched input string from the beginning of the first match to the end of the last match</td>
+      		</tr>
+      		
+      		<tr>
+      			<td>Match Extent (position)</td>
+      			<td>the region of the matched input string as terminii: start-end</td>
+      		</tr>
+      		
+      		<tr>
+      			<td>Matching Search Strings (unique)</td>
+      			<td>the set of patterns which matched as a collection cell</td>
+      		</tr>
+      		
+      		<tr>
+      			<td>Non-overlapping matches (list)</td>
+      			<td>matches which do not overlap any other match (list cell)</td>
+      		</tr>
+      		
+      		<tr>
+      			<td>Non-overlapping match count</td>
+      			<td>a count of non-overlapping matches. No guarantees about what overlapping matches are selected should be assumed.</td>
+      		</tr>
+      		
+      		<tr>
+      			<td>Match Start Position Density (Bit Vector)</td>
+      			<td>an easy way to visualize where in the string the matches start (choose the "bit scratch" renderer for the column)</td>
+      		</tr>
+      		
+      		<tr>
+      			<td>Match Position Density (Bit Vector)</td>
+      			<td>Similar to the previous, but visualises the extent of each match rather than just the start</td>
+      		</tr>
+      		
+      		<tr>
+      			<td>Number of matches per position (list)</td>
+      			<td>a list of integers which reflect the number of matches at each position of the input string</td>
+      		</tr>
+      		
+      		<tr>
+      			<td>Input String Coverage (%)</td>
+      			<td>the total percentage of the input string which was matched by the complete set of patterns</td>
+      		</tr>
+      		
+      		<tr>
+      			<td>Unique Match Distribution</td>
+      			<td>Shows the occurrence values for each unique match as a collection cell</td>
+      		</tr>
+      		
+      		<tr>
+      			<td>Pattern distribution (successful only)</td>
+      			<td>a count, for each matching pattern, of how many times it matches the input string as a set</td>
+      		</tr>
+      		
+      		<tr>
+      			<td>Patterns (successful, distinct)</td>
+      			<td>a set of patterns which matched the input string</td>
+      		</tr>
+      	</table>
+      
+        </intro>
+        
+        <option name="treat as regular expression">Treat the search strings as regular expressions: the full range of Java regular expressions is supported and
+        partial matches of the string are supported (unlike other KNIME nodes).</option>
+        <option name="keep only matched rows">Only rows which match at least one string are reported in the output</option>
+        <option name="column to search">Specify the column in the first input port which contains the data to be searched</option>
+        <option name="column with match strings">The chosen column will contain either the regular expressions or literal strings to be matched. Each string is tried
+        against every row in the search column (brute force).</option>
+        
+        
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input data">Data to match against</inPort>
+        <inPort index="1" name="Search strings">Search strings (in user-specified column)</inPort>
+        
+        <outPort index="0" name="Match Results">Results of the match, all input columns in the input data are preserved</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+ 
+</knimeNode>

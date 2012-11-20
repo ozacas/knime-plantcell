@@ -1,0 +1,22 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: BioJava Processor
+Bundle-SymbolicName: au.edu.unimelb.plantcell.misc.biojava; singleton:=true
+Bundle-Version: 1.2.3
+Bundle-ClassPath: biojavaprocessor.jar,
+ lib/antlr-3.4-complete.jar,
+ lib/bytecode.jar,
+ lib/sequencing-1.8.1.jar
+Bundle-Vendor: http://www.plantcell.unimelb.edu.au/bioinformatics/
+Require-Bundle: org.eclipse.core.runtime,
+ org.knime.workbench.core,
+ org.knime.workbench.repository,
+ org.knime.base,
+ au.edu.unimelb.plantcell.io.ws.multialign;bundle-version="1.0.0",
+ org.apache.commons.logging;bundle-version="1.0.4",
+ org.apache.xerces;bundle-version="2.9.0",
+ au.edu.unimelb.plantcell.core;bundle-version="1.0.14"
+Bundle-ActivationPolicy: lazy
+Export-Package: au.edu.unimelb.plantcell.misc.biojava
+Import-Package: pal.misc
+

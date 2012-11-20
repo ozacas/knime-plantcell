@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: OrthologueFinder
+Bundle-SymbolicName: au.edu.unimelb.plantcell.algorithms.orthology;singleton:=true
+Bundle-Version: 1.2.0
+Bundle-ClassPath: orthologuefinder.jar
+Bundle-Activator: au.edu.unimelb.plantcell.algorithms.orthology.OrthologueFinderNodePlugin
+Bundle-Vendor: http://www.plantcell.unimelb.edu.au/bioinformatics
+Require-Bundle: org.eclipse.core.runtime,
+ org.knime.workbench.core,
+ org.knime.workbench.repository,
+ org.knime.base
+Bundle-ActivationPolicy: lazy
+Export-Package: au.edu.unimelb.plantcell.algorithms.orthology
+

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>TMHMM@Nectar</name>
+    
+    <shortDescription>
+        Provides a KNIME interface to transmembrane helice(s) predictions server installed locally
+        (and not via web services to CBS)
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>This node provides access to Protein Sequence TM helix prediction as described in:
+        <p>
+        <i>Predicting transmembrane protein topology with a hidden Markov model: Application 
+			to complete genomes</i>. A. Krogh, B. Larsson, G. von Heijne, and E. L. L. Sonnhammer. 
+			J. Mol. Biol., 305(3):567-580, January 2001.<br/>
+			PDF: http://www.binf.ku.dk/krogh/publications/pdf/KroghEtal01.pdf
+		<br/>
+			<i>A hidden Markov model for predicting transmembrane helices in protein sequences. </i>
+			E. L.L. Sonnhammer, G. von Heijne, and A. Krogh.
+			In J. Glasgow, T. Littlejohn, F. Major, R. Lathrop, D. Sankoff, and C. Sensen, editors, 
+			Proceedings of the Sixth International Conference on Intelligent Systems for Molecular Biology, 
+			pages 175-182, Menlo Park, CA, 1998. AAAI Press. <br/>
+			PDF: http://www.binf.ku.dk/krogh/publications/ps/SonnhammerEtal98.pdf
+			
+        </p>
+        
+        <p>
+        This node provides textual and bitvector output of the predicted helices for subsequent computation.
+        </p>
+        
+        <p>
+        <b>Note: </b> this node is only workable for University of Melbourne staff/students and collaborators as it
+        uses a server only accessible from on-campus.
+        </p>
+        </intro>
+        
+        
+        <option name="Protein sequences">Column to obtain the protein sequences from. The RowID's will be
+        used to identify each sequence, but they <b>must</b> have no whitespace in them.</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Protein Sequences">Input table must contain one String column with protein (amino acid) sequences.
+        Unknown residues (eg. <tt>X</tt>) in sequences are not recommended.</inPort>
+       
+        <outPort index="0" name="Protein summary">Summary output from TMHMM for each sequence</outPort>
+        <outPort index="1" name="Annotated Sequences">Annotated sequence with predicted locations for helices, inside and outside orientations as computed by TMHMM</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+ 
+</knimeNode>

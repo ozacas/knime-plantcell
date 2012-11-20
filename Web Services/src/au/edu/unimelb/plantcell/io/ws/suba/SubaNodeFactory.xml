@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>SUBA Accessor</name>
+    
+    <shortDescription>
+        Provides access to the SUBA subcellular localisations via JSON-over-http
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+            <p>
+		Provides access to Arabidopsis subcellular localisation as implemented in 
+		<a href="http://suba.plantenergy.uwa.edu.au/">SUBA</a>, which has the following citations:
+            </p>
+                 
+            <p>
+			Heazlewood JL, Verboom RE, Tonti-Filippini J, Small I and Millar AH. (2007) <br/>
+			<i>SUBA: the Arabidopsis Subcellular Database</i>. Nucleic Acids Res. 35:D213-D218.
+			<br/><br/>
+			
+			Heazlewood JL, Tonti-Filippini J, Verboom RE, Millar AH. (2005) <br/>
+			<i>Combining experimental and predicted datasets for determination of the subcellular location of proteins in Arabidopsis</i>. 
+			Plant Physiol. 139(2):598-609
+            </p>
+        </intro>
+        
+        <option name="AGI column">Specify the column with <b>TAIR</b>-style gene identifiers. <b>Note:</b> not
+        all gene identifiers have information about them in SUBA. Furthermore, SUBA uses TAIRv8 (as at June 2012), 
+        so identifiers obtained from other versions (eg. via <b>WU-BLAST</b>) may not produce correct results.
+        </option>
+ 	</fullDescription>
+    
+    <ports>
+	   <inPort  index="0" name="Input data">One column is used to provide the Arabidopsis Gene Identifier (AGI's)</inPort>
+
+       <outPort index="0" name="Localisation results">Results reported by SUBA for the specified AGI's</outPort>
+    </ports>    
+   
+</knimeNode>

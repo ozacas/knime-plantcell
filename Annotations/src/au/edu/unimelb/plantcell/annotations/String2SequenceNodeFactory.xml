@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./str2seq.png" type="Manipulator">
+    <name>Columns to Sequence</name>
+    
+    <shortDescription>
+        Converts string columns to sequence cell's for further analysis and visualisation
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>Converts string columns to sequence cell's for further analysis and visualisation</intro>
+        
+        <option name="Accession column">Column to obtain accessions from (missing/empty values skipped)</option>
+        <option name="Sequence column">Column to obtain sequences from (missing/empty values skipped)</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input sequences">Data include biological sequences</inPort>
+        
+        <outPort index="0" name="Sequence column">Additional column with sequence cell as output</outPort>
+    </ports>    
+ 
+</knimeNode>

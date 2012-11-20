@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>InterPro Accessor</name>
+    
+    <shortDescription>
+        Accesses the InterPro web service (provided by EBI.ac.uk) with the user-specified settings. This node
+        selects the chosen (protein) sequence column and sends each sequence to EBI for analysis. 
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>Accesses the InterPro v4 web service (provided by EBI) with the user-specified settings. This node
+        is a complete re-write of the original, now deprecated, node with greatly improved functionality.
+        
+        <p>
+        <b>WARNING</b>: intellectual property may be exposed to the Internet by use of this node.  
+        Use this node only if you are satisfied with EBI's <a href="http://www.ebi.ac.uk/Information/termsofuse.html">terms of service</a>.
+        </p>
+        
+        <p>
+        Quevillon E., Silventoinen V., Pillai S., Harte N., Mulder N., Apweiler R., Lopez R.<br/>
+        <i>InterProScan: protein domains identifier (2005).</i><br/>
+        Nucleic Acids Res. 33 (Web Server issue): W116-W120
+        </p>
+        </intro>
+        
+        
+        <option name="email address">Required by EBI, this ensures they can contact you if there is a problem
+        with your jobs during processing</option>
+        
+        <option name="protein sequence">Select the compatible input column to use for the <b>protein</b> sequences with
+        InterProScan</option>
+        
+        <option name="Use CRC?">If selected, CRC methods will be used by InterProScan. Selecting
+        this options makes the query faster, so it is strongly recommended.</option>
+       
+        <option name="Algorithms to search via">Perform family identifications using the selected algorithms (all are recommended unless you have problems with some algorithms with your data)</option>
+     
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Protein sequence input">Input protein sequences for querying via InterPro</inPort>
+    	<outPort index="0" name="Site identifications">eg. transmembrane helix predictions or PTM sites</outPort>
+        <outPort index="1" name="Classifications">Results of family classification eg. GO terms</outPort> 
+        <outPort index="2" name="Annotated sequences (incl. InterPro track)">XML output and annotated sequences for each query protein</outPort>
+   
+    </ports>    
+ 
+</knimeNode>

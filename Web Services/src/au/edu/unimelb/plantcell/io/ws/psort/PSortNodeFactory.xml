@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>Wolf PSort@Nectar</name>
+    
+    <shortDescription>
+        Provides access to a locally installed Wolf PSort (subcellular localisation) prediction server. Please contact the author, Andrew Cassin if you need the wrapper code for the server to use this node. 
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+            <p>
+		Provides access to a locally available Wolf PSort server for 
+		subcellular localisation prediction. This node supports extraction of sub-cellular 
+		localisation summary data into the output port, as described by the following publications:
+            </p>
+                 
+            <p>
+            Paul Horton, Keun-Joon Park, Takeshi Obayashi, Naoya Fujita, Hajime Harada, C.J. Adams-Collier, &amp; Kenta Nakai,
+    		<i>WoLF PSORT: Protein Localization Predictor</i>,
+   			Nucleic Acids Research, doi:10.1093/nar/gkm259, 2007.</p>
+    
+		    <p>
+		    Paul Horton, Keun-Joon Park, Takeshi Obayashi &amp; Kenta Nakai,
+		    <i>Protein Subcellular Localization Prediction with WoLF PSORT</i>,
+		    Proceedings of the 4th Annual Asia Pacific Bioinformatics Conference APBC06, Taipei, Taiwan. pp. 39-48, 2006.
+		    </p>
+            
+            <p>
+            <b>Note:</b> this program can make multi-localisation predictions - that is, a protein
+            can be predicted to be found in multiple organelles of the cell. Careful comparison with
+            single-organelle prediction methods (eg. GolgiP) is required.
+            </p>
+            
+            <p>
+        <b>Note: </b> this node is only workable for University of Melbourne staff/students and collaborators as it
+        uses a server only accessible from on-campus.
+        </p>
+        </intro>
+        
+         <option name="Sequence">Protein sequence to predict on. The sequences are sent to the server in
+         batches of 100, each batch is predicted in a single invocation.</option>
+        
+        <option name="Prediction Model">PSort offers three models tailored to specific species: choose one of
+        Animal, Plant or Fungi.</option>
+        
+        <option name="Endpoint URL">Advanced users: you may specify the host which provides the
+        web service to resolve the query. If you do not know what this is, leave as is.</option>
+    
+ 	</fullDescription>
+    
+    <ports>
+	   <inPort  index="0" name="Input data">One column is used to provide the protein sequences to predict on</inPort>
+
+       <outPort index="0" name="Localisation predictions">For each sequence, the localisation(s) as predicted by the remote server</outPort>
+    </ports>    
+   
+</knimeNode>

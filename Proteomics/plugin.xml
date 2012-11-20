@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+   
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Mass Spectrometry/Proteomics"
+            factory-class="au.edu.unimelb.plantcell.proteomics.digestion.InsilicoDigestorNodeFactory"
+            id="au.edu.unimelb.plantcell.proteomics.digestion.InsilicoDigestorNodeFactory"/>
+   </extension>
+   
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Under Development/"
+            factory-class="au.edu.unimelb.plantcell.proteomics.fragmentation.PeptideFragmentationNodeFactory"
+            id="au.edu.unimelb.plantcell.proteomics.fragmentation.PeptideFragmentationNodeFactory"/>
+   </extension>
+   
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Mass Spectrometry/Proteomics"
+            factory-class="au.edu.unimelb.plantcell.proteomics.gravy.GravyScorerNodeFactory"
+            id="au.edu.unimelb.plantcell.proteomics.gravy.GravyScorerNodeFactory"/>
+   </extension>
+   
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Read"
+            factory-class="au.edu.unimelb.plantcell.proteomics.ppgroupxml.GroupXMLReaderNodeFactory"
+            id="au.edu.unimelb.plantcell.proteomics.ppgroupxml.GroupXMLReaderNodeFactory"/>
+   </extension>
+</plugin>

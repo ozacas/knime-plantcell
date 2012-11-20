@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>Sequence Extractor</name>
+    
+    <shortDescription>
+        Similar to the fasta reader, but this node extracts only the specified sequences from the user-supplied input
+        table, even from multiple files.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+        Given the input table:
+        <table>
+        	<tr><th>Filename</th><th>Accession</th></tr>
+        	<tr><td>file1.fasta</td><td>seq1</td></tr>
+        	<tr><td>file2.fa.gz</td><td>seq2</td></tr>
+        </table>
+        this node will read <tt>file1.fasta</tt> and look for an entry with ID <tt>seq1</tt>
+        and FASTA file <tt>file2.fa.gz</tt> and try to find an ID name <tt>seq2</tt>. 
+        Matched entries will have their sequence appended to the input table. This node is really useful
+        for locating sequences amongst many different files. Files can be matched on partial name, full name or
+        absolute path from the input table.
+        </intro>
+        
+        <option name="FASTA Files">FASTA format file(s) to process. Not all values in the chosen
+        column need to be there, but it is recommended you do a <b>Value Counter</b> on the filename
+        column to make the list of FASTA files complete. Files may be gzipp'ed or not, but they must have a <tt>.gz</tt>
+        extension to be recognised</option>
+        
+        <option name="Accession Regular Expression">How much data on the <tt>&gt;</tt>-line to interpret as an identifier. This regular
+        expression must have exactly one pair of capturing parenthesis <tt>()</tt>. Default RE matches up the first whitespace as the identifier.</option>
+       
+        <option name="Description Regular Expression">How much data on the <tt>&gt;</tt>-line to interpret as the description. Default RE matches
+        everything after the default accession regular expression, but the two can overlap if this is desired.</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="FASTA sequences to find">Two columns are used: one with files the other with accessions in the file</inPort>
+      
+        <outPort index="0" name="Input data and sequence">Same as input table, but with a sequence column appended. Missing values where no match could be found.</outPort>
+    </ports>    
+    
+</knimeNode>

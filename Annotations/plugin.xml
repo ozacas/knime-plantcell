@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Sequence Analysis/Annotations"
+            factory-class="au.edu.unimelb.plantcell.annotations.TrackFilterNodeFactory"
+            id="au.edu.unimelb.plantcell.annotations.TrackFilterNodeFactory" />
+   </extension>
+   
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Write"
+            factory-class="au.edu.unimelb.plantcell.io.write.gff.GFF2WriterNodeFactory"
+            id="au.edu.unimelb.plantcell.io.write.gff.GFF2WriterNodeFactory" />
+   </extension>
+   
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Under Development/Deprecated"
+            factory-class="au.edu.unimelb.plantcell.annotations.ExtractTrackNodeFactory"
+            id="au.edu.unimelb.plantcell.annotations.ExtractTrackNodeFactory" />
+   </extension>
+   
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Sequence Analysis/Annotations"
+            factory-class="au.edu.unimelb.plantcell.annotations.ChangeTrackNodeFactory"
+            id="au.edu.unimelb.plantcell.annotations.ChangeTrackNodeFactory" />
+   </extension>
+   
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Sequence Analysis/Annotations"
+            factory-class="au.edu.unimelb.plantcell.annotations.Sequence2StringsNodeFactory"
+            id="au.edu.unimelb.plantcell.annotations.Sequence2StringsNodeFactory" />
+   </extension>
+   
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Sequence Analysis/Annotations"
+            factory-class="au.edu.unimelb.plantcell.annotations.String2SequenceNodeFactory"
+            id="au.edu.unimelb.plantcell.annotations.String2SequenceNodeFactory" />
+   </extension>
+   
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Sequence Analysis/Annotations"
+            factory-class="au.edu.unimelb.plantcell.annotations.AddRegionsNodeFactory"
+            id="au.edu.unimelb.plantcell.annotations.AddRegionsNodeFactory" />
+   </extension>
+</plugin>

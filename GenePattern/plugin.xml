@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+
+  <!-- this plugin MUST use an Activator so that things work right... -->
+  
+  <extension
+         point="org.knime.workbench.repository.nodes">
+         
+      <node
+            category-path="/Bioinformatics/GenePattern (Remote)"
+            factory-class="au.edu.unimelb.plantcell.gp.HeatmapNodeFactory"
+            id="au.edu.unimelb.plantcell.gp.HeatmapNodeFactory" />
+    
+      <node
+            category-path="/Bioinformatics/GenePattern (Remote)"
+            factory-class="au.edu.unimelb.plantcell.gp.SOMClusteringNodeFactory"
+            id="au.edu.unimelb.plantcell.gp.SOMClusteringNodeFactory" />
+  
+      <node
+            category-path="/Bioinformatics/GenePattern (Remote)"
+            factory-class="au.edu.unimelb.plantcell.gp.ConsensusClusteringNodeFactory"
+            id="au.edu.unimelb.plantcell.gp.ConsensusClusteringNodeFactory" />
+   
+      <node
+            category-path="/Bioinformatics/GenePattern (Remote)"
+            factory-class="au.edu.unimelb.plantcell.gp.NMFConsensusNodeFactory"
+            id="au.edu.unimelb.plantcell.gp.NMFConsensusNodeFactory" />
+            
+    </extension>
+   
+</plugin>

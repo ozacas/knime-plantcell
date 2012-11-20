@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./anova.png" type="Manipulator">
+    <name>One way ANOVA</name>
+    
+    <shortDescription>
+        Basic one way ANOVA as implemented by Apache Commons Math v3.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+        Computes one-way ANOVA (analysis of variance) using the <a href="http://commons.apache.org/math/userguide/stat.html">Apache Commons Math library</a>
+        for the selected columns (samples). 
+        
+        <p>
+        The node currently does not support grouping of the columns into
+        factors of interest, but will soon. As a temporary solution, this node will report
+        ANOVA results for all combinations of samples if there are six, or fewer, samples.
+        </p>
+        </intro>
+        
+        
+        <option name="Alpha (significance level)">What significance level for testing the null hypothesis (that all
+        samples are from the same population). Default is 0.05, must be in the range [0,1]</option>
+      
+        <option name="Columns containing samples">Data for each sample must be arranged 
+        in columns, select the columns here. At least two must be chosen.</option>
+             
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input data">Input data with independent samples for analysis</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="ANOVA results">ANOVA computations</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+  
+</knimeNode>

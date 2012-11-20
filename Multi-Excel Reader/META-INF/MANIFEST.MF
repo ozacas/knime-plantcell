@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Multi-ExcelReader
+Bundle-SymbolicName: au.edu.unimelb.plantcell.io.read.multiexcel;singleton:=true
+Bundle-Version: 1.2.0
+Bundle-ClassPath: multiexcelreader.jar
+Bundle-Activator: au.edu.unimelb.plantcell.io.read.multiexcel.MultiExcelReaderNodePlugin
+Bundle-Vendor: http://www.plantcell.unimelb.edu.au/bioinformatics
+Bundle-Localization: plugin
+Require-Bundle: org.eclipse.core.runtime,
+ org.knime.workbench.core,
+ org.knime.workbench.repository,
+ org.knime.base
+Bundle-ActivationPolicy: lazy
+Export-Package: au.edu.unimelb.plantcell.io.read.multiexcel
+

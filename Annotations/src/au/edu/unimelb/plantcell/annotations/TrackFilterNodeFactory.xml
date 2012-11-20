@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./track-filter.png" type="Manipulator">
+    <name>Track Filter</name>
+    
+    <shortDescription>
+       Filters data between two tracks using boolean logic (AND/OR/XOR) 
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>Filters data between two tracks using boolean logic. Where a bioinformatics
+        tool has predicted a region of interest, this may be used to select measurements relating to the region.
+        
+        Currently, the following comparisons may be done between tracks:
+        <table>
+        	<tr><th>Operation</th><th>Description</th></tr>
+        	<tr><td>A overlaps B</td><td>Where region from track A is at least partly the same as a region from track B</td></tr>
+        	<tr><td>A not overlaps B</td><td>Where a region from track A does not many any region from track B</td></tr>
+        	<tr><td>A completely within B</td><td>If a region from track A is completely spanned by any region from B</td></tr>
+        	<tr><td>B completely within A</td><td>Same as previous, but in reverse.</td></tr>
+        </table>
+        
+        <p>
+        <b>Note: </b>the implementation is currently naive and slow: algorithmic complexity
+        is <tt>O(n^2)</tt> with respect to the number of regions being compared. The node
+        automatically filters sequences from the output with no hits and removes empty
+        tracks from any filtered sequence. Only hits for the chosen filter criteria are reported to the output.
+        </p>
+        </intro>
+        
+        <option name="Column to process">Select the column of sequences with at least two annotated tracks
+        (with regions) for comparison. For example, sequences annotated with TMHMM (transmembrane helix prediction)and 
+        StringFinder nodes (eg. identified peptides)can be used here. Tracks can come from many other nodes too
+        (eg. BLAST or InterPro)</option>
+        
+        <option name="Opt2">description of second option</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input table">Input table including column with two tracks of annotations</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="Hits">Outputs events between two tracks satisfying the configure settings</outPort>
+        <outPort index="1" name="Annotated sequences">Input annotated sequences augmented with additional
+        tracks with the hits for A and B.
+        </outPort>
+       
+    </ports>    
+ 
+</knimeNode>

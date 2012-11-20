@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>NetPhos@Nectar</name>
+    
+    <shortDescription>
+        Provides a KNIME interface to phosphorylation site prediction via a local server to the University
+        of Melbourne
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+        <p>
+        This node is similar to the NetPhos Accessor in the webservices category, but uses a local server 
+        in the Nectar Research cloud to provide much improved throughput compared to the 
+        <a href="http://www.cbs.dtu.dk/ws/ws.php?entry=NetPhos">CBS server in Denmark</a>. 
+        This server provides access to v3.1b of NetPhos.
+        </p>
+        
+        <p>
+        <b>Note: </b> this node is only workable for University of Melbourne staff/students and collaborators as it
+        uses a server only accessible from on-campus.
+        </p>
+        </intro>
+        
+        <option name="Protein sequences">Column to obtain the protein sequences from. The RowID's will be
+        used to identify each sequence, but they <b>must</b> have no whitespace in them.</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Protein Sequences">Input table must contain one String column with protein (amino acid) sequences.
+        Unknown residues (eg. <tt>X</tt>) in sequences are not recommended.</inPort>
+       
+        <outPort index="0" name="Protein summary">Predictions of phosphorylation sites from NetPhos</outPort>
+        <outPort index="1" name="Annotated Sequences">Annotated sequences including prediction sites as a track</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+ 
+</knimeNode>

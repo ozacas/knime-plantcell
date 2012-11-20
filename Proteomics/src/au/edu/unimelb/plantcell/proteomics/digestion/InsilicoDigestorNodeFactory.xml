@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>In silico Digestor</name>
+    
+    <shortDescription>
+        Performs in-silico digestion of a protein sequence, optionally filtering for molecular
+        weights of interest.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>Performs in-silico digestion of a protein sequence with the chosen enzyme.
+        In-silico digested peptides will be reported only they have a mass within the specified
+        mass range (inclusive). Average or monoisotopic masses can be calculated for each peptide reported.
+        
+        <p>
+        This node uses the <a href="http://javaprotlib.sourceforge.net">JavaProtLib</a> from
+        the Swiss Bioinformatics Institute to perform the <i>in silico</i> digestion of the protein sequences.
+        </p>
+        
+        <p><b>WARNING:</b> the highlighted protein sequence contains HTML markup and cannot be
+        used in subsequent computations as it contains more than single-letter amino acid
+        residues. The node provides a RowID column for you to join the original data to the
+        results of the digestion.</p>
+        </intro>
+        
+        
+        
+        <option name="Protein sequences">Column containing protein sequences eg. from <b>FASTA Reader</b> node</option>
+        <option name="Protease">Enzyme to use for digestion, trypsin is the default.</option>
+        <option name="report monoisotopic">Calculated masses for each peptide will be monoisotipic (if checked) or average masses (unchecked).
+        The chosen calculated mass will be used to filter reported peptides.</option>
+        <option name="Minimum mass">Peptides will <b>only</b> be reported if they exceed the specified mass entered here</option>
+        <option name="Maximum mass">Peptides will <b>only</b> be reported if the are lower than the maximum mass entered here</option>
+   		<option name="Variable modifications"><b>Not</b> currently implemented.</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input protein sequences">Input table with amino acid sequences in a single column</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="Digestion results">Results of enzymatic digestion (mass, peptide sequence)</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+   
+</knimeNode>

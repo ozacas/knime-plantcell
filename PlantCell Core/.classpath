@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry exported="true" kind="lib" path="lib/commons-collections-3.2.1.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis-1.4.jar">
+		<accessrules>
+			<accessrule kind="accessible" pattern="org/apache/axis/**"/>
+		</accessrules>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/commons-cli-1.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/commons-codec-1.3.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/commons-dbcp-1.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/commons-discovery-0.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/commons-exec-1.1.jar">
+		<accessrules>
+			<accessrule kind="accessible" pattern="org/**"/>
+		</accessrules>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/commons-httpclient-3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/commons-logging-1.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/commons-pool-1.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/core-1.8.1.jar">
+		<accessrules>
+			<accessrule kind="accessible" pattern="org/biojava/**"/>
+		</accessrules>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/javamail-1.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jaxrpc.jar">
+		<accessrules>
+			<accessrule kind="accessible" pattern="javax/**"/>
+		</accessrules>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/jdbm-1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jgrapht-jdk1.5.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/junit-4.8.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/log4j-1.2.16.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/mail.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/saaj.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/servlet.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/wsdl4j-1.5.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/xercesImpl.jar"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

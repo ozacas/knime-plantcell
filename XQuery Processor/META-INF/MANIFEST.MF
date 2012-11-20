@@ -1,0 +1,24 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: XQuery Processor for XMLCell columns
+Bundle-SymbolicName: au.edu.unimelb.plantcell.xml.query;singleton:=true
+Bundle-Version: 1.2.0
+Bundle-ClassPath: xmlreader.jar,
+ lib/XQEngine.jar
+Bundle-Activator: au.edu.unimelb.plantcell.xml.query.XQueryProcessorNodePlugin
+Bundle-Vendor: http://www.plantcell.unimelb.edu.au/bioinformatics
+Bundle-Localization: plugin
+Require-Bundle: org.eclipse.core.runtime,
+ org.knime.workbench.core,
+ org.knime.workbench.repository,
+ org.knime.base,
+ au.edu.unimelb.plantcell.io.read.xml;bundle-version="1.0.0"
+Bundle-ActivationPolicy: lazy
+Export-Package: au.edu.unimelb.plantcell.xml.query,
+ com.fatdog.xmlEngine,
+ com.fatdog.xmlEngine.exceptions,
+ com.fatdog.xmlEngine.javacc,
+ com.fatdog.xmlEngine.words,
+ com.fatdog.xmlEngine.words.dictionaries
+Import-Package: org.apache.commons.codec.binary
+

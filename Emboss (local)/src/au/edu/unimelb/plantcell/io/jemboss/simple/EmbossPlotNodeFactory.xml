@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>Add Graph</name>
+    
+    <shortDescription>
+        Runs EMBOSS tools that produce a plot of sequence data (protein or DNA depending on the tool)
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+        This node appends a plot of a DNA or Protein sequence to the existing table using the
+        <a href="http://emboss.sourceforge.net">EMBOSS toolkit</a>. This can be used to visualise
+        hydropathy, charge, restriction sites or other characteristics of sequence data. The node
+        creates images in PNG format, which can easily be saved and loaded into many paint programs.
+        <p>
+        Note that for this node to work, you <b>must</b>:
+        	<ol>
+        		<li>Install EMBOSS on your computer - see http://emboss.sourceforge.net</li>
+        		<li>Configure the PlantCell extension to use it: see File -> Preferences -> PlantCell</li>
+        		<li>Configure the node</li>
+        	</ol>
+        </p>
+        </intro>
+        
+        
+        <option name="EMBOSS Program">A list of EMBOSS programs capable of plotting a sequence</option>
+        <option name="Annotated Sequence">The sequence(s) to plot</option>
+        <option name="Extra arguments (advanced users only)">Any specific options for the program should be enetered here</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input sequences">Input sequences (as made by the Columns2Sequence node)</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="Input data with plot">All input columns with the EMBOSS plot attached</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+  
+</knimeNode>

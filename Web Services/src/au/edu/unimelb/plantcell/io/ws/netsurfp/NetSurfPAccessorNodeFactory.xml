@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>NetSurfP@Nectar</name>
+    
+    <shortDescription>
+        Implements support for the NetSurfP secondary structure prediction via the
+        Nectar (http://nectar.org.au) research cloud.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>Implements support for the <a href="http://www.cbs.dtu.dk/services/NetSurfP/">CBS NetSurfP</a> secondary structure prediction via the
+        <a href="http://www.nectar.org.au">Nectar research cloud</a>. This server
+        has limited resources and is slow to make predictions (often minutes per sequence)
+        so can only be used for a small set of proteins. The algorithm is as 
+        described in:
+        
+        <p>
+        <br/>
+         <i>A  generic  method for assignment of reliability scores applied to solvent accessibility predictions</i>.
+       Bent Petersen,  Thomas  Nordahl  Petersen,  Pernille  Andersen,  Morten
+       Nielsen and Claus Lundegaard. BMC Structural Biology, 9:51, 2009
+        </p>
+        
+       	<table>
+       	<tr>
+       		<th>Output:</th><th>Notes:</th>
+       	</tr>
+       	
+       	<tr>
+       		<td>Prediction table</td>
+       		<td>the raw output from NetSurfP, separated into columns for further analysis</td>
+       	</tr>
+       	
+       	<tr>
+       		<td>Annotated sequences</td>
+       		<td>the input sequences with additional numeric tracks: each track contains
+       		the prediction probability (alpha-helix, beta-strand and coil) associated
+       		with every residue in the input sequence. Existing tracks are copied.</td>
+       	</tr>
+       	</table>
+       
+        <p>
+        <b>Note:</b> 
+        <ol>
+        	<li>Due to disk space limitations, this node uses NetSurfP with the SwissProt database
+        rather than NR70 (70% cluster threshold over the NCBI non-redundant database)</li>
+        	<li>Due to firewall restrictions, this node is currently only available to University of Melbourne staff and collaborators</li>
+        	<li>This node produces one row for each residue, so it is not recommended for than 100,000 residues</li>
+        </ol>
+        </p>
+        </intro> 
+        
+        <option name="Biological Sequence">The column of protein sequences to make predictions on. The
+        node does not support other sequence types and will reject them</option>
+        <option name="Endpoint address">Not currently implemented.</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Protein sequence data">Input protein sequence data</inPort>
+        <outPort index="0" name="Prediction table">Returns the table of predictions as computed by the algorithm</outPort>
+        <outPort index="1" name="Annotated sequences">Each prediction (above cutoff) for every sequence</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+  
+</knimeNode>

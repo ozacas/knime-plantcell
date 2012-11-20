@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>Annotate Regions</name>
+    
+    <shortDescription>
+        Used for converting BLAST results into a track for visualisation and further analysis
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>Used for converting, for example BLAST results, into a track for visualisation and further analysis</intro>
+        
+        <option name="Region Start">Column to obtain accessions from (missing/empty values skipped)</option>
+        <option name="Sequence column">Column to obtain sequences from (missing/empty values skipped)</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input sequences and regions of interest">Data must include numerous columns for annotation (see configure)</inPort>
+        
+		<outPort index="0" name="Annotated Sequences">Annotated sequence data</outPort>
+    </ports>    
+ 
+</knimeNode>

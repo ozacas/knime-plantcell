@@ -1,0 +1,30 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Sequence Annotations
+Bundle-SymbolicName: au.edu.unimelb.plantcell.annotations;singleton:=true
+Bundle-Version: 1.2.8
+Bundle-ClassPath: regionanalyzer.jar
+Bundle-Vendor: http://www.plantcell.unimelb.edu.au/bioinformatics
+Require-Bundle: org.eclipse.core.runtime,
+ org.knime.workbench.core,
+ org.knime.workbench.repository,
+ org.knime.base,
+ au.edu.unimelb.plantcell.core;bundle-version="1.0.11",
+ org.apache.batik.bridge;bundle-version="1.6.0",
+ org.apache.batik.css;bundle-version="1.6.0",
+ org.apache.batik.dom;bundle-version="1.6.0",
+ org.apache.batik.dom.svg;bundle-version="1.6.0",
+ org.apache.batik.ext.awt;bundle-version="1.6.0",
+ org.apache.batik.parser;bundle-version="1.6.0",
+ org.apache.batik.pdf;bundle-version="1.6.0",
+ org.apache.batik.svggen;bundle-version="1.6.0",
+ org.apache.batik.swing;bundle-version="1.6.0",
+ org.apache.batik.transcoder;bundle-version="1.6.0",
+ org.apache.batik.util;bundle-version="1.6.0",
+ org.apache.batik.util.gui;bundle-version="1.6.0",
+ org.apache.batik.xml;bundle-version="1.6.0"
+Bundle-ActivationPolicy: lazy
+Export-Package: au.edu.unimelb.plantcell.annotations
+Import-Package: org.w3c.dom,
+ org.w3c.dom.svg;version="1.1.0"
+

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+     <name>QuickGO Accessor</name>
+    
+    <shortDescription>
+        Provides an interface to European Bioinformatics Institute QuickGo webservice (Gene Ontology Annotation).
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+        Provides an interface to European Bioinformatics Institute QuickGo web service (Gene Ontology Annotation). The idea being that we
+        can perform lookup of the websites, and have the data directly loaded into a KNIME table. This information is always as up-to-date
+        as the time this node was last executed,
+        since it comes from EBI's computers. More information can be found at <a href="http://www.ebi.ac.uk/QuickGO/">QuickGO@EBI</a>
+        
+        <p><b>NOTE:</b> the node is deliberately slow (which is not user-configurable) to ensure that EBI's websites
+        are not overloaded, and that a KNIME user is not banned from using EBI.</p>
+        
+        <p><b>NOTE:</b> This node does not provide all the functionality of the website, but it does provide enough, if carefully used,
+        to be able to fetch the data. It is <b>strongly</b> recommended that you test with just a few rows and verify results with the website itself
+        before processing large datasets.</p>
+        
+        </intro>
+        
+        
+        <option name="Search Type">Two different searches of QuickGO are available: <i>Term Information</i>, <i>Annotation</i>.
+        Term Information can be used to uncover the description of the GO Term ID, Annotation can be used to retrieve existing knowledge about a particular
+        protein (as specified by accession) or relating to a particular GO Term.
+        </option>
+        
+        <option name="Column of identifiers">Specify the input data column which contains the identifiers to use for the search. The
+        identifiers must be valid for the type of search chosen. Empty or invalid columns will cause the node to abort processing.</option>
+  
+  		<option name="Identifier column has">either GO terms or protein accessions (eg. from BLAST) to search QuickGO using. 
+  		Be <b>sure</b> to set this correctly, for the specified column.</option>
+  		
+  		<option name="Database">Which database to provide results from. See QuickGO for more details.</option>
+  		
+  		<option name="All other fields">These fields are passed as-is thru to QuickGO. Set them as described by
+  		<a href="http://www.ebi.ac.uk/QuickGO/reference.html">the QuickGO reference manual</a></option>
+  		
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Gene input dataset">Input data which contains the column with identifiers to use to perform searches</inPort>
+        
+        <outPort index="0" name="Gene Ontology dataset">Output data which contains the requested ontological data at output (input data columns are preserved, but
+        the node will abort processing if a column already exists of the same name as it adds)</outPort>
+        
+    </ports>    
+    
+</knimeNode>
