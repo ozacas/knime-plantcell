@@ -30,11 +30,15 @@
         </p>
         </intro>
         
-        <option name="Selected File">FASTA format file to read from</option>
+        <option name="Selected File">FASTA format file to read from. May be gzip compressed. Many files can be loaded
+        at once, although it is generally recommended that all files have the same sequence type (eg. protein)</option>
+        
         <option name="Accession Regular Expression">How much data on the <tt>&gt;</tt>-line to interpret as an identifier. This regular
         expression must have exactly one pair of capturing parenthesis <tt>()</tt>. Default RE matches up the first whitespace as the identifier.</option>
+       
         <option name="Description Regular Expression">How much data on the <tt>&gt;</tt>-line to interpret as the description. Default RE matches
         everything after the default accession regular expression, but the two can overlap if this is desired.</option>
+        
         <option name="Entry Handler">How to handle multiple (accession, description) entries on a <tt>&gt;</tt>-line (each will be separated by ctrl-A).
         This node currently supports two ways to handle this:
         <ul>
@@ -43,6 +47,11 @@
         	<li>Load only the first entry in the line, the remainder are ignored. The Accession and Description columns are String columns.</li>
         </ul>
         </option>
+        
+        <option name="Use Accession as RowID?">If checked (ie. ticked) the RowID for each sequence 
+        will contain the first matched accession from the file. This avoids having to use a <b>Sequence to Columns</b> node to extract it, which can save time and space. Some (bad) FASTA files may not
+        have unique IDs, which will cause the node to fail if this option is checked.</option>
+        
     </fullDescription>
     
     <ports>
