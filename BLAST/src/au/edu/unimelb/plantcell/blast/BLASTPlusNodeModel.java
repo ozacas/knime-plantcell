@@ -40,7 +40,6 @@ import org.knime.workbench.ui.KNIMEUIPlugin;
 import au.edu.unimelb.plantcell.core.ExternalProgram;
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.core.PreferenceConstants;
-import au.edu.unimelb.plantcell.core.PreferencePage;
 import au.edu.unimelb.plantcell.core.UniqueID;
 import au.edu.unimelb.plantcell.core.cells.CoordinateSystem;
 import au.edu.unimelb.plantcell.core.cells.SequenceCell;
@@ -232,12 +231,16 @@ public class BLASTPlusNodeModel extends NodeModel {
      */
     public boolean valid_sequence_type(SequenceValue sv) {
     	assert(sv != null);
-    	
+    	SequenceType st = sv.getSequenceType();
     	String prog = m_ncbi_prog.getStringValue().trim().toLowerCase();
-    	if (prog.endsWith("blastp")) {
-    		return sv.getSequenceType().equals(SequenceType.AA);
+    	if (prog.equals("tblastn")) {
+    		return st.isProtein();
+    	} else if (prog.equals("tblastx")) {
+    		return st.isNucleotides();
+    	} else if (prog.endsWith("blastp")) {
+    		return st.isProtein();
     	} else {
-    		return (!sv.getSequenceType().equals(SequenceType.AA));
+    		return (!st.isProtein());
     	}
     }
     
@@ -545,19 +548,26 @@ public class BLASTPlusNodeModel extends NodeModel {
     	if (!db.canRead()) {
     		throw new InvalidSettingsException("Unable to read (permissions?): "+db.getAbsolutePath());
     	}
+    	// HACK: we determine dbtype based on the blast program configured (blastp ie. protein etc.)
+    	String dbtype = is_protein_blast() ? "prot" : "nucl";
     	
-    	File[] phr = new File[] { new File(db.getParent(), db.getName() + ".00.phr"), new File(db.getParent(), db.getName() + ".phr") };
-    	File[] pin = new File[] { new File(db.getParent(), db.getName() + ".00.pin"), new File(db.getParent(), db.getName() + ".pin") };
-    	File[] psq = new File[] { new File(db.getParent(), db.getName() + ".00.psq"), new File(db.getParent(), db.getName() + ".psq") };
-    	
-    	if (find_file(phr) && find_file(pin) && find_file(psq)) {
+    	File[] hr, in, sq;
+    	if (dbtype.equals("prot")) {
+	    	hr = new File[] { new File(db.getParent(), db.getName() + ".00.phr"), new File(db.getParent(), db.getName() + ".phr") };
+	    	in = new File[] { new File(db.getParent(), db.getName() + ".00.pin"), new File(db.getParent(), db.getName() + ".pin") };
+	    	sq = new File[] { new File(db.getParent(), db.getName() + ".00.psq"), new File(db.getParent(), db.getName() + ".psq") };
+    	} else {
+    		hr = new File[] { new File(db.getParent(), db.getName() + ".00.nhr"), new File(db.getParent(), db.getName() + ".nhr") };
+    		in = new File[] { new File(db.getParent(), db.getName() + ".00.nin"), new File(db.getParent(), db.getName() + ".nin") };
+	    	sq = new File[] { new File(db.getParent(), db.getName() + ".00.nsq"), new File(db.getParent(), db.getName() + ".nsq") };
+    	}
+		if (find_file(hr) && find_file(in) && find_file(sq)) {
     		logger.info("Found existing blast index for "+db.getName()+", not running makeblastdb again.");
     		return;
     	}
+    		
     	// else re-create db...
     	File mkdb = find_blast_program("makeblastdb");
-    	// HACK: we determine dbtype based on the blast program configured (blastp ie. protein etc.)
-    	String dbtype = is_protein_blast() ? "prot" : "nucl";
     	
     	logger.info("Creating BLAST database for "+db.getName()+"... please be patient...");
     	CommandLine cmdLine = new CommandLine(mkdb);
@@ -590,6 +600,10 @@ public class BLASTPlusNodeModel extends NodeModel {
 		return false;
 	}
 
+	/**
+	 * Returns the database (subject sequence) type
+	 * @return
+	 */
 	protected boolean is_protein_blast() {
 		String conf_prog = m_ncbi_prog.getStringValue().trim().toLowerCase();
     	String dbtype = "prot";
