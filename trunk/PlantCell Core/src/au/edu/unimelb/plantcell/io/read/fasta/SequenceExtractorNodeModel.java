@@ -2,14 +2,11 @@ package au.edu.unimelb.plantcell.io.read.fasta;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
@@ -26,12 +23,9 @@ import org.knime.core.data.def.JoinedRow;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
@@ -49,25 +43,12 @@ import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
  *
  * @author Andrew Cassin
  */
-public class SequenceExtractorNodeModel extends NodeModel {
+public class SequenceExtractorNodeModel extends AbstractFastaNodeModel {
     
     // the logger instance
     private static final NodeLogger logger = NodeLogger
-            .getLogger(SequenceExtractorNodeModel.class);
-        
-    /** the settings key which is used to retrieve and 
-        store the settings (from the dialog or from a settings file)    
-       (package visibility to be usable from the dialog). */
-	static final String CFGKEY_FASTA    = "fasta-file";
-    static final String CFGKEY_ACCSN_RE = "accsn-regexp";
-    static final String CFGKEY_DESCR_RE = "description-regexp";
-    static final String CFGKEY_FILE_COLUMN = "file-column";
-    static final String CFGKEY_ACCSN_COLUMN = "accession-column";
-    
-    /** initial sequence file */
-    private static final String DEFAULT_ACCSN_RE = "^(\\S+)\\b";
-    private static final String DEFAULT_DESCR_RE = "^\\S+\\s*(.*)$";
-
+            .getLogger("Extract sequences");
+ 
     // settings for this node: regular expressions to process the ">" lines, and the fasta sequence filename
     private final SettingsModelStringArray m_fasta    = (SettingsModelStringArray) make(CFGKEY_FASTA);
     private final SettingsModelString m_accsn_re = (SettingsModelString) make(CFGKEY_ACCSN_RE);
@@ -350,61 +331,6 @@ public class SequenceExtractorNodeModel extends NodeModel {
 		}
 	}
 
-	protected Collection<StringCell> toDataCells(String[] vec) {
-    	ArrayList<StringCell> al = new ArrayList<StringCell>();
-    	for (String s : vec) {
-    		if (s == null)		// terminate add early if only a few entries valid
-    			break;
-    		al.add(new StringCell(s));
-    	}
-    	return al;
-    }
-    
-    protected String[] parse_accession(Pattern matcher, String[] entries) throws Exception {
-    	int cnt = 0;
-    	String[] accsns = new String[entries.length];
-    	for (String entry : entries) {
-    		Matcher m = matcher.matcher(entry);
-	    	if (m.find()) {
-	    		if (m.groupCount() != 1) {
-	    			throw new Exception("You must use capturing parentheses () to match an accession only once!");
-	    		}
-	    		accsns[cnt] = m.group(1);
-	    		cnt++;
-	    	} 
-    	}
-    	if (cnt < entries.length) {
-    		accsns[cnt] = null; // make sure array has null after last match
-    	}
-     	return (cnt > 0) ? accsns : null;
-    }
-    
-    protected String[] parse_description(Pattern matcher, String[] entries) throws Exception {
-    	int cnt = 0;
-    	String[] descrs = new String[entries.length];
-    	for (String entry : entries) {
-    		Matcher m = matcher.matcher(entry);
-    		if (m.find()) {
-    			if (m.groupCount() != 1) {
-        			throw new Exception("You must use capturing parentheses() to match a sequence description only once!");
-        		}
-    			descrs[cnt] = m.group(1);
-    			cnt++;
-    		}
-    	}
-    	if (cnt < entries.length) {
-    		descrs[cnt] = null;
-    	}
-    	return (cnt > 0) ? descrs : null;
-    }
-    
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void reset() {
-    }
-
     /**
      * {@inheritDoc}
      */
@@ -455,13 +381,6 @@ public class SequenceExtractorNodeModel extends NodeModel {
         m_file_col.validateSettings(settings);
         m_accsn_col.validateSettings(settings);
     }
-   
-    protected void saveInternals(final File internDir, final ExecutionMonitor exec) throws IOException, CanceledExecutionException {
-   
-    }
-    
-    protected void loadInternals(final File internDir, final ExecutionMonitor exec) throws IOException, CanceledExecutionException {
-    
-    }
+  
 }
 

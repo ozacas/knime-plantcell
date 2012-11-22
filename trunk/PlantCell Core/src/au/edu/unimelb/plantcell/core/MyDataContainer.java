@@ -32,10 +32,32 @@ public class MyDataContainer {
 		m_prefix = id_prefix;
 	}
 	
+	/**
+	 * Add a row to the container with the default row ID naming scheme (as established by the constructor called)
+	 * 
+	 * @param cells
+	 */
 	public void addRow(DataCell[] cells) {
 		m_dc.addRowToTable(new DefaultRow(m_prefix+m_id++, cells));
 	}
 
+	/**
+	 * Similar to <code>addRow()</code>. An error will be thrown if the rowid is not unique so be
+	 * careful using this implementation.
+	 * 
+	 * @param rowid
+	 * @param cells
+	 */
+	public void addRowWithID(String rowid, DataCell[] cells) {
+		m_dc.addRowToTable(new DefaultRow(rowid, cells));
+	}
+	
+	/**
+	 * Returns the prefix of the last row id. It does not return the last row id if you called
+	 * addRowWithID() instead of addRow().
+	 * 
+	 * @return
+	 */
 	public String lastRowID() {
 		return m_prefix + (m_id-1);
 	}

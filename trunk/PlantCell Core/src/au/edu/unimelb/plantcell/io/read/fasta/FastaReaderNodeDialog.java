@@ -185,7 +185,9 @@ public class FastaReaderNodeDialog extends DefaultNodeSettingsPane {
       
         addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(FastaReaderNodeModel.CFGKEY_MAKESTATS, 
         		Boolean.FALSE), "Compute stats for sequences (slow & memory intensive)?"));
-    
+        
+        addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(FastaReaderNodeModel.CFGKEY_USE_ACCSN_AS_ROWID, 
+        		Boolean.TRUE), "Use accession as RowID?"));
         addTabAt(0, "FASTA Files", fasta_file_panel);
         selectTab("FASTA Files");
     }
