@@ -114,7 +114,7 @@ public class SequenceBLASTNodeModel extends BLASTPlusNodeModel {
     		
     		public SequenceValue process(SequenceValue sv) {
     			if (!valid_sequence_type(sv)) {
-	    			logger.warn("Invalid sequence type for "+sv.getID()+" - check your blast and "+sv.getSequenceType()+" sequence settings");
+	    			logger.warn("Invalid sequence ("+sv.getSequenceType()+") for blast program - check your node configuration: ignoring "+sv.getID());
 	    			return null;
 	    		}
     			return sv;
