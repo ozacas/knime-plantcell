@@ -7,15 +7,8 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.IntCell;
-import org.knime.core.data.def.JoinedRow;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.node.BufferedDataContainer;
-import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.NodeLogger;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceType;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
@@ -24,14 +17,15 @@ public class SequenceCleanerProcessor extends BioJavaProcessorTask {
 	private final Set<Character> m_dna = new HashSet<Character>();
 	private final Set<Character> m_rna = new HashSet<Character>();
 	private final Set<Character> m_aa  = new HashSet<Character>();
-
+	private int   m_col;
+	
 	@Override
 	public String getCategory() {
 		return "Formatting";
 	}
 	
 	@Override
-	public void init(BioJavaProcessorNodeModel owner, String task_name) {
+	public void init(BioJavaProcessorNodeModel owner, String task_name, int col) {
 		// DNA
 		for (char c : new char[] { 'A', 'C', 'G', 'T' }) {
 			m_dna.add(new Character(c));
@@ -53,25 +47,18 @@ public class SequenceCleanerProcessor extends BioJavaProcessorTask {
 		}) {
 				m_aa.add(new Character(c));
 		}
+		
+		m_col = col;
 	}
 
 	@Override
-	public DataTableSpec get_table_spec() {
+	public DataColumnSpec[] getColumnSpecs() {
 		DataColumnSpec[] cols = new DataColumnSpec[2];
 		cols[0] = new DataColumnSpecCreator("Cleaned Sequence", StringCell.TYPE).createSpec();
 		cols[1] = new DataColumnSpecCreator("Residues rejected", IntCell.TYPE).createSpec();
-		return new DataTableSpec(cols);
+		return cols;
 	}
 
-	@Override
-	public boolean isMerged() {
-		return true;
-	}
-
-	public static BioJavaProcessorTask getInstance() { 
-		return new SequenceCleanerProcessor();
-	}
-	
 	public String[] getNames() { 
 		return new String[] {"Clean sequences (whitespace removal, non-coding symbols, stop codon->X conversion, all uppercase)"}; 
 	}
@@ -89,62 +76,43 @@ public class SequenceCleanerProcessor extends BioJavaProcessorTask {
 	}
 	
 	@Override
-	public void execute(ColumnIterator ci, ExecutionContext exec,
-			NodeLogger l, BufferedDataTable[] inData, BufferedDataContainer c1)
-			throws Exception {
-		l.info("Cleaning "+inData[0].getRowCount()+" sequences.");
+	public DataCell[] getCells(DataRow row) {
+		DataCell c = row.getCell(m_col);
+		if (c == null || c.isMissing() || !(c instanceof SequenceValue))
+			return missing_cells(getColumnSpecs().length);
+		SequenceValue sv = (SequenceValue) c;
+		String seq = sv.getStringValue();
+		seq = seq.replaceAll("\\s+", "");
+		seq = seq.replaceAll("\\*", "X");
+		seq = seq.toUpperCase();
 		
-		int n_rows = inData[0].getRowCount();
-		int done   = 0;
-		while (ci.hasNext()) {
-			DataCell c = ci.next();
-			if (c == null || c.isMissing() || !(c instanceof SequenceValue))
-				continue;
-			SequenceValue sv = (SequenceValue) c;
-			String seq = sv.getStringValue();
-			seq = seq.replaceAll("\\s+", "");
-			seq = seq.replaceAll("\\*", "X");
-			seq = seq.toUpperCase();
-			
-			SequenceType st = sv.getSequenceType();
-			Set<Character> letters = m_dna;
-			if (st.isProtein()) {
-				letters = m_dna;
-			} else if (st.isRNA()) {
-				letters = m_rna;
-			}
-			StringBuffer sb = new StringBuffer(seq.length());
-			int rejected = 0;
-			for (int i=0; i<seq.length(); i++) {
-				Character c2 = new Character(seq.charAt(i));
-				if (Character.isLetter(c2)) {
-					if (!letters.contains(c2)) {     // AA
-						rejected++;
-					} else {
-						sb.append(c2);
-					}
-				} else if (c2 == '-' || c2 == '.') {
-					sb.append(c2);
-				} else {
+		SequenceType st = sv.getSequenceType();
+		Set<Character> letters = m_dna;
+		if (st.isProtein()) {
+			letters = m_dna;
+		} else if (st.isRNA()) {
+			letters = m_rna;
+		}
+		StringBuffer sb = new StringBuffer(seq.length());
+		int rejected = 0;
+		for (int i=0; i<seq.length(); i++) {
+			Character c2 = new Character(seq.charAt(i));
+			if (Character.isLetter(c2)) {
+				if (!letters.contains(c2)) {     // AA
 					rejected++;
+				} else {
+					sb.append(c2);
 				}
-			}
-			
-			add_row_to_table(c1, sb.toString(), rejected, ci.lastRow());
-			done++;
-			if (done % 1000 == 0) {
-				exec.checkCanceled();
-				exec.setProgress(((double)done)/n_rows);
+			} else if (c2 == '-' || c2 == '.') {
+				sb.append(c2);
+			} else {
+				rejected++;
 			}
 		}
-	}
-
-	protected void add_row_to_table(BufferedDataContainer c, String string, 
-									int rejected, DataRow r) {
+		
 		DataCell[] cells = new DataCell[2];
-		cells[0] = new StringCell(string);
+		cells[0] = new StringCell(sb.toString());
 		cells[1] = new IntCell(rejected);
-		c.addRowToTable(new JoinedRow(r, new DefaultRow(r.getKey().getString(), cells)));
+		return cells;
 	}
-
 }

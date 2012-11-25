@@ -1,16 +1,14 @@
 package au.edu.unimelb.plantcell.misc.biojava;
 
-import org.knime.core.data.*;
-import org.knime.core.data.def.DefaultRow;
-import org.knime.core.data.def.JoinedRow;
+import org.biojava.bio.seq.DNATools;
+import org.biojava.bio.seq.RNATools;
+import org.biojava.bio.symbol.SymbolList;
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataRow;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.node.BufferedDataContainer;
-import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
-import org.biojava.bio.symbol.*;
-import org.biojava.bio.seq.*;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 
@@ -19,6 +17,7 @@ public class SequenceTranslationProcessor extends BioJavaProcessorTask {
 	private boolean m_convert_dna2prot;
 	private boolean m_convert_rna2prot;
 	private boolean m_convert_dna2rna;
+	private int m_col;
 	
 	public SequenceTranslationProcessor() {
 	}
@@ -32,11 +31,11 @@ public class SequenceTranslationProcessor extends BioJavaProcessorTask {
 		return new SequenceTranslationProcessor();
 	}
 	
-	public void init(BioJavaProcessorNodeModel m, String task) {
-		setOwner(m);
+	public void init(BioJavaProcessorNodeModel m, String task, int col) {
 		m_convert_dna2prot = false;
 		m_convert_rna2prot = false;
 		m_convert_dna2rna  = false;
+		m_col = col;
 		task = task.toLowerCase().trim();
 		if (task.endsWith("dna to protein sequence")) {
 			m_convert_dna2prot = true;
@@ -62,22 +61,19 @@ public class SequenceTranslationProcessor extends BioJavaProcessorTask {
 		"based on the node configuration. Currently, back translation from AA to DNA is not supported by this node.";
 	}
 	
-	public void execute(ColumnIterator ci, ExecutionContext exec,
-			NodeLogger l, BufferedDataTable[] inData, BufferedDataContainer c1)
-			throws Exception {
+	public DataCell[] getCells(DataRow row) {
+		DataCell c = row.getCell(m_col);
+		if (c == null || c.isMissing() || !(c instanceof SequenceValue))
+			return missing_cells(getColumnSpecs().length);
+		SequenceValue sv = (SequenceValue) c;
 		
-		int done = 0;
-		int n_rows = inData[0].getRowCount();
-		while (ci.hasNext()) {
-			DataCell c = ci.next();
-			if (c == null || c.isMissing() || !(c instanceof SequenceValue))
-				continue;
-			SequenceValue sv = (SequenceValue) c;
-			
-			// skip missing sequences -- TODO: should we put into output table?
-			if (sv.getLength() < 1)
-				continue;
-			SymbolList sl = asBioJava(sv);
+		// skip missing sequences -- TODO: should we put into output table?
+		if (sv.getLength() < 1)
+			return missing_cells(getColumnSpecs().length);
+		SymbolList sl;
+		try {
+			sl = asBioJava(sv);
+		
 			String seq;
 			
 			if (m_convert_dna2rna) {
@@ -108,26 +104,18 @@ public class SequenceTranslationProcessor extends BioJavaProcessorTask {
 			}
 			DataCell[] cells = new DataCell[1];
 			cells[0] = new StringCell(seq);
-			c1.addRowToTable(new JoinedRow(ci.lastRow(), new DefaultRow(ci.lastRowID(), cells)));
-			done++;
-			if (done % 100 == 0) {
-				exec.checkCanceled();
-				exec.setProgress(((double)done)/n_rows, "Processed sequence "+sv.getID());
-			}
+			return cells;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return missing_cells(getColumnSpecs().length);
 		}
 	}
 
-	public DataTableSpec get_table_spec() {
+	public DataColumnSpec[] getColumnSpecs() {
 		DataColumnSpec[] allColSpecs = new DataColumnSpec[1];
         allColSpecs[0] = 
             new DataColumnSpecCreator("Converted Sequence", StringCell.TYPE).createSpec();
-        DataTableSpec outputSpec = new DataTableSpec(allColSpecs);
-		return outputSpec;
-	}
-
-	@Override
-	public boolean isMerged() {
-		return true;
+        return allColSpecs;
 	}
 
 }

@@ -7,14 +7,8 @@ import java.util.Set;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.def.DefaultRow;
+import org.knime.core.data.DataRow;
 import org.knime.core.data.def.IntCell;
-import org.knime.core.data.def.JoinedRow;
-import org.knime.core.node.BufferedDataContainer;
-import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.NodeLogger;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 
@@ -26,8 +20,9 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
  */
 public class ResidueFrequencyProcessor extends BioJavaProcessorTask {
 	private boolean m_single_residue;
-	private final HashMap<String, Integer> m_colmap = new HashMap<String,Integer>();		    // maps column name (ie. symbol name) to a corresponding column id
-
+	private final HashMap<String, Integer> m_colmap = new HashMap<String,Integer>(); // maps column name (ie. symbol name) to a corresponding column id
+	private int m_col = -1;
+	
 	public ResidueFrequencyProcessor() {
 	}
 	
@@ -40,10 +35,10 @@ public class ResidueFrequencyProcessor extends BioJavaProcessorTask {
 		return new ResidueFrequencyProcessor();
 	}
 	
-	public void init(BioJavaProcessorNodeModel owner, String task) {
-		setOwner(owner);
+	public void init(BioJavaProcessorNodeModel owner, String task, int col) {
 		m_single_residue = task.equals("Count Residues");
 		m_colmap.clear();
+		m_col = col;
 	}
 	
 	/** {@inheritDoc} */	
@@ -64,12 +59,7 @@ public class ResidueFrequencyProcessor extends BioJavaProcessorTask {
 	}
 	
 	@Override
-	public void execute(ColumnIterator ci, ExecutionContext exec,
-			NodeLogger l, BufferedDataTable[] inData, BufferedDataContainer c1)
-			throws Exception {
-		
-		int n = inData[0].getRowCount();
-		int i = 0;
+	public DataCell[] getCells(DataRow row) {
 		int[] vec = new int[m_colmap.size()];
 		String[] id = new String[m_colmap.size()];
 		
@@ -82,82 +72,58 @@ public class ResidueFrequencyProcessor extends BioJavaProcessorTask {
 		}
 		
 		// process rows for user's dataset
-		if (m_single_residue) {
-			while (ci.hasNext()) {
-				DataCell c = ci.next();
-				if (c == null || c.isMissing())
-					continue;
-				i++;
-				
-				String seq = c.toString();
-				
-				DataCell[] cells = new DataCell[vec.length];
-				for (int k=0; k<vec.length; k++) {
-					int cnt = 0;
-					String colname = id[k];
-					assert(colname.length() == 1);
-					char ch = colname.charAt(0);
-					for (int m2=0; m2<seq.length(); m2++) {
-						if (seq.charAt(m2) == ch) 
-							cnt++;
-					}
-					
-					if (m_colmap.containsKey(colname)) {
-						Integer column_idx = m_colmap.get(colname);
-						cells[column_idx.intValue()] = new IntCell(cnt);
-					}
+		DataCell c = row.getCell(m_col);
+		if (c == null || c.isMissing() || !(c instanceof SequenceValue))
+			return missing_cells(m_colmap.size());
+		SequenceValue sv = (SequenceValue) c;
+		String seq = sv.getStringValue().toUpperCase();
+		
+		if (m_single_residue) {			
+			DataCell[] cells = new DataCell[vec.length];
+			for (int k=0; k<vec.length; k++) {
+				int cnt = 0;
+				String colname = id[k];
+				assert(colname.length() == 1);
+				char ch = colname.charAt(0);
+				for (int m2=0; m2<seq.length(); m2++) {
+					if (seq.charAt(m2) == ch) 
+						cnt++;
 				}
 				
-				c1.addRowToTable(new JoinedRow(ci.lastRow(), new DefaultRow(ci.lastRowID(), cells)));
-
-				if (i % 1000 == 0) {
-					exec.checkCanceled();
-					exec.setProgress(((double) i)/n, "Processed "+i+" sequences");
+				if (m_colmap.containsKey(colname)) {
+					Integer column_idx = m_colmap.get(colname);
+					cells[column_idx.intValue()] = new IntCell(cnt);
 				}
-			}	
+			}
+			return cells;
 		} else {
 			// di-mer/di-peptide composition?
-			while (ci.hasNext()) {
-				DataCell c = ci.next();
-				if (c == null || c.isMissing() || !(c instanceof SequenceValue))
-					continue;
+			int[] cells = new int[vec.length];
+			for (int k=0; k<cells.length; k++) {
+				cells[k] = 0;
+			}
+			for (int k=0; k<seq.length()-1; k++) {
+				StringBuffer sb = new StringBuffer();
+				sb.append(seq.charAt(k));
+				sb.append(seq.charAt(k+1));
+				String dimer = sb.toString();
 				
-				i++;
-				SequenceValue sv = (SequenceValue) c;
-				String seq = sv.getStringValue().toUpperCase();
-				
-				int[] cells = new int[vec.length];
-				for (int k=0; k<cells.length; k++) {
-					cells[k] = 0;
+				if (m_colmap.containsKey(dimer)) {
+					Integer column_idx = m_colmap.get(dimer);
+					cells[column_idx.intValue()]++;
 				}
-				for (int k=0; k<seq.length()-1; k++) {
-					StringBuffer sb = new StringBuffer();
-					sb.append(seq.charAt(k));
-					sb.append(seq.charAt(k+1));
-					String dimer = sb.toString();
- 					
-					if (m_colmap.containsKey(dimer)) {
-						Integer column_idx = m_colmap.get(dimer);
-						cells[column_idx.intValue()]++;
-					}
-				}
-				
-				DataCell[] knime_cells = new DataCell[cells.length];
-				for (int k=0; k<cells.length; k++) {
-					knime_cells[k] = new IntCell(new Integer(cells[k]));
-				}
-				c1.addRowToTable(new JoinedRow(ci.lastRow(), new DefaultRow(ci.lastRowID(), knime_cells)));
-
-				if (i % 1000 == 0) {
-					exec.checkCanceled();
-					exec.setProgress(((double) i)/n, "Processed "+i+" sequences");
-				}
-			}	
+			}
+			
+			DataCell[] knime_cells = new DataCell[cells.length];
+			for (int k=0; k<cells.length; k++) {
+				knime_cells[k] = new IntCell(new Integer(cells[k]));
+			}
+			return knime_cells;
 		}
 	}
 
 	@Override
-	public DataTableSpec get_table_spec() {
+	public DataColumnSpec[] getColumnSpecs() {
 		DataColumnSpec[] cols;
 		
 		// report any strange characters in whatever sequence type for QA purposes
@@ -197,12 +163,6 @@ public class ResidueFrequencyProcessor extends BioJavaProcessorTask {
 			k = m_colmap.get(colname).intValue();
 			cols[k] = new DataColumnSpecCreator(colname, IntCell.TYPE).createSpec();
 		}
-		return new DataTableSpec(cols);
+		return  cols;
 	}
-
-	@Override
-	public boolean isMerged() {
-		return true;
-	}
-
 }

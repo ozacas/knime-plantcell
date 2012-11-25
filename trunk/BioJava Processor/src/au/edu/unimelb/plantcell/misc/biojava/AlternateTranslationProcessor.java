@@ -10,25 +10,18 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.def.DefaultRow;
-import org.knime.core.data.def.JoinedRow;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.node.BufferedDataContainer;
-import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
 
-import au.edu.unimelb.plantcell.core.cells.SequenceType;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 
 
 public class AlternateTranslationProcessor extends BioJavaProcessorTask {
-	public TranslationTable[] m_tables;
-	public String[]           m_table_names;
+	private TranslationTable[] m_tables;
+	private String[]           m_table_names;
+	private int m_wanted_col = -1;
 	
 	public AlternateTranslationProcessor() {
+		super();
 	}
 	
 	@Override
@@ -36,9 +29,7 @@ public class AlternateTranslationProcessor extends BioJavaProcessorTask {
 		return "Translation";
 	}
 	
-	public void init(BioJavaProcessorNodeModel owner, String task_name) {
-		setOwner(owner);
-		
+	public void init(BioJavaProcessorNodeModel owner, String task_name, int col) {
 		// load translation tables
 		m_tables = new TranslationTable[16];
 		m_table_names = new String[m_tables.length];
@@ -74,6 +65,7 @@ public class AlternateTranslationProcessor extends BioJavaProcessorTask {
 		m_table_names[14] = TranslationTable.VERT_MITO;
 		m_tables[15] = RNATools.getGeneticCode(TranslationTable.YEAST_MITO);
 		m_table_names[15] = TranslationTable.YEAST_MITO;
+		m_wanted_col = col;
 	}
 	
 	/** {@inheritDoc} */
@@ -90,19 +82,27 @@ public class AlternateTranslationProcessor extends BioJavaProcessorTask {
 		" separate column. <b>No</b> frame translation is performed.";
 	}
 	
-	public void execute(ColumnIterator ci, ExecutionContext exec,
-			NodeLogger l, BufferedDataTable[] inData, BufferedDataContainer c1)
-			throws Exception {
+	@Override
+	public DataColumnSpec[] getColumnSpecs() {
+		DataColumnSpec[] allColSpecs = new DataColumnSpec[m_tables.length];
+		for (int i=0; i<m_tables.length; i++) {
+			allColSpecs[i] = 
+				new DataColumnSpecCreator("Translation "+m_table_names[i], StringCell.TYPE).createSpec();
+		}
+		return allColSpecs;
+	}
+
+	@Override
+	public DataCell[] getCells(DataRow row) {
+		DataCell c = row.getCell(m_wanted_col);
+		if (c == null || c.isMissing() || !(c instanceof SequenceValue)) {
+			return missing_cells(m_tables.length);
+		}
+		SequenceValue sv = (SequenceValue) c;
+		if (!sv.getSequenceType().isNucleotides())
+			return missing_cells(m_tables.length);
 		
-		while (ci.hasNext()) {
-			DataCell c = ci.next();
-			if (c == null || c.isMissing() || !(c instanceof SequenceValue)) {
-				continue;
-			}
-			SequenceValue sv = (SequenceValue) c;
-			if (sv.getSequenceType().equals(SequenceType.DNA))
-				throw new InvalidSettingsException("Non-DNA sequence encountered for "+sv.getID());
-			
+		try {
 			SymbolList   dna = asBioJava(sv);
 			DataCell[] cells = new DataCell[m_tables.length];
 			for (int i=0; i<m_tables.length; i++) {
@@ -110,33 +110,15 @@ public class AlternateTranslationProcessor extends BioJavaProcessorTask {
 				if (dna.length() %3 != 0) {
 					dna = dna.subList(1, dna.length() - (dna.length() % 3));
 				}
-				SymbolList rna = DNATools.toRNA(dna);
+				SymbolList rna  = DNATools.toRNA(dna);
 				SymbolList syms = SymbolListViews.windowedSymbolList(rna, 3);
-				SymbolList prot= SymbolListViews.translate(syms, m_tables[i]);
-				cells[i] = new StringCell(prot.seqString());
+				SymbolList prot = SymbolListViews.translate(syms, m_tables[i]);
+				cells[i]        = new StringCell(prot.seqString());
 			}
-			DataRow r = ci.lastRow();
-			c1.addRowToTable(new JoinedRow(r, new DefaultRow(r.getKey(), cells)));
+			return cells;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return missing_cells(m_tables.length);
 		}
 	}
-
-	public DataTableSpec get_table_spec() {
-		DataColumnSpec[] allColSpecs = new DataColumnSpec[m_tables.length];
-		for (int i=0; i<m_tables.length; i++) {
-			allColSpecs[i] = 
-				new DataColumnSpecCreator("Translation "+m_table_names[i], StringCell.TYPE).createSpec();
-		}
-        DataTableSpec outputSpec = new DataTableSpec(allColSpecs);
-		return outputSpec;
-	}
-
-	@Override
-	public boolean isMerged() {
-		return true;
-	}
-
-	public static BioJavaProcessorTask getInstance() {
-		return new AlternateTranslationProcessor();
-	}
-
 }

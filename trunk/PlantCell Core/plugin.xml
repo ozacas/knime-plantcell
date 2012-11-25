@@ -80,6 +80,11 @@
    				  path="/Bioinformatics/Sequence Analysis" />
    		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
    				  icon="icons/default.png"
+   				  level-id="Convert &amp; Replace"
+   				  name="Convert &amp; Replace"
+   				  path="/Bioinformatics/Sequence Analysis" />
+   		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
+   				  icon="icons/default.png"
    				  level-id="Phylogenetics"
    				  name="Phylogenetics"
    				  path="/Bioinformatics" />

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -83,20 +84,19 @@ public class BioJavaProcessorNodeModel extends NodeModel {
     
     public static BioJavaProcessorTask[] getTasks() {
     	return new BioJavaProcessorTask[] {
-				AlternateTranslationProcessor.getInstance(),
-				FrameTranslationProcessor.getInstance(),
-				HydrophobicityProcessor.getInstance(),
-				LongestFrameProcessor.getInstance(),		// experimental (warning to all users)
-				PositionByResidueProcessor.getInstance(),
-				ResidueFrequencyProcessor.getInstance(),
-				SequenceTranslationProcessor.getInstance(),
-				SequenceCleanerProcessor.getInstance(),
-				SNPAssistedFrameshiftDetector.getInstance(),
+				new AlternateTranslationProcessor(),
+				new FrameTranslationProcessor(),
+				new HydrophobicityProcessor(),
+				new LongestFrameProcessor(),		// experimental (warning to all users)
+				//PositionByResidueProcessor.getInstance(),
+				new ResidueFrequencyProcessor(),
+				new SequenceTranslationProcessor(),
+				new SequenceCleanerProcessor(),
+				new SNPAssistedFrameshiftDetector(),
 				//TrypticPeptideExtractor_v2.getInstance(),		// disabled pending a re-factor
-				WeightedHomopolymerRateProcessor.getInstance(),
-				SequenceFormattedCleanerProcessor.getInstance(),
-				AlignmentSequenceExtractorTask.getInstance(),
-				GCCalculatorTask.getInstance()
+				new WeightedHomopolymerRateProcessor(),
+				new AlignmentSequenceExtractorTask(),
+				new GCCalculatorTask()
     	};
     }
     
@@ -112,33 +112,31 @@ public class BioJavaProcessorNodeModel extends NodeModel {
     
     public BioJavaProcessorTask make_biojava_processor(String task) throws NotConfigurableException,NotImplementedException {
     	if (task.startsWith("Hydrophobicity")) {
-    		return HydrophobicityProcessor.getInstance();
+    		return new HydrophobicityProcessor();
     	} else if (task.startsWith("Six")) {
-    		return FrameTranslationProcessor.getInstance();
+    		return new FrameTranslationProcessor();
     	} else if (task.startsWith("Convert")) {
-    		return SequenceTranslationProcessor.getInstance();
+    		return new SequenceTranslationProcessor();
     	} else if (task.startsWith("Alternate translation")) {
-    		return AlternateTranslationProcessor.getInstance();
+    		return new AlternateTranslationProcessor();
     	} else if (task.startsWith("Count")) {
-    		return ResidueFrequencyProcessor.getInstance();
+    		return new ResidueFrequencyProcessor();
     	} else if (task.equals("Residue Frequency by Position")) {
-    		return PositionByResidueProcessor.getInstance();
+    		return new PositionByResidueProcessor();
     	} else if (task.startsWith("Longest reading frame")) {
-    		return LongestFrameProcessor.getInstance();
+    		return new LongestFrameProcessor();
     	} else if (task.startsWith("Weighted")) {
-    		return WeightedHomopolymerRateProcessor.getInstance();
+    		return new WeightedHomopolymerRateProcessor();
     	} else if (task.startsWith("SNP")) {
-    		return SNPAssistedFrameshiftDetector.getInstance();
+    		return new SNPAssistedFrameshiftDetector();
     	} else if (task.startsWith("Tryptic")) {
-    		return TrypticPeptideExtractor_v2.getInstance();
+    		return new TrypticPeptideExtractor_v2();
     	} else if (task.startsWith("Clean")) {
-    		if (task.toLowerCase().indexOf(" format sequences") >= 0) 
-    			return SequenceFormattedCleanerProcessor.getInstance();
-    		return SequenceCleanerProcessor.getInstance();
+    		return new SequenceCleanerProcessor();
     	} else if (task.startsWith("Alignment")) {
-    		return AlignmentSequenceExtractorTask.getInstance();
+    		return new AlignmentSequenceExtractorTask();
     	} else if (task.startsWith("GC")) {
-    		return GCCalculatorTask.getInstance();
+    		return new GCCalculatorTask();
     	} else if (task.trim().length() >= 1) {
         	throw new NotImplementedException("Unknown BioJava task to perform! Probably a bug...");
     	} else {
@@ -191,9 +189,9 @@ public class BioJavaProcessorNodeModel extends NodeModel {
         // the table will have three columns:
     	BioJavaProcessorTask bjpi = make_biojava_processor(m_task.getStringValue());
 
-        DataTableSpec outputSpec = make_output_spec(inData[0].getDataTableSpec(), bjpi);
-        // make_output_spec() invokes init() on bjpi so we can assume the task is ready...
-     
+        DataTableSpec outputSpec = new DataTableSpec(inData[0].getDataTableSpec(), 
+        									new DataTableSpec(bjpi.getColumnSpecs()));
+        
         // the execution context will provide us with storage capacity, in this
         // case a data container to which we will add rows sequentially
         // Note, this container can also handle arbitrary big data tables, it
@@ -208,31 +206,23 @@ public class BioJavaProcessorNodeModel extends NodeModel {
         logger.info("Processing column: "+colname+" at index "+m_sequence_idx);
         m_warned_bad_chars = false;
         m_bad_char_count   = 0;
-        bjpi.execute(new ColumnIterator(inData[0].iterator(), m_sequence_idx), exec, logger, inData, container);
+        bjpi.init(this, m_task.getStringValue(), m_sequence_idx);
+       
+        // create the column rearranger
+        ColumnRearranger outputTable = new ColumnRearranger(inData[0].getDataTableSpec());
+      
+        // append the new column
+        outputTable.append(bjpi);
         
+        BufferedDataTable out = exec.createColumnRearrangeTable(inData[0], outputTable, exec);
+      
         if (m_bad_char_count > 0) {
         	logger.warn("WARNING: encountered "+m_bad_char_count+" non-residue symbols during processing. Results may be incorrect!");
         }
         // once we are done, we close the container and return its table
         container.close();
-        BufferedDataTable out = container.getTable();
         return new BufferedDataTable[]{out};
     }
-
-    private DataTableSpec make_output_spec(DataTableSpec inSpec, BioJavaProcessorTask bjpi) throws Exception {
-    	 if (bjpi == null) 
-    		 bjpi = make_biojava_processor(m_task.getStringValue());
-    	 bjpi.init(this, m_task.getStringValue());
-    	 
-         DataTableSpec result_spec= bjpi.get_table_spec();
-         
-         DataTableSpec outputSpec;
-         if (bjpi.isMerged())
-         	outputSpec = new DataTableSpec("BioJava Processor Specification", inSpec, result_spec);
-         else 
-         	outputSpec = result_spec;
-         return outputSpec;
-	}
 
 	/**
      * {@inheritDoc}
@@ -246,20 +236,8 @@ public class BioJavaProcessorNodeModel extends NodeModel {
      */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
-            throws InvalidSettingsException {
-    	DataTableSpec outspec = null;
-    	
-    	try {
-    		outspec = make_output_spec(inSpecs[0], null);
-    	} catch (NotConfigurableException e) {
-    		logger.warn("Node must be configured first!");
-    		outspec = null;
-    	} catch (Exception e2) {
-    		e2.printStackTrace();
-    		throw new InvalidSettingsException("Unable to configure the node! Input table is different: error is "+e2.getMessage());
-    	}
-       
-        return new DataTableSpec[]{outspec};
+            throws InvalidSettingsException {      
+        return null;
     }
 
     /**

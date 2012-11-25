@@ -10,13 +10,11 @@ import org.biojava.bio.seq.ProteinTools;
 import org.biojava.bio.seq.RNATools;
 import org.biojava.bio.symbol.IllegalSymbolException;
 import org.biojava.bio.symbol.SymbolList;
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.node.BufferedDataContainer;
-import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.ExecutionContext;
+import org.knime.core.data.DataType;
+import org.knime.core.data.container.AbstractCellFactory;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.ColumnFilter;
@@ -31,21 +29,20 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
  * @author andrew.cassin
  *
  */
-public abstract class BioJavaProcessorTask {
+public abstract class BioJavaProcessorTask extends AbstractCellFactory {
 	private final Map<String,TaskParameter>        m_advanced = new HashMap<String,TaskParameter>();
-	private BioJavaProcessorNodeModel m_owner;
 	
-	public BioJavaProcessorTask() {
+	protected BioJavaProcessorTask(DataColumnSpec... cols) {
+		super(cols);
 	}
 	
-	/**
-	 * Singleton pattern - subclasses must override and must not return <code>null</code>.
-	 * The instance returned need not be fully initialised, the {@link BioJavaNodeModel}
-	 * will call <code>init(this)</code> before the task is executed, once per execution.
-	 * @return
-	 */
-	public static BioJavaProcessorTask getInstance() throws Throwable { 
-		throw new InvalidSettingsException("Subclasses must override!"); 
+	protected DataCell[] missing_cells(int n) {
+		assert(n > 0);
+		DataCell[] ret = new DataCell[n];
+		for (int i=0; i<ret.length; i++) {
+			ret[i] = DataType.getMissingCell();
+		}
+		return ret;
 	}
 	
 	/**
@@ -63,21 +60,10 @@ public abstract class BioJavaProcessorTask {
 	 * 
 	 * @param owner
 	 */
-	public abstract void init(BioJavaProcessorNodeModel owner, String task_name);
+	public abstract void init(final BioJavaProcessorNodeModel owner, final String task_name, int input_column_index)
+					throws Exception;
 	
-	protected void setOwner(BioJavaProcessorNodeModel new_owner) {
-		assert(new_owner != null);
-		m_owner = new_owner;
-	}
-	
-	/**
-	 * Returns the owner (node model instance) of the task to the caller. Guaranteed not-<code>null</code>
-	 * @return
-	 */
-	protected BioJavaProcessorNodeModel getOwner() {
-		return m_owner;
-	}
-	
+
 	/**
 	 * Returns the human-readable names for the task as it should appear in the configure dialog.
 	 * Every subclass is expected to override this method. Most tasks will only provide
@@ -97,12 +83,6 @@ public abstract class BioJavaProcessorTask {
 	}
 	
 	/**
-	 * Returns the table spec needed by the processor to store the results it will produce. Must not return null.
-	 * @return DataTableSpec
-	 */
-	public abstract DataTableSpec get_table_spec();
-	
-	/**
 	 * Which input columns can be selected for this task?
 	 */
 	public ColumnFilter getColumnFilter() {
@@ -120,11 +100,7 @@ public abstract class BioJavaProcessorTask {
 			
 		};
 	}
-	/**
-	 * Is the result table merged with the input columns?
-	 */
-	public abstract boolean isMerged();
-	
+
 	/**
 	 * Retrieve the set of configurable parameters for this task, used by the dialog code to let the user edit the advanced settings
 	 */
@@ -184,15 +160,6 @@ public abstract class BioJavaProcessorTask {
 			m_advanced.put(field, new TaskParameter(field, value));
 		}
 	}
-	
-	/**
-	 * Processes the required task storing results into c, using the parameters as specified by m
-	 * @param c the container to store results into
-	 * @param seqs the iterator over the input sequences
-	 * @param inData[] only the first element ie. 0 will be available with the necessary data to perform the calculation
-	 * @throws Exception
-	 */
-	public abstract void execute(ColumnIterator seqs, final ExecutionContext exec, NodeLogger l, final BufferedDataTable[] inData, BufferedDataContainer c) throws Exception;
 
 	public boolean hasCategory(String cat) {
 		return getCategory().equalsIgnoreCase(cat);

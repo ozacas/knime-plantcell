@@ -29,6 +29,8 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
  *
  */
 public class SNPAssistedFrameshiftDetector extends BioJavaProcessorTask {
+	private int m_col;
+	
 	public SNPAssistedFrameshiftDetector() {
 	}
 	
@@ -41,8 +43,9 @@ public class SNPAssistedFrameshiftDetector extends BioJavaProcessorTask {
 		return new SNPAssistedFrameshiftDetector();
 	}
 	
-	public void init(BioJavaProcessorNodeModel m, String task) {
-		setOwner(m);
+	public void init(BioJavaProcessorNodeModel m, String task, int col) {
+		m_col = col;
+		
 	}
 	
 	/** @InheritDoc */
@@ -60,78 +63,62 @@ public class SNPAssistedFrameshiftDetector extends BioJavaProcessorTask {
 	}
 	
 	@Override
-	public void execute(ColumnIterator ci, ExecutionContext exec,
-			NodeLogger l, BufferedDataTable[] inData, BufferedDataContainer cont)
-			throws Exception {
-		int done = 0;
-		int n_rows = inData[0].getRowCount();
-		while (ci.hasNext()) {
-			DataCell   c = ci.next();
-			if (c == null || c.isMissing() || !(c instanceof SequenceValue))
-				continue;
-			SequenceValue sv = (SequenceValue) c;
-			if (!sv.getSequenceType().isDNA() || sv.getLength() < 1) {
-				l.warn("Only DNA sequences can be processed with the frameshift detector!");
-				continue;
-			}
-			DataCell[] cells = new DataCell[1];
-				
-			int[] codon_pos = new int[sv.getLength()];
-			int codon_idx = 0;
-			String seq = sv.getStringValue().toUpperCase();
-			for (int i=0; i<sv.getLength(); i++) {
-				char ch = seq.charAt(i);
-				if (ch != 'A' && ch != 'T' && ch !='G' && ch != 'C' ) {
-					if (!Character.isLetter(ch))
-						throw new Exception("Bad char: "+ (int) ch+" (encountered in sequence" + sv.getID() +")");
-					codon_pos[codon_idx++] = (i+1) % 3;
-				} 
-			}
-			// according to Andreas, SNPs are mostly in the 3rd nucleotide per codon. If this
-			// holds true then a windowed-mode should yield the region of a frame shift.
-			// Obviously, this doesn't help much when no SNP's are available or are too sparsely
-			// distributed amongst the sequence
-			cells[0]         = new IntCell(0);
-			StringBuffer codon_str = new StringBuffer();
-			for (int i=0; i<codon_idx; i++) {
-				codon_str.append(codon_pos[i]);
-			}
-			// now compute the mode with a window size of 3
-			StringBuffer mode_str = new StringBuffer();
-			int n_modes = 0;
-			for (int i=0; i<codon_str.length()-2; i++) {
-				ModeSummary ms = new ModeSummary(codon_str.charAt(i),
-							codon_str.charAt(i+1),
-							codon_str.charAt(i+2)
-						);
-				mode_str.append(ms.toString());
-				mode_str.append(", ");
-				n_modes++;
-			}
-			if (n_modes < 3) {
-			}
-			//cells[1] = new StringCell(mode_str.toString());
-			
-			cont.addRowToTable(new JoinedRow(ci.lastRow(), new DefaultRow(ci.lastRowID(), cells)));
-			done++;
-			if (done % 100 == 0) {
-				exec.checkCanceled();
-				exec.setProgress(((double)done)/n_rows, "Processed sequence "+sv.getID());
-			}
+	public DataCell[] getCells(DataRow row) {
+		DataCell c = row.getCell(m_col);
+		if (c == null || c.isMissing() || !(c instanceof SequenceValue))
+			return missing_cells(getColumnSpecs().length);
+		SequenceValue sv = (SequenceValue) c;
+		if (!sv.getSequenceType().isDNA() || sv.getLength() < 1) {
+			return missing_cells(getColumnSpecs().length);
 		}
+		DataCell[] cells = new DataCell[1];
+			
+		int[] codon_pos = new int[sv.getLength()];
+		int codon_idx = 0;
+		String seq = sv.getStringValue().toUpperCase();
+		for (int i=0; i<sv.getLength(); i++) {
+			char ch = seq.charAt(i);
+			if (ch != 'A' && ch != 'T' && ch !='G' && ch != 'C' ) {
+				// TODO
+				//if (!Character.isLetter(ch))
+				//	throw new Exception("Bad char: "+ (int) ch+" (encountered in sequence" + sv.getID() +")");
+				codon_pos[codon_idx++] = (i+1) % 3;
+			} 
+		}
+		// according to Andreas, SNPs are mostly in the 3rd nucleotide per codon. If this
+		// holds true then a windowed-mode should yield the region of a frame shift.
+		// Obviously, this doesn't help much when no SNP's are available or are too sparsely
+		// distributed amongst the sequence
+		cells[0]         = new IntCell(0);
+		StringBuffer codon_str = new StringBuffer();
+		for (int i=0; i<codon_idx; i++) {
+			codon_str.append(codon_pos[i]);
+		}
+		// now compute the mode with a window size of 3
+		StringBuffer mode_str = new StringBuffer();
+		int n_modes = 0;
+		for (int i=0; i<codon_str.length()-2; i++) {
+			ModeSummary ms = new ModeSummary(codon_str.charAt(i),
+						codon_str.charAt(i+1),
+						codon_str.charAt(i+2)
+					);
+			mode_str.append(ms.toString());
+			mode_str.append(", ");
+			n_modes++;
+		}
+		if (n_modes < 3) {
+		}
+		
+		return missing_cells(getColumnSpecs().length);
 	}
 
 	@Override
-	public DataTableSpec get_table_spec() {
-		DataColumnSpec[] cols = new DataColumnSpec[1];
+	public DataColumnSpec[] getColumnSpecs() {
+		DataColumnSpec[] cols = new DataColumnSpec[2];
 		cols[0] = new DataColumnSpecCreator("Number of detected frameshifts", IntCell.TYPE).createSpec();
+		cols[1] = new DataColumnSpecCreator("Number of unknown/illegal residues encountered", IntCell.TYPE).createSpec();
+		
 		//cols[1] = new DataColumnSpecCreator("Debug", StringCell.TYPE).createSpec();
-		return new DataTableSpec(cols);
+		return cols;
 	}
-
-	@Override
-	public boolean isMerged() {
-		return true;
-	}
-
 }

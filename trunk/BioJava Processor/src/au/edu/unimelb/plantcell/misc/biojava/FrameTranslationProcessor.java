@@ -1,16 +1,13 @@
 package au.edu.unimelb.plantcell.misc.biojava;
 
-import org.knime.core.data.*;
-import org.knime.core.data.def.DefaultRow;
-import org.knime.core.data.def.JoinedRow;
-import org.knime.core.data.def.StringCell;
-import org.knime.core.node.BufferedDataContainer;
-import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.NodeLogger;
 import org.biojava.bio.seq.DNATools;
 import org.biojava.bio.seq.RNATools;
-import org.biojava.bio.symbol.*;
+import org.biojava.bio.symbol.SymbolList;
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataRow;
+import org.knime.core.data.def.StringCell;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceType;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
@@ -18,6 +15,7 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 
 public class FrameTranslationProcessor extends BioJavaProcessorTask {
 	private boolean m_incl_na_seqs;		// include NA frames for use by later processing steps
+	private int     m_col = -1;
 	
 	public FrameTranslationProcessor() {
 	}
@@ -31,13 +29,13 @@ public class FrameTranslationProcessor extends BioJavaProcessorTask {
 		return new FrameTranslationProcessor();
 	}
 	
-	public void init(BioJavaProcessorNodeModel owner, String task) {
-		setOwner(owner);
-		
+	@Override
+	public void init(BioJavaProcessorNodeModel owner, String task, int col) {
 		m_incl_na_seqs = false;
 		if (task.toLowerCase().endsWith("(incl. dna frames)")) {
 			m_incl_na_seqs = true;
 		}
+		m_col = col;
 	}
 	
 	/** {@inheritDoc} */
@@ -56,65 +54,9 @@ public class FrameTranslationProcessor extends BioJavaProcessorTask {
 		" nucleotide frames chosen (incl. DNA frames) or without (excl. DNA frames)" +
 		" as AA sequence";
 	}
-	
-	public void execute(ColumnIterator ci, ExecutionContext exec, NodeLogger logger,
-			BufferedDataTable[] inData, BufferedDataContainer c1)
-			throws Exception {
-		
-		int n_rows = inData[0].getRowCount();
-		int done   = 0;
-	
-		int ncols = 6;
-		if (m_incl_na_seqs) {
-			ncols += 6;
-		}
-		
-		while (ci.hasNext()) {
-			DataCell c = ci.next();
-			if (c == null || c.isMissing() || !(c instanceof SequenceValue)) 
-				continue;
-			SequenceValue sv = (SequenceValue) c;
-			boolean is_dna = sv.getSequenceType().equals(SequenceType.DNA);
-			SymbolList syms = asBioJava(sv);
-			DataCell[] cells = new DataCell[ncols];
-		
-			for (int i=0; i<3; i++) {
-				// take the reading frame
-				SymbolList rf = syms.subList(i+1, syms.length()-(syms.length() - i) % 3);
-				
-				// if it is DNA transcribe it to RNA first
-				if (is_dna) {
-					rf = DNATools.toRNA(rf);
-				}
-				
-				SymbolList prot = RNATools.translate(rf);
-				cells[i+3] = new StringCell(prot.seqString());
-				if (m_incl_na_seqs) {
-					cells[i+9] = new StringCell(rf.seqString().toUpperCase());
-				}
-				
-				// reverse frame translation
-				rf       = RNATools.reverseComplement(rf);
-				prot     = RNATools.translate(rf);
-				cells[i] = new StringCell(prot.seqString());
-				if (m_incl_na_seqs) {
-					cells[i+6] = new StringCell(rf.seqString().toUpperCase());
-				}
-			}
-			
-			// add all the cells into the row
-			DataRow      row = new DefaultRow(ci.lastRowID(), cells);
-			c1.addRowToTable(new JoinedRow(ci.lastRow(), row));
-			
-			done++;
-			if (done % 100 == 0) {
-				exec.checkCanceled();
-				exec.setProgress(((double)done) / n_rows, "Processed "+done+" sequences.");
-			}
-		}
-	}
 
-	public DataTableSpec get_table_spec() {
+	@Override
+	public DataColumnSpec[] getColumnSpecs() {
 		int add_na = 0;
 		if (m_incl_na_seqs)
 			add_na = 6;
@@ -147,13 +89,53 @@ public class FrameTranslationProcessor extends BioJavaProcessorTask {
                  new DataColumnSpecCreator("NA Frame +3", StringCell.TYPE).createSpec();
         }
         
-        DataTableSpec outputSpec = new DataTableSpec(allColSpecs);
-		return outputSpec;
+        return allColSpecs;
 	}
 
 	@Override
-	public boolean isMerged() {
-		return true;
+	public DataCell[] getCells(DataRow row) {
+		int ncols = 6;
+		if (m_incl_na_seqs) {
+			ncols += 6;
+		}
+		
+		try {
+			DataCell c = row.getCell(m_col);
+			if (c == null || c.isMissing() || !(c instanceof SequenceValue)) 
+				return missing_cells(ncols);
+			SequenceValue sv = (SequenceValue) c;
+			boolean is_dna = sv.getSequenceType().equals(SequenceType.DNA);
+			SymbolList syms = asBioJava(sv);
+			DataCell[] cells = new DataCell[ncols];
+		
+			for (int i=0; i<3; i++) {
+				// take the reading frame
+				SymbolList rf = syms.subList(i+1, syms.length()-(syms.length() - i) % 3);
+				
+				// if it is DNA transcribe it to RNA first
+				if (is_dna) {
+					rf = DNATools.toRNA(rf);
+				}
+				
+				SymbolList prot = RNATools.translate(rf);
+				cells[i+3] = new StringCell(prot.seqString());
+				if (m_incl_na_seqs) {
+					cells[i+9] = new StringCell(rf.seqString().toUpperCase());
+				}
+				
+				// reverse frame translation
+				rf       = RNATools.reverseComplement(rf);
+				prot     = RNATools.translate(rf);
+				cells[i] = new StringCell(prot.seqString());
+				if (m_incl_na_seqs) {
+					cells[i+6] = new StringCell(rf.seqString().toUpperCase());
+				}
+			}
+			return cells;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return missing_cells(ncols);
+		}
 	}
 
 }

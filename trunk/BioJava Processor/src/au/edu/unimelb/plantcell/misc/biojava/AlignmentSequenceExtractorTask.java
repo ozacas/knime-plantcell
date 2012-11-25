@@ -1,41 +1,43 @@
 package au.edu.unimelb.plantcell.misc.biojava;
 
+import java.util.ArrayList;
+
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.def.DefaultRow;
-import org.knime.core.data.def.StringCell;
-import org.knime.core.node.BufferedDataContainer;
-import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.NodeLogger;
+import org.knime.core.data.DataRow;
+import org.knime.core.data.DataType;
+import org.knime.core.data.collection.CollectionCellFactory;
+import org.knime.core.data.collection.ListCell;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.ColumnFilter;
 
+import au.edu.unimelb.plantcell.core.cells.SequenceCell;
+import au.edu.unimelb.plantcell.core.cells.SequenceType;
 import au.edu.unimelb.plantcell.io.ws.multialign.AlignmentValue;
+import au.edu.unimelb.plantcell.io.ws.multialign.AlignmentValue.AlignmentType;
 
 public class AlignmentSequenceExtractorTask extends BioJavaProcessorTask {
+	private int m_alignment_col = -1;
+	
+	public AlignmentSequenceExtractorTask() {
+			super();
+	}
+	
+	public DataColumnSpec[] getColumnSpecs() {
+		DataColumnSpec[] cols = new DataColumnSpec[1];
+		cols[0] = new DataColumnSpecCreator("Aligned Sequences (list)", ListCell.getCollectionType(SequenceCell.TYPE)).createSpec();
+		return cols;
+	}
+	
 	@Override
 	public String getCategory() {
 		return "Alignment";
 	}
 	
 	@Override
-	public void init(BioJavaProcessorNodeModel owner, String task_name) {
-	}
-
-	@Override
-	public DataTableSpec get_table_spec() {
-		DataColumnSpec[] cols = new DataColumnSpec[3];
-		cols[0] = new DataColumnSpecCreator("Input RowID", StringCell.TYPE).createSpec();
-		cols[1] = new DataColumnSpecCreator("Accession", StringCell.TYPE).createSpec();
-		cols[2] = new DataColumnSpecCreator("Aligned Sequence", StringCell.TYPE).createSpec();
-		return new DataTableSpec(cols);
-	}
-
-	@Override
-	public boolean isMerged() {
-		return false;
+	public void init(BioJavaProcessorNodeModel owner, String task_name, int idx) {
+		m_alignment_col = idx;
 	}
 
 	@Override
@@ -70,37 +72,30 @@ public class AlignmentSequenceExtractorTask extends BioJavaProcessorTask {
 	public String getHTMLDescription(String task_name) {
 		return "<html>Separates each sequence in an alignment (in a column) into a separate row";
 	}
-	
+
 	@Override
-	public void execute(ColumnIterator ci, ExecutionContext exec,
-			NodeLogger l, BufferedDataTable[] inData, BufferedDataContainer c)
-			throws Exception {
-		int n_rows = inData[0].getRowCount();
+	public DataCell[] getCells(DataRow row) {
+		DataCell cell = row.getCell(m_alignment_col);
+		if (cell == null || cell.isMissing() || 
+				!cell.getType().isCompatible(AlignmentValue.class)) {
+			return new DataCell[] { DataType.getMissingCell() };
+		}
 		
-		int done = 0;
-		int id = 1;
-		while (ci.hasNext()) {
-			DataCell cell = ci.next();
-			if (cell == null || cell.isMissing())
-				continue;
-			
-			if (cell.getType().isCompatible(AlignmentValue.class)) {
-				AlignmentValue av = (AlignmentValue) cell;
-				for (int i=0; i<av.getSequenceCount(); i++) {
-					DataCell[] cells = new DataCell[3];
-					cells[0] = new StringCell(ci.lastRowID());
-					cells[1] = new StringCell(av.getIdentifier(i).getName());
-					cells[2] = new StringCell(av.getAlignedSequenceString(i));
-					c.addRowToTable(new DefaultRow("Seq"+id++, cells));
-				}
-			}
-			
-			done++;
-			if (done % 100 == 0) {
-				exec.checkCanceled();
-				exec.setProgress(((double)done)/n_rows);
+		AlignmentValue av = (AlignmentValue) cell;
+		ArrayList<SequenceCell> out = new ArrayList<SequenceCell>();
+		for (int i=0; i<av.getSequenceCount(); i++) {
+			boolean is_na = av.getAlignmentType().equals(AlignmentType.AL_NA);
+			try {
+				SequenceCell sc = new SequenceCell(
+						is_na ? SequenceType.Nucleotide : SequenceType.AA,
+					av.getIdentifier(i).getName(), av.getAlignedSequenceString(i));
+				out.add(sc);
+			} catch (InvalidSettingsException ise) {
+				ise.printStackTrace();
 			}
 		}
+		
+		return new DataCell[] { CollectionCellFactory.createListCell(out) };
 	}
 
 }
