@@ -2,6 +2,8 @@ package au.edu.unimelb.plantcell.misc.biojava;
 
 import java.util.HashSet;
 
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataRow;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
@@ -44,8 +46,8 @@ public class TrypticPeptideExtractor_v2 extends TrypticPeptideExtractor {
 	 * @param m
 	 * @param task
 	 */
-	public void init(BioJavaProcessorNodeModel m, String task) {
-		super.init(m, task);
+	public void init(BioJavaProcessorNodeModel m, String task, int col) {
+		super.init(m, task, col);
 		terminii_codons.add("AAG"); 	// K
 		terminii_codons.add("AAA");
 		terminii_codons.add("CGA");		// R
@@ -83,10 +85,8 @@ public class TrypticPeptideExtractor_v2 extends TrypticPeptideExtractor {
 	 * case the algorithm emits all possible peptides which are fully tryptic. 
 	 */
 	@Override
-	public void execute(ColumnIterator ci, ExecutionContext exec,
-			NodeLogger l, BufferedDataTable[] inData, BufferedDataContainer c1)
-			throws Exception {
-	
+	public DataCell[] getCells(DataRow row) {
+		return null;
 		/*double done = 0.0;
 		int n_rows = inData[0].getRowCount();
 		while (ci.hasNext()) {

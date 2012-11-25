@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="./default.png" type="Manipulator">
-   <name>BioJava Processor</name>
+   <name>BioJava Processor (deprecated)</name>
     
     <shortDescription>
         Analyses the specified data using BioJava (see http://www.biojava.org) and produces the result at output. Depending

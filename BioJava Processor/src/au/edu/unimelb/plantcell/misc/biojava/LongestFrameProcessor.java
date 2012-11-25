@@ -9,17 +9,9 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.IntCell;
-import org.knime.core.data.def.JoinedRow;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.node.BufferedDataContainer;
-import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 
@@ -35,6 +27,7 @@ public class LongestFrameProcessor extends BioJavaProcessorTask {
 	private boolean m_start_codon, m_stop_codon;
 	private boolean m_convert_to_protein;
 	private boolean m_forward, m_reverse;
+	private int m_col = -1;
 	
 	public LongestFrameProcessor() {
 	}
@@ -48,8 +41,7 @@ public class LongestFrameProcessor extends BioJavaProcessorTask {
 		return new LongestFrameProcessor();
 	}
 	
-	public void init(BioJavaProcessorNodeModel m, String task) {
-		setOwner(m);
+	public void init(BioJavaProcessorNodeModel m, String task, int col) {
 		m_convert_to_protein = (task != null && task.trim().toLowerCase().endsWith("aa)")) ? true : false;
 		m_forward = (task != null && (task.indexOf("(all") > 0 || task.indexOf("(3 forward") > 0)) ? true : false;
 		m_reverse = (task != null && (task.indexOf("(all") > 0 || task.indexOf("(3 reverse") > 0)) ? true : false;
@@ -76,25 +68,20 @@ public class LongestFrameProcessor extends BioJavaProcessorTask {
 	}
 	
 	@Override
-	public void execute(ColumnIterator ci, ExecutionContext exec,
-			NodeLogger l, BufferedDataTable[] inData, BufferedDataContainer c1)
-			throws Exception {
-		
-		int n_rows = inData[0].getRowCount();
-		int done = 0;
+	public DataCell[] getCells(DataRow row) {
 		SymbolList rev_syms = null;
 		String rev_seq = null;
 		
-		while (ci.hasNext()) {
-			DataCell c = ci.next();
-			if (c == null || c.isMissing() || !(c instanceof SequenceValue)) 
-				continue;
-			SequenceValue sv = (SequenceValue) c;
-			if (!sv.getSequenceType().isDNA()) 
-				throw new InvalidSettingsException("Only DNA sequences are supported!");
-			
-			// compute distance from methionine AA to stop codon
-			String seq= sv.getStringValue();
+		DataCell c = row.getCell(m_col);
+		if (c == null || c.isMissing() || !(c instanceof SequenceValue)) 
+			return missing_cells(getColumnSpecs().length);
+		SequenceValue sv = (SequenceValue) c;
+		if (!sv.getSequenceType().isDNA()) 
+			return missing_cells(getColumnSpecs().length);
+		
+		// compute distance from methionine AA to stop codon
+		String seq= sv.getStringValue();
+		try {
 			if (m_reverse) {
 				rev_syms = DNATools.complement(DNATools.createDNA(seq)); // rev_syms is lowercase...
 				rev_seq  = new StringBuffer(rev_syms.seqString()).reverse().toString().toUpperCase();
@@ -146,14 +133,10 @@ public class LongestFrameProcessor extends BioJavaProcessorTask {
 				cells[2] = new IntCell(0);
 				cells[3] = new IntCell(0);
 			}
-			DataRow      row = new DefaultRow(ci.lastRowID(), cells);
-			c1.addRowToTable(new JoinedRow(ci.lastRow(), row));
-			
-			done++;
-			if (done % 100 == 0) {
-				exec.checkCanceled();
-				exec.setProgress(((double)done) / n_rows, "Processed "+done+" sequences.");
-			}
+			return cells;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return missing_cells(getColumnSpecs().length);
 		}
 	}
 
@@ -193,7 +176,7 @@ public class LongestFrameProcessor extends BioJavaProcessorTask {
 	}
 	
 	@Override
-	public DataTableSpec get_table_spec() {
+	public DataColumnSpec[] getColumnSpecs() {
 		DataColumnSpec[] allColSpecs = new DataColumnSpec[4];
 		
         allColSpecs[0] = 
@@ -204,14 +187,7 @@ public class LongestFrameProcessor extends BioJavaProcessorTask {
         	new DataColumnSpecCreator("Start codons (total across reading frames)", IntCell.TYPE).createSpec();
         allColSpecs[3] =
         	new DataColumnSpecCreator("Stop codons (total across reading frames)", IntCell.TYPE).createSpec();
-      //  allColSpecs[4] =
-        //	new DataColumnSpecCreator("debug", ListCell.getCollectionType(IntCell.TYPE)).createSpec();
-        return new DataTableSpec(allColSpecs);
+        return allColSpecs;
     }
-
-	@Override
-	public boolean isMerged() {
-		return true;
-	}
 
 }

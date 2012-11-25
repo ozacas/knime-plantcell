@@ -5,7 +5,7 @@
    <extension
          point="org.knime.workbench.repository.nodes">
       <node
-            category-path="/Bioinformatics/Sequence Analysis"
+            category-path="/Bioinformatics/Sequence Analysis/Convert &amp; Replace"
             factory-class="au.edu.unimelb.plantcell.misc.biojava.BioJavaProcessorNodeFactory"
             id="au.edu.unimelb.plantcell.misc.biojava.BioJavaProcessorNodeFactory"/>
    </extension>

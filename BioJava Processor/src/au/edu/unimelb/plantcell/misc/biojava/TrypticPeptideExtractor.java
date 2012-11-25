@@ -7,6 +7,7 @@ import java.util.HashSet;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.collection.CollectionCellFactory;
@@ -24,6 +25,8 @@ import org.knime.core.node.NodeLogger;
  *
  */
 public class TrypticPeptideExtractor extends BioJavaProcessorTask {
+	private int m_col;
+	
 	/**
 	 * this is the maximum measurable peptide length (in numbers of AA's) which is
 	 * likely to be measured on the available instrumentation. Due to the mass range limitation
@@ -58,19 +61,14 @@ public class TrypticPeptideExtractor extends BioJavaProcessorTask {
 	public TrypticPeptideExtractor() {
 	}
 	
-	public static BioJavaProcessorTask getInstance() {
-		return new TrypticPeptideExtractor();
-	}
 	
-	public void init(BioJavaProcessorNodeModel m, String task) {
-		setOwner(m);
+	public void init(BioJavaProcessorNodeModel m, String task, int col) {
+		m_col = col;
 	}
 	
 	@Override
-	public void execute(ColumnIterator ci, ExecutionContext exec,
-			NodeLogger l, BufferedDataTable[] inData, BufferedDataContainer c)
-			throws Exception {
-		
+	public DataCell[] getCells(DataRow row) {
+		return null;
 		// 1. scan the rows to get the available peptides (whether tryptic or not)
 		/*
 		int      n_rows = inData[0].getRowCount();
@@ -498,21 +496,15 @@ public class TrypticPeptideExtractor extends BioJavaProcessorTask {
 	}
 
 	@Override
-	public DataTableSpec get_table_spec() {
+	public DataColumnSpec[] getColumnSpecs() {
 		DataColumnSpec[] cols = new DataColumnSpec[5];
 		cols[0] = new DataColumnSpecCreator("Input Sequence",   StringCell.TYPE).createSpec();
 		cols[1] = new DataColumnSpecCreator("Unambiguous Tryptic Peptides", ListCell.getCollectionType(StringCell.TYPE) ).createSpec();
 		cols[2] = new DataColumnSpecCreator("Ambiguous Tryptic Peptides", ListCell.getCollectionType(StringCell.TYPE)).createSpec();
 		cols[3] = new DataColumnSpecCreator("Single missed cleavage Tryptic Peptides", ListCell.getCollectionType(StringCell.TYPE)).createSpec();
 		cols[4] = new DataColumnSpecCreator("Weak Ambiguous Tryptic Peptides", ListCell.getCollectionType(StringCell.TYPE)).createSpec();
-		return new DataTableSpec(cols);
+		return cols;
 	}
-
-	@Override
-	public boolean isMerged() {
-		return false;
-	}
-
 }
 
 
