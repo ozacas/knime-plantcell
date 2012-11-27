@@ -26,7 +26,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
-import au.edu.unimelb.plantcell.core.cells.TrackColumnPropertiesCreator;
+import au.edu.unimelb.plantcell.core.cells.Track;
 
 
 /**
@@ -122,8 +122,8 @@ public class GFF2WriterNodeDialog extends DefaultNodeSettingsPane implements Cha
 		while (it.hasMoreElements()) {
 			String propName = it.nextElement();
 			
-			if (propName.startsWith(TrackColumnPropertiesCreator.PLANTCELL_TRACKS)) {
-				propName = propName.substring(TrackColumnPropertiesCreator.PLANTCELL_TRACKS.length()+1);
+			if (propName.startsWith(Track.PLANTCELL_TRACK_PREFIX)) {
+				propName = propName.substring(Track.PLANTCELL_TRACK_PREFIX.length()+1);
 				list.add(propName);
 			}
 		}

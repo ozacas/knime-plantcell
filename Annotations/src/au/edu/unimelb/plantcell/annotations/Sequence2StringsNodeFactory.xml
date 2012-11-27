@@ -53,7 +53,8 @@
     <ports>
         <inPort index="0" name="Input sequences">Data including annotated sequences</inPort>
         
-        <outPort index="0" name="Output sequence data">Columns of data as configured</outPort>
+        <outPort index="0" name="Sequence summary columns">Columns of data as configured</outPort>
+        <outPort index="1" name="Extracted tracks/features">If any tracks are extracted, the data will be here</outPort>
     </ports>    
  
 </knimeNode>

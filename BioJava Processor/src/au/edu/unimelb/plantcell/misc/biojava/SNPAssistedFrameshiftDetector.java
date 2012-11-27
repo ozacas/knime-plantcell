@@ -4,17 +4,7 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataType;
-import org.knime.core.data.RowIterator;
-import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.IntCell;
-import org.knime.core.data.def.JoinedRow;
-import org.knime.core.node.BufferedDataContainer;
-import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 

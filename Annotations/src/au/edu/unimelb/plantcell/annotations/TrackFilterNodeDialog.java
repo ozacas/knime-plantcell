@@ -31,7 +31,7 @@ import org.knime.core.node.util.ColumnFilter;
 import org.knime.core.node.util.ColumnSelectionPanel;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
-import au.edu.unimelb.plantcell.core.cells.TrackColumnPropertiesCreator;
+import au.edu.unimelb.plantcell.core.cells.Track;
 
 /**
  * <code>NodeDialog</code> for the "Track Filter" Node.
@@ -69,8 +69,8 @@ public class TrackFilterNodeDialog extends DefaultNodeSettingsPane implements Ac
 					set = new HashSet<String>();
 					colname2tracknames.put(colSpec.getName(), set);
 				}
-				if (propName.startsWith(TrackColumnPropertiesCreator.PLANTCELL_TRACKS)) {
-					propName = propName.substring(TrackColumnPropertiesCreator.PLANTCELL_TRACKS.length()+1);
+				if (propName.startsWith(Track.PLANTCELL_TRACK_PREFIX)) {
+					propName = propName.substring(Track.PLANTCELL_TRACK_PREFIX.length()+1);
 					set.add(propName);
 					n_suitable++;
 				}

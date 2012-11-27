@@ -27,7 +27,6 @@ import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.core.cells.SequenceCell;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 import au.edu.unimelb.plantcell.core.cells.Track;
-import au.edu.unimelb.plantcell.core.cells.TrackColumnPropertiesCreator;
 
 
 
@@ -162,7 +161,7 @@ public class ChangeTrackNodeModel extends NodeModel {
         	throw new InvalidSettingsException("No tracks to operate on!");
         String op = m_operation.getStringValue().toLowerCase().trim();
         
-        String key = TrackColumnPropertiesCreator.PLANTCELL_TRACKS + ":" + m_tracks.getStringValue();
+        String key = Track.PLANTCELL_TRACK_PREFIX + m_tracks.getStringValue();
     	if (!dcp.containsProperty(key))
     		throw new InvalidSettingsException("Cannot change missing track: "+key);
     	HashMap<String,String> map = new HashMap<String,String>();
@@ -186,7 +185,7 @@ public class ChangeTrackNodeModel extends NodeModel {
         			String text = dcp.getProperty(prop);
         			Track t = new Track(Track.fromText(text));
         			t.setName(m_newname.getStringValue());
-        			map.put(TrackColumnPropertiesCreator.PLANTCELL_TRACKS+":"+t.getName(), t.asText());
+        			map.put(Track.PLANTCELL_TRACK_PREFIX+t.getName(), t.asText());
         			continue;
         		}
         		map.put(prop, dcp.getProperty(prop));

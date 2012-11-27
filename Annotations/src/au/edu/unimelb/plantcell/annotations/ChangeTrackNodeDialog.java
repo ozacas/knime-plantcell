@@ -24,7 +24,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.util.ColumnFilter;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
-import au.edu.unimelb.plantcell.core.cells.TrackColumnPropertiesCreator;
+import au.edu.unimelb.plantcell.core.cells.Track;
 
 /**
  * <code>NodeDialog</code> for the "Delete Track" Node. * 
@@ -100,8 +100,8 @@ public class ChangeTrackNodeDialog extends DefaultNodeSettingsPane implements Ch
 		ArrayList<String> vec = new ArrayList<String>();
 		while (props.hasMoreElements()) {
 			String s = props.nextElement();
-			if (s.startsWith(TrackColumnPropertiesCreator.PLANTCELL_TRACKS)) {
-				vec.add(s.substring(TrackColumnPropertiesCreator.PLANTCELL_TRACKS.length()+1));
+			if (s.startsWith(Track.PLANTCELL_TRACK_PREFIX)) {
+				vec.add(s.substring(Track.PLANTCELL_TRACK_PREFIX.length()));
 			}
 		}
 		m_tracks.setListData(vec.toArray(new String[0]));

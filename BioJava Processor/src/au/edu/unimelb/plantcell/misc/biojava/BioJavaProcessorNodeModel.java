@@ -88,7 +88,7 @@ public class BioJavaProcessorNodeModel extends NodeModel {
 				new FrameTranslationProcessor(),
 				new HydrophobicityProcessor(),
 				new LongestFrameProcessor(),		// experimental (warning to all users)
-				//PositionByResidueProcessor.getInstance(),
+				//new PositionByResidueProcessor(),
 				new ResidueFrequencyProcessor(),
 				new SequenceTranslationProcessor(),
 				new SequenceCleanerProcessor(),

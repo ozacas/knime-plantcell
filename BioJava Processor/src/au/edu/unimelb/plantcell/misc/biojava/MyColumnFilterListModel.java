@@ -77,6 +77,11 @@ public class MyColumnFilterListModel extends DefaultListModel implements ListMod
 	}
 
 	@Override
+	public Object get(int arg0) {
+		return getElementAt(arg0);
+	}
+	
+	@Override
 	public Object getElementAt(int arg0) {
 		return m_filtered_items.get(arg0);
 	}

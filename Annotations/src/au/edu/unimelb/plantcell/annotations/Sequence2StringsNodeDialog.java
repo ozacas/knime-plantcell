@@ -28,7 +28,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.util.ColumnFilter;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
-import au.edu.unimelb.plantcell.core.cells.TrackColumnPropertiesCreator;
+import au.edu.unimelb.plantcell.core.cells.Track;
 
 /**
  * Convert a sequence to tabular format based on user-chosen items of interest
@@ -47,7 +47,8 @@ public class Sequence2StringsNodeDialog extends DefaultNodeSettingsPane implemen
 		Sequence2StringsNodeModel.SEQUENCE_ID,
 		Sequence2StringsNodeModel.DESCRIPTION_PRIMARY,
 		Sequence2StringsNodeModel.SEQUENCE_SINGLE_LETTER,
-		Sequence2StringsNodeModel.INPUT_SEQUENCE
+		Sequence2StringsNodeModel.INPUT_SEQUENCE,
+		Sequence2StringsNodeModel.SEQUENCE_LENGTH
 	};
 	private DataTableSpec m_specs = null;
     private final SettingsModelString sms = new SettingsModelString(Sequence2StringsNodeModel.CFGKEY_SEQUENCE_COL, "");
@@ -169,8 +170,8 @@ public class Sequence2StringsNodeDialog extends DefaultNodeSettingsPane implemen
 		while (it.hasMoreElements()) {
 			String propName = it.nextElement();
 			
-			if (propName.startsWith(TrackColumnPropertiesCreator.PLANTCELL_TRACKS)) {
-				propName = propName.substring(TrackColumnPropertiesCreator.PLANTCELL_TRACKS.length()+1);
+			if (propName.startsWith(Track.PLANTCELL_TRACK_PREFIX)) {
+				propName = propName.substring(Track.PLANTCELL_TRACK_PREFIX.length());
 				new_items.add("Track - "+propName);
 			}
 		}
