@@ -6,7 +6,8 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
-import org.knime.core.data.def.IntCell;
+import org.knime.core.data.collection.CollectionCellFactory;
+import org.knime.core.data.collection.ListCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 
@@ -64,7 +65,6 @@ public class PositionByResidueProcessor extends BioJavaProcessorTask {
 	
 	@Override
 	public DataCell[] getCells(DataRow row) {
-		
 		ResidueByPosition[] pos = new ResidueByPosition[m_maxlen];
 		for (int i=0; i<m_maxlen; i++) {
 			pos[i] = new ResidueByPosition(i+1);
@@ -86,14 +86,19 @@ public class PositionByResidueProcessor extends BioJavaProcessorTask {
 		
 		// build the output table...
 		char[] letters = pos[0].getResidueLetters();
-		ArrayList<StringCell> out = new ArrayList<StringCell>();
-		for (int i=0; i<letters.length; i++) {
-			DataCell[] cells = new DataCell[m_maxlen];
-			for (int j=0; j<m_maxlen; j++) {
-				cells[j] = new IntCell(pos[j].count(letters[i]));
+		DataCell[] pos_cells = new DataCell[m_maxlen];
+		for (int j=0; j<m_maxlen; j++) {
+			ArrayList<StringCell> out = new ArrayList<StringCell>();
+			for (int i=0; i<letters.length; i++) {
+				int cnt = pos[j].count(letters[i]);
+				if (cnt > 0) {
+					out.add(new StringCell(letters[i]+"="+cnt));
+				}
 			}
+			pos_cells[j] = CollectionCellFactory.createListCell(out);
 		}
-		return out.toArray(new StringCell[0]);
+		
+		return pos_cells;
 	}
 
 	@Override
@@ -101,7 +106,7 @@ public class PositionByResidueProcessor extends BioJavaProcessorTask {
 		assert(m_maxlen > 0);
 		DataColumnSpec[] cols = new DataColumnSpec[m_maxlen];
 		for (int i=0; i<m_maxlen; i++) {
-			cols[i] = new DataColumnSpecCreator("Position "+new Integer(i+1).toString(), IntCell.TYPE).createSpec();
+			cols[i] = new DataColumnSpecCreator("Position "+new Integer(i+1).toString(), ListCell.getCollectionType(StringCell.TYPE)).createSpec();
 		}
 		return cols;
 	}

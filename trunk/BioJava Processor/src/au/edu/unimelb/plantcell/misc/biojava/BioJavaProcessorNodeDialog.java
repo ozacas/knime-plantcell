@@ -139,17 +139,12 @@ public class BioJavaProcessorNodeDialog extends DefaultNodeSettingsPane {
 				if (found == null)
 					return;
 				
-				// columns available depend on the requirements of the task so...
-				csp.setColumnFilter(found.getColumnFilter());	// will trigger redrawing if needed				
-				if (csp.hasSuitableColumns()) {
-					no_cols_label.setText("");
-				} else {
-					no_cols_label.setText("No suitable columns!");
-				}
-				
 				// when a given task is selected, we update the help...
 				m_help_label.setText("<html><h3>"+found.getCategory()+": "+found.getNames()[0]+
 						"</h3><br/><br/>"+found.getHTMLDescription(m_sel_task));
+				
+				// and update the list of available columns for processing...
+				csp.setColumnFilter(found.getColumnFilter());
 			}
         	
         });

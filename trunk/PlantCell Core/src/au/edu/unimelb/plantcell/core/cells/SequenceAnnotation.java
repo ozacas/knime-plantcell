@@ -1,10 +1,15 @@
 package au.edu.unimelb.plantcell.core.cells;
 
 import java.io.IOException;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.apache.axis.encoding.Base64;
 import org.knime.core.data.DataCellDataInput;
 import org.knime.core.data.DataCellDataOutput;
+import org.knime.core.data.DataColumnProperties;
 import org.knime.core.data.DataColumnSpec;
 
 import au.edu.unimelb.plantcore.core.regions.AlignedRegionsAnnotation;
@@ -48,6 +53,37 @@ public abstract class SequenceAnnotation {
 
 	public abstract SequenceAnnotation deserialize(DataCellDataInput input) throws IOException;
 
+
+	/**
+	 * Convenience wrapper around <code>SequenceAnnotation.make(AnnotationType)</code> when you have
+	 * a track name and only a column properties for the column containing the sequences with the track.
+	 * This code must match the data model established by <code>Track.asText()</code>
+	 * 
+	 * @param tcp
+	 * @param name
+	 * @return may be null if the specified track name is not found in the specified properties
+	 */
+	public static SequenceAnnotation make(DataColumnProperties tcp, String name) {
+		AnnotationType at = AnnotationType.USER_DEFINED;
+		Enumeration<String> props = tcp.properties();
+		while (props.hasMoreElements()) {
+			String propName = props.nextElement();
+			if (propName.equals(Track.PLANTCELL_TRACK_PREFIX+name)) {
+				Pattern p = Pattern.compile("\\bannotation_type=(\\S+)\\s");
+				String str= new String(Base64.decode(tcp.getProperty(propName)));
+				Matcher m = p.matcher(str);
+				if (m.find()) {
+					at = AnnotationType.valueOf(m.group(1));
+					// fallthru...
+				} else {
+					// throw? not for now...
+				}
+				return make(at);
+			}
+		}
+		return null;
+	}
+	
 	/**
 	 * Constructs an initially empty annotation of the specified type. Called during
 	 * deserialization once we know the type of annotation to restore
@@ -105,5 +141,6 @@ public abstract class SequenceAnnotation {
 	public TrackRendererInterface getRenderer() {
 		return null;
 	}
+
 	
 }

@@ -2,7 +2,7 @@
 <feature
       id="au.edu.unimelb.plantcell.www"
       label="PlantCell KNIME nodes"
-      version="1.2.11"
+      version="1.2.13"
       provider-name="http://www.plantcell.unimelb.edu.au/"
       exclusive="true">
 

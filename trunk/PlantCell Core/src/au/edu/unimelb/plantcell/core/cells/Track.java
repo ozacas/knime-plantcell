@@ -20,6 +20,9 @@ import au.edu.unimelb.plantcore.core.regions.RegionInterface;
  *
  */
 public class Track extends StandardTrackRenderer implements SerializableInterface<Track> {
+	// all PlantCell extension track names have this as a prefix
+    public static final String PLANTCELL_TRACK_PREFIX   = "PlantCell:Tracks:";
+
 	// predefined labels for builtin tracks
 	public final static String[] TMHMM_LABELS   = new String[] { "TMhelix", "inside", "outside" };
 	public final static String[] NO_LABELS      = new String[] { };
@@ -168,7 +171,7 @@ public class Track extends StandardTrackRenderer implements SerializableInterfac
 		sb.append(getName());
 		sb.append('\n');
 		String annot = "annotated=yes";
-		if (!hasAnnotation()) {
+		if (m_annot == null) {
 			annot = "annotated=no";
 			sb.append(annot);
 			sb.append('\n');

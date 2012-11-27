@@ -81,17 +81,19 @@ public class SequenceCleanerProcessor extends BioJavaProcessorTask {
 		if (c == null || c.isMissing() || !(c instanceof SequenceValue))
 			return missing_cells(getColumnSpecs().length);
 		SequenceValue sv = (SequenceValue) c;
-		String seq = sv.getStringValue();
+		String seq = sv.getStringValue().toUpperCase();
 		seq = seq.replaceAll("\\s+", "");
 		seq = seq.replaceAll("\\*", "X");
 		seq = seq.toUpperCase();
 		
 		SequenceType st = sv.getSequenceType();
 		Set<Character> letters = m_dna;
-		if (st.isProtein()) {
+		if (st.isDNA()) {
 			letters = m_dna;
 		} else if (st.isRNA()) {
 			letters = m_rna;
+		} else {		// assume protein
+			letters = m_aa;
 		}
 		StringBuffer sb = new StringBuffer(seq.length());
 		int rejected = 0;
@@ -103,9 +105,9 @@ public class SequenceCleanerProcessor extends BioJavaProcessorTask {
 				} else {
 					sb.append(c2);
 				}
-			} else if (c2 == '-' || c2 == '.') {
+			} else if (c2 == '-' || c2 == '.') {		// pass gap characters through unchanged
 				sb.append(c2);
-			} else {
+			} else {									// else... reject and suppress
 				rejected++;
 			}
 		}

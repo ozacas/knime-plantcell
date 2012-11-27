@@ -13,7 +13,7 @@ import org.knime.core.data.def.IntCell;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 
 /**
- *  Speed is important here, for large sequence databases (eg. short reads from Solexa etc.)
+ *  Speed is important here, for large sequence databases (eg. short reads from NextGenSeq etc.)
  *  
  * @author acassin
  *

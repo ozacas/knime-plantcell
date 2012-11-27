@@ -14,7 +14,6 @@ import org.knime.core.data.DataColumnProperties;
  *
  */
 public class TrackColumnPropertiesCreator {
-    public static final String PLANTCELL_TRACKS   = "PlantCell:Tracks";
    
     // internal state built during construction
 	private DataColumnProperties m_props;
@@ -32,7 +31,7 @@ public class TrackColumnPropertiesCreator {
 		assert(new_tracks != null && new_tracks.length > 0);
 		HashMap<String,String> map = new HashMap<String,String>();
 		for (Track new_track : new_tracks) {
-			map.put(PLANTCELL_TRACKS+":"+new_track.getName(), new_track.asText());
+			map.put(Track.PLANTCELL_TRACK_PREFIX+new_track.getName(), new_track.asText());
 		}
 		if (isp == null)
 			isp = new DataColumnProperties();

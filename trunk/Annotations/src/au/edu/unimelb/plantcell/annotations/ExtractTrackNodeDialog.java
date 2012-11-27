@@ -24,7 +24,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.util.ColumnFilter;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
-import au.edu.unimelb.plantcell.core.cells.TrackColumnPropertiesCreator;
+import au.edu.unimelb.plantcell.core.cells.Track;
 
 /**
  * <code>NodeDialog</code> for the "Track Extractor" Node.
@@ -126,8 +126,8 @@ public class ExtractTrackNodeDialog extends DefaultNodeSettingsPane implements C
 		while (it.hasMoreElements()) {
 			String propName = it.nextElement();
 			
-			if (propName.startsWith(TrackColumnPropertiesCreator.PLANTCELL_TRACKS)) {
-				propName = propName.substring(TrackColumnPropertiesCreator.PLANTCELL_TRACKS.length()+1);
+			if (propName.startsWith(Track.PLANTCELL_TRACK_PREFIX)) {
+				propName = propName.substring(Track.PLANTCELL_TRACK_PREFIX.length());
 				list.add(propName);
 			}
 		}
