@@ -1,6 +1,14 @@
 package au.edu.unimelb.plantcell.networks;
 
-import org.knime.core.node.NodeView;
+import java.awt.Dimension;
+
+import javax.swing.JFrame;
+
+import org.knime.core.node.ExternalApplicationNodeView;
+
+import edu.uci.ics.jung.algorithms.layout.ISOMLayout;
+import edu.uci.ics.jung.algorithms.layout.Layout;
+import edu.uci.ics.jung.visualization.BasicVisualizationServer;
 
 /**
  * <code>NodeView</code> for the "Creator" Node.
@@ -8,8 +16,8 @@ import org.knime.core.node.NodeView;
  *
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
-public class CreatorNodeView extends NodeView<CreatorNodeModel> {
-
+public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeModel> {
+	private JFrame m_frame;
     /**
      * Creates a new view.
      * 
@@ -17,9 +25,6 @@ public class CreatorNodeView extends NodeView<CreatorNodeModel> {
      */
     protected CreatorNodeView(final CreatorNodeModel nodeModel) {
         super(nodeModel);
-
-        // TODO instantiate the components of the view here.
-
     }
 
     /**
@@ -27,9 +32,6 @@ public class CreatorNodeView extends NodeView<CreatorNodeModel> {
      */
     @Override
     protected void modelChanged() {
-
-        // TODO retrieve the new model from your nodemodel and 
-        // update the view.
         CreatorNodeModel nodeModel = 
             (CreatorNodeModel)getNodeModel();
         assert nodeModel != null;
@@ -44,18 +46,26 @@ public class CreatorNodeView extends NodeView<CreatorNodeModel> {
      */
     @Override
     protected void onClose() {
-    
-        // TODO things to do when closing the view
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void onOpen() {
-
-        // TODO things to do when opening the view
-    }
+	@Override
+	protected void onOpen(String title) {
+		Layout<Integer, String> layout = new ISOMLayout(getNodeModel().getGraph());
+		Dimension sz = new Dimension(950,650);
+        layout.setSize(sz); // sets the initial size of the space
+        // The BasicVisualizationServer<V,E> is parameterized by the edge types
+        
+        BasicVisualizationServer<Integer,String> vv =
+        new BasicVisualizationServer<Integer,String>(layout);
+        vv.setPreferredSize(sz); //Sets the viewing area size
+        
+        
+        m_frame = new JFrame("Basic graph view");
+        m_frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        m_frame.getContentPane().add(vv);
+        m_frame.pack();
+        m_frame.setVisible(true);
+	}
 
 }
 
