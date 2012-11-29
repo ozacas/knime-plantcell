@@ -13,6 +13,11 @@ public class MyVertex {
 	}
 	
 	@Override
+	public String toString() {
+		return m_name;
+	}
+	
+	@Override
 	public boolean equals(Object o) {
 		if (o == null || !(o instanceof MyVertex)) {
 			return false;

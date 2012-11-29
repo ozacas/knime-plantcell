@@ -1,5 +1,6 @@
 package au.edu.unimelb.plantcell.networks;
 
+import org.knime.core.node.AbstractNodeView;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
@@ -33,9 +34,9 @@ public class CreatorNodeFactory
      * {@inheritDoc}
      */
     @Override
-    public NodeView<CreatorNodeModel> createNodeView(final int viewIndex,
+    public AbstractNodeView<CreatorNodeModel> createAbstractNodeView(final int viewIndex,
             final CreatorNodeModel nodeModel) {
-        return new CreatorNodeView(nodeModel);
+    	return new CreatorNodeView(nodeModel);
     }
 
     /**
@@ -53,6 +54,13 @@ public class CreatorNodeFactory
     public NodeDialogPane createNodeDialogPane() {
         return new CreatorNodeDialog();
     }
+
+	@Override
+	public NodeView<CreatorNodeModel> createNodeView(int viewIndex,
+			CreatorNodeModel nodeModel) {
+		// this does not get called: see abstract node view code above
+		return null;
+	}
 
 }
 

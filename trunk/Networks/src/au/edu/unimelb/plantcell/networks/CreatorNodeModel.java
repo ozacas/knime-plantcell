@@ -2,6 +2,7 @@ package au.edu.unimelb.plantcell.networks;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -25,6 +26,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.SparseGraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
+import edu.uci.ics.jung.io.GraphMLWriter;
 
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 
@@ -50,6 +52,8 @@ public class CreatorNodeModel extends NodeModel {
 	private final SettingsModelString m_destination = new SettingsModelString(CFGKEY_DESTINATION, "");
 	private final SettingsModelColumnName m_distance = new SettingsModelColumnName(CFGKEY_DISTANCE, "");
 
+	private Graph<MyVertex,MyEdge> m_graph;
+	
     /**
      * Constructor for the node model.
      */
@@ -87,21 +91,18 @@ public class CreatorNodeModel extends NodeModel {
     		String dest   = dst_cell.toString();
     		MyVertex my_src = new MyVertex(source);
     		MyVertex my_dest= new MyVertex(dest);
-    		boolean added_src = false;
-    		boolean added_dst = false;
+    		
     		if (!g.containsVertex(my_src)) {
     			g.addVertex(my_src);
-    			added_src = true;
     		}
     		if (!g.containsVertex(my_dest)) {
     			g.addVertex(my_dest);
-    			added_dst = true;
     		}
 
-    		if (!added_src && !added_dst)
+    		MyEdge e = new MyEdge(my_src, my_dest);
+    		if (g.containsEdge(e))
     			throw new InvalidSettingsException("Multiple paths (ie. rows) between "+source+" -> "+ dest+": are not permitted!");
     		
-    		MyEdge e = new MyEdge();
     		if (dest_idx >= 0) {
     			try {
     				Double d = Double.valueOf(r.getCell(distance_idx).toString());
@@ -119,11 +120,22 @@ public class CreatorNodeModel extends NodeModel {
     		}
     	}
     	
+    	setGraph(g);
+		
     	c.addRow(new DataCell[] { new StringCell(""), new NetworkCell(g) });
     	
     	return new BufferedDataTable[] { c.close() };
     }
 
+    public void setGraph(Graph<MyVertex,MyEdge> g) {
+    	assert(g != null);
+    	m_graph = g;
+    }
+    
+    public Graph<MyVertex, MyEdge> getGraph() {
+    	return m_graph;
+    }
+    
     /**
      * {@inheritDoc}
      */
