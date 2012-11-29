@@ -40,6 +40,7 @@ import org.knime.workbench.ui.KNIMEUIPlugin;
 import au.edu.unimelb.plantcell.core.ExternalProgram;
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.core.PreferenceConstants;
+import au.edu.unimelb.plantcell.core.SequenceProcessor;
 import au.edu.unimelb.plantcell.core.UniqueID;
 import au.edu.unimelb.plantcell.core.cells.CoordinateSystem;
 import au.edu.unimelb.plantcell.core.cells.SequenceCell;
@@ -116,6 +117,29 @@ public class BLASTPlusNodeModel extends NodeModel {
     			m_what_annotations.getStringValue().equals(ANNOTATION_GROUP[2]));
     }
     
+    public SequenceProcessor getSequenceProcessor(final ExecutionContext exec) {
+    	return new SequenceProcessor() {
+    		private boolean always_fail = false;
+    		
+			public SequenceValue process(SequenceValue sv) {
+				if (always_fail)
+					return null;
+				
+				if (!valid_sequence_type(sv)) {
+	    			logger.warn("Invalid sequence type for "+sv.getID()+" - check your blast and "+sv.getSequenceType()+" sequence settings");
+	    			try {
+	    				exec.checkCanceled();
+	    			} catch (Exception e) {
+	    				// iterator will ignore the rest of the sequences to "abort" since we cant throw here
+	    				always_fail = true;
+	    			}
+	    			return null;
+	    		}
+				return sv;
+			}
+    	};
+    }
+    	
     /**
      * Return the list of available result options (sorted alphabetically)
      */
@@ -530,7 +554,11 @@ public class BLASTPlusNodeModel extends NodeModel {
     		cmdLine.addArgument(m_matrix.getStringValue());
     	}
     	if (useLowComplexityFilter()) {
-    		cmdLine.addArgument(is_protein_blast() ? "-seg" : "-dust");
+    		if (m_ncbi_prog.getStringValue().equals("tblastn")) {
+    			cmdLine.addArgument("-seg");
+    		} else {
+    			cmdLine.addArgument(is_protein_blast() ? "-seg" : "-dust");
+    		}
     		cmdLine.addArgument("yes");
     	} else {
     		// NO-OP
