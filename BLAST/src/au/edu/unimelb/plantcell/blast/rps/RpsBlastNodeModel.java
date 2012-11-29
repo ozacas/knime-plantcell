@@ -125,80 +125,70 @@ public class RpsBlastNodeModel extends BLASTPlusNodeModel {
 
     	try {
     		BatchSequenceRowIterator bsi = new BatchSequenceRowIterator(it,
-        			seq_idx, 1000, 1000 * 1000, 
-        			new au.edu.unimelb.plantcell.core.SequenceProcessor() {
-        		
-        		public SequenceValue process(SequenceValue sv) {
-        			if (!valid_sequence_type(sv)) {
-    	    			logger.warn("Invalid sequence type for "+sv.getID()+" - check your blast and "+sv.getSequenceType()+" sequence settings");
-    	    			return null;
-    	    		}
-        			return sv;
-        		}
-        	});
-    	
-    	while (bsi.hasNext()) {
-    		Map<UniqueID,SequenceValue> batch_map = bsi.nextAsMap();
-    		if (batch_map == null)
-    			break;
-    		
-    		new FastaWriter(m_tmp_fasta, batch_map).write();
-    		
-			logger.info("Running batch of "+batch_map.size()+" sequences: "+cmdLine.toString());
-			tsv.setBatch(batch_map);
-			DefaultExecutor exe = new DefaultExecutor();
-	    	exe.setExitValues(new int[] {0});
-	    	exe.setStreamHandler(new PumpStreamHandler(tsv, new ErrorLogger(logger)));
-	    	exe.setWorkingDirectory(getQueryDatabaseFile().getParentFile());
-	    	exe.setWatchdog(new ExecuteWatchdog(ExecuteWatchdog.INFINITE_TIMEOUT));
-	    	
-        	int exitCode = exe.execute(cmdLine);
-        	logger.info("got exit code: "+exitCode+" from BLAST");
-        	
-        	if (exe.isFailure(exitCode)) {
-        		if (exe.getWatchdog().killedProcess())
-        			throw new Exception("BLAST failed - watchdog says no...");
-        		else
-        			throw new Exception("BLAST failed - check console messages and input data");
-        	}
-        	
-        	// user want annotated sequences?
-	    	tsv.walkResults(new BlastResultsWalker() {
-
-	    		@Override
-				public void hit(SequenceValue hit, List<BlastHitRegion> hits) {
-	    			if (!reportHits())
-						return;
-		    		
-		    		// add non-null result tracks to sc
-		    		SequenceCell sc;
-					try {
-						sc = new SequenceCell(hit);
-			    		addTrack(sc, Track.RPSBLAST_TRACK,     hits);
-			    		
-			    		c_seq.addRow(new DataCell[] { sc });
-					} catch (InvalidSettingsException e) {
-						e.printStackTrace();
-					}
-				}
-
-				@Override
-				public void nohit(SequenceValue sv) {
-					if (!reportNoHits())
-						return;
-					try {
-						c_seq.addRow(new DataCell[] { new SequenceCell(sv) });
-					} catch (InvalidSettingsException e) {
-						e.printStackTrace();
-					}
-				}
+        			seq_idx, 1000, 1000 * 1000, getSequenceProcessor(exec));
+        			
+	    	while (bsi.hasNext()) {
+	    		Map<UniqueID,SequenceValue> batch_map = bsi.nextAsMap();
+	    		if (batch_map == null)
+	    			break;
 	    		
-	    	});
-    		}
-    	
-    	} finally {
-    		m_tmp_fasta.delete();
-    	}
+	    		new FastaWriter(m_tmp_fasta, batch_map).write();
+	    		
+				logger.info("Running batch of "+batch_map.size()+" sequences: "+cmdLine.toString());
+				tsv.setBatch(batch_map);
+				DefaultExecutor exe = new DefaultExecutor();
+		    	exe.setExitValues(new int[] {0});
+		    	exe.setStreamHandler(new PumpStreamHandler(tsv, new ErrorLogger(logger)));
+		    	exe.setWorkingDirectory(getQueryDatabaseFile().getParentFile());
+		    	exe.setWatchdog(new ExecuteWatchdog(ExecuteWatchdog.INFINITE_TIMEOUT));
+		    	
+	        	int exitCode = exe.execute(cmdLine);
+	        	logger.info("got exit code: "+exitCode+" from BLAST");
+	        	
+	        	if (exe.isFailure(exitCode)) {
+	        		if (exe.getWatchdog().killedProcess())
+	        			throw new Exception("BLAST failed - watchdog says no...");
+	        		else
+	        			throw new Exception("BLAST failed - check console messages and input data");
+	        	}
+	        	
+	        	// user want annotated sequences?
+		    	tsv.walkResults(new BlastResultsWalker() {
+	
+		    		@Override
+					public void hit(SequenceValue hit, List<BlastHitRegion> hits) {
+		    			if (!reportHits())
+							return;
+			    		
+			    		// add non-null result tracks to sc
+			    		SequenceCell sc;
+						try {
+							sc = new SequenceCell(hit);
+				    		addTrack(sc, Track.RPSBLAST_TRACK,     hits);
+				    		
+				    		c_seq.addRow(new DataCell[] { sc });
+						} catch (InvalidSettingsException e) {
+							e.printStackTrace();
+						}
+					}
+	
+					@Override
+					public void nohit(SequenceValue sv) {
+						if (!reportNoHits())
+							return;
+						try {
+							c_seq.addRow(new DataCell[] { new SequenceCell(sv) });
+						} catch (InvalidSettingsException e) {
+							e.printStackTrace();
+						}
+					}
+		    		
+		    	});
+	    		}
+	    	
+	    } finally {
+	    		m_tmp_fasta.delete();
+	    }
     	
         return new BufferedDataTable[]{tsv.getTSVTable(), c_seq.close() };
     }

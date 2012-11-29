@@ -109,17 +109,7 @@ public class SequenceBLASTNodeModel extends BLASTPlusNodeModel {
     	TabbedCSVLogger tsv = new TabbedCSVLogger(logger, exec);
     	
     	BatchSequenceRowIterator bsi = new BatchSequenceRowIterator(it,
-    			seq_idx, 1000, 1000 * 1000, 
-    			new au.edu.unimelb.plantcell.core.SequenceProcessor() {
-    		
-    		public SequenceValue process(SequenceValue sv) {
-    			if (!valid_sequence_type(sv)) {
-	    			logger.warn("Invalid sequence ("+sv.getSequenceType()+") for blast program - check your node configuration: ignoring "+sv.getID());
-	    			return null;
-	    		}
-    			return sv;
-    		}
-    	});
+    			seq_idx, 1000, 1000 * 1000, getSequenceProcessor(exec));
     	
     	try {
     		int done = 0;
