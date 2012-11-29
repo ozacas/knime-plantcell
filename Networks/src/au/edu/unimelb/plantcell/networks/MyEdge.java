@@ -20,4 +20,19 @@ public class MyEdge {
 	public void setDistance(double d) {
 		m_distance = d;
 	}
+	
+	/**
+	 * {@InheritDoc}
+	 */
+	public int hashCode() {
+		return -47;
+	}
+	
+	/**
+	 * {@InheritDoc}
+	 */
+	@Override
+	public boolean equals(Object o) {
+		return (o == this);
+	}
 }

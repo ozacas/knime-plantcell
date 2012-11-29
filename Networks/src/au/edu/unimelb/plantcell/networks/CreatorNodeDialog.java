@@ -5,6 +5,7 @@ import org.knime.core.data.DoubleValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
+import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.util.ColumnFilter;
 
@@ -30,7 +31,7 @@ public class CreatorNodeDialog extends DefaultNodeSettingsPane {
         addDialogComponent(new DialogComponentColumnNameSelection(
         		new SettingsModelString(CreatorNodeModel.CFGKEY_DESTINATION, ""), "Destination node", 0, StringValue.class));
         addDialogComponent(new DialogComponentColumnNameSelection(
-        		new SettingsModelString(CreatorNodeModel.CFGKEY_DISTANCE, "<None>"), 
+        		new SettingsModelColumnName(CreatorNodeModel.CFGKEY_DISTANCE, "<None>"), 
         		"Distance between source and destination (optional)", 0, false, true, new ColumnFilter() {
 
 					@Override

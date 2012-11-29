@@ -76,6 +76,7 @@ public class CreatorNodeModel extends NodeModel {
     	int dest_idx   = inData[0].getSpec().findColumnIndex(m_destination.getStringValue());
     	Graph<MyVertex, MyEdge> g = new SparseGraph<MyVertex,MyEdge>();
     	
+    	int done = 0;
     	while (it.hasNext()) {
     		DataRow r = it.next();
     		DataCell src_cell = r.getCell(source_idx);
@@ -86,12 +87,19 @@ public class CreatorNodeModel extends NodeModel {
     		String dest   = dst_cell.toString();
     		MyVertex my_src = new MyVertex(source);
     		MyVertex my_dest= new MyVertex(dest);
+    		boolean added_src = false;
+    		boolean added_dst = false;
     		if (!g.containsVertex(my_src)) {
     			g.addVertex(my_src);
+    			added_src = true;
     		}
     		if (!g.containsVertex(my_dest)) {
     			g.addVertex(my_dest);
+    			added_dst = true;
     		}
+
+    		if (!added_src && !added_dst)
+    			throw new InvalidSettingsException("Multiple paths (ie. rows) between "+source+" -> "+ dest+": are not permitted!");
     		
     		MyEdge e = new MyEdge();
     		if (dest_idx >= 0) {
@@ -103,7 +111,15 @@ public class CreatorNodeModel extends NodeModel {
     			}
     		}
     		g.addEdge(e, my_src, my_dest, EdgeType.UNDIRECTED);
+    		
+    		done++;
+    		if (done % 100 == 0) {
+    			exec.checkCanceled();
+    			exec.setProgress(((double)done) / inData[0].getRowCount());
+    		}
     	}
+    	
+    	c.addRow(new DataCell[] { new StringCell(""), new NetworkCell(g) });
     	
     	return new BufferedDataTable[] { c.close() };
     }

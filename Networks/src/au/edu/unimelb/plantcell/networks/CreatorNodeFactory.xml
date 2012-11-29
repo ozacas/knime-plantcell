@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="./default.png" type="Manipulator">
-    <name>Creator</name>
+    <name>Create Networks</name>
     
     <shortDescription>
         Using JUNG, this node creates a network cell for the input data correlated above a chosen threshold for each target variable.

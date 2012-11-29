@@ -1,10 +1,20 @@
 package au.edu.unimelb.plantcell.networks;
 
 import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
+
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.knime.core.data.DataCellDataInput;
 import org.knime.core.data.DataCellDataOutput;
 import org.knime.core.data.DataCellSerializer;
+import org.xml.sax.SAXException;
+
+import edu.uci.ics.jung.graph.Graph;
+import edu.uci.ics.jung.graph.SparseGraph;
+import edu.uci.ics.jung.io.GraphMLReader;
+import edu.uci.ics.jung.io.GraphMLWriter;
 
 /**
  * Persist a network cell to/from the storage
@@ -17,13 +27,31 @@ public class NetworkSerializer<T extends NetworkCell> implements DataCellSeriali
 	@Override
 	public void serialize(T cell, DataCellDataOutput output) throws IOException {
 		NetworkValue nv = (NetworkValue) cell;
+		StringWriter sw = new StringWriter();
+		Graph<MyVertex,MyEdge> g = nv.getGraph();
+		GraphMLWriter<MyVertex,MyEdge> gmlw = new GraphMLWriter<MyVertex,MyEdge>();
+		gmlw.save(g, sw);
+		sw.close();
 		
+		output.writeUTF(sw.getBuffer().toString());
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public T deserialize(DataCellDataInput input) throws IOException {
+		String g_str = input.readUTF();
 		
-		return null;
+		try {
+			Graph<MyVertex,MyEdge> g = new SparseGraph<MyVertex,MyEdge>();
+			GraphMLReader<Graph<MyVertex,MyEdge>,MyVertex,MyEdge> rdr = new GraphMLReader<Graph<MyVertex,MyEdge>,MyVertex,MyEdge>();
+			StringReader sr = new StringReader(g_str);
+			rdr.load(sr, g);
+			sr.close();
+			return (T) new NetworkCell(g);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new IOException(e.getMessage());
+		} 
 	}
 
 }

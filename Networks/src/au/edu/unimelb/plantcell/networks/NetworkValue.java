@@ -10,5 +10,10 @@ import edu.uci.ics.jung.graph.Graph;
  *
  */
 public interface NetworkValue extends DataValue, Comparable<NetworkValue> {
+	
+	/**
+	 * Returns the graph instance associated with this network
+	 * @return
+	 */
 	public Graph<MyVertex, MyEdge> getGraph();
 }

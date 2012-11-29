@@ -12,5 +12,19 @@ public class MyVertex {
 		m_name = name;
 	}
 	
+	@Override
+	public boolean equals(Object o) {
+		if (o == null || !(o instanceof MyVertex)) {
+			return false;
+		}
+		
+		return ((MyVertex)o).m_name.equals(this.m_name);
+	}
 	
+	/**
+	 * {@inheritDoc}
+	 */
+	public int hashCode() {
+		return m_name.hashCode();
+	}
 }
