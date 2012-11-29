@@ -140,6 +140,9 @@ public class CorrelationCalcNodeModel extends NodeModel {
         RowIterator it = inData[0].iterator();
         Cache cache = new Cache("CorrelationCalc", new Properties());
         cache.init();
+        if (!cache.isEnabled()) {
+        	throw new InvalidSettingsException("You must specify a folder to cache data: check the PlantCell preferences (File -> Preferences)");
+        }
         
         logger.info("Caching data... please be patient!");
         while (it.hasNext()) {
