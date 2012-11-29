@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Visualizer">
+    <name>Network Viewer</name>
+    
+    <shortDescription>
+        Support for network visualisation and analysis (jung, cytoscape, gephi)
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>Visualises a network</intro>
+        
+        <option name="Network column">Select the network column, as computed by the <b>Network calculator</b> node</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input networks">Input table contain a column of networks</inPort>
+    </ports>    
+    
+    <views>
+        <view index="0" name="View networks">Presents a box to select the network to view</view>
+    </views>
+</knimeNode>

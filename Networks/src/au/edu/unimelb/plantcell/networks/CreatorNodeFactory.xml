@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>Creator</name>
+    
+    <shortDescription>
+        Using JUNG, this node creates a network cell for the input data correlated above a chosen threshold for each target variable.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>Builds a network, one for each row, consisting of user-specified columns which meet
+        the chosen threshold. For instance, using this node after a <b>Correlation Calculator</b> can
+        give a network of correlations which may provide biological insight. The network can be saved
+        in <a href="http://graphml.graphdrawing.org/">GraphML format</a> or opened in 
+        <a href="https://gephi.org/">a visualisation program like Gephi</a> or 
+        <a href="http://www.cytoscape.org">Cytoscape</a>. For now, only graphs with a single edge between
+        source and destination are supported: an error will be thrown if this constraint is violated. This means
+        you must eliminate redundancy before using this node.
+        </intro>
+        
+        
+        <option name="Source">Source object name eg. gene or protein. Any string column may be chosen, best if it is short eg. &lt;20 characters</option>
+        <option name="Destination">Destination object name eg. gene or protein. Any string column may be chosen, best if it is short</option>
+   		<option name="Distance (optional)">Specify the distance eg. R-squared value between source and destination. 
+   		Any numeric column may be chosen.</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="In-Port name">Description of first input port...</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="Out-Port name">Description of first output port...</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+    <views>
+        <view index="0" name="name of first view">Description of first view...</view>
+        <!--view index="1" name="name of second view">Description of second view...</view-->
+    </views>
+</knimeNode>

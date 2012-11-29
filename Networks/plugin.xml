@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?eclipse version="3.0"?>
+
+<plugin>
+   
+   <extension point="org.knime.workbench.repository.nodes">
+      <node category-path="/Bioinformatics/Network Analysis" 
+      		factory-class="au.edu.unimelb.plantcell.networks.NetworkVizNodeFactory" 
+      		id="au.edu.unimelb.plantcell.networks.NetworkVizNodeFactory"/>
+      		
+      <node category-path="/Bioinformatics/Network Analysis" 
+      		factory-class="au.edu.unimelb.plantcell.networks.CreatorNodeFactory" 
+      		id="au.edu.unimelb.plantcell.networks.CreatorNodeFactory"/>
+   </extension>
+   
+</plugin>
