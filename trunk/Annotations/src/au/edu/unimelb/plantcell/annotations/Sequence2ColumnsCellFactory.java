@@ -107,6 +107,8 @@ public class Sequence2ColumnsCellFactory extends AbstractCellFactory {
 				cols.add(my_annot_spec.createSpec());
 			} else if (w.equals(Sequence2StringsNodeModel.SEQUENCE_LENGTH)) {
 				cols.add(new DataColumnSpecCreator(w, IntCell.TYPE).createSpec());
+			} else if (w.startsWith("Track - ")) {
+				// do nothing, as it appears in the second output port which is handled separately
 			} else {
 				cols.add(new DataColumnSpecCreator(w, type).createSpec());
 			}
@@ -145,7 +147,15 @@ public class Sequence2ColumnsCellFactory extends AbstractCellFactory {
 		if (track_table == null)
 			return;
 		
-		//track_table.addRow(vec.toArray());
+		DataTableSpec spec = track_table.getTableSpec();
+		DataCell[] ocells = missing_cells(spec.getNumColumns());
+		for (String colName : cells.keySet()) {
+			int idx = spec.findColumnIndex(colName);
+			if (idx >= 0) {
+				ocells[idx] = cells.get(colName);
+			}
+		}
+		track_table.addRow(ocells);
 	}
 	
 	/**
