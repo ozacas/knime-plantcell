@@ -2,7 +2,6 @@ package au.edu.unimelb.plantcell.networks;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.StringWriter;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -23,12 +22,13 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
+import au.edu.unimelb.plantcell.core.MyDataContainer;
+import au.edu.unimelb.plantcell.networks.cells.MyEdge;
+import au.edu.unimelb.plantcell.networks.cells.MyVertex;
+import au.edu.unimelb.plantcell.networks.cells.NetworkCell;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.SparseGraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
-import edu.uci.ics.jung.io.GraphMLWriter;
-
-import au.edu.unimelb.plantcell.core.MyDataContainer;
 
 
 /**
