@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>GraphML Writer</name>
+    
+    <shortDescription>
+        Using JUNG, this node saves networks in the specified column to a folder.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+        Using JUNG, this node saves networks in the specified column to a folder.
+        </intro>
+        
+        
+        <option name="Networks"></option>
+        <option name="Destination folder">Select the destination folder to save to</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input network(s)">Data table including network cell colum. See the Create Networks node for more details</inPort>
+     
+    </ports>    
+  
+</knimeNode>

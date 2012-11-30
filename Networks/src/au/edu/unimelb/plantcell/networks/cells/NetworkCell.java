@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.networks;
+package au.edu.unimelb.plantcell.networks.cells;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataCellSerializer;

@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.networks;
+package au.edu.unimelb.plantcell.networks.cells;
 
 public class MyVertex {
 	private String m_name;

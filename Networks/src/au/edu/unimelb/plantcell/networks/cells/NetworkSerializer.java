@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.networks;
+package au.edu.unimelb.plantcell.networks.cells;
 
 import java.io.IOException;
 import java.io.StringReader;
