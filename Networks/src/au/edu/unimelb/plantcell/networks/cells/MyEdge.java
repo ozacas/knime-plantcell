@@ -1,5 +1,10 @@
 package au.edu.unimelb.plantcell.networks.cells;
 
+import java.util.Properties;
+import java.util.Set;
+
+import org.knime.core.node.InvalidSettingsException;
+
 /**
  * 
  * @author andrew.cassin
@@ -8,6 +13,9 @@ package au.edu.unimelb.plantcell.networks.cells;
 public class MyEdge {
 	private double m_distance;
 	private MyVertex m_src, m_dst;
+	private static int m_idx = 1;
+	private String m_id;
+	private final Properties props = new Properties();
 	
 	public MyEdge(MyVertex src, MyVertex dest) {
 		this(src, dest, 0.0);
@@ -18,11 +26,43 @@ public class MyEdge {
 		setDistance(distance);
 		m_src = src;
 		m_dst = dst;
+		m_id  = "E"+m_idx++;
 	}
 
+	public Set<Object> getPropertyKeys() {
+		return props.keySet();
+	}
+	
+	public Object getProperty(Object key) {
+		return props.get(key);
+	}
+
+	public void setProperty(String key, String value) {
+		props.put(key, value);
+	}
+	
+	public void setProperties(Properties new_props) throws InvalidSettingsException {
+		props.clear();
+		for (Object key : new_props.keySet()) {
+			if (key.toString().equals("id")) {
+				throw new InvalidSettingsException("Column 'id' is reserved for internal use: rename column!");
+			}
+			props.put(key, new_props.get(key));
+		}
+	}
+	
+	public String getID() {
+		return m_id;
+	}
+
+	
 	@Override
 	public String toString() {
 		return m_src.toString() + " - " + m_dst.toString();
+	}
+	
+	public double getDistance() {
+		return m_distance;
 	}
 	
 	public void setDistance(double d) {
@@ -53,4 +93,5 @@ public class MyEdge {
 		}
 		return false;
 	}
+
 }
