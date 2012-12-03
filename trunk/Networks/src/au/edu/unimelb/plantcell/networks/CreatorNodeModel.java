@@ -2,6 +2,7 @@ package au.edu.unimelb.plantcell.networks;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -20,6 +21,7 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
+import org.knime.core.node.defaultnodesettings.SettingsModelFilterString;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 import au.edu.unimelb.plantcell.core.MyDataContainer;
@@ -46,11 +48,15 @@ public class CreatorNodeModel extends NodeModel {
 	public static final String CFGKEY_SOURCE      = "source";
 	public static final String CFGKEY_DESTINATION = "destination";
 	public static final String CFGKEY_DISTANCE    = "distance";
+	public static final String CFGKEY_ANNOTATE_VERTEX = "vertex-annotations";
+	public static final String CFGKEY_ANNOTATE_EDGE   = "edge-annotations";
         
 	// private members
 	private final SettingsModelString m_source = new SettingsModelString(CFGKEY_SOURCE, "");
 	private final SettingsModelString m_destination = new SettingsModelString(CFGKEY_DESTINATION, "");
 	private final SettingsModelColumnName m_distance = new SettingsModelColumnName(CFGKEY_DISTANCE, "");
+	private final SettingsModelFilterString m_vertex_annotations  = new SettingsModelFilterString(CFGKEY_ANNOTATE_VERTEX);
+	private final SettingsModelFilterString m_edge_annotations    = new SettingsModelFilterString(CFGKEY_ANNOTATE_EDGE);
 
 	private Graph<MyVertex,MyEdge> m_graph;
 	
@@ -80,6 +86,7 @@ public class CreatorNodeModel extends NodeModel {
     	int dest_idx   = inData[0].getSpec().findColumnIndex(m_destination.getStringValue());
     	Graph<MyVertex, MyEdge> g = new SparseGraph<MyVertex,MyEdge>();
     	
+    	logger.info("Creating Network from "+inData[0].getRowCount()+" rows.");
     	int done = 0;
     	while (it.hasNext()) {
     		DataRow r = it.next();
@@ -93,16 +100,35 @@ public class CreatorNodeModel extends NodeModel {
     		MyVertex my_dest= new MyVertex(dest);
     		
     		if (!g.containsVertex(my_src)) {
+    			// add metadata to my_src if any
+    			List<String> includes = m_vertex_annotations.getIncludeList();
+    			for (String inc : includes) {
+    				DataCell metadata_cell = r.getCell(inData[0].getSpec().findColumnIndex(inc));
+    				if (metadata_cell == null || metadata_cell.isMissing())
+    					continue;
+    				my_src.setProperty(inc, metadata_cell.toString());
+    			}
+    			// add vertex
     			g.addVertex(my_src);
     		}
     		if (!g.containsVertex(my_dest)) {
+    			// add vertex
     			g.addVertex(my_dest);
     		}
 
     		MyEdge e = new MyEdge(my_src, my_dest);
+    		// this node does not support multiple edges between nodes
     		if (g.containsEdge(e))
     			throw new InvalidSettingsException("Multiple paths (ie. rows) between "+source+" -> "+ dest+": are not permitted!");
-    		
+    		// add metadata to edge if any
+			List<String> includes = m_edge_annotations.getIncludeList();
+			for (String inc : includes) {
+				DataCell metadata_cell = r.getCell(inData[0].getSpec().findColumnIndex(inc));
+				if (metadata_cell == null || metadata_cell.isMissing())
+					continue;
+				e.setProperty(inc, metadata_cell.toString());
+			}
+			
     		if (dest_idx >= 0) {
     			try {
     				Double d = Double.valueOf(r.getCell(distance_idx).toString());
@@ -169,6 +195,8 @@ public class CreatorNodeModel extends NodeModel {
     	m_source.saveSettingsTo(settings);
     	m_destination.saveSettingsTo(settings);
     	m_distance.saveSettingsTo(settings);
+    	m_edge_annotations.saveSettingsTo(settings);
+    	m_vertex_annotations.saveSettingsTo(settings);
     }
 
     /**
@@ -180,6 +208,8 @@ public class CreatorNodeModel extends NodeModel {
         m_source.loadSettingsFrom(settings);
         m_destination.loadSettingsFrom(settings);
         m_distance.loadSettingsFrom(settings);
+    	m_edge_annotations.loadSettingsFrom(settings);
+    	m_vertex_annotations.loadSettingsFrom(settings);
     }
 
     /**
@@ -191,6 +221,8 @@ public class CreatorNodeModel extends NodeModel {
 	    m_source.validateSettings(settings);
         m_destination.validateSettings(settings);
         m_distance.validateSettings(settings);
+    	m_edge_annotations.validateSettings(settings);
+    	m_vertex_annotations.validateSettings(settings);
     }
     
     /**

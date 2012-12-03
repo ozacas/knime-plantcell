@@ -1,14 +1,26 @@
 package au.edu.unimelb.plantcell.networks;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
 
+import org.apache.commons.collections15.Transformer;
 import org.knime.core.node.ExternalApplicationNodeView;
 
-import edu.uci.ics.jung.algorithms.layout.ISOMLayout;
+import au.edu.unimelb.plantcell.networks.cells.MyEdge;
+import au.edu.unimelb.plantcell.networks.cells.MyVertex;
 import edu.uci.ics.jung.algorithms.layout.Layout;
-import edu.uci.ics.jung.visualization.BasicVisualizationServer;
+import edu.uci.ics.jung.algorithms.layout.SpringLayout2;
+import edu.uci.ics.jung.graph.Graph;
+import edu.uci.ics.jung.visualization.VisualizationViewer;
+import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
+import edu.uci.ics.jung.visualization.control.ModalGraphMouse;
+import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
 
 /**
  * <code>NodeView</code> for the "Creator" Node.
@@ -48,21 +60,50 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
     protected void onClose() {
     }
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	protected void onOpen(String title) {
-		Layout<Integer, String> layout = new ISOMLayout(getNodeModel().getGraph());
+		Graph<MyVertex, MyEdge> g = getNodeModel().getGraph();
+		if (g == null)
+			return;
+		
+		// layout algorithm gets edge distance from <code>edge.getDistance()</code>
+		Layout<Integer, String> layout = new SpringLayout2(g, new Transformer<MyEdge,Integer>() {
+
+			@Override
+			public Integer transform(MyEdge e) {
+				double d = e.getDistance();
+				return new Integer((int) Math.round(d));
+			}
+			
+		});
+		
 		Dimension sz = new Dimension(950,650);
         layout.setSize(sz); // sets the initial size of the space
-        // The BasicVisualizationServer<V,E> is parameterized by the edge types
+      
+        VisualizationViewer<Integer,String> vv = new VisualizationViewer<Integer,String>(layout);
+        vv.setPreferredSize(sz);
+        vv.getRenderContext().setVertexLabelTransformer(new ToStringLabeller());
+        DefaultModalGraphMouse gm = new DefaultModalGraphMouse();
+        gm.setMode(ModalGraphMouse.Mode.TRANSFORMING);
+        vv.setGraphMouse(gm);
         
-        BasicVisualizationServer<Integer,String> vv =
-        new BasicVisualizationServer<Integer,String>(layout);
-        vv.setPreferredSize(sz); //Sets the viewing area size
-        
-        
-        m_frame = new JFrame("Basic graph view");
+        m_frame = new JFrame("Simple network view");
         m_frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        m_frame.getContentPane().add(vv);
+        JPanel p = new JPanel();
+        p.setLayout(new BorderLayout());
+        p.add(vv, BorderLayout.CENTER);
+        JPanel instr_panel = new JPanel();
+        instr_panel.add(new JLabel("Middle mouse to zoom, left-click to pan, right click to select context menu."));
+        p.add(instr_panel, BorderLayout.SOUTH);
+        m_frame.getContentPane().add(p);
+        JMenuBar mb = new JMenuBar();
+        JMenu menu = gm.getModeMenu();
+        menu.setName("Mode");
+        menu.setText(menu.getName());
+        menu.setIcon(null);
+        mb.add(menu);
+        m_frame.setJMenuBar(mb);
         m_frame.pack();
         m_frame.setVisible(true);
 	}

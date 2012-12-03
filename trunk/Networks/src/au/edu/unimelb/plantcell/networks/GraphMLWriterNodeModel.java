@@ -4,15 +4,15 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
+import org.apache.commons.collections15.Transformer;
 import org.knime.core.data.DataCell;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.RowIterator;
-import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -22,18 +22,12 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
-import edu.uci.ics.jung.graph.Graph;
-import edu.uci.ics.jung.graph.SparseGraph;
-import edu.uci.ics.jung.graph.util.EdgeType;
-import edu.uci.ics.jung.io.GraphMLWriter;
-
-import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.networks.cells.MyEdge;
 import au.edu.unimelb.plantcell.networks.cells.MyVertex;
 import au.edu.unimelb.plantcell.networks.cells.NetworkValue;
+import edu.uci.ics.jung.io.GraphMLWriter;
 
 
 /**
@@ -86,9 +80,85 @@ public class GraphMLWriterNodeModel extends NodeModel {
     			continue;
     		NetworkValue nv = (NetworkValue) network_cell;
     		GraphMLWriter<MyVertex,MyEdge> gmlw = new GraphMLWriter<MyVertex,MyEdge>();
-    		PrintWriter pw = new PrintWriter(new FileWriter(new File(output_dir, r.getKey().getString()+".graphml")));
+    		File out_file = new File(output_dir, r.getKey().getString()+".graphml");
+    		logger.info("Saving network: "+out_file.getAbsolutePath());
+    		PrintWriter pw = new PrintWriter(new FileWriter(out_file));
+    		
+    		// compute metadata available from edge and vertex sets: HACK -- O(n^2) algorithmic complexity
+    		final Set<Object> edge_keys = new HashSet<Object>();
+    		final Set<Object> vertex_keys= new HashSet<Object>();
+    		Collection<MyEdge> edges = nv.getGraph().getEdges();
+    		Collection<MyVertex> vertices = nv.getGraph().getVertices();
+    		for (MyEdge e : edges) {
+    			for (Object o : e.getPropertyKeys()) {
+    				if (!edge_keys.contains(o)) {
+    					edge_keys.add(o);
+    				}
+    			}
+    		}
+    		for (MyVertex v : vertices) {
+    			for (Object o : v.getPropertyKeys()) {
+    				if (!vertex_keys.contains(o)) {
+    					vertex_keys.add(o);
+    				}
+    			}
+    		}
+    		
+    		StringBuilder sb = new StringBuilder();
+    		for (Object o: edge_keys) {
+    			sb.append(o.toString());
+    			sb.append(", ");
+    		}
+    		logger.info("Found edge annotations: "+sb.toString());
+    		sb = new StringBuilder();
+    		for (Object o : vertex_keys) {
+    			sb.append(o.toString());
+    			sb.append(", ");
+    		}
+    		logger.info("Found vertex annotations: "+sb.toString());
+    		
+    		// add vertex and edge metadata to GraphMLWriter instance for saving
+    		gmlw.addEdgeData("id", "edge id", "e1", new Transformer<MyEdge,String>() {
+
+				@Override
+				public String transform(MyEdge e) {
+					return e.getID();
+				}
+    			
+    		});
+    		for (final Object k : edge_keys) {
+    			gmlw.addEdgeData(k.toString(), k.toString(), "", new Transformer<MyEdge,String>() {
+
+					@Override
+					public String transform(MyEdge e) {
+						Object ret = e.getProperty(k);
+						if (ret == null)
+							return "";
+						return ret.toString();
+					}
+    				
+    			});
+    		}
+    		for (final Object k : vertex_keys) {
+    			gmlw.addVertexData(k.toString(), k.toString(), "", new Transformer<MyVertex,String>() {
+
+					@Override
+					public String transform(MyVertex v) {
+						Object ret = v.getProperty(k);
+						if (ret == null)
+							return "";
+						return ret.toString();
+					}
+    				
+    			});
+    		}
+    		
+    		// save it (1. nodes 2. edges 3. metadata)
     		gmlw.save(nv.getGraph(), pw);
+    		
     		pw.close();
+    		logger.info("Saved "+out_file.getAbsolutePath());
+    		
     		exec.checkCanceled();
     		exec.setProgress(((double)done++) / inData[0].getRowCount());
     	}

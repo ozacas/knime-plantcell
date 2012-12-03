@@ -4,8 +4,10 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
+import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
+import org.knime.core.node.defaultnodesettings.SettingsModelFilterString;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.util.ColumnFilter;
 
@@ -45,6 +47,12 @@ public class CreatorNodeDialog extends DefaultNodeSettingsPane {
 					}
         			
         		}));
+        
+        createNewGroup("Annotate each source node with ... columns?");
+        addDialogComponent(new DialogComponentColumnFilter(new SettingsModelFilterString(CreatorNodeModel.CFGKEY_ANNOTATE_VERTEX), 0, false));
+        
+        createNewGroup("Annotate each edge with ... columns?");
+        addDialogComponent(new DialogComponentColumnFilter(new SettingsModelFilterString(CreatorNodeModel.CFGKEY_ANNOTATE_EDGE), 0, false));
     }
 }
 
