@@ -4,9 +4,11 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
+import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
-import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelFilterString;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.util.ColumnFilter;
@@ -28,12 +30,48 @@ public class CreatorNodeDialog extends DefaultNodeSettingsPane {
 	protected CreatorNodeDialog() {
         super();
         
+        createNewGroup("Use input table row colours?");
+        String[] items = new String[] { "Nodes coloured by row", "Edges coloured by row", "None" };
+        addDialogComponent(new DialogComponentButtonGroup(
+        		new SettingsModelString(CreatorNodeModel.CFGKEY_COLOUR_BY, "None"), "Use row colours to...", true, items, items
+        		));
+        
+        createNewGroup("Display numeric vector (eg. timepoints) as node?");
+        addDialogComponent(new DialogComponentColumnNameSelection(
+        		new SettingsModelString(CreatorNodeModel.CFGKEY_TIMECOURSE, ""), "Numeric vector columns (eg. list)", 0, false, true, new ColumnFilter() {
+
+					@Override
+					public boolean includeColumn(DataColumnSpec colSpec) {
+						if (colSpec.getType().isCollectionType() && 
+								colSpec.getType().getCollectionElementType().isCompatible(DoubleValue.class))
+							return true;
+						return false;
+					}
+
+					@Override
+					public String allFilteredMsg() {
+						return "No suitable numeric vector columns available eg. group-by list";
+					}
+        			
+        		}));
+        
+        createNewGroup("Drawing options?");
+        addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(CreatorNodeModel.CFGKEY_EDGE_DISTANCE, Boolean.TRUE), 
+        		"Show edge distance?"));
+        addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(CreatorNodeModel.CFGKEY_EDGE_GRADIENT, Boolean.FALSE),
+        		"Paint edges as gradient (looks nicer)?"));
+        
+        createNewTab("Nodes");
         addDialogComponent(new DialogComponentColumnNameSelection(
         		new SettingsModelString(CreatorNodeModel.CFGKEY_SOURCE, ""), "Source node", 0, StringValue.class));
         addDialogComponent(new DialogComponentColumnNameSelection(
         		new SettingsModelString(CreatorNodeModel.CFGKEY_DESTINATION, ""), "Destination node", 0, StringValue.class));
+        createNewGroup("Annotate each source node with ... columns?");
+        addDialogComponent(new DialogComponentColumnFilter(new SettingsModelFilterString(CreatorNodeModel.CFGKEY_ANNOTATE_VERTEX), 0, false));
+        
+        createNewTab("Edges");
         addDialogComponent(new DialogComponentColumnNameSelection(
-        		new SettingsModelColumnName(CreatorNodeModel.CFGKEY_DISTANCE, "<None>"), 
+        		new SettingsModelString(CreatorNodeModel.CFGKEY_DISTANCE, "<None>"), 
         		"Distance between source and destination (optional)", 0, false, true, new ColumnFilter() {
 
 					@Override
@@ -47,11 +85,8 @@ public class CreatorNodeDialog extends DefaultNodeSettingsPane {
 					}
         			
         		}));
-        
-        createNewGroup("Annotate each source node with ... columns?");
-        addDialogComponent(new DialogComponentColumnFilter(new SettingsModelFilterString(CreatorNodeModel.CFGKEY_ANNOTATE_VERTEX), 0, false));
-        
-        createNewGroup("Annotate each edge with ... columns?");
+      
+        createNewGroup("Annotate with ... columns?");
         addDialogComponent(new DialogComponentColumnFilter(new SettingsModelFilterString(CreatorNodeModel.CFGKEY_ANNOTATE_EDGE), 0, false));
     }
 }

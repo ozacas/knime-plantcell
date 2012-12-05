@@ -1,8 +1,10 @@
 package au.edu.unimelb.plantcell.networks.cells;
 
+import java.awt.Color;
 import java.util.Properties;
 import java.util.Set;
 
+import org.knime.core.data.property.ColorAttr;
 import org.knime.core.node.InvalidSettingsException;
 
 /**
@@ -16,6 +18,7 @@ public class MyEdge {
 	private static int m_idx = 1;
 	private String m_id;
 	private final Properties props = new Properties();
+	private ColorAttr m_colour = null;
 	
 	public MyEdge(MyVertex src, MyVertex dest) {
 		this(src, dest, 0.0);
@@ -94,4 +97,13 @@ public class MyEdge {
 		return false;
 	}
 
+	public void setColour(ColorAttr c) {
+		m_colour = c;
+	}
+	
+	public Color getColour() {
+		if (m_colour == null)
+			return Color.black;
+		return m_colour.getColor();
+	}
 }

@@ -20,7 +20,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelFilterString;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
@@ -50,14 +50,21 @@ public class CreatorNodeModel extends NodeModel {
 	public static final String CFGKEY_DISTANCE    = "distance";
 	public static final String CFGKEY_ANNOTATE_VERTEX = "vertex-annotations";
 	public static final String CFGKEY_ANNOTATE_EDGE   = "edge-annotations";
-        
+	public static final String CFGKEY_COLOUR_BY       = "color-by";
+	public static final String CFGKEY_EDGE_DISTANCE = "edge-distance?";
+	public static final String CFGKEY_EDGE_GRADIENT = "edge-gradient?";
+    public static final String CFGKEY_TIMECOURSE    = "timecourse-data-column";
 	// private members
 	private final SettingsModelString m_source = new SettingsModelString(CFGKEY_SOURCE, "");
 	private final SettingsModelString m_destination = new SettingsModelString(CFGKEY_DESTINATION, "");
-	private final SettingsModelColumnName m_distance = new SettingsModelColumnName(CFGKEY_DISTANCE, "");
+	private final SettingsModelString m_distance = new SettingsModelString(CFGKEY_DISTANCE, "");
 	private final SettingsModelFilterString m_vertex_annotations  = new SettingsModelFilterString(CFGKEY_ANNOTATE_VERTEX);
 	private final SettingsModelFilterString m_edge_annotations    = new SettingsModelFilterString(CFGKEY_ANNOTATE_EDGE);
-
+	private final SettingsModelString m_colour_by = new SettingsModelString(CFGKEY_COLOUR_BY, "None");
+	private final SettingsModelBoolean m_edge_gradient = new SettingsModelBoolean(CFGKEY_EDGE_GRADIENT, Boolean.FALSE);
+	private final SettingsModelBoolean m_edge_distance = new SettingsModelBoolean(CFGKEY_EDGE_DISTANCE, Boolean.FALSE);
+	private final SettingsModelString  m_timecourse    = new SettingsModelString(CFGKEY_TIMECOURSE, "");
+	
 	private Graph<MyVertex,MyEdge> m_graph;
 	
     /**
@@ -77,17 +84,33 @@ public class CreatorNodeModel extends NodeModel {
     	MyDataContainer c = new MyDataContainer(exec.createDataContainer(make_output_spec(inData[0].getSpec())), "Net");
     	RowIterator    it = inData[0].iterator();
     	
-    	boolean no_distance = (m_distance.getColumnName() == null);
+    	boolean no_distance = (m_distance.getStringValue() == null);
     	int distance_idx = -1;
     	if (! no_distance) {
-    		distance_idx = inData[0].getSpec().findColumnIndex(m_distance.getColumnName());
+    		distance_idx = inData[0].getSpec().findColumnIndex(m_distance.getStringValue());
     	}
     	int source_idx = inData[0].getSpec().findColumnIndex(m_source.getStringValue());
     	int dest_idx   = inData[0].getSpec().findColumnIndex(m_destination.getStringValue());
+    	if (source_idx < 0 || dest_idx < 0)
+    		throw new InvalidSettingsException("Source and/or destination columns not found: re-configure the node!");
+    	int vector_idx = -1;
+    	if (showTimecourse()) {
+    		vector_idx = inData[0].getSpec().findColumnIndex(m_timecourse.getStringValue());
+    		if (vector_idx < 0)
+    			throw new InvalidSettingsException("Unable to locate timecourse collection column: re-configure!");
+    	}
     	Graph<MyVertex, MyEdge> g = new SparseGraph<MyVertex,MyEdge>();
     	
     	logger.info("Creating Network from "+inData[0].getRowCount()+" rows.");
     	int done = 0;
+    	boolean colour_edges = false;
+    	boolean colour_nodes = false;
+    	if (m_colour_by.getStringValue().toLowerCase().indexOf("node") >= 0) {
+    		colour_nodes = true;
+    	}
+    	if (m_colour_by.getStringValue().toLowerCase().indexOf("edge") >= 0) {
+    		colour_edges = true;
+    	}
     	while (it.hasNext()) {
     		DataRow r = it.next();
     		DataCell src_cell = r.getCell(source_idx);
@@ -108,10 +131,15 @@ public class CreatorNodeModel extends NodeModel {
     					continue;
     				my_src.setProperty(inc, metadata_cell.toString());
     			}
+    			if (colour_nodes) {
+    				my_src.setColour(inData[0].getSpec().getRowColor(r));
+    			}
     			// add vertex
+        		setVector(my_src, r.getCell(vector_idx));
     			g.addVertex(my_src);
     		}
     		if (!g.containsVertex(my_dest)) {
+        		setVector(my_dest, r.getCell(vector_idx));
     			// add vertex
     			g.addVertex(my_dest);
     		}
@@ -120,6 +148,9 @@ public class CreatorNodeModel extends NodeModel {
     		// this node does not support multiple edges between nodes
     		if (g.containsEdge(e))
     			throw new InvalidSettingsException("Multiple paths (ie. rows) between "+source+" -> "+ dest+": are not permitted!");
+    		if (colour_edges) {
+    			e.setColour(inData[0].getSpec().getRowColor(r));
+    		}
     		// add metadata to edge if any
 			List<String> includes = m_edge_annotations.getIncludeList();
 			for (String inc : includes) {
@@ -153,7 +184,15 @@ public class CreatorNodeModel extends NodeModel {
     	return new BufferedDataTable[] { c.close() };
     }
 
-    public void setGraph(Graph<MyVertex,MyEdge> g) {
+    private void setVector(MyVertex v, DataCell collection_cell) {
+		if (collection_cell == null || collection_cell.isMissing() || !collection_cell.getType().isCollectionType()) {
+			v.setSampleVector((double[]) null);
+			return;
+		}
+		v.setSampleVector(collection_cell);
+	}
+
+	public void setGraph(Graph<MyVertex,MyEdge> g) {
     	assert(g != null);
     	m_graph = g;
     }
@@ -197,6 +236,10 @@ public class CreatorNodeModel extends NodeModel {
     	m_distance.saveSettingsTo(settings);
     	m_edge_annotations.saveSettingsTo(settings);
     	m_vertex_annotations.saveSettingsTo(settings);
+    	m_colour_by.saveSettingsTo(settings);
+    	m_edge_gradient.saveSettingsTo(settings);
+    	m_edge_distance.saveSettingsTo(settings);
+    	m_timecourse.saveSettingsTo(settings);
     }
 
     /**
@@ -210,6 +253,10 @@ public class CreatorNodeModel extends NodeModel {
         m_distance.loadSettingsFrom(settings);
     	m_edge_annotations.loadSettingsFrom(settings);
     	m_vertex_annotations.loadSettingsFrom(settings);
+    	m_colour_by.loadSettingsFrom(settings);
+    	m_edge_gradient.loadSettingsFrom(settings);
+    	m_edge_distance.loadSettingsFrom(settings);
+    	m_timecourse.loadSettingsFrom(settings);
     }
 
     /**
@@ -223,6 +270,10 @@ public class CreatorNodeModel extends NodeModel {
         m_distance.validateSettings(settings);
     	m_edge_annotations.validateSettings(settings);
     	m_vertex_annotations.validateSettings(settings);
+    	m_colour_by.validateSettings(settings);
+    	m_edge_gradient.validateSettings(settings);
+    	m_edge_distance.validateSettings(settings);
+    	m_timecourse.validateSettings(settings);
     }
     
     /**
@@ -244,6 +295,22 @@ public class CreatorNodeModel extends NodeModel {
             CanceledExecutionException {
        
     }
+
+	public boolean useEdgeGradient() {
+		return m_edge_gradient.getBooleanValue();
+	}
+
+	public boolean showEdgeDistance() {
+		return m_edge_distance.getBooleanValue();
+	}
+
+	public boolean showTimecourse() {
+		String tc_column = m_timecourse.getStringValue();
+		if (tc_column == null || tc_column.length() < 1 || tc_column.toLowerCase().equals("<none>"))
+			return false;
+		else
+			return true;
+	}
 
 }
 
