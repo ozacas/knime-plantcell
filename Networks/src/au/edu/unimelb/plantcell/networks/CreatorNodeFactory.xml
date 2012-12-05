@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="./default.png" type="Manipulator">
-    <name>Create Networks</name>
+    <name>Network Creator</name>
     
     <shortDescription>
         Using JUNG, this node creates a network cell for the input data correlated above a chosen threshold for each target variable.
@@ -15,7 +15,7 @@
         <a href="https://gephi.org/">a visualisation program like Gephi</a> or 
         <a href="http://www.cytoscape.org">Cytoscape</a>. For now, only graphs with a single edge between
         source and destination are supported: an error will be thrown if this constraint is violated. This means
-        you must eliminate redundancy before using this node.
+        you must eliminate redundancy before using this node eg. via <b>GroupBy (First)</b>. 
         </intro>
         
         
