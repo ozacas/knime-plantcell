@@ -20,18 +20,34 @@ public class MyEdge {
 	private final Properties props = new Properties();
 	private ColorAttr m_colour = null;
 	
+	public MyEdge() {
+		m_src = null;
+		m_dst = null;
+		m_id  = "E"+m_idx++;
+		setDistance(0.0);
+	}
+	
 	public MyEdge(MyVertex src, MyVertex dest) {
 		this(src, dest, 0.0);
 	}
 	
 	public MyEdge(MyVertex src, MyVertex dst, double distance) {
-		assert(src != null && dst != null);
+		this();
 		setDistance(distance);
 		m_src = src;
 		m_dst = dst;
-		m_id  = "E"+m_idx++;
 	}
 
+	public void setSource(MyVertex new_src) {
+		assert(new_src != null);
+		m_src = new_src;
+	}
+	
+	public void setDestination(MyVertex new_dst) {
+		assert(new_dst != null);
+		m_dst = new_dst;
+	}
+	
 	public Set<Object> getPropertyKeys() {
 		return props.keySet();
 	}

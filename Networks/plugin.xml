@@ -4,10 +4,7 @@
 <plugin>
    
    <extension point="org.knime.workbench.repository.nodes">
-      <node category-path="/Bioinformatics/Network Analysis" 
-      		factory-class="au.edu.unimelb.plantcell.networks.NetworkVizNodeFactory" 
-      		id="au.edu.unimelb.plantcell.networks.NetworkVizNodeFactory"/>
-      		
+     
       <node category-path="/Bioinformatics/Network Analysis" 
       		factory-class="au.edu.unimelb.plantcell.networks.CreatorNodeFactory" 
       		id="au.edu.unimelb.plantcell.networks.CreatorNodeFactory"/>

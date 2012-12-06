@@ -11,6 +11,7 @@ import java.awt.image.ColorModel;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -28,6 +29,11 @@ public class MyVertex implements Paint {
 	private ColorAttr m_colour = null;
 	private double[] m_vector = null;
 	
+	
+	public MyVertex() {
+		this(null);
+	}
+	
 	/**
 	 * 
 	 * @param name should be unique among vertices in a graph and never null or zero length
@@ -37,6 +43,10 @@ public class MyVertex implements Paint {
 			name = "Unknown"+m_id++;
 		}
 		m_name = name;
+	}
+	
+	public void setID(String new_id) {
+		m_name = new_id;
 	}
 	
 	public Set<Object> getPropertyKeys() {
@@ -170,5 +180,14 @@ public class MyVertex implements Paint {
 			sb.append(' ');
 		}
 		return sb.toString();
+	}
+
+	public void setProperties(Map<String, String> new_props) {
+		props.clear();
+		for (Object key : new_props.keySet()) {
+			if (key.toString().equals("id")) 
+				continue;
+			props.put(key, new_props.get(key));
+		}
 	}
 }
