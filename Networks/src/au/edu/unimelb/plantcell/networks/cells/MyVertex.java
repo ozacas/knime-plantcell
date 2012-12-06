@@ -20,7 +20,6 @@ import org.knime.core.data.DoubleValue;
 import org.knime.core.data.collection.ListCell;
 import org.knime.core.data.collection.SetCell;
 import org.knime.core.data.property.ColorAttr;
-import org.knime.core.node.InvalidSettingsException;
 
 public class MyVertex implements Paint {
 	private String m_name;
@@ -58,16 +57,22 @@ public class MyVertex implements Paint {
 	}
 	
 	public void setProperty(String key, String value) {
-		props.put(key, value);
+		if (key != null && value != null) {
+			props.put(key, value);
+		}
 	}
 	
-	public void setProperties(Properties new_props) throws InvalidSettingsException {
+	public void setProperties(Properties new_props) {
 		props.clear();
 		for (Object key : new_props.keySet()) {
-			if (key.toString().equals("id")) {
-				throw new InvalidSettingsException("Column 'id' is reserved for internal use: rename column!");
-			}
-			props.put(key, new_props.get(key));
+			setProperty(key.toString(), new_props.getProperty(key.toString()));
+		}
+	}
+
+	public void setProperties(Map<String, String> new_props) {
+		props.clear();
+		for (Object key : new_props.keySet()) {
+			setProperty(key.toString(), new_props.get(key));
 		}
 	}
 	
@@ -182,12 +187,4 @@ public class MyVertex implements Paint {
 		return sb.toString();
 	}
 
-	public void setProperties(Map<String, String> new_props) {
-		props.clear();
-		for (Object key : new_props.keySet()) {
-			if (key.toString().equals("id")) 
-				continue;
-			props.put(key, new_props.get(key));
-		}
-	}
 }
