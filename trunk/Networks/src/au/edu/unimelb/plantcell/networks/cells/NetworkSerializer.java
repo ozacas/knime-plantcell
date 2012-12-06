@@ -9,9 +9,6 @@ import org.knime.core.data.DataCellDataOutput;
 import org.knime.core.data.DataCellSerializer;
 
 import edu.uci.ics.jung.graph.Graph;
-import edu.uci.ics.jung.graph.SparseGraph;
-import edu.uci.ics.jung.io.GraphMLReader;
-import edu.uci.ics.jung.io.GraphMLWriter;
 
 /**
  * Persist a network cell to/from the storage
@@ -25,10 +22,7 @@ public class NetworkSerializer<T extends NetworkCell> implements DataCellSeriali
 	public void serialize(T cell, DataCellDataOutput output) throws IOException {
 		NetworkValue nv = (NetworkValue) cell;
 		StringWriter sw = new StringWriter();
-		Graph<MyVertex,MyEdge> g = nv.getGraph();
-		GraphMLWriter<MyVertex,MyEdge> gmlw = new GraphMLWriter<MyVertex,MyEdge>();
-		gmlw.save(g, sw);
-		sw.close();
+		new GraphMLIO().save(nv.getGraph(), sw);
 		
 		output.writeUTF(sw.getBuffer().toString());
 	}
@@ -39,11 +33,8 @@ public class NetworkSerializer<T extends NetworkCell> implements DataCellSeriali
 		String g_str = input.readUTF();
 		
 		try {
-			Graph<MyVertex,MyEdge> g = new SparseGraph<MyVertex,MyEdge>();
-			GraphMLReader<Graph<MyVertex,MyEdge>,MyVertex,MyEdge> rdr = new GraphMLReader<Graph<MyVertex,MyEdge>,MyVertex,MyEdge>();
 			StringReader sr = new StringReader(g_str);
-			rdr.load(sr, g);
-			sr.close();
+			Graph<MyVertex,MyEdge> g = new GraphMLIO().load(sr);
 			return (T) new NetworkCell(g);
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -4,11 +4,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import org.apache.commons.collections15.Transformer;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -30,6 +27,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelFilterString;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 import au.edu.unimelb.plantcell.core.MyDataContainer;
+import au.edu.unimelb.plantcell.networks.cells.GraphMLIO;
 import au.edu.unimelb.plantcell.networks.cells.MyEdge;
 import au.edu.unimelb.plantcell.networks.cells.MyVertex;
 import au.edu.unimelb.plantcell.networks.cells.NetworkCell;
@@ -37,12 +35,6 @@ import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.SparseGraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import edu.uci.ics.jung.io.GraphIOException;
-import edu.uci.ics.jung.io.GraphMLWriter;
-import edu.uci.ics.jung.io.graphml.EdgeMetadata;
-import edu.uci.ics.jung.io.graphml.GraphMLReader2;
-import edu.uci.ics.jung.io.graphml.GraphMetadata;
-import edu.uci.ics.jung.io.graphml.HyperEdgeMetadata;
-import edu.uci.ics.jung.io.graphml.NodeMetadata;
 
 
 /**
@@ -303,59 +295,8 @@ public class CreatorNodeModel extends NodeModel {
     	boolean failed = false;
     	
     	try {
-			FileReader sr = new FileReader(f);
-			
-			// graph metadata
-			Transformer<GraphMetadata,Graph<MyVertex,MyEdge>> graph_transformer = new Transformer<GraphMetadata,Graph<MyVertex,MyEdge>>() {
-
-				@Override
-				public Graph<MyVertex, MyEdge> transform(GraphMetadata gm) {
-					Graph<MyVertex,MyEdge> g = new SparseGraph<MyVertex,MyEdge>();
-					
-					// todo...
-					return g;
-				}
-				
-			};
-			
-			// vertex transformer
-			final Map<String,MyVertex> vertex_map = new HashMap<String,MyVertex>();
-			Transformer<NodeMetadata,MyVertex> vertex_transformer = new Transformer<NodeMetadata,MyVertex>() {
-
-				@Override
-				public MyVertex transform(NodeMetadata nm) {
-					MyVertex v = new MyVertex();
-					v.setID(nm.getId());
-					v.setProperties(nm.getProperties());
-					vertex_map.put(nm.getId(), v);
-					return v;
-				}
-				
-			};
-			
-			Transformer<EdgeMetadata,MyEdge> edge_transformer = new Transformer<EdgeMetadata,MyEdge>() {
-
-				@Override
-				public MyEdge transform(EdgeMetadata em) {
-					MyEdge e = new MyEdge();
-					e.setSource(vertex_map.get(em.getSource()));
-					e.setDestination(vertex_map.get(em.getTarget()));
-					return e;
-				}
-				
-			};
-			Transformer<HyperEdgeMetadata,MyEdge> hyperedge_transformer = new Transformer<HyperEdgeMetadata,MyEdge>() {
-
-				@Override
-				public MyEdge transform(HyperEdgeMetadata arg0) {
-					return null;
-				}
-				
-			};
-			GraphMLReader2<Graph<MyVertex,MyEdge>, MyVertex, MyEdge> rdr = new GraphMLReader2<Graph<MyVertex,MyEdge>, MyVertex, MyEdge>(
-					sr, graph_transformer, vertex_transformer, edge_transformer, hyperedge_transformer);
-			setGraph(rdr.readGraph());
-			rdr.close();
+			Graph<MyVertex,MyEdge> g = new GraphMLIO().load(new FileReader(f));
+			setGraph(g);
 			return;
     	} catch (IllegalArgumentException iae) {
     		failed = true;
@@ -383,11 +324,7 @@ public class CreatorNodeModel extends NodeModel {
             CanceledExecutionException {
     	File f = new File(internDir, "graph.graphml");
     	logger.info("Saving internal graph: "+f.getAbsolutePath());
-        PrintWriter pw = new PrintWriter(f);
-        Graph<MyVertex,MyEdge> g = getGraph();
-  		GraphMLWriter<MyVertex,MyEdge> gmlw = new GraphMLWriter<MyVertex,MyEdge>();
-  		gmlw.save(g, pw);
-  		pw.close();
+        new GraphMLIO().save(getGraph(), new PrintWriter(f));
     }
 
 	public boolean useEdgeGradient() {

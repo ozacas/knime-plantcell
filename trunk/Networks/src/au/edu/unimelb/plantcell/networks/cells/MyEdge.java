@@ -1,11 +1,11 @@
 package au.edu.unimelb.plantcell.networks.cells;
 
 import java.awt.Color;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
 import org.knime.core.data.property.ColorAttr;
-import org.knime.core.node.InvalidSettingsException;
 
 /**
  * 
@@ -13,7 +13,6 @@ import org.knime.core.node.InvalidSettingsException;
  *
  */
 public class MyEdge {
-	private double m_distance;
 	private MyVertex m_src, m_dst;
 	private static int m_idx = 1;
 	private String m_id;
@@ -56,17 +55,27 @@ public class MyEdge {
 		return props.get(key);
 	}
 
+	public void setDistance(double d) {
+		props.put("distance", new Double(d).toString());
+	}
+	
 	public void setProperty(String key, String value) {
+		if (key.equals("id") && value != null) {
+			m_id = value;
+		}
 		props.put(key, value);
 	}
 	
-	public void setProperties(Properties new_props) throws InvalidSettingsException {
+	public void setProperties(Properties new_props) {
 		props.clear();
 		for (Object key : new_props.keySet()) {
-			if (key.toString().equals("id")) {
-				throw new InvalidSettingsException("Column 'id' is reserved for internal use: rename column!");
-			}
-			props.put(key, new_props.get(key));
+			setProperty(key.toString(), new_props.getProperty(key.toString()));
+		}
+	}
+	
+	public void setProperties(Map<String,String> new_props) {
+		for (String key : new_props.keySet()) {
+			setProperty(key, new_props.get(key));
 		}
 	}
 	
@@ -81,12 +90,9 @@ public class MyEdge {
 	}
 	
 	public double getDistance() {
-		return m_distance;
+		return Double.parseDouble(props.getProperty("distance"));
 	}
 	
-	public void setDistance(double d) {
-		m_distance = d;
-	}
 	
 	/**
 	 * {@InheritDoc}
