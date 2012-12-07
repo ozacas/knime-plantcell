@@ -1,5 +1,6 @@
 package au.edu.unimelb.plantcell.networks;
 
+import java.awt.Color;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -13,6 +14,7 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.RowIterator;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.data.property.ColorAttr;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -58,11 +60,14 @@ public class CreatorNodeModel extends NodeModel {
 	public static final String CFGKEY_EDGE_DISTANCE = "edge-distance?";
 	public static final String CFGKEY_EDGE_GRADIENT = "edge-gradient?";
     public static final String CFGKEY_TIMECOURSE    = "timecourse-data-column";
+	public static final String CFGKEY_ANNOTATE_VERTEX_DEST = "destination-vertex-annotations";
+	
 	// private members
 	private final SettingsModelString m_source = new SettingsModelString(CFGKEY_SOURCE, "");
 	private final SettingsModelString m_destination = new SettingsModelString(CFGKEY_DESTINATION, "");
 	private final SettingsModelString m_distance = new SettingsModelString(CFGKEY_DISTANCE, "");
 	private final SettingsModelFilterString m_vertex_annotations  = new SettingsModelFilterString(CFGKEY_ANNOTATE_VERTEX);
+	private final SettingsModelFilterString m_dest_vertex_annotations = new SettingsModelFilterString(CFGKEY_ANNOTATE_VERTEX_DEST);
 	private final SettingsModelFilterString m_edge_annotations    = new SettingsModelFilterString(CFGKEY_ANNOTATE_EDGE);
 	private final SettingsModelString m_colour_by = new SettingsModelString(CFGKEY_COLOUR_BY, "None");
 	private final SettingsModelBoolean m_edge_gradient = new SettingsModelBoolean(CFGKEY_EDGE_GRADIENT, Boolean.FALSE);
@@ -129,21 +134,17 @@ public class CreatorNodeModel extends NodeModel {
     		if (!g.containsVertex(my_src)) {
     			// add metadata to my_src if any
     			List<String> includes = m_vertex_annotations.getIncludeList();
-    			for (String inc : includes) {
-    				DataCell metadata_cell = r.getCell(inData[0].getSpec().findColumnIndex(inc));
-    				if (metadata_cell == null || metadata_cell.isMissing())
-    					continue;
-    				my_src.setProperty(inc, metadata_cell.toString());
-    			}
-    			if (colour_nodes) {
-    				my_src.setColour(inData[0].getSpec().getRowColor(r));
-    			}
+    			addMetadata(colour_nodes, inData[0].getSpec().getRowColor(r), includes, my_src, inData[0].getSpec(), r);
+    			
+    			
     			// add vertex
     			if (vector_idx >= 0)
     				setVector(my_src, r.getCell(vector_idx));
     			g.addVertex(my_src);
     		}
     		if (!g.containsVertex(my_dest)) {
+    			List<String> includes = m_dest_vertex_annotations.getIncludeList();
+    			addMetadata(colour_nodes, inData[0].getSpec().getRowColor(r), includes, my_dest, inData[0].getSpec(), r);
     			if (vector_idx >= 0)
     				setVector(my_dest, r.getCell(vector_idx));
     			// add vertex
@@ -155,7 +156,9 @@ public class CreatorNodeModel extends NodeModel {
     		if (g.containsEdge(e))
     			throw new InvalidSettingsException("Multiple paths (ie. rows) between "+source+" -> "+ dest+": are not permitted!");
     		if (colour_edges) {
-    			e.setColour(inData[0].getSpec().getRowColor(r));
+    			Color  col = inData[0].getSpec().getRowColor(r).getColor();
+    			String s = col.getRed() + "," + col.getGreen() + "," + col.getBlue();
+    			e.setProperty("__colour", s);
     		}
     		// add metadata to edge if any
 			List<String> includes = m_edge_annotations.getIncludeList();
@@ -190,7 +193,20 @@ public class CreatorNodeModel extends NodeModel {
     	return new BufferedDataTable[] { c.close() };
     }
 
-    private void setVector(MyVertex v, DataCell collection_cell) {
+    private void addMetadata(boolean colour_nodes, ColorAttr rowColor,
+			List<String> includes, MyVertex v, DataTableSpec spec, DataRow r) {
+    	for (String inc : includes) {
+			DataCell metadata_cell = r.getCell(spec.findColumnIndex(inc));
+			if (metadata_cell == null || metadata_cell.isMissing())
+				continue;
+			v.setProperty(inc, metadata_cell.toString());
+		}
+		if (colour_nodes) {
+			v.setColour(spec.getRowColor(r));
+		}
+	}
+
+	private void setVector(MyVertex v, DataCell collection_cell) {
 		if (collection_cell == null || collection_cell.isMissing() || !collection_cell.getType().isCollectionType()) {
 			v.setSampleVector((double[]) null);
 			return;
@@ -246,6 +262,7 @@ public class CreatorNodeModel extends NodeModel {
     	m_edge_gradient.saveSettingsTo(settings);
     	m_edge_distance.saveSettingsTo(settings);
     	m_timecourse.saveSettingsTo(settings);
+    	m_dest_vertex_annotations.saveSettingsTo(settings);
     }
 
     /**
@@ -263,6 +280,7 @@ public class CreatorNodeModel extends NodeModel {
     	m_edge_gradient.loadSettingsFrom(settings);
     	m_edge_distance.loadSettingsFrom(settings);
     	m_timecourse.loadSettingsFrom(settings);
+    	m_dest_vertex_annotations.loadSettingsFrom(settings);
     }
 
     /**
@@ -280,6 +298,7 @@ public class CreatorNodeModel extends NodeModel {
     	m_edge_gradient.validateSettings(settings);
     	m_edge_distance.validateSettings(settings);
     	m_timecourse.validateSettings(settings);
+    	m_dest_vertex_annotations.validateSettings(settings);
     }
     
     /**

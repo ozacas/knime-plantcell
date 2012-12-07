@@ -66,9 +66,12 @@ public class CreatorNodeDialog extends DefaultNodeSettingsPane {
         		new SettingsModelString(CreatorNodeModel.CFGKEY_SOURCE, ""), "Source node", 0, StringValue.class));
         addDialogComponent(new DialogComponentColumnNameSelection(
         		new SettingsModelString(CreatorNodeModel.CFGKEY_DESTINATION, ""), "Destination node", 0, StringValue.class));
-        createNewGroup("Annotate each source node with ... columns?");
+        createNewGroup("Annotate each source node with ...");
         addDialogComponent(new DialogComponentColumnFilter(new SettingsModelFilterString(CreatorNodeModel.CFGKEY_ANNOTATE_VERTEX), 0, false));
         
+        createNewGroup("Annotate each destination node with ...");
+        addDialogComponent(new DialogComponentColumnFilter(new SettingsModelFilterString(CreatorNodeModel.CFGKEY_ANNOTATE_VERTEX_DEST), 0, false));
+
         createNewTab("Edges");
         addDialogComponent(new DialogComponentColumnNameSelection(
         		new SettingsModelString(CreatorNodeModel.CFGKEY_DISTANCE, "<None>"), 

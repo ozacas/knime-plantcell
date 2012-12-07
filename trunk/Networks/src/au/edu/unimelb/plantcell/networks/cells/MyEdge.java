@@ -58,10 +58,44 @@ public class MyEdge {
 	public void setDistance(double d) {
 		props.put("distance", new Double(d).toString());
 	}
+
+	private void setColour(String key, ColorAttr rowColor) {
+		if ("__colour".equals(key)) {
+			if (rowColor == null) {
+				m_colour = ColorAttr.getInstance(Color.BLACK);
+			} else {
+				m_colour = rowColor;
+			}
+		}
+	}
 	
+	public void setColour(String rgb) {
+		if (rgb == null || rgb.indexOf(',') < 0) {
+			setColour("__colour", ColorAttr.getInstance(Color.BLACK));
+			return;
+		}
+		String[] rgb_vec = rgb.split(",");
+		if (rgb_vec.length == 3) {
+			Color c = new Color(Integer.valueOf(rgb_vec[0]), 
+					Integer.valueOf(rgb_vec[1]), 
+					Integer.valueOf(rgb_vec[2]));
+			setColour("__colour", ColorAttr.getInstance(c));
+		} else {
+			setColour("__colour", ColorAttr.getInstance(Color.BLACK));
+		}
+	}
+	
+	public Color getColour() {
+		if (m_colour == null)
+			return Color.black;
+		return m_colour.getColor();
+	}
+
 	public void setProperty(String key, String value) {
 		if (key.equals("id") && value != null) {
 			m_id = value;
+		} else if (key.equals("__colour")) {
+			setColour(value);
 		}
 		props.put(key, value);
 	}
@@ -119,13 +153,4 @@ public class MyEdge {
 		return false;
 	}
 
-	public void setColour(ColorAttr c) {
-		m_colour = c;
-	}
-	
-	public Color getColour() {
-		if (m_colour == null)
-			return Color.black;
-		return m_colour.getColor();
-	}
 }

@@ -21,13 +21,18 @@ import java.util.Set;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.apache.commons.collections15.Predicate;
 import org.apache.commons.collections15.Transformer;
@@ -65,6 +70,8 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 	
 
 	private JFrame m_frame;
+    final Set<MyVertex> selected_vertices = new HashSet<MyVertex>();
+
     /**
      * Creates a new view.
      * 
@@ -132,18 +139,9 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
         	
         });
        
-        if (getNodeModel().useEdgeGradient()) {
-        	vv.getRenderContext().setEdgeDrawPaintTransformer(new MyGradientTransformer(vv));
-        } else {
-        	vv.getRenderContext().setEdgeDrawPaintTransformer(new Transformer<MyEdge,Paint>() {
-
-     			@Override
-     			public Paint transform(MyEdge e) {
-     				return e.getColour();
-     			}
-             	
-            });
-        }
+       
+        vv.getRenderContext().setEdgeDrawPaintTransformer(new MyGradientTransformer(vv, getNodeModel().useEdgeGradient()));
+       
         if (getNodeModel().showEdgeDistance()) {
         	vv.getRenderContext().setEdgeLabelTransformer(new Transformer<MyEdge,String>() {
         		
@@ -162,7 +160,6 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
         	vv.getRenderer().setVertexRenderer(new TimecourseRenderer());
         }
         gm.add(new MyPickingPlugin(txt_area));
-        final Set<MyVertex> selected_vertices = new HashSet<MyVertex>();
         final PickedState<MyVertex> picked_state = vv.getPickedVertexState();
         vv.getPickedVertexState().addItemListener(new ItemListener() {
 
@@ -190,37 +187,33 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
         south_panel.add(new JScrollPane(txt_area));
         JPanel east_panel = new JPanel();
         east_panel.setLayout(new BoxLayout(east_panel, BoxLayout.Y_AXIS));
-        final JCheckBox cb = new JCheckBox("Filter selected incl. within 2 hops");
+        JPanel east_kid1 = new JPanel();
+        east_kid1.setLayout(new BoxLayout(east_kid1, BoxLayout.X_AXIS));
+        
+        final JCheckBox cb = new JCheckBox("Filter selected incl. within ");
+        east_kid1.add(cb);
+        final JSpinner sb_hop_count = new JSpinner(new SpinnerNumberModel(2,1,1000,2));
+        final MyVertexFilter vertex_filter = new MyVertexFilter();
+        sb_hop_count.getModel().addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				int hops = Integer.valueOf(sb_hop_count.getValue().toString());
+				if (hops < 1)
+					hops = 1;
+				vertex_filter.setDistance(hops);
+			}
+        	
+        });
+        east_kid1.add(sb_hop_count);
+        east_kid1.add(new JLabel("hops"));
+		
         cb.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				if (cb.isSelected()) {
-					vv.getRenderContext().setVertexIncludePredicate(new Predicate<Context<Graph<MyVertex,MyEdge>, MyVertex>>() {
-						private Graph<MyVertex,MyEdge> m_g = null;
-						private UnweightedShortestPath<MyVertex,MyEdge> m_shortest = null;
-						
-						@Override
-						public boolean evaluate(
-								Context<Graph<MyVertex, MyEdge>, MyVertex> c) {
-							if (c == null || c.graph == null)
-								return false;
-							if (m_g != c.graph) {
-								m_shortest = new UnweightedShortestPath(c.graph);
-								m_g = c.graph;
-							}
-							if (m_shortest == null || c.element == null)
-								return false;
-							
-							for (MyVertex v : selected_vertices) {
-								double d = (int) m_shortest.getDistance(c.element, v).doubleValue();
-								if (d <= 2.0) 
-									return true;
-							} 
-							return false;
-						}
-						
-					});
+					vv.getRenderContext().setVertexIncludePredicate(vertex_filter);
 				} else {
 					vv.getRenderContext().setVertexIncludePredicate(new Predicate<Context<Graph<MyVertex, MyEdge>, MyVertex>>() {
 
@@ -236,7 +229,7 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 			}
         	
         });
-        east_panel.add(cb);
+        east_panel.add(east_kid1);
         east_panel.add(new JCheckBox("Filter distance >= 0"));
         south_panel.add(east_panel);
         JSplitPane split_pane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, new GraphZoomScrollPane(vv), south_panel);
@@ -353,9 +346,11 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 
 
 	public class MyGradientTransformer<V,E> extends GradientEdgePaintTransformer<V,E> {
-
-		public MyGradientTransformer(VisualizationViewer<V,E> vv) {
+		private boolean m_use_gradient = false;
+		
+		public MyGradientTransformer(VisualizationViewer<V,E> vv, boolean use_gradient) {
 			this(Color.WHITE, Color.BLACK, vv);
+			m_use_gradient = use_gradient;
 		}
 		
 		public MyGradientTransformer(Color c1, Color c2,
@@ -365,6 +360,8 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 		
 		@Override
 		public Color getColor2(E edge) {
+			if (! m_use_gradient)
+				return super.getColor2(edge);
 			MyEdge e = (MyEdge)edge;
 			return e.getColour();
 		}
@@ -400,5 +397,37 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 		}
 
 	}
+	
+	public class MyVertexFilter implements Predicate<Context<Graph<MyVertex,MyEdge>, MyVertex>> {
+		private Graph<MyVertex,MyEdge> m_g = null;
+		private UnweightedShortestPath<MyVertex,MyEdge> m_shortest = null;
+		private double max_hops = 2.0;
+		
+		@Override
+		public boolean evaluate(
+				Context<Graph<MyVertex, MyEdge>, MyVertex> c) {
+			if (c == null || c.graph == null)
+				return false;
+			if (m_g != c.graph) {
+				m_shortest = new UnweightedShortestPath(c.graph);
+				m_g = c.graph;
+			}
+			if (m_shortest == null || c.element == null)
+				return false;
+			
+			for (MyVertex v : selected_vertices) {
+				double d = (int) m_shortest.getDistance(c.element, v).doubleValue();
+				if (d <= max_hops) 
+					return true;
+			} 
+			return false;
+		}
+
+		public void setDistance(int hops) {
+			assert(hops >= 1);
+			max_hops = hops;
+		}
+		
+	};
 }
 
