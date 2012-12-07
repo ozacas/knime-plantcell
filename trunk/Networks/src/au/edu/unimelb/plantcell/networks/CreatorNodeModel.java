@@ -136,7 +136,6 @@ public class CreatorNodeModel extends NodeModel {
     			List<String> includes = m_vertex_annotations.getIncludeList();
     			addMetadata(colour_nodes, inData[0].getSpec().getRowColor(r), includes, my_src, inData[0].getSpec(), r);
     			
-    			
     			// add vertex
     			if (vector_idx >= 0)
     				setVector(my_src, r.getCell(vector_idx));

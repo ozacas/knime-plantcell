@@ -68,7 +68,6 @@ import edu.uci.ics.jung.visualization.transform.shape.GraphicsDecorator;
  */
 public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeModel> {
 	
-
 	private JFrame m_frame;
     final Set<MyVertex> selected_vertices = new HashSet<MyVertex>();
 
@@ -192,7 +191,7 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
         
         final JCheckBox cb = new JCheckBox("Filter selected incl. within ");
         east_kid1.add(cb);
-        final JSpinner sb_hop_count = new JSpinner(new SpinnerNumberModel(2,1,1000,2));
+        final JSpinner sb_hop_count = new JSpinner(new SpinnerNumberModel(2,1,1000,1));
         final MyVertexFilter vertex_filter = new MyVertexFilter();
         sb_hop_count.getModel().addChangeListener(new ChangeListener() {
 
@@ -247,6 +246,7 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
         mb.add(menu);
         JMenu menu2 = new JMenu("Layout");
         JMenuItem item = new JMenuItem("ISOM");
+        menu.setText("Edit/Select ");
         item.addActionListener(new ActionListener() {
 
 			@Override
@@ -409,7 +409,7 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 			if (c == null || c.graph == null)
 				return false;
 			if (m_g != c.graph) {
-				m_shortest = new UnweightedShortestPath(c.graph);
+				m_shortest = new UnweightedShortestPath<MyVertex, MyEdge>(c.graph);
 				m_g = c.graph;
 			}
 			if (m_shortest == null || c.element == null)
