@@ -13,6 +13,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.text.NumberFormat;
 import java.util.HashSet;
@@ -49,6 +50,7 @@ import edu.uci.ics.jung.algorithms.shortestpath.UnweightedShortestPath;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.util.Context;
 import edu.uci.ics.jung.visualization.GraphZoomScrollPane;
+import edu.uci.ics.jung.visualization.Layer;
 import edu.uci.ics.jung.visualization.RenderContext;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
@@ -382,18 +384,43 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 			GraphicsDecorator gd = rc.getGraphicsContext();
 			
 			Point2D ctr = layout_mgr.transform(v);
-			
+			ctr = rc.getMultiLayerTransformer().transform(Layer.LAYOUT, ctr);
 			int n = v.getNumSamples();
 			if (n < 1)
 				n = 1;
 			int width = 4 * n + 2;
 			
-			Shape s= new Rectangle((int)ctr.getX() - width/2, (int)ctr.getY()-10, width, 20);
+			int min_x = (int)ctr.getX() - width/2;
+			int min_y = (int)ctr.getY() - 10;
+			int height= 20;
+			Shape s = new Rectangle(min_x, min_y, width, height);
 			
 			gd.setPaint(Color.WHITE);
 			gd.fill(s);
 			gd.setPaint(Color.BLACK);
 			gd.draw(s);
+			
+			// draw bars to reflect the magnitude (origin at 0) of each timecourse measurement
+			double[] vector = v.getSampleVector();
+			double min = Double.MAX_VALUE;
+			double max = -Double.MIN_VALUE;
+			for (int i=0; i<vector.length; i++) {
+				if (min > vector[i])
+					min = vector[i];
+				if (max < vector[i])
+					max = vector[i];
+			}
+			for (int i=0; i<vector.length; i++) {
+				int x = min_x + (i*4);
+				int y = min_y;
+				int bar_height = 1;
+				if (max > 0.0) {
+					bar_height = (int) ((vector[i] / max) * height);
+				}
+				s = new Rectangle(x+1, height+y-bar_height, 4, bar_height);
+				gd.setPaint(Color.BLUE);
+				gd.draw(s);
+			}
 		}
 
 	}
