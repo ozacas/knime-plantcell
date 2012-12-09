@@ -21,6 +21,13 @@ import org.knime.core.data.collection.ListCell;
 import org.knime.core.data.collection.SetCell;
 import org.knime.core.data.property.ColorAttr;
 
+/**
+ * Properties of every vertex in the network. Each is a separate instance. Not very efficient, so will need
+ * lots of memory for large graphs and annotated datasets.
+ * 
+ * @author andrew.cassin
+ *
+ */
 public class MyVertex implements Paint {
 	private String m_name;
 	private static int m_id = 1;
@@ -123,7 +130,9 @@ public class MyVertex implements Paint {
 	}
 
 	public int getNumSamples() {
-		return 0;
+		if (m_vector == null)
+			return 0;
+		return m_vector.length;
 	}
 	
 	public double[] getSampleVector() {
