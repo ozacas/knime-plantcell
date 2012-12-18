@@ -8,7 +8,6 @@ import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.ColorModel;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
@@ -33,7 +32,6 @@ public class MyVertex implements Paint {
 	private static int m_id = 1;
 	private final Properties props = new Properties();
 	private ColorAttr m_colour = null;
-	private double[] m_vector = null;
 	
 	
 	public MyVertex() {
@@ -130,13 +128,31 @@ public class MyVertex implements Paint {
 	}
 
 	public int getNumSamples() {
-		if (m_vector == null)
+		String vector = (String) getProperty("timecourse-vector");
+		if (vector == null)
 			return 0;
-		return m_vector.length;
+		String[] fields = vector.split("\\s+");
+		return fields.length;
 	}
 	
 	public double[] getSampleVector() {
-		return m_vector;
+		String vector = (String) getProperty("timecourse-vector");
+		if (vector == null)
+			return new double[] { };
+		String[] vals = vector.split("\\s+");
+		if (vals.length < 1) 
+			return new double[] {};
+		double[] ret = new double[vals.length];
+		int i = 0;
+		for (String val : vals) {
+			try {
+				ret[i] = new Double(val).doubleValue();
+				i++;
+			} catch (NumberFormatException nfe) {
+				ret[i++] = Double.NaN;
+			}
+		}
+		return ret;
 	}
 	
 	public void setSampleVector(DataCell[] values) {
@@ -155,11 +171,18 @@ public class MyVertex implements Paint {
 				}
 			}
 		}
-		m_vector = new_values;
+		setSampleVector(new_values);
 	}
 	
 	public void setSampleVector(double[] timecourse_vector) {
-		m_vector = timecourse_vector;
+		StringBuilder sb = new StringBuilder();
+		int i = 0;
+		for (double d : timecourse_vector) {
+			sb.append(d);
+			if (i < timecourse_vector.length-1)
+				sb.append(' ');
+		}
+		setProperty("timecourse-vector", sb.toString());
 	}
 
 	public void setSampleVector(DataCell collection_cell) {
@@ -184,16 +207,7 @@ public class MyVertex implements Paint {
 	}
 
 	public String getSampleVectorAsString() {
-		if (m_vector == null || m_vector.length < 1)
-			return "";
-		StringBuilder sb = new StringBuilder();
-		NumberFormat nf = NumberFormat.getInstance();
-		nf.setMaximumFractionDigits(3);
-		for (double d : m_vector) {
-			sb.append(nf.format(d));
-			sb.append(' ');
-		}
-		return sb.toString();
+		return (String) getProperty("timecourse-vector");
 	}
 
 }

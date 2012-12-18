@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: NetworkViz
 Bundle-SymbolicName: au.edu.unimelb.plantcell.networks; singleton:=true
-Bundle-Version: 1.0.1
+Bundle-Version: 1.0.2
 Bundle-ClassPath: networkviz.jar,
  lib/collections-generic-4.01.jar,
  lib/colt-1.2.0.jar,
