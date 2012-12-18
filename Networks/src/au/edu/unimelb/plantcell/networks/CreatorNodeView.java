@@ -13,14 +13,15 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.text.NumberFormat;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -31,6 +32,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -69,7 +71,8 @@ import edu.uci.ics.jung.visualization.transform.shape.GraphicsDecorator;
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
 public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeModel> {
-	
+
+
 	private JFrame m_frame;
     final Set<MyVertex> selected_vertices = new HashSet<MyVertex>();
 
@@ -111,7 +114,7 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 			return;
 		
 		// layout algorithm gets edge distance from <code>edge.getDistance()</code>
-		Layout<MyVertex, MyEdge> layout = new SpringLayout2(g, new Transformer<MyEdge,Integer>() {
+		Layout<MyVertex, MyEdge> layout = new ISOMLayout(g /*, new Transformer<MyEdge,Integer>() {
 
 			@Override
 			public Integer transform(MyEdge e) {
@@ -119,7 +122,7 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 				return new Integer((int) Math.round(d));
 			}
 			
-		});
+		}*/);
 		
 		Dimension sz = new Dimension(950,650);
         layout.setSize(sz); // sets the initial size of the space
@@ -185,7 +188,6 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
         p.setLayout(new BorderLayout());
         JPanel south_panel = new JPanel();
         south_panel.setLayout(new BoxLayout(south_panel, BoxLayout.X_AXIS));
-        south_panel.add(new JScrollPane(txt_area));
         JPanel east_panel = new JPanel();
         east_panel.setLayout(new BoxLayout(east_panel, BoxLayout.Y_AXIS));
         JPanel east_kid1 = new JPanel();
@@ -193,8 +195,9 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
         
         final JCheckBox cb = new JCheckBox("Filter selected incl. within ");
         east_kid1.add(cb);
+        
         final JSpinner sb_hop_count = new JSpinner(new SpinnerNumberModel(2,1,1000,1));
-        final MyVertexFilter vertex_filter = new MyVertexFilter();
+        final MyDistanceFilter distance_filter = new MyDistanceFilter();
         sb_hop_count.getModel().addChangeListener(new ChangeListener() {
 
 			@Override
@@ -202,7 +205,7 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 				int hops = Integer.valueOf(sb_hop_count.getValue().toString());
 				if (hops < 1)
 					hops = 1;
-				vertex_filter.setDistance(hops);
+				distance_filter.setDistance(hops);
 			}
         	
         });
@@ -214,7 +217,7 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				if (cb.isSelected()) {
-					vv.getRenderContext().setVertexIncludePredicate(vertex_filter);
+					vv.getRenderContext().setVertexIncludePredicate(distance_filter);
 				} else {
 					vv.getRenderContext().setVertexIncludePredicate(new Predicate<Context<Graph<MyVertex, MyEdge>, MyVertex>>() {
 
@@ -231,8 +234,12 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
         	
         });
         east_panel.add(east_kid1);
-        east_panel.add(new JCheckBox("Filter distance >= 0"));
-        south_panel.add(east_panel);
+        east_panel.add(Box.createVerticalGlue());
+        east_panel.add(new MyFilterRulePanel());
+        east_panel.add(Box.createVerticalGlue());
+
+        south_panel.add(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new JScrollPane(txt_area), east_panel));
+
         JSplitPane split_pane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, new GraphZoomScrollPane(vv), south_panel);
         p.add(split_pane, BorderLayout.CENTER);
        
@@ -317,12 +324,13 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 				sb.append("Type: vertex\n");
 				sb.append("Name: "+v.toString());
 				sb.append("\n");
-				if (v.getSampleVector() != null) {
-					sb.append("Measurements (2 decimal places): "+v.getSampleVectorAsString());
-					sb.append("\n");
-				}
+				
 				for (Object key : v.getPropertyKeys()) {
-					sb.append(key.toString()+": "+v.getProperty(key));
+					String k = key.toString();
+					if (k.equals("timecourse-vector"))
+						sb.append("Measurements: "+v.getProperty(k));
+					else
+						sb.append(k+": "+v.getProperty(k));
 					sb.append("\n");
 				}
 				m_sel_display.setText(sb.toString());
@@ -345,8 +353,13 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 		
 	}
 	
-
-
+	/**
+	 * Paints edges as a nice colour gradient between the colours specified during construction. 
+	 * @author andrew.cassin
+	 *
+	 * @param <V>	node class
+	 * @param <E>	edge class
+	 */
 	public class MyGradientTransformer<V,E> extends GradientEdgePaintTransformer<V,E> {
 		private boolean m_use_gradient = false;
 		
@@ -370,9 +383,9 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 	}
 	
 
-	/** 
-	 * HACK TODO BUGGY: does not handle zoom/pan etc. properly!
-	 * 
+	/**
+	 * Displays the timecourse as a mini "bar chart" over each node in the graph. Pretty ugly for larger graphs...
+	 *  
 	 * @author andrew.cassin
 	 *
 	 */
@@ -381,8 +394,12 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 		@Override
 		public void paintVertex(RenderContext<MyVertex, MyEdge> rc,
 				Layout<MyVertex, MyEdge> layout_mgr, MyVertex v) {
-			GraphicsDecorator gd = rc.getGraphicsContext();
+			// display vertex in graph?
+			if (!rc.getVertexIncludePredicate().evaluate(Context.<Graph<MyVertex,MyEdge>,MyVertex>getInstance(layout_mgr.getGraph(),v))) {
+				return;
+			}
 			
+			GraphicsDecorator gd = rc.getGraphicsContext();
 			Point2D ctr = layout_mgr.transform(v);
 			ctr = rc.getMultiLayerTransformer().transform(Layer.LAYOUT, ctr);
 			int n = v.getNumSamples();
@@ -402,6 +419,8 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 			
 			// draw bars to reflect the magnitude (origin at 0) of each timecourse measurement
 			double[] vector = v.getSampleVector();
+			if (vector == null)
+				return;
 			double min = Double.MAX_VALUE;
 			double max = -Double.MIN_VALUE;
 			for (int i=0; i<vector.length; i++) {
@@ -425,7 +444,12 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 
 	}
 	
-	public class MyVertexFilter implements Predicate<Context<Graph<MyVertex,MyEdge>, MyVertex>> {
+	/**
+	 * Eliminate vertices based on the currently chosen network filtering options
+	 * @author andrew.cassin
+	 *
+	 */
+	public class MyDistanceFilter implements Predicate<Context<Graph<MyVertex,MyEdge>, MyVertex>> {
 		private Graph<MyVertex,MyEdge> m_g = null;
 		private UnweightedShortestPath<MyVertex,MyEdge> m_shortest = null;
 		private double max_hops = 2.0;
@@ -443,8 +467,11 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 				return false;
 			
 			for (MyVertex v : selected_vertices) {
-				double d = (int) m_shortest.getDistance(c.element, v).doubleValue();
-				if (d <= max_hops) 
+				Number n = m_shortest.getDistance(c.element, v);
+				if (n == null)
+					return false;
+				double d = n.doubleValue();
+				if (d >= 0.0d && d <= max_hops) 
 					return true;
 			} 
 			return false;
@@ -455,6 +482,30 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 			max_hops = hops;
 		}
 		
+	};
+	
+	
+	/**
+	 * 
+	 * @author andrew.cassin
+	 *
+	 */
+	public class MyFilterRulePanel extends JPanel {
+		
+		/**
+		 *  not used
+		 */
+		private static final long serialVersionUID = -6213059175312664176L;
+
+		public MyFilterRulePanel() {
+			super();
+			setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+			add(new JComboBox(new String[] {"include nodes where", "include edges where", "exclude nodes where", "exclude edges where "}));
+			// this combo depends on whether node or edge is chosen
+			add(new JComboBox(new String[] { "distance" }));
+			add(new JComboBox(new String[] { "=", ">", ">=", "<", "<=", "!=", " contains " }));
+			add(new JTextField("0"));
+		}
 	};
 }
 
