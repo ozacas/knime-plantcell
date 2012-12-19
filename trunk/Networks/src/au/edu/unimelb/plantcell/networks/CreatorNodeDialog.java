@@ -36,6 +36,17 @@ public class CreatorNodeDialog extends DefaultNodeSettingsPane {
         		new SettingsModelString(CreatorNodeModel.CFGKEY_COLOUR_BY, "None"), "Use row colours to...", true, items, items
         		));
         
+      
+        createNewGroup("Drawing options?");
+        addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(CreatorNodeModel.CFGKEY_EDGE_DISTANCE, Boolean.TRUE), 
+        		"Show edge distance?"));
+        addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(CreatorNodeModel.CFGKEY_EDGE_GRADIENT, Boolean.FALSE),
+        		"Paint edges as gradient (looks nicer)?"));
+        
+        createNewTab("Source nodes");
+        addDialogComponent(new DialogComponentColumnNameSelection(
+        		new SettingsModelString(CreatorNodeModel.CFGKEY_SOURCE, ""), "Node ID from...", 0, StringValue.class));
+        
         createNewGroup("Display numeric vector (eg. timepoints) as node?");
         addDialogComponent(new DialogComponentColumnNameSelection(
         		new SettingsModelString(CreatorNodeModel.CFGKEY_TIMECOURSE, ""), "Numeric vector columns (eg. list)", 0, false, true, new ColumnFilter() {
@@ -54,22 +65,16 @@ public class CreatorNodeDialog extends DefaultNodeSettingsPane {
 					}
         			
         		}));
-        
-        createNewGroup("Drawing options?");
-        addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(CreatorNodeModel.CFGKEY_EDGE_DISTANCE, Boolean.TRUE), 
-        		"Show edge distance?"));
-        addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(CreatorNodeModel.CFGKEY_EDGE_GRADIENT, Boolean.FALSE),
-        		"Paint edges as gradient (looks nicer)?"));
-        
-        createNewTab("Nodes");
-        addDialogComponent(new DialogComponentColumnNameSelection(
-        		new SettingsModelString(CreatorNodeModel.CFGKEY_SOURCE, ""), "Source node", 0, StringValue.class));
-        addDialogComponent(new DialogComponentColumnNameSelection(
-        		new SettingsModelString(CreatorNodeModel.CFGKEY_DESTINATION, ""), "Destination node", 0, StringValue.class));
-        createNewGroup("Annotate each source node with ...");
+        createNewGroup("Annotate with ...");
         addDialogComponent(new DialogComponentColumnFilter(new SettingsModelFilterString(CreatorNodeModel.CFGKEY_ANNOTATE_VERTEX), 0, false));
         
-        createNewGroup("Annotate each destination node with ...");
+        
+        createNewTab("Destination Nodes");
+       
+        addDialogComponent(new DialogComponentColumnNameSelection(
+        		new SettingsModelString(CreatorNodeModel.CFGKEY_DESTINATION, ""), "Node ID from...", 0, StringValue.class));
+       
+        createNewGroup("Annotate with...");
         addDialogComponent(new DialogComponentColumnFilter(new SettingsModelFilterString(CreatorNodeModel.CFGKEY_ANNOTATE_VERTEX_DEST), 0, false));
 
         createNewTab("Edges");
@@ -89,7 +94,7 @@ public class CreatorNodeDialog extends DefaultNodeSettingsPane {
         			
         		}));
       
-        createNewGroup("Annotate with ... columns?");
+        createNewGroup("Annotate with...");
         addDialogComponent(new DialogComponentColumnFilter(new SettingsModelFilterString(CreatorNodeModel.CFGKEY_ANNOTATE_EDGE), 0, false));
     }
 }
