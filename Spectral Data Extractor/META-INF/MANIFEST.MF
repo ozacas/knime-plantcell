@@ -1,8 +1,8 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: SpectralPeakExtractor-Node extension for KNIME Workbench
+Bundle-Name: Spectral Peak Extractor
 Bundle-SymbolicName: au.edu.unimelb.plantcell.proteomics.peakextractor;singleton:=true
-Bundle-Version: 1.2.0
+Bundle-Version: 1.2.1
 Bundle-ClassPath: spectralpeakextractor.jar
 Bundle-Vendor: http://www.plantcell.unimelb.edu.au/bioinformatics
 Bundle-Localization: plugin
