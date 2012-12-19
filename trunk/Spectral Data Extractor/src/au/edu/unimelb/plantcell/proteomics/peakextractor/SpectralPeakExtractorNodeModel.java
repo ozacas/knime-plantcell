@@ -18,8 +18,6 @@ import org.knime.core.data.RowIterator;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.collection.CollectionCellFactory;
 import org.knime.core.data.collection.ListCell;
-import org.knime.core.data.container.CellFactory;
-import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
@@ -27,9 +25,6 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
-import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
@@ -37,6 +32,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
 import au.edu.unimelb.plantcell.io.read.spectra.SpectralDataInterface;
 
@@ -51,7 +47,7 @@ public class SpectralPeakExtractorNodeModel extends NodeModel {
     
     // the logger instance
     private static final NodeLogger logger = NodeLogger
-            .getLogger(SpectralPeakExtractorNodeModel.class);
+            .getLogger("Peak extractor");
     
     /* what tolerance to the left OR right of the peak should be considered part of the peak? 
      * This value may be customized by the user in the configure dialog for the node 
@@ -240,7 +236,9 @@ public class SpectralPeakExtractorNodeModel extends NodeModel {
         	int n_peaks = 0;
         	
     		for (int i=0; i<mz.length; i++) {
+    			//logger.info("processing peak "+mz[i]);
     			if (mz[i] >= lBound && mz[i] < uBound) {
+    				
     				assert(intensity[i] > 0.0);		// does it make sense to have a peak with zero intensity?
     				n_peaks++;
     				sum += intensity[i];
