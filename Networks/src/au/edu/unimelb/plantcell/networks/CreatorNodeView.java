@@ -18,26 +18,23 @@ import java.text.NumberFormat;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 
-import org.apache.commons.collections15.Predicate;
 import org.apache.commons.collections15.Transformer;
 import org.apache.commons.collections15.functors.ConstantTransformer;
 import org.knime.core.node.ExternalApplicationNodeView;
@@ -48,7 +45,6 @@ import edu.uci.ics.jung.algorithms.layout.CircleLayout;
 import edu.uci.ics.jung.algorithms.layout.ISOMLayout;
 import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.algorithms.layout.SpringLayout2;
-import edu.uci.ics.jung.algorithms.shortestpath.UnweightedShortestPath;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.util.Context;
 import edu.uci.ics.jung.visualization.GraphZoomScrollPane;
@@ -75,6 +71,7 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 
 	private JFrame m_frame;
     final Set<MyVertex> selected_vertices = new HashSet<MyVertex>();
+	private boolean m_locked;
 
     /**
      * Creates a new view.
@@ -114,15 +111,7 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 			return;
 		
 		// layout algorithm gets edge distance from <code>edge.getDistance()</code>
-		Layout<MyVertex, MyEdge> layout = new ISOMLayout(g /*, new Transformer<MyEdge,Integer>() {
-
-			@Override
-			public Integer transform(MyEdge e) {
-				double d = e.getDistance();
-				return new Integer((int) Math.round(d));
-			}
-			
-		}*/);
+		Layout<MyVertex, MyEdge> layout = new ISOMLayout(g);
 		
 		Dimension sz = new Dimension(950,650);
         layout.setSize(sz); // sets the initial size of the space
@@ -170,7 +159,7 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 			@Override
 			public void itemStateChanged(ItemEvent ie) {
 				Object v = ie.getItem();
-				if (v instanceof MyVertex) {
+				if (v instanceof MyVertex && !isViewLocked()) {
 					MyVertex vert = (MyVertex) v;
 					if (picked_state.isPicked(vert)) {
 						selected_vertices.add(vert);
@@ -189,55 +178,88 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
         JPanel south_panel = new JPanel();
         south_panel.setLayout(new BoxLayout(south_panel, BoxLayout.X_AXIS));
         JPanel east_panel = new JPanel();
-        east_panel.setLayout(new BoxLayout(east_panel, BoxLayout.Y_AXIS));
-        JPanel east_kid1 = new JPanel();
-        east_kid1.setLayout(new BoxLayout(east_kid1, BoxLayout.X_AXIS));
-        
-        final JCheckBox cb = new JCheckBox("Filter selected incl. within ");
-        east_kid1.add(cb);
-        
-        final JSpinner sb_hop_count = new JSpinner(new SpinnerNumberModel(2,1,1000,1));
-        final MyDistanceFilter distance_filter = new MyDistanceFilter();
-        sb_hop_count.getModel().addChangeListener(new ChangeListener() {
-
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				int hops = Integer.valueOf(sb_hop_count.getValue().toString());
-				if (hops < 1)
-					hops = 1;
-				distance_filter.setDistance(hops);
-			}
-        	
-        });
-        east_kid1.add(sb_hop_count);
-        east_kid1.add(new JLabel("hops"));
-		
-        cb.addActionListener(new ActionListener() {
+        JPanel options_panel = new JPanel();
+        options_panel.setLayout(new BoxLayout(options_panel, BoxLayout.Y_AXIS));
+        final JCheckBox freezer = new JCheckBox("Freeze displayed nodes and edges");
+        freezer.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				if (cb.isSelected()) {
-					vv.getRenderContext().setVertexIncludePredicate(distance_filter);
-				} else {
-					vv.getRenderContext().setVertexIncludePredicate(new Predicate<Context<Graph<MyVertex, MyEdge>, MyVertex>>() {
-
-						@Override
-						public boolean evaluate(
-								Context<Graph<MyVertex, MyEdge>, MyVertex> arg0) {
-							return true;
-						}
-						
-					});
-				}
-				vv.repaint();
+				setViewLocked(true);
 			}
         	
         });
-        east_panel.add(east_kid1);
-        east_panel.add(Box.createVerticalGlue());
-        east_panel.add(new MyFilterRulePanel());
-        east_panel.add(Box.createVerticalGlue());
+        options_panel.add(freezer);
+        east_panel.add(options_panel);
+        east_panel.setLayout(new BoxLayout(east_panel, BoxLayout.X_AXIS));
+        JPanel list_panel = new JPanel();
+        list_panel.setLayout(new BorderLayout());
+        final MyFilterRuleModel rule_model = new MyFilterRuleModel();
+        final FilterRuleList fr_list = new FilterRuleList(rule_model);
+        list_panel.add(new JScrollPane(fr_list), BorderLayout.CENTER);
+        east_panel.add(list_panel);
+        JPanel button_panel = new JPanel();
+        button_panel.setLayout(new BoxLayout(button_panel, BoxLayout.Y_AXIS));
+        JButton distance_button = new JButton("Add distance filter");
+        distance_button.addActionListener(new ActionListener() {
 
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				String ret = (String) JOptionPane.showInputDialog(null, "Show nodes within ... hops of selected nodes", 
+											"Add distance filter rule", JOptionPane.QUESTION_MESSAGE, null, 
+											new String[] {"1", "2", "3", "4", "5", "10", "20" }, "2");
+				if (ret != null) {
+					rule_model.addElement(new MyDistancePredicate(selected_vertices));
+					fr_list.invalidate();
+				}
+			}
+        	
+        });
+        button_panel.add(distance_button);
+        button_panel.add(new JButton("Add annotation filter"));
+        button_panel.add(new JButton("Up"));
+        button_panel.add(new JButton("Down"));
+        JButton remove_button = new JButton("Remove");
+        remove_button.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				int idx = fr_list.getSelectedIndex();
+				if (idx >= 0) 
+					rule_model.removeElementAt(idx);
+			}
+        	
+        });
+        button_panel.add(remove_button);
+        east_panel.add(button_panel);
+     
+        rule_model.addListDataListener(new ListDataListener() {
+
+        	public void redraw() {
+        		if (!isViewLocked()) {
+        			vv.getRenderContext().setVertexIncludePredicate(rule_model.getVertexFilter());
+        			vv.getRenderContext().setEdgeIncludePredicate(rule_model.getEdgeFilter());
+            		vv.repaint();
+        		}
+        	}
+        	
+			@Override
+			public void contentsChanged(ListDataEvent arg0) {
+				redraw();
+			}
+
+			@Override
+			public void intervalAdded(ListDataEvent arg0) {
+				redraw();
+			}
+
+			@Override
+			public void intervalRemoved(ListDataEvent arg0) {
+				redraw();
+			}
+        	
+        });
+       
         south_panel.add(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new JScrollPane(txt_area), east_panel));
 
         JSplitPane split_pane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, new GraphZoomScrollPane(vv), south_panel);
@@ -294,6 +316,14 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
         m_frame.setVisible(true);
 	}
 
+	protected void setViewLocked(boolean b) {
+		m_locked = b;
+	}
+
+	public boolean isViewLocked() {
+		return m_locked;
+	};
+	
 	/**
 	 * Displays information eg. annotations about the most recently selected edge or vertex
 	 * @author andrew.cassin
@@ -316,12 +346,13 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 		@Override
 		public void mousePressed(MouseEvent ev) {
 			super.mousePressed(ev);
+
 			// anything selected?
 			if (vertex != null && vertex instanceof MyVertex) {
 				//Logger.getAnonymousLogger().info("vertex "+vertex.toString()+" is selected.");
 				MyVertex v = (MyVertex) vertex;
 				StringBuilder sb = new StringBuilder();
-				sb.append("Type: vertex\n");
+				sb.append("Vertex\n");
 				sb.append("Name: "+v.toString());
 				sb.append("\n");
 				
@@ -338,11 +369,14 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 				//Logger.getAnonymousLogger().info("edge "+edge.toString()+" is selected.");
 				MyEdge e = (MyEdge) edge;
 				StringBuilder sb = new StringBuilder();
-				sb.append("Type: edge\n");
+				sb.append("Edge\n");
 				sb.append("Name: "+e.toString());
 				sb.append("\n");
 				for (Object key : e.getPropertyKeys()) {
-					sb.append(key.toString()+": "+e.getProperty(key));
+					String k = key.toString();
+					if (k.startsWith("__"))			// internal-use-only property key?
+						continue;
+					sb.append(k+": "+e.getProperty(key));
 					sb.append("\n");
 				}
 				m_sel_display.setText(sb.toString());
@@ -384,7 +418,7 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 	
 
 	/**
-	 * Displays the timecourse as a mini "bar chart" over each node in the graph. Pretty ugly for larger graphs...
+	 * Displays the timecourse as a mini "bar chart" over each node in the graph. Very ugly for >50 nodes...
 	 *  
 	 * @author andrew.cassin
 	 *
@@ -443,48 +477,7 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 		}
 
 	}
-	
-	/**
-	 * Eliminate vertices based on the currently chosen network filtering options
-	 * @author andrew.cassin
-	 *
-	 */
-	public class MyDistanceFilter implements Predicate<Context<Graph<MyVertex,MyEdge>, MyVertex>> {
-		private Graph<MyVertex,MyEdge> m_g = null;
-		private UnweightedShortestPath<MyVertex,MyEdge> m_shortest = null;
-		private double max_hops = 2.0;
-		
-		@Override
-		public boolean evaluate(
-				Context<Graph<MyVertex, MyEdge>, MyVertex> c) {
-			if (c == null || c.graph == null)
-				return false;
-			if (m_g != c.graph) {
-				m_shortest = new UnweightedShortestPath<MyVertex, MyEdge>(c.graph);
-				m_g = c.graph;
-			}
-			if (m_shortest == null || c.element == null)
-				return false;
-			
-			for (MyVertex v : selected_vertices) {
-				Number n = m_shortest.getDistance(c.element, v);
-				if (n == null)
-					return false;
-				double d = n.doubleValue();
-				if (d >= 0.0d && d <= max_hops) 
-					return true;
-			} 
-			return false;
-		}
 
-		public void setDistance(int hops) {
-			assert(hops >= 1);
-			max_hops = hops;
-		}
-		
-	};
-	
-	
 	/**
 	 * 
 	 * @author andrew.cassin
@@ -506,6 +499,7 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 			add(new JComboBox(new String[] { "=", ">", ">=", "<", "<=", "!=", " contains " }));
 			add(new JTextField("0"));
 		}
-	};
+	}
+
 }
 

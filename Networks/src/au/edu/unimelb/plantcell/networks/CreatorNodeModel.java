@@ -120,6 +120,12 @@ public class CreatorNodeModel extends NodeModel {
     	if (m_colour_by.getStringValue().toLowerCase().indexOf("edge") >= 0) {
     		colour_edges = true;
     	}
+    	
+    	// we build the graph in two passes of the input table. Since source nodes are the
+    	// only one with timecourse (optional) data, we first put those nodes into the graph.
+    	// then in the second pass we do destination nodes not already present and the edges.
+    	
+    	// 1. insert source nodes only
     	while (it.hasNext()) {
     		DataRow r = it.next();
     		DataCell src_cell = r.getCell(source_idx);
@@ -127,9 +133,7 @@ public class CreatorNodeModel extends NodeModel {
     		if (src_cell == null || dst_cell == null || src_cell.isMissing() || dst_cell.isMissing()) 
     			continue;
     		String source = src_cell.toString();
-    		String dest   = dst_cell.toString();
     		MyVertex my_src = new MyVertex(source);
-    		MyVertex my_dest= new MyVertex(dest);
     		
     		if (!g.containsVertex(my_src)) {
     			// add metadata to my_src if any
@@ -141,11 +145,33 @@ public class CreatorNodeModel extends NodeModel {
     				setVector(my_src, r.getCell(vector_idx));
     			g.addVertex(my_src);
     		}
+    		
+    		done++;
+    		if (done % 100 == 0) {
+    			exec.checkCanceled();
+    			exec.setProgress((((double)done) / inData[0].getRowCount()) * 0.5);
+    		}
+    	}
+    	
+    	// 2. insert any destination only (no timecourse known) nodes and the edges
+    	it = inData[0].iterator();
+    	done = 0;
+    	while (it.hasNext()) {
+    		DataRow r = it.next();
+    		DataCell src_cell = r.getCell(source_idx);
+    		DataCell dst_cell = r.getCell(dest_idx);
+    		if (src_cell == null || dst_cell == null || src_cell.isMissing() || dst_cell.isMissing()) 
+    			continue;
+    		String source = src_cell.toString();
+    		String dest   = dst_cell.toString();
+    		MyVertex my_src = new MyVertex(source);
+    		MyVertex my_dest= new MyVertex(dest);
+    		
     		if (!g.containsVertex(my_dest)) {
     			List<String> includes = m_dest_vertex_annotations.getIncludeList();
     			addMetadata(colour_nodes, inData[0].getSpec().getRowColor(r), includes, my_dest, inData[0].getSpec(), r);
-    			if (vector_idx >= 0)
-    				setVector(my_dest, r.getCell(vector_idx));
+    			// NB: we dont add timecourse vector here as it applies only to source nodes
+    			
     			// add vertex
     			g.addVertex(my_dest);
     		}
@@ -181,7 +207,7 @@ public class CreatorNodeModel extends NodeModel {
     		done++;
     		if (done % 100 == 0) {
     			exec.checkCanceled();
-    			exec.setProgress(((double)done) / inData[0].getRowCount());
+    			exec.setProgress((((double)done) / inData[0].getRowCount()) * 0.5 + 0.5);
     		}
     	}
     	
@@ -192,6 +218,16 @@ public class CreatorNodeModel extends NodeModel {
     	return new BufferedDataTable[] { c.close() };
     }
 
+    /**
+     * Adds annotation to the specified vertex, v. Missing values for the chosen node annotation columns are ignored.
+     * 
+     * @param colour_nodes
+     * @param rowColor
+     * @param includes
+     * @param v
+     * @param spec
+     * @param r
+     */
     private void addMetadata(boolean colour_nodes, ColorAttr rowColor,
 			List<String> includes, MyVertex v, DataTableSpec spec, DataRow r) {
     	for (String inc : includes) {
