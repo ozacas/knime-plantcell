@@ -32,6 +32,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
@@ -52,18 +53,20 @@ public class CorrelationCalcNodeModel extends NodeModel {
             .getLogger("Correlation calculator");
     
     // configuration settings
-    public final static String CFGKEY_METHODS = "statistical-correlation-method";
+    public final static String CFGKEY_METHODS            = "statistical-correlation-method";
     public final static String CFGKEY_CORRECTION_METHODS = "multiple-comparison-correction-method";
-	public static final String   CFGKEY_MAGNITUDE = "minimum-magnitude";
-
+	public static final String CFGKEY_MAGNITUDE          = "minimum-magnitude";
+	public static final String CFGKEY_REPORT_VALUES      = "report-correlated-values?";
+	
     /* 
      * do NOT change the order of things in this list - code below depends on it
      */
     public final static String[] METHODS = new String[] { "Pearson (linear) correlation", "Spearman rank" /*, "Kendall rank" */ };
     public final static String[] CORRECTION_METHODS = new String[] { "None", "Bonferroni correction" };
     
-    private final SettingsModelStringArray m_method = new SettingsModelStringArray(CFGKEY_METHODS, METHODS);
+    private final SettingsModelStringArray        m_method = new SettingsModelStringArray(CFGKEY_METHODS, METHODS);
     private final SettingsModelDoubleBounded   m_magnitude = new SettingsModelDoubleBounded(CFGKEY_MAGNITUDE, 0.0, 0.0, 1.0);
+    private final SettingsModelBoolean      m_report_values= new SettingsModelBoolean(CFGKEY_REPORT_VALUES, false);
     
     // not yet implemented
     //private final SettingsModelString m_correction_method = new SettingsModelString(CFGKEY_CORRECTION_METHODS, CORRECTION_METHODS[0]);
@@ -185,6 +188,8 @@ public class CorrelationCalcNodeModel extends NodeModel {
 		        			for (int m=2; m<cells.length; m++) {
 		        				cells[m] = DataType.getMissingCell();
 		        			}
+		        			cells[7] = createListCell(x);
+		        			cells[8] = createListCell(y);
 		        			
 		        			boolean reported = false;
 		        			//logger.info("Correlating "+iname+" with "+jname);
@@ -252,7 +257,18 @@ public class CorrelationCalcNodeModel extends NodeModel {
         return new BufferedDataTable[]{out, out2};
     }
 
-    /** 
+    private DataCell createListCell(double[] x) {
+		if (x == null || x.length < 1 || !m_report_values.getBooleanValue())
+			return DataType.getMissingCell();
+		
+		ArrayList<DataCell> cells = new ArrayList<DataCell>(x.length);
+		for (int i=0; i<x.length; i++) {
+			cells.add(new DoubleCell(x[i]));
+		}
+		return CollectionCellFactory.createListCell(cells);
+	}
+
+	/** 
      * Retrieves the datapoints (as a double array) associated with the specified variable.
      * Returns <code>null</code> if the specified variable has no data (eg. not present in input)
      * @param cache
@@ -273,7 +289,7 @@ public class CorrelationCalcNodeModel extends NodeModel {
 	}
 
 	private DataTableSpec[] make_output_spec() {
-		   DataColumnSpec[] allColSpecs = new DataColumnSpec[7];
+		   DataColumnSpec[] allColSpecs = new DataColumnSpec[9];
 	        allColSpecs[0] = 
 	            new DataColumnSpecCreator("A", StringCell.TYPE).createSpec();
 	        allColSpecs[1] = 
@@ -288,6 +304,10 @@ public class CorrelationCalcNodeModel extends NodeModel {
 	        	new DataColumnSpecCreator("Significance Probability", DoubleCell.TYPE).createSpec();
 	        allColSpecs[6] =
 	        	new DataColumnSpecCreator("Statistical Correlation Method", StringCell.TYPE).createSpec();
+	        allColSpecs[7] = 
+	        	new DataColumnSpecCreator("A values (list)", ListCell.getCollectionType(DoubleCell.TYPE)).createSpec();
+	        allColSpecs[8] = 
+	        	new DataColumnSpecCreator("B values (list)", ListCell.getCollectionType(DoubleCell.TYPE)).createSpec();
 	        
 	        DataColumnSpec[] allColSpecs2 = new DataColumnSpec[3];
 	        allColSpecs2[0] = 
@@ -323,6 +343,7 @@ public class CorrelationCalcNodeModel extends NodeModel {
     protected void saveSettingsTo(final NodeSettingsWO settings) {
     	m_method.saveSettingsTo(settings);
     	m_magnitude.saveSettingsTo(settings);
+    	m_report_values.saveSettingsTo(settings);
     	//m_correction_method.saveSettingsTo(settings);
     }
 
@@ -334,6 +355,14 @@ public class CorrelationCalcNodeModel extends NodeModel {
             throws InvalidSettingsException {
     	m_method.loadSettingsFrom(settings);
     	m_magnitude.loadSettingsFrom(settings);
+    	
+    	// test for this setting for backward compatibility
+    	if (settings.containsKey(CFGKEY_REPORT_VALUES)) {
+    		m_report_values.loadSettingsFrom(settings);
+    	} else {
+    		m_report_values.setBooleanValue(false);
+    	}
+    	
     	//m_correction_method.loadSettingsFrom(settings);
     }
 
@@ -345,6 +374,10 @@ public class CorrelationCalcNodeModel extends NodeModel {
             throws InvalidSettingsException {
     	m_method.validateSettings(settings);
     	m_magnitude.validateSettings(settings);
+    	
+    	if (settings.containsKey(CFGKEY_REPORT_VALUES)) {
+    		m_report_values.validateSettings(settings);
+    	}
     	//m_correction_method.validateSettings(settings);
     }
     
