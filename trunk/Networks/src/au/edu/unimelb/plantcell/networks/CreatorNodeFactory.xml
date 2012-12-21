@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
-<knimeNode icon="./default.png" type="Manipulator">
+<knimeNode icon="./default.png" type="Visualizer">
     <name>Network Creator</name>
     
     <shortDescription>
@@ -8,21 +8,38 @@
     </shortDescription>
     
     <fullDescription>
-        <intro>Builds a network, one for each row, consisting of user-specified columns which meet
-        the chosen threshold. For instance, using this node after a <b>Correlation Calculator</b> can
+        <intro>Builds a network, one edge for each row, consisting of three sets of user-specified columns to describe:
+        <ul>
+        	<li>the source node. A node has a name (a unique ID is preferred) and any other columns to describe it. This annotation
+        	data will be saved with the network and loaded as needed.</li>
+        	<li>the destination node. Like the source node this may be annotated with arbitrary columns. But a given column should
+        	not be used for both ie. specific to a particular node!</li>
+        	<li>the connection (edge) between them. This may also be annotated and optionally a distance associated with the connection</li>
+        </ul>
+        
+        <p>For instance, using this node after a <b>Correlation Calculator</b> can
         give a network of correlations which may provide biological insight. The network can be saved
         in <a href="http://graphml.graphdrawing.org/">GraphML format</a> or opened in 
         <a href="https://gephi.org/">a visualisation program like Gephi</a> or 
         <a href="http://www.cytoscape.org">Cytoscape</a>. For now, only graphs with a single edge between
         source and destination are supported: an error will be thrown if this constraint is violated. This means
         you must eliminate redundancy before using this node eg. via <b>GroupBy (First)</b>. 
+        </p>
         </intro>
         
         
-        <option name="Source">Source object name eg. gene or protein. Any string column may be chosen, best if it is short eg. &lt;20 characters</option>
-        <option name="Destination">Destination object name eg. gene or protein. Any string column may be chosen, best if it is short</option>
-   		<option name="Distance (optional)">Specify the distance eg. R-squared value between source and destination. 
-   		Any numeric column may be chosen.</option>
+        <option name="Options">In this tab you may configure how table row colours are assigned to the view: used to colour nodes or edges.
+        Show edge distance can be used to display the correlation values on the path between the two nodes (can create a cluttered graph).
+        Paint edges as gradient "fades" the edges near nodes which can be somewhat neater. Missing values will be ignored.</option>
+        
+        <option name="Source nodes">Here you need to select the column which provides the names for the source nodes. If you
+        want a timecourse bar chart to be displayed, select the list of values column here. Other annotations for the source nodes ONLY
+        can be added also. Missing values will be ignored.</option>
+        
+   		<option name="Destination nodes">Similar options as per source nodes</option>
+   		
+   		<option name="Edges">Specify the distance (if any is computed) for the edge. This does <b>not</b> influence the layout as it is
+   		for visualisation only. Columns describing the edge can also be added here. Missing values will be ignored.</option>
     </fullDescription>
     
     <ports>

@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import org.knime.core.data.DataCell;
@@ -59,7 +61,8 @@ public class CreatorNodeModel extends NodeModel {
 	public static final String CFGKEY_COLOUR_BY       = "color-by";
 	public static final String CFGKEY_EDGE_DISTANCE = "edge-distance?";
 	public static final String CFGKEY_EDGE_GRADIENT = "edge-gradient?";
-    public static final String CFGKEY_TIMECOURSE    = "timecourse-data-column";
+    public static final String CFGKEY_TIMECOURSE    = "timecourse-data-column-A";
+    public static final String CFGKEY_TIMECOURSE_B  = "timecourse-data-column-B";
 	public static final String CFGKEY_ANNOTATE_VERTEX_DEST = "destination-vertex-annotations";
 	
 	// private members
@@ -73,6 +76,7 @@ public class CreatorNodeModel extends NodeModel {
 	private final SettingsModelBoolean m_edge_gradient = new SettingsModelBoolean(CFGKEY_EDGE_GRADIENT, Boolean.FALSE);
 	private final SettingsModelBoolean m_edge_distance = new SettingsModelBoolean(CFGKEY_EDGE_DISTANCE, Boolean.FALSE);
 	private final SettingsModelString  m_timecourse    = new SettingsModelString(CFGKEY_TIMECOURSE, "");
+	private final SettingsModelString  m_timecourse_b  = new SettingsModelString(CFGKEY_TIMECOURSE_B, "");
 	
 	private Graph<MyVertex,MyEdge> m_graph;
 	
@@ -102,11 +106,17 @@ public class CreatorNodeModel extends NodeModel {
     	int dest_idx   = inData[0].getSpec().findColumnIndex(m_destination.getStringValue());
     	if (source_idx < 0 || dest_idx < 0)
     		throw new InvalidSettingsException("Source and/or destination columns not found: re-configure the node!");
-    	int vector_idx = -1;
-    	if (showTimecourse()) {
+    	int vector_idx   = -1;
+    	int vector_idx_b = -1;
+    	if (showTimecourseA()) {
     		vector_idx = inData[0].getSpec().findColumnIndex(m_timecourse.getStringValue());
     		if (vector_idx < 0)
-    			throw new InvalidSettingsException("Unable to locate timecourse collection column: re-configure!");
+    			throw new InvalidSettingsException("Unable to locate timecourse column for source nodes: re-configure!");
+    	}
+    	if (showTimecourseB()) {
+    		vector_idx_b = inData[0].getSpec().findColumnIndex(m_timecourse_b.getStringValue());
+    		if (vector_idx_b < 0)
+    			throw new InvalidSettingsException("Unable to locate timecourse column for destination nodes: re-configure!");
     	}
     	Graph<MyVertex, MyEdge> g = new SparseGraph<MyVertex,MyEdge>();
     	
@@ -126,6 +136,7 @@ public class CreatorNodeModel extends NodeModel {
     	// then in the second pass we do destination nodes not already present and the edges.
     	
     	// 1. insert source nodes only
+    	HashMap<String,MyVertex> source_nodes = new HashMap<String,MyVertex>(10000);
     	while (it.hasNext()) {
     		DataRow r = it.next();
     		DataCell src_cell = r.getCell(source_idx);
@@ -134,6 +145,7 @@ public class CreatorNodeModel extends NodeModel {
     			continue;
     		String source = src_cell.toString();
     		MyVertex my_src = new MyVertex(source);
+    		source_nodes.put(source, my_src);
     		
     		if (!g.containsVertex(my_src)) {
     			// add metadata to my_src if any
@@ -153,7 +165,7 @@ public class CreatorNodeModel extends NodeModel {
     		}
     	}
     	
-    	// 2. insert any destination only (no timecourse known) nodes and the edges
+    	// 2. insert any destination nodes and the edges
     	it = inData[0].iterator();
     	done = 0;
     	while (it.hasNext()) {
@@ -164,15 +176,16 @@ public class CreatorNodeModel extends NodeModel {
     			continue;
     		String source = src_cell.toString();
     		String dest   = dst_cell.toString();
-    		MyVertex my_src = new MyVertex(source);
+    		MyVertex my_src = source_nodes.get(source);
+    		assert(my_src != null);
     		MyVertex my_dest= new MyVertex(dest);
     		
     		if (!g.containsVertex(my_dest)) {
     			List<String> includes = m_dest_vertex_annotations.getIncludeList();
     			addMetadata(colour_nodes, inData[0].getSpec().getRowColor(r), includes, my_dest, inData[0].getSpec(), r);
-    			// NB: we dont add timecourse vector here as it applies only to source nodes
-    			
-    			// add vertex
+    			if (vector_idx_b >= 0) {
+    				setVector(my_dest, r.getCell(vector_idx_b));
+    			}
     			g.addVertex(my_dest);
     		}
 
@@ -210,7 +223,7 @@ public class CreatorNodeModel extends NodeModel {
     			exec.setProgress((((double)done) / inData[0].getRowCount()) * 0.5 + 0.5);
     		}
     	}
-    	
+    	source_nodes.clear();
     	setGraph(g);
 		
     	c.addRow(new DataCell[] { new StringCell(""), new NetworkCell(g) });
@@ -297,6 +310,7 @@ public class CreatorNodeModel extends NodeModel {
     	m_edge_gradient.saveSettingsTo(settings);
     	m_edge_distance.saveSettingsTo(settings);
     	m_timecourse.saveSettingsTo(settings);
+    	m_timecourse_b.saveSettingsTo(settings);
     	m_dest_vertex_annotations.saveSettingsTo(settings);
     }
 
@@ -315,6 +329,7 @@ public class CreatorNodeModel extends NodeModel {
     	m_edge_gradient.loadSettingsFrom(settings);
     	m_edge_distance.loadSettingsFrom(settings);
     	m_timecourse.loadSettingsFrom(settings);
+    	m_timecourse_b.loadSettingsFrom(settings);
     	m_dest_vertex_annotations.loadSettingsFrom(settings);
     }
 
@@ -333,6 +348,7 @@ public class CreatorNodeModel extends NodeModel {
     	m_edge_gradient.validateSettings(settings);
     	m_edge_distance.validateSettings(settings);
     	m_timecourse.validateSettings(settings);
+    	m_timecourse_b.validateSettings(settings);
     	m_dest_vertex_annotations.validateSettings(settings);
     }
     
@@ -389,7 +405,7 @@ public class CreatorNodeModel extends NodeModel {
 		return m_edge_distance.getBooleanValue();
 	}
 
-	public boolean showTimecourse() {
+	public boolean showTimecourseA() {
 		String tc_column = m_timecourse.getStringValue();
 		if (tc_column == null || tc_column.length() < 1 || tc_column.toLowerCase().equals("<none>"))
 			return false;
@@ -397,5 +413,12 @@ public class CreatorNodeModel extends NodeModel {
 			return true;
 	}
 
+	public boolean showTimecourseB() {
+		String tc_column = m_timecourse_b.getStringValue();
+		if (tc_column == null || tc_column.length() < 1 || tc_column.toLowerCase().equals("<none>"))
+			return false;
+		else
+			return true;
+	}
 }
 

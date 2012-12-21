@@ -15,14 +15,15 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Point2D;
 import java.text.NumberFormat;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -31,7 +32,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
@@ -67,7 +67,6 @@ import edu.uci.ics.jung.visualization.transform.shape.GraphicsDecorator;
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
 public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeModel> {
-
 
 	private JFrame m_frame;
     final Set<MyVertex> selected_vertices = new HashSet<MyVertex>();
@@ -149,7 +148,7 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
         	vv.getRenderContext().setEdgeFontTransformer(new ConstantTransformer(new Font(Font.SANS_SERIF, Font.PLAIN, 9)));
         }
         
-        if (getNodeModel().showTimecourse()) {
+        if (getNodeModel().showTimecourseA() || getNodeModel().showTimecourseB()) {
         	vv.getRenderer().setVertexRenderer(new TimecourseRenderer());
         }
         gm.add(new MyPickingPlugin(txt_area));
@@ -180,12 +179,22 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
         JPanel east_panel = new JPanel();
         JPanel options_panel = new JPanel();
         options_panel.setLayout(new BoxLayout(options_panel, BoxLayout.Y_AXIS));
+        
+        final MyFilterRuleModel rule_model = new MyFilterRuleModel();
         final JCheckBox freezer = new JCheckBox("Freeze displayed nodes and edges");
         freezer.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				setViewLocked(true);
+				boolean is_checked = freezer.isSelected();
+				setViewLocked(is_checked);
+				
+				// if the filter rules have been changed whilst frozen, we must update the current predicate and repaint...
+				if (! is_checked) {
+					vv.getRenderContext().setVertexIncludePredicate(rule_model.getVertexFilter());
+					vv.getRenderContext().setEdgeIncludePredicate(rule_model.getEdgeFilter());
+					vv.repaint();
+				}
 			}
         	
         });
@@ -194,8 +203,8 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
         east_panel.setLayout(new BoxLayout(east_panel, BoxLayout.X_AXIS));
         JPanel list_panel = new JPanel();
         list_panel.setLayout(new BorderLayout());
-        final MyFilterRuleModel rule_model = new MyFilterRuleModel();
         final FilterRuleList fr_list = new FilterRuleList(rule_model);
+        list_panel.add(new JLabel("Current node/edge filter rules:"), BorderLayout.NORTH);
         list_panel.add(new JScrollPane(fr_list), BorderLayout.CENTER);
         east_panel.add(list_panel);
         JPanel button_panel = new JPanel();
@@ -209,14 +218,36 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 											"Add distance filter rule", JOptionPane.QUESTION_MESSAGE, null, 
 											new String[] {"1", "2", "3", "4", "5", "10", "20" }, "2");
 				if (ret != null) {
-					rule_model.addElement(new MyDistancePredicate(selected_vertices));
+					rule_model.addElement(new MyDistancePredicate(selected_vertices, new Integer(ret)));
 					fr_list.invalidate();
 				}
 			}
         	
         });
         button_panel.add(distance_button);
-        button_panel.add(new JButton("Add annotation filter"));
+        JButton node_button = new JButton("Add node filter");
+        node_button.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				Collection<MyVertex> nodes = g.getVertices();
+				Set<String> prop_names = new HashSet<String>();
+				for (MyVertex v : nodes) {
+					for (Object o : v.getPropertyKeys()) {
+						String k = o.toString();
+						if (!prop_names.contains(k)) {
+							prop_names.add(k);
+						}
+					}
+				}
+				NodeFilterDialog nfd = new NodeFilterDialog(prop_names, rule_model);
+				nfd.setVisible(true);
+			}
+        	
+        });
+        button_panel.add(node_button);
+        
+        button_panel.add(new JButton("Add edge filter"));
         button_panel.add(new JButton("Up"));
         button_panel.add(new JButton("Down"));
         JButton remove_button = new JButton("Remove");
@@ -358,7 +389,7 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 				
 				for (Object key : v.getPropertyKeys()) {
 					String k = key.toString();
-					if (k.equals("timecourse-vector"))
+					if (k.equals(MyVertex.TIMECOURSE_VECTOR_PROPERTY))
 						sb.append("Measurements: "+v.getProperty(k));
 					else
 						sb.append(k+": "+v.getProperty(k));
@@ -476,29 +507,6 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 			}
 		}
 
-	}
-
-	/**
-	 * 
-	 * @author andrew.cassin
-	 *
-	 */
-	public class MyFilterRulePanel extends JPanel {
-		
-		/**
-		 *  not used
-		 */
-		private static final long serialVersionUID = -6213059175312664176L;
-
-		public MyFilterRulePanel() {
-			super();
-			setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-			add(new JComboBox(new String[] {"include nodes where", "include edges where", "exclude nodes where", "exclude edges where "}));
-			// this combo depends on whether node or edge is chosen
-			add(new JComboBox(new String[] { "distance" }));
-			add(new JComboBox(new String[] { "=", ">", ">=", "<", "<=", "!=", " contains " }));
-			add(new JTextField("0"));
-		}
 	}
 
 }

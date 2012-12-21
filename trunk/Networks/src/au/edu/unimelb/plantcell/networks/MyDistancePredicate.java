@@ -1,6 +1,7 @@
 package au.edu.unimelb.plantcell.networks;
 
 import java.util.Collection;
+import java.util.Set;
 
 import au.edu.unimelb.plantcell.networks.cells.MyEdge;
 import au.edu.unimelb.plantcell.networks.cells.MyVertex;
@@ -24,6 +25,11 @@ public class MyDistancePredicate<T extends Context<Graph<MyVertex,MyEdge>, MyVer
 		selected_vertices = target_vertices;
 	}
 	
+	public MyDistancePredicate(Set<MyVertex> tv, Integer max_distance) {
+		this(tv);
+		setDistance(max_distance.intValue());
+	}
+
 	@Override
 	public boolean evaluate(T c) {
 		if (c == null || c.graph == null)
@@ -53,7 +59,9 @@ public class MyDistancePredicate<T extends Context<Graph<MyVertex,MyEdge>, MyVer
 
 	@Override
 	public String toString() {
-		return "Distance within "+((int)max_hops)+" hops of selected nodes.";
+		return "Distance within "+ ((int)max_hops) +
+				" hops of selected nodes ("+selected_vertices.size()+
+				" selected nodes).";
 	}
 	
 	@Override
