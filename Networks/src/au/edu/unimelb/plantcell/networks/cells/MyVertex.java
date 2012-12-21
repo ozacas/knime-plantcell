@@ -28,6 +28,8 @@ import org.knime.core.data.property.ColorAttr;
  *
  */
 public class MyVertex implements Paint {
+	public final static String TIMECOURSE_VECTOR_PROPERTY = "__timecourse_vector";
+	
 	private String m_name;
 	private static int m_id = 1;
 	private final Properties props = new Properties();
@@ -128,7 +130,7 @@ public class MyVertex implements Paint {
 	}
 
 	public int getNumSamples() {
-		String vector = (String) getProperty("timecourse-vector");
+		String vector = (String) getProperty(TIMECOURSE_VECTOR_PROPERTY);
 		if (vector == null)
 			return 0;
 		String[] fields = vector.split("\\s+");
@@ -136,7 +138,7 @@ public class MyVertex implements Paint {
 	}
 	
 	public double[] getSampleVector() {
-		String vector = (String) getProperty("timecourse-vector");
+		String vector = (String) getProperty(TIMECOURSE_VECTOR_PROPERTY);
 		if (vector == null)
 			return new double[] { };
 		String[] vals = vector.split("\\s+");
@@ -182,7 +184,8 @@ public class MyVertex implements Paint {
 			if (i < timecourse_vector.length-1)
 				sb.append(' ');
 		}
-		setProperty("timecourse-vector", sb.toString());
+		
+		setProperty(TIMECOURSE_VECTOR_PROPERTY, sb.toString());
 	}
 
 	public void setSampleVector(DataCell collection_cell) {
@@ -197,8 +200,8 @@ public class MyVertex implements Paint {
 			setSampleVector((double[])null);
 			return;
 		}
-		ArrayList<DataCell> vec = new ArrayList<DataCell>();
 		if (it != null) {
+			ArrayList<DataCell> vec = new ArrayList<DataCell>();
 			while (it.hasNext()) {
 				vec.add(it.next());
 			}
@@ -206,8 +209,12 @@ public class MyVertex implements Paint {
 		}
 	}
 
+	/**
+	 * May return null if no timecourse data has been supplied
+	 * @return
+	 */
 	public String getSampleVectorAsString() {
-		return (String) getProperty("timecourse-vector");
+		return (String) getProperty(TIMECOURSE_VECTOR_PROPERTY);
 	}
 
 }

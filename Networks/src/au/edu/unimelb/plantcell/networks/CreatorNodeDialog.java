@@ -47,7 +47,7 @@ public class CreatorNodeDialog extends DefaultNodeSettingsPane {
         addDialogComponent(new DialogComponentColumnNameSelection(
         		new SettingsModelString(CreatorNodeModel.CFGKEY_SOURCE, ""), "Node ID from...", 0, StringValue.class));
         
-        createNewGroup("Display numeric vector (eg. timepoints) as node?");
+        createNewGroup("Display list of values in node?");
         addDialogComponent(new DialogComponentColumnNameSelection(
         		new SettingsModelString(CreatorNodeModel.CFGKEY_TIMECOURSE, ""), "Numeric vector columns (eg. list)", 0, false, true, new ColumnFilter() {
 
@@ -65,6 +65,7 @@ public class CreatorNodeDialog extends DefaultNodeSettingsPane {
 					}
         			
         		}));
+        
         createNewGroup("Annotate with ...");
         addDialogComponent(new DialogComponentColumnFilter(new SettingsModelFilterString(CreatorNodeModel.CFGKEY_ANNOTATE_VERTEX), 0, false));
         
@@ -74,6 +75,24 @@ public class CreatorNodeDialog extends DefaultNodeSettingsPane {
         addDialogComponent(new DialogComponentColumnNameSelection(
         		new SettingsModelString(CreatorNodeModel.CFGKEY_DESTINATION, ""), "Node ID from...", 0, StringValue.class));
        
+        createNewGroup("Display list of values in node?");
+        addDialogComponent(new DialogComponentColumnNameSelection(
+        		new SettingsModelString(CreatorNodeModel.CFGKEY_TIMECOURSE_B, ""), "Numeric vector columns (eg. list)", 0, false, true, new ColumnFilter() {
+
+					@Override
+					public boolean includeColumn(DataColumnSpec colSpec) {
+						if (colSpec.getType().isCollectionType() && 
+								colSpec.getType().getCollectionElementType().isCompatible(DoubleValue.class))
+							return true;
+						return false;
+					}
+
+					@Override
+					public String allFilteredMsg() {
+						return "No suitable numeric vector columns available eg. group-by list";
+					}
+        			
+        		}));
         createNewGroup("Annotate with...");
         addDialogComponent(new DialogComponentColumnFilter(new SettingsModelFilterString(CreatorNodeModel.CFGKEY_ANNOTATE_VERTEX_DEST), 0, false));
 
