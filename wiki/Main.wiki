@@ -11,6 +11,8 @@ These nodes provide partial integration of:
  * BioJava
  * JUNG
  * GenePattern
+ * NCBI BLAST+
+ * ESTScan, SignalP, TargetP, GolgiP + numerous other prediction programs
  * and many other toolkits
 
 = Details =
