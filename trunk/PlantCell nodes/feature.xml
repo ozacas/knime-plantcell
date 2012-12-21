@@ -2,7 +2,7 @@
 <feature
       id="au.edu.unimelb.plantcell.www"
       label="PlantCell KNIME nodes"
-      version="1.2.13"
+      version="1.2.14"
       provider-name="http://www.plantcell.unimelb.edu.au/"
       exclusive="true">
 
@@ -137,12 +137,6 @@ Each is subject to the license terms of the respective software package.
          version="0.0.0"/>
 
    <plugin
-         id="au.edu.unimelb.plantcell.proteomics.inference"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"/>
-
-   <plugin
          id="au.edu.unimelb.plantcell.proteomics.peakextractor"
          download-size="0"
          install-size="0"
@@ -210,6 +204,12 @@ Each is subject to the license terms of the respective software package.
 
    <plugin
          id="au.edu.unimelb.plantcell.annotations"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.networks"
          download-size="0"
          install-size="0"
          version="0.0.0"/>
