@@ -1,8 +1,10 @@
 package au.edu.unimelb.plantcell.statistics.correlation;
 
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringListSelection;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
@@ -31,6 +33,10 @@ public class CorrelationCalcNodeDialog extends DefaultNodeSettingsPane {
         addDialogComponent(new DialogComponentNumber(
         		new SettingsModelDoubleBounded(CorrelationCalcNodeModel.CFGKEY_MAGNITUDE, 0.0, 0.0, 1.0), 
         		"Minimum magnitude (r) to report", 0.1));
+        
+        addDialogComponent(new DialogComponentBoolean(
+        		new SettingsModelBoolean(CorrelationCalcNodeModel.CFGKEY_REPORT_VALUES, false), "Report correlated values? (yes if checked)"
+        		));
     }
 }
 
