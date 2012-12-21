@@ -1,0 +1,18 @@
+#summary Introduce the PlantCell bioinformatics extension to KNIME
+
+= Introduction =
+
+This project contains a series of nodes ('programs' if you will) for
+the KNIME (knime.org) platform to make it easier for users to perform basic bioinformatics tasks, even for large datasets eg. RNA-seq.
+
+These nodes provide partial integration of:
+ * EMBOSS (emboss.sourceforge.net)
+ * JavaProtLib
+ * BioJava
+ * JUNG
+ * GenePattern
+ * and many other toolkits
+
+= Details =
+
+Licensed under the LGPL license, but uses many third-party libraries. See the respective LICENSE.txt and ACKNOWLEDGEMENTS.txt in the distribution for more details.
