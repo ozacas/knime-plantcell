@@ -40,18 +40,22 @@ public class MyFilterRuleModel extends DefaultListModel {
 	}
 
 	public Predicate<Context<Graph<MyVertex, MyEdge>, MyEdge>> getEdgeFilter() {
-		// accept all edges
+		final ListModel l = this;
 		return new Predicate<Context<Graph<MyVertex,MyEdge>,MyEdge>>() {
 
+			@SuppressWarnings({ "unchecked", "rawtypes" })
 			@Override
 			public boolean evaluate(
 					Context<Graph<MyVertex, MyEdge>, MyEdge> c) {
+				for (int i=0; i<l.getSize(); i++) {
+					MyPredicate p = (MyPredicate) l.getElementAt(i);
+					if (!p.isVertexPredicate() && !p.evaluate(c))
+						return false;
+				}
 				return true;
 			}
 			
 		};
 	}
-
-	
 	
 }

@@ -7,16 +7,10 @@ import au.edu.unimelb.plantcell.networks.cells.MyVertex;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.util.Context;
 
-/**
- * 
- * @author andrew.cassin
- *
- * @param <T>
- */
-public class NodeFilterPredicate<T extends Context<Graph<MyVertex,MyEdge>, MyVertex>> implements MyPredicate<T> {
+public class EdgeFilterPredicate<T extends Context<Graph<MyVertex,MyEdge>, MyEdge>> implements MyPredicate<T> {
 	private String m_prop, m_op, m_value;
 	
-	public NodeFilterPredicate(String propName, String op, String value) {
+	public EdgeFilterPredicate(String propName, String op, String value) {
 		m_prop = propName;
 		if (m_prop.equals("<Any>")) {
 			m_prop = null;
@@ -50,7 +44,7 @@ public class NodeFilterPredicate<T extends Context<Graph<MyVertex,MyEdge>, MyVer
 		// catch-all
 		return false;
 	}
-
+	
 	private boolean eval(String op, String val, String required_value) {
 		if (val == null || required_value == null || op == null || op.length() < 1)
 			return false;
@@ -91,15 +85,15 @@ public class NodeFilterPredicate<T extends Context<Graph<MyVertex,MyEdge>, MyVer
 
 	@Override
 	public boolean isVertexPredicate() {
-		return true;
+		return false;
 	}
 
 	@Override
 	public String toString() {
 		if (m_prop == null) {
-			return "Any node annotation data "+m_op+" "+m_value+".";
+			return "Any edge annotation data "+m_op+" "+m_value+".";
 		} else {
-			return "Annotation named '"+m_prop+"' with a value "+m_op+" "+m_value+" in a node.";
+			return "Annotation named '"+m_prop+"' with a value "+m_op+" "+m_value+" in an edge.";
 		}
 	}
 }
