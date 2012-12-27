@@ -5,8 +5,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 
 import org.knime.core.data.DataCell;
@@ -136,7 +134,6 @@ public class CreatorNodeModel extends NodeModel {
     	// then in the second pass we do destination nodes not already present and the edges.
     	
     	// 1. insert source nodes only
-    	HashMap<String,MyVertex> source_nodes = new HashMap<String,MyVertex>(10000);
     	while (it.hasNext()) {
     		DataRow r = it.next();
     		DataCell src_cell = r.getCell(source_idx);
@@ -145,7 +142,6 @@ public class CreatorNodeModel extends NodeModel {
     			continue;
     		String source = src_cell.toString();
     		MyVertex my_src = new MyVertex(source);
-    		source_nodes.put(source, my_src);
     		
     		if (!g.containsVertex(my_src)) {
     			// add metadata to my_src if any
@@ -168,6 +164,7 @@ public class CreatorNodeModel extends NodeModel {
     	// 2. insert any destination nodes and the edges
     	it = inData[0].iterator();
     	done = 0;
+    	int rejected = 0;
     	while (it.hasNext()) {
     		DataRow r = it.next();
     		DataCell src_cell = r.getCell(source_idx);
@@ -176,8 +173,7 @@ public class CreatorNodeModel extends NodeModel {
     			continue;
     		String source = src_cell.toString();
     		String dest   = dst_cell.toString();
-    		MyVertex my_src = source_nodes.get(source);
-    		assert(my_src != null);
+    		MyVertex my_src = new MyVertex(source);
     		MyVertex my_dest= new MyVertex(dest);
     		
     		if (!g.containsVertex(my_dest)) {
@@ -191,8 +187,10 @@ public class CreatorNodeModel extends NodeModel {
 
     		MyEdge e = new MyEdge(my_src, my_dest);
     		// this node does not support multiple edges between nodes
-    		if (g.containsEdge(e))
-    			throw new InvalidSettingsException("Multiple paths (ie. rows) between "+source+" -> "+ dest+": are not permitted!");
+    		if (g.containsEdge(e)) {
+    			rejected++;
+    			continue;
+    		}
     		if (colour_edges) {
     			Color  col = inData[0].getSpec().getRowColor(r).getColor();
     			String s = col.getRed() + "," + col.getGreen() + "," + col.getBlue();
@@ -223,9 +221,11 @@ public class CreatorNodeModel extends NodeModel {
     			exec.setProgress((((double)done) / inData[0].getRowCount()) * 0.5 + 0.5);
     		}
     	}
-    	source_nodes.clear();
     	setGraph(g);
 		
+    	if (rejected > 0) {
+    		logger.warn("Skipped "+rejected+" rows (ie. edges) as they were duplicates between nodes. See the node documentation.");
+    	}
     	c.addRow(new DataCell[] { new StringCell(""), new NetworkCell(g) });
     	
     	return new BufferedDataTable[] { c.close() };

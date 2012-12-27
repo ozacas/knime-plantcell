@@ -302,6 +302,7 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
         m_frame.getContentPane().add(p);
         JMenuBar mb = new JMenuBar();
         JMenu menu = gm.getModeMenu();
+        
         menu.setName("Mode");
         menu.setText(menu.getName());
         menu.setIcon(null);
