@@ -246,8 +246,27 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
         	
         });
         button_panel.add(node_button);
-        
-        button_panel.add(new JButton("Add edge filter"));
+        JButton edge_button = new JButton("Add edge filter");
+        edge_button.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				Collection<MyEdge> edges = g.getEdges();
+				Set<String> prop_names = new HashSet<String>();
+				for (MyEdge e : edges) {
+					for (Object o : e.getPropertyKeys()) {
+						String k = o.toString();
+						if (!prop_names.contains(k)) {
+							prop_names.add(k);
+						}
+					}
+				}
+				EdgeFilterDialog efd = new EdgeFilterDialog(prop_names, rule_model);
+				efd.setVisible(true);
+			}
+        	
+        });
+        button_panel.add(edge_button);
         button_panel.add(new JButton("Up"));
         button_panel.add(new JButton("Down"));
         JButton remove_button = new JButton("Remove");
@@ -270,7 +289,8 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
         		if (!isViewLocked()) {
         			vv.getRenderContext().setVertexIncludePredicate(rule_model.getVertexFilter());
         			vv.getRenderContext().setEdgeIncludePredicate(rule_model.getEdgeFilter());
-            		vv.repaint();
+            		
+        			vv.repaint();
         		}
         	}
         	
