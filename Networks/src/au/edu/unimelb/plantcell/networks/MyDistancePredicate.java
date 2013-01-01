@@ -14,7 +14,7 @@ import edu.uci.ics.jung.graph.util.Context;
  * @author andrew.cassin
  *
  */
-public class MyDistancePredicate<T extends Context<Graph<MyVertex,MyEdge>, MyVertex>> implements MyPredicate<T> {
+public class MyDistancePredicate<T extends Context<Graph<MyVertex,MyEdge>, MyVertex>> extends MyPredicate<T> {
 	private Graph<MyVertex,MyEdge> m_g = null;
 	private UnweightedShortestPath<MyVertex,MyEdge> m_shortest = null;
 	private double max_hops = 2.0;
@@ -67,5 +67,17 @@ public class MyDistancePredicate<T extends Context<Graph<MyVertex,MyEdge>, MyVer
 	@Override
 	public boolean isVertexPredicate() {
 		return true;
+	}
+
+	@Override
+	public Object[] getPropertyKeys(T c) {
+		// NO-OP: ie. not called for this predicate
+		return null;
+	}
+
+	@Override
+	public Object getProperty(T c, Object key) {
+		// NO-OP: ie. not called for this predicate
+		return null;
 	}
 };
