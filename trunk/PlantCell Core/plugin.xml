@@ -23,6 +23,13 @@
    				  level-id="Web Services"
    				  name="Web Services"
    				  path="/Bioinformatics" />
+   		
+   		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
+   				  icon="icons/default.png"
+   				  level-id="Network Analysis"
+   				  name="Network Analysis"
+   				  path="/Bioinformatics" />
+   				  
    		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
    				  icon="icons/default.png"
    				  level-id="TogoWS"
@@ -151,14 +158,16 @@
             factory-class="au.edu.unimelb.plantcell.io.read.fasta.SequenceExtractorNodeFactory"
             id="au.edu.unimelb.plantcell.io.read.fasta.extractor"/>
    </extension>
+   
    <extension
          point="org.eclipse.ui.preferencePages">
       <page
             class="au.edu.unimelb.plantcell.core.PreferencePage"
             id="au.edu.unimelb.plantcell.core.PreferencePage"
-            name="PlantCell Preferences">
+            category="org.knime.workbench.ui" name="PlantCell">
       </page>
    </extension>
+   
    <extension
          point="org.eclipse.core.runtime.preferences">
       <initializer
