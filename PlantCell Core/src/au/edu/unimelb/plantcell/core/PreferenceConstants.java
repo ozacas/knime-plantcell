@@ -16,4 +16,8 @@ public class PreferenceConstants {
 	   public static final String PREFS_JRE_FOLDER     = "au.edu.unimelb.plantcell.prefs.jre.folder";
 	   
 	   public static final String PREFS_AUGUSTUS_FOLDER= "au.edu.unimelb.plantcell.prefs.augustus.folder";
+	   
+	   public static final String PREF_KEY_FOLDER      = Cache.PREF_KEY_FOLDER;
+	   
+	   public static final String PREF_KEY_FRESHNESS   = Cache.PREF_KEY_FRESHNESS;
 }

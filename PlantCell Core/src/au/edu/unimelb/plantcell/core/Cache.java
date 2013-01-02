@@ -9,7 +9,6 @@ import java.util.Properties;
 import java.util.logging.Logger;
 
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.knime.workbench.ui.KNIMEUIPlugin;
 
 import jdbm.RecordManager;
 import jdbm.RecordManagerProvider;
@@ -50,7 +49,7 @@ public class Cache {
 	 * @throws Exception
 	 */
 	public Cache(String service_basename, Properties p) throws Exception {
-		IPreferenceStore prefs = KNIMEUIPlugin.getDefault().getPreferenceStore();
+		IPreferenceStore prefs = CorePlugin.getDefault().getPreferenceStore();
 		m_freshness            = prefs.getInt(PREF_KEY_FRESHNESS);
 		String folder          = prefs.getString(PREF_KEY_FOLDER);
 		if (folder.length() > 0) {

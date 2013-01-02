@@ -2,7 +2,6 @@ package au.edu.unimelb.plantcell.core;
 
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.knime.workbench.ui.KNIMEUIPlugin;
 
 
 /**
@@ -10,22 +9,35 @@ import org.knime.workbench.ui.KNIMEUIPlugin;
  */
 public class PreferenceInitializer extends AbstractPreferenceInitializer {
 
+	
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer#initializeDefaultPreferences()
 	 */
 	public void initializeDefaultPreferences() {
-		 IPreferenceStore prefStore = KNIMEUIPlugin.getDefault().getPreferenceStore();
-		 prefStore.setDefault(Cache.PREF_KEY_FOLDER, "");
-		 prefStore.setDefault(Cache.PREF_KEY_FRESHNESS, 180);
-		 prefStore.setDefault(PreferenceConstants.PREFS_BLAST_FOLDER, "c:/blast");
-		 prefStore.setDefault(PreferenceConstants.PREFS_GLPK_FOLDER, "c:/cygwin/bin");
-		 prefStore.setDefault(PreferenceConstants.PREFS_JEMBOSS_FOLDER, "c:/mEMBOSS");
-		 prefStore.setDefault(PreferenceConstants.PREFS_JRE_FOLDER, "c:/Program Files/Java/jdk6");
-		 prefStore.setDefault(PreferenceConstants.PREFS_JALVIEW_FOLDER, "c:/Program Files/JalView");
-		 prefStore.setDefault(PreferenceConstants.PREFS_AUGUSTUS_FOLDER, "c:/augustus.2.5.5");
+		 IPreferenceStore prefs = CorePlugin.getDefault().getPreferenceStore();
 		 
+		 // establish defaults
+		 prefs.setDefault(PreferenceConstants.PREF_KEY_FOLDER, "");
+		 prefs.setDefault(PreferenceConstants.PREF_KEY_FRESHNESS, 180);
+		 prefs.setDefault(PreferenceConstants.PREFS_BLAST_FOLDER, "c:/blast");
+		 prefs.setDefault(PreferenceConstants.PREFS_GLPK_FOLDER, "c:/cygwin/bin");
+		 prefs.setDefault(PreferenceConstants.PREFS_JEMBOSS_FOLDER, "c:/mEMBOSS");
+		 prefs.setDefault(PreferenceConstants.PREFS_JRE_FOLDER, "c:/Program Files/Java/jdk6");
+		 prefs.setDefault(PreferenceConstants.PREFS_JALVIEW_FOLDER, "c:/Program Files/JalView");
+		 prefs.setDefault(PreferenceConstants.PREFS_AUGUSTUS_FOLDER, "c:/augustus.2.5.5");
+		 
+		 // and set the current values to the corresponding default...
+		 /*prefs.setToDefault(PreferenceConstants.PREF_KEY_FOLDER);
+		 prefs.setToDefault(PreferenceConstants.PREF_KEY_FRESHNESS);
+		 prefs.setToDefault(PreferenceConstants.PREFS_BLAST_FOLDER);
+		 prefs.setToDefault(PreferenceConstants.PREFS_GLPK_FOLDER);
+		 prefs.setToDefault(PreferenceConstants.PREFS_JEMBOSS_FOLDER);
+		 prefs.setToDefault(PreferenceConstants.PREFS_JRE_FOLDER);
+		 prefs.setToDefault(PreferenceConstants.PREFS_JALVIEW_FOLDER);
+		 prefs.setToDefault(PreferenceConstants.PREFS_AUGUSTUS_FOLDER);*/
+
 	}
 
 }

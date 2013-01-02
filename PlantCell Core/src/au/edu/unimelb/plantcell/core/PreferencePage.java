@@ -3,7 +3,6 @@ package au.edu.unimelb.plantcell.core;
 import org.eclipse.jface.preference.*;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.IWorkbench;
-import org.knime.workbench.ui.KNIMEUIPlugin;
 
 /**
  * This class represents a preference page that
@@ -27,6 +26,7 @@ public class PreferencePage
 		super(GRID);
 		setTitle("PlantCell");
 		setDescription("PlantCell extension: http://www.plantcell.unimelb.edu.au");
+		setPreferenceStore(CorePlugin.getDefault().getPreferenceStore());
 	}
 	
 	/**
@@ -36,12 +36,11 @@ public class PreferencePage
 	 * restore itself.
 	 */
 	public void createFieldEditors() {
-
-		 addField(new MyDirectoryFieldEditor(Cache.PREF_KEY_FOLDER, 
+		 addField(new MyDirectoryFieldEditor(PreferenceConstants.PREF_KEY_FOLDER, 
 				 "Directory to cache WWW data", getFieldEditorParent()));
 
 	     addField(new IntegerFieldEditor(
-	                Cache.PREF_KEY_FRESHNESS,
+	    		 PreferenceConstants.PREF_KEY_FRESHNESS,
 	                "Ignore data older than... (days)", getFieldEditorParent()));
 	     
 	     addField(new MyDirectoryFieldEditor(PreferenceConstants.PREFS_BLAST_FOLDER, 
@@ -63,8 +62,7 @@ public class PreferencePage
 	 * @see org.eclipse.ui.IWorkbenchPreferencePage#init(org.eclipse.ui.IWorkbench)
 	 */
 	public void init(IWorkbench workbench) {
-		 new PreferenceInitializer().initializeDefaultPreferences();
-		 setPreferenceStore(KNIMEUIPlugin.getDefault().getPreferenceStore());
+		 // NO-OP
 	}
 	
 }
