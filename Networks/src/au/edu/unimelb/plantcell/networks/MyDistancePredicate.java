@@ -46,8 +46,10 @@ public class MyDistancePredicate<T extends Context<Graph<MyVertex,MyEdge>, MyVer
 			if (n == null)
 				return false;
 			double d = n.doubleValue();
-			if (d >= 0.0d && d <= max_hops) 
+			if (d >= 0.0d && d <= max_hops) {
+				//Logger.getAnonymousLogger().info("Distance "+d+" between "+v.toString()+" and "+c.element.toString());
 				return true;
+			}
 		} 
 		return false;
 	}
@@ -59,8 +61,8 @@ public class MyDistancePredicate<T extends Context<Graph<MyVertex,MyEdge>, MyVer
 
 	@Override
 	public String toString() {
-		return "Distance within "+ ((int)max_hops) +
-				" hops of selected nodes ("+selected_vertices.size()+
+		return "NODE filter: distance within "+ ((int)max_hops) +
+				" of chosen nodes ("+selected_vertices.size()+
 				" selected nodes).";
 	}
 	

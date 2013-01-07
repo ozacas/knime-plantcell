@@ -16,6 +16,7 @@ public class MyEdge {
 	private MyVertex m_src, m_dst;
 	private static int m_idx = 1;
 	private String m_id;
+	private String m_row_id;
 	private final Properties props = new Properties();
 	private ColorAttr m_colour = null;
 	
@@ -23,6 +24,7 @@ public class MyEdge {
 		m_src = null;
 		m_dst = null;
 		m_id  = "E"+m_idx++;
+		setRowID(null);
 		setDistance(0.0);
 	}
 	
@@ -37,6 +39,18 @@ public class MyEdge {
 		m_dst = dst;
 	}
 
+	public final String getSource() {
+		if (m_src == null)
+			return null;
+		return m_src.getID();
+	}
+	
+	public final String getDest() {
+		if (m_dst == null)
+			return null;
+		return m_dst.getID();
+	}
+	
 	public void setSource(MyVertex new_src) {
 		assert(new_src != null);
 		m_src = new_src;
@@ -151,6 +165,14 @@ public class MyEdge {
 			return true;
 		}
 		return false;
+	}
+
+	public void setRowID(String s) {
+		m_row_id = s;
+	}
+	
+	public String getRowID() {
+		return m_row_id;
 	}
 
 }

@@ -18,31 +18,36 @@ import java.text.NumberFormat;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Logger;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
+import javax.swing.JToggleButton;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
+import org.apache.commons.collections15.Predicate;
 import org.apache.commons.collections15.Transformer;
 import org.apache.commons.collections15.functors.ConstantTransformer;
+import org.knime.core.data.RowKey;
 import org.knime.core.node.ExternalApplicationNodeView;
 
 import au.edu.unimelb.plantcell.networks.cells.MyEdge;
 import au.edu.unimelb.plantcell.networks.cells.MyVertex;
 import edu.uci.ics.jung.algorithms.layout.CircleLayout;
+import edu.uci.ics.jung.algorithms.layout.FRLayout2;
 import edu.uci.ics.jung.algorithms.layout.ISOMLayout;
+import edu.uci.ics.jung.algorithms.layout.KKLayout;
 import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.algorithms.layout.SpringLayout2;
 import edu.uci.ics.jung.graph.Graph;
@@ -67,7 +72,8 @@ import edu.uci.ics.jung.visualization.transform.shape.GraphicsDecorator;
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
 public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeModel> {
-
+	private final static String NO_VERTICES_SELECTED = "No vertices selected.";
+	
 	private JFrame m_frame;
     final Set<MyVertex> selected_vertices = new HashSet<MyVertex>();
 	private boolean m_locked;
@@ -108,17 +114,15 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 		final Graph<MyVertex, MyEdge> g = getNodeModel().getGraph();
 		if (g == null)
 			return;
-		
-		// layout algorithm gets edge distance from <code>edge.getDistance()</code>
-		Layout<MyVertex, MyEdge> layout = new ISOMLayout(g);
-		
+		final CreatorNodeModel my_model = getNodeModel();
+		Layout<MyVertex, MyEdge> layout = new CircleLayout(g);
 		Dimension sz = new Dimension(950,650);
         layout.setSize(sz); // sets the initial size of the space
       
         final VisualizationViewer<MyVertex,MyEdge> vv = new VisualizationViewer<MyVertex,MyEdge>(layout);
         vv.setPreferredSize(sz);
         vv.getRenderContext().setVertexLabelTransformer(new ToStringLabeller());
-        DefaultModalGraphMouse gm = new DefaultModalGraphMouse();
+        final DefaultModalGraphMouse gm = new DefaultModalGraphMouse();
         gm.setMode(ModalGraphMouse.Mode.TRANSFORMING);
         vv.setGraphMouse(gm);
         final JTextArea txt_area = new JTextArea();
@@ -151,7 +155,8 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
         if (getNodeModel().showTimecourseA() || getNodeModel().showTimecourseB()) {
         	vv.getRenderer().setVertexRenderer(new TimecourseRenderer());
         }
-        gm.add(new MyPickingPlugin(txt_area));
+        final JLabel sel_vertices_label = new JLabel(NO_VERTICES_SELECTED);
+        gm.add(new MyPickingPlugin(txt_area, sel_vertices_label));
         final PickedState<MyVertex> picked_state = vv.getPickedVertexState();
         vv.getPickedVertexState().addItemListener(new ItemListener() {
 
@@ -177,11 +182,9 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
         JPanel south_panel = new JPanel();
         south_panel.setLayout(new BoxLayout(south_panel, BoxLayout.X_AXIS));
         JPanel east_panel = new JPanel();
-        JPanel options_panel = new JPanel();
-        options_panel.setLayout(new BoxLayout(options_panel, BoxLayout.Y_AXIS));
         
         final MyFilterRuleModel rule_model = new MyFilterRuleModel();
-        final JCheckBox freezer = new JCheckBox("Freeze displayed nodes and edges");
+        final JCheckBox freezer = new JCheckBox("Lock current nodes and edges");
         freezer.addActionListener(new ActionListener() {
 
 			@Override
@@ -198,9 +201,11 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 			}
         	
         });
-        options_panel.add(freezer);
-        east_panel.add(options_panel);
+     
         east_panel.setLayout(new BoxLayout(east_panel, BoxLayout.X_AXIS));
+        JPanel mode_panel = new JPanel();
+        mode_panel.setLayout(new BoxLayout(mode_panel, BoxLayout.Y_AXIS));
+        east_panel.add(mode_panel);
         JPanel list_panel = new JPanel();
         list_panel.setLayout(new BorderLayout());
         final FilterRuleList fr_list = new FilterRuleList(rule_model);
@@ -230,12 +235,11 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				Collection<MyVertex> nodes = g.getVertices();
 				Set<String> prop_names = new HashSet<String>();
-				for (MyVertex v : nodes) {
+				for (MyVertex v : g.getVertices()) {
 					for (Object o : v.getPropertyKeys()) {
 						String k = o.toString();
-						if (!prop_names.contains(k)) {
+						if (!prop_names.contains(k) && !k.startsWith("__")) {
 							prop_names.add(k);
 						}
 					}
@@ -256,7 +260,7 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 				for (MyEdge e : edges) {
 					for (Object o : e.getPropertyKeys()) {
 						String k = o.toString();
-						if (!prop_names.contains(k)) {
+						if (!prop_names.contains(k) && !k.startsWith("__")) {
 							prop_names.add(k);
 						}
 					}
@@ -267,8 +271,36 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
         	
         });
         button_panel.add(edge_button);
-        button_panel.add(new JButton("Up"));
-        button_panel.add(new JButton("Down"));
+        JButton up = new JButton("Up");
+        up.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				int idx = fr_list.getSelectedIndex();
+				if (idx > 0) {	// first element cannot be moved higher!
+					Object o = rule_model.remove(idx);
+					rule_model.insertElementAt(o, idx-1);
+					fr_list.setSelectedIndex(idx-1);
+				}
+			}
+        	
+        });
+        button_panel.add(up);
+        JButton down = new JButton("Down");
+        down.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int idx = fr_list.getSelectedIndex();
+				if (idx >= 0 && idx < rule_model.size()-1)	{ 	// last entry cant be moved
+					Object o = rule_model.remove(idx);
+					rule_model.insertElementAt(o, idx+1);
+					fr_list.setSelectedIndex(idx+1);
+				}
+			}
+        	
+        });
+        button_panel.add(down);
         JButton remove_button = new JButton("Remove");
         remove_button.addActionListener(new ActionListener() {
 
@@ -283,15 +315,46 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
         button_panel.add(remove_button);
         east_panel.add(button_panel);
      
+        JButton hilite_button = new JButton("HiLite current");
+        hilite_button.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent ev) {
+				HashSet<String> rowids = new HashSet<String>();
+				Predicate<Context<Graph<MyVertex, MyEdge>, MyEdge>> eip = vv.getRenderContext().getEdgeIncludePredicate();
+				
+				for (MyEdge e : g.getEdges()) {
+					if (eip != null && !eip.evaluate(Context.<Graph<MyVertex,MyEdge>,MyEdge>getInstance(g, e)))
+						continue;
+					
+					if (!rowids.contains(e.getRowID())) {
+						rowids.add(e.getRowID());
+					}
+				}
+				
+				Logger l = Logger.getLogger("Network view");
+				l.info("Number of RowID's to highlight: "+rowids.size());
+				my_model.getInHiLiteHandler(0).fireClearHiLiteEvent();
+				HashSet<RowKey> ids = new HashSet<RowKey>();
+				for (String id : rowids) {
+					ids.add(new RowKey(id));
+				}
+				my_model.getInHiLiteHandler(0).fireHiLiteEvent(ids);
+				l.info("Highlighted "+ids.size()+" rows.");
+			}
+        	
+        });
+        button_panel.add(hilite_button);
+        
         rule_model.addListDataListener(new ListDataListener() {
 
         	public void redraw() {
-        		if (!isViewLocked()) {
+        		//if (!isViewLocked()) {
         			vv.getRenderContext().setVertexIncludePredicate(rule_model.getVertexFilter());
         			vv.getRenderContext().setEdgeIncludePredicate(rule_model.getEdgeFilter());
             		
         			vv.repaint();
-        		}
+        		//}
         	}
         	
 			@Override
@@ -320,50 +383,63 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
         
         txt_area.setText("Select a node or edge.");
         m_frame.getContentPane().add(p);
-        JMenuBar mb = new JMenuBar();
-        JMenu menu = gm.getModeMenu();
-        
-        menu.setName("Mode");
-        menu.setText(menu.getName());
-        menu.setIcon(null);
-        mb.add(menu);
-        JMenu menu2 = new JMenu("Layout");
-        JMenuItem item = new JMenuItem("ISOM");
-        menu.setText("Edit/Select ");
-        item.addActionListener(new ActionListener() {
+       
+        final JComboBox cb_layout = new JComboBox(new String[] { "Circle", "FR v2 (animated)", "ISOM", "KK (animated)", "Spring (animated)" });
+        cb_layout.addActionListener(new ActionListener() {
 
 			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				Layout<MyVertex, MyEdge> layout = new ISOMLayout(g);
+			public void actionPerformed(ActionEvent ae) {
+				String layout_mgr = cb_layout.getSelectedItem().toString().toLowerCase().trim();
+				Layout<MyVertex, MyEdge> layout = null;
+				if (layout_mgr.startsWith("isom")) {
+					layout = new ISOMLayout(g);
+				} else if (layout_mgr.startsWith("spring")) {
+					layout = new SpringLayout2(g);
+				} else if (layout_mgr.startsWith("fr")) {
+					layout = new FRLayout2(g);
+				} else if (layout_mgr.startsWith("kk")) {
+					layout = new KKLayout(g);
+				} else {
+					layout = new CircleLayout(g);
+				}
 				vv.setGraphLayout(layout);
+				vv.repaint();
 			}
         	
         });
-        menu2.add(item);
-        item = new JMenuItem("Spring");
-        item.addActionListener(new ActionListener() {
+        final JToggleButton pzt = new JToggleButton("Pan/Zoom/Translate");
+        final JToggleButton sm  = new JToggleButton("Select/Move");
+
+        pzt.setSelected(true);  // must match initial state of graph's mouse mode
+        sm.setSelected(false);	// must match initial state of graph's mouse mode
+        pzt.addActionListener(new ActionListener() {
 
 			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				Layout<MyVertex, MyEdge> layout = new SpringLayout2(g);
-				vv.setGraphLayout(layout);
+			public void actionPerformed(ActionEvent ae) {
+		        gm.setMode(ModalGraphMouse.Mode.TRANSFORMING);
+		        pzt.setSelected(true);
+		        sm.setSelected(false);
 			}
         	
         });
-        menu2.add(item);
-        item = new JMenuItem("Circle");
-        item.addActionListener(new ActionListener() {
+        sm.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				Layout<MyVertex, MyEdge> layout = new CircleLayout(g);
-				vv.setGraphLayout(layout);
+				gm.setMode(ModalGraphMouse.Mode.PICKING);
+				pzt.setSelected(false);
+				sm.setSelected(true);
 			}
         	
         });
-        menu2.add(item);
-        mb.add(menu2);
-        m_frame.setJMenuBar(mb);
+        mode_panel.add(pzt);
+        mode_panel.add(sm);
+        mode_panel.add(Box.createRigidArea(new Dimension(10,10)));
+        mode_panel.add(freezer);
+        mode_panel.add(sel_vertices_label);
+        mode_panel.add(Box.createRigidArea(new Dimension(10,10)));
+        mode_panel.add(Box.createVerticalGlue());
+        mode_panel.add(cb_layout);
         m_frame.pack();
         m_frame.setVisible(true);
 	}
@@ -385,10 +461,12 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 	 */
 	public class MyPickingPlugin<V,E> extends PickingGraphMousePlugin<V,E> implements MouseListener {
 		private final JTextArea m_sel_display;
+		private final JLabel    m_status;
 		
-		public MyPickingPlugin(final JTextArea sel_display) {
+		public MyPickingPlugin(final JTextArea sel_display, final JLabel sel_status) {
 			super();
 			m_sel_display = sel_display;
+			m_status      = sel_status;
 		}
 	
 
@@ -435,6 +513,16 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 			}
 			
 			m_sel_display.repaint();
+			
+			if (selected_vertices.size() > 0) {
+				String str = ""+selected_vertices.size()+" vertices selected";
+				if (isViewLocked()) {
+					str += " (locked)";
+				}
+				m_status.setText(str+".");
+			} else {
+				m_status.setText(NO_VERTICES_SELECTED);
+			}
 		}
 		
 	}
@@ -481,7 +569,8 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 		public void paintVertex(RenderContext<MyVertex, MyEdge> rc,
 				Layout<MyVertex, MyEdge> layout_mgr, MyVertex v) {
 			// display vertex in graph?
-			if (!rc.getVertexIncludePredicate().evaluate(Context.<Graph<MyVertex,MyEdge>,MyVertex>getInstance(layout_mgr.getGraph(),v))) {
+			if (!rc.getVertexIncludePredicate().
+					evaluate(Context.<Graph<MyVertex,MyEdge>,MyVertex>getInstance(layout_mgr.getGraph(),v))) {
 				return;
 			}
 			
@@ -496,11 +585,11 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 			int min_x = (int)ctr.getX() - width/2;
 			int min_y = (int)ctr.getY() - 10;
 			int height= 20;
-			Shape s = new Rectangle(min_x, min_y, width, height);
+			Shape   s = new Rectangle(min_x, min_y, width, height);
 			
-			gd.setPaint(Color.WHITE);
-			gd.fill(s);
 			gd.setPaint(Color.BLACK);
+			gd.fill(s);
+			gd.setPaint(Color.GRAY);
 			gd.draw(s);
 			
 			// draw bars to reflect the magnitude (origin at 0) of each timecourse measurement
@@ -523,9 +612,12 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 					bar_height = (int) ((vector[i] / max) * height);
 				}
 				s = new Rectangle(x+1, height+y-bar_height, 4, bar_height);
-				gd.setPaint(Color.BLUE);
+				gd.setPaint(Color.ORANGE);
 				gd.draw(s);
 			}
+			gd.setColor(Color.WHITE);
+			gd.setFont(Font.decode("Sans 8"));
+			gd.drawString(new Double(max).toString(), min_x+3, min_y + 7);
 		}
 
 	}

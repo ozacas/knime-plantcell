@@ -6,6 +6,7 @@ import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.util.Context;
 
 /**
+ * Filters nodes based on the chosen criteria. Ugly hack. Need to interoperate better with JUNG.
  * 
  * @author andrew.cassin
  *
@@ -27,6 +28,24 @@ public class NodeFilterPredicate<T extends Context<Graph<MyVertex,MyEdge>, MyVer
 		return true;
 	}
 
+	@Override
+	public boolean evaluate(T c) {
+		String propName = getProp();
+		
+		if (propName != null && propName.toLowerCase().startsWith("<is directly connected to>")) {
+			String val = getValue();
+			// leave the vertex of interest in the graph too (even if no self-edge exists)
+			try {
+				return (c.graph.isNeighbor(c.element, new MyVertex(val)) || c.element.getID().indexOf(val) >= 0);
+			} catch (IllegalArgumentException iae) {
+				// may happen if the user mistypes a node ID
+				return false;
+			}
+		} else {
+			return super.evaluate(c);
+		}
+	}
+	
 	@Override
 	public Object[] getPropertyKeys(T c) {
 		return c.element.getPropertyKeys().toArray(new Object[0]);

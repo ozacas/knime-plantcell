@@ -66,19 +66,36 @@ public class NodeFilterDialog extends JDialog {
 		JPanel sub_panel = new JPanel();
 		sub_panel.setLayout(new BoxLayout(sub_panel, BoxLayout.X_AXIS));
 		props.add("<Any>");
+		props.add("<Is directly connected to>");
 		String[] vec = props.toArray(new String[0]);
 		Arrays.sort(vec);
 		final JComboBox cb_prop = new JComboBox(vec);
-		final JComboBox cb_op   = new JComboBox(new String[] { "<", ">", "!=", "=", ">=", "<=", " contains " });
+		final JComboBox cb_op   = new JComboBox(new String[] { "<", ">", "!=", "=", ">=", "<=", " contains ", " does not contain ", "has annotation", "is not annotated" });
 		final JTextField t_val  = new JTextField("0");
+		t_val.setColumns(25);
 		sub_panel.add(cb_prop);
+		sub_panel.add(Box.createRigidArea(new Dimension(5,5)));
 		sub_panel.add(cb_op);
+		sub_panel.add(Box.createRigidArea(new Dimension(5,5)));
 		sub_panel.add(t_val);
 		content_panel.add(sub_panel);
 		
 		Container c = getContentPane();
 		c.add(content_panel, BorderLayout.CENTER);
 		c.add(button_panel, BorderLayout.PAGE_END);
+		
+		// op combo has no effect if directly connected is in effect
+		cb_prop.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				Object sel_obj = cb_prop.getSelectedItem();
+				if (sel_obj == null)
+					return;
+				cb_op.setEnabled(!sel_obj.toString().startsWith("<Is directly connected"));
+			}
+			
+		});
 		
 		ok_button.addActionListener(new ActionListener() {
 

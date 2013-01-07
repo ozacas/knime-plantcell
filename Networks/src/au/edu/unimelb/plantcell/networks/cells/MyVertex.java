@@ -55,6 +55,10 @@ public class MyVertex implements Paint {
 		m_name = new_id;
 	}
 	
+	public String getID() {
+		return m_name;
+	}
+	
 	public Set<Object> getPropertyKeys() {
 		return props.keySet();
 	}
@@ -83,11 +87,17 @@ public class MyVertex implements Paint {
 		}
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public String toString() {
 		return m_name;
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public boolean equals(Object o) {
 		if (o == null || !(o instanceof MyVertex)) {
@@ -100,6 +110,7 @@ public class MyVertex implements Paint {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public int hashCode() {
 		return m_name.hashCode();
 	}

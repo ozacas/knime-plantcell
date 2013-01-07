@@ -213,6 +213,7 @@ public class CreatorNodeModel extends NodeModel {
     				// assume default distance ie. zero
     			}
     		}
+    		e.setRowID(r.getKey().getString());
     		g.addEdge(e, my_src, my_dest, EdgeType.UNDIRECTED);
     		
     		done++;
