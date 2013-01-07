@@ -43,8 +43,8 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.workbench.ui.KNIMEUIPlugin;
 
+import au.edu.unimelb.plantcell.core.CorePlugin;
 import au.edu.unimelb.plantcell.core.ExternalProgram;
 import au.edu.unimelb.plantcell.core.PreferenceConstants;
 
@@ -241,7 +241,7 @@ public class MinProteinListNodeModel extends NodeModel {
     	logger.info("Created LP solver file: "+tmp_file.getAbsolutePath());
     	
     	// run cplex to compute a solution... (hopefully!)
-    	IPreferenceStore prefs = KNIMEUIPlugin.getDefault().getPreferenceStore();
+    	IPreferenceStore prefs = CorePlugin.getDefault().getPreferenceStore();
 		String install_dir = prefs.getString(PreferenceConstants.PREFS_GLPK_FOLDER);
 		logger.info("Got "+install_dir+" as GNU GLPK software location");
     	CommandLine cmdLine = new CommandLine(find_solver(install_dir));

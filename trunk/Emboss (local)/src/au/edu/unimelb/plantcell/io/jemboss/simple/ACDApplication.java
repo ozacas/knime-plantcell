@@ -11,8 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.knime.workbench.ui.KNIMEUIPlugin;
 
+import au.edu.unimelb.plantcell.core.CorePlugin;
 import au.edu.unimelb.plantcell.core.PreferenceConstants;
 
 
@@ -91,7 +91,7 @@ public class ACDApplication {
 	}
 
 	public static String getEmbossDir() {
-    	IPreferenceStore prefs = KNIMEUIPlugin.getDefault().getPreferenceStore();
+    	IPreferenceStore prefs = CorePlugin.getDefault().getPreferenceStore();
     	String emboss_dir = prefs.getString(PreferenceConstants.PREFS_JEMBOSS_FOLDER);
     	if (emboss_dir == null || emboss_dir.length() < 1) {
     		emboss_dir = prefs.getDefaultString(PreferenceConstants.PREFS_JEMBOSS_FOLDER);

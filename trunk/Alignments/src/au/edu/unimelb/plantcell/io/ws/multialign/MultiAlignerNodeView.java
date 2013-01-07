@@ -26,8 +26,8 @@ import javax.swing.event.ListSelectionListener;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.knime.core.node.ExternalApplicationNodeView;
-import org.knime.workbench.ui.KNIMEUIPlugin;
 
+import au.edu.unimelb.plantcell.core.CorePlugin;
 import au.edu.unimelb.plantcell.core.ExternalProgram;
 import au.edu.unimelb.plantcell.core.PreferenceConstants;
 
@@ -76,7 +76,7 @@ public class MultiAlignerNodeView extends ExternalApplicationNodeView<MultiAlign
 		}
 		final JList    my_list = new JList(rows);
 		final JButton b_start  = new JButton("Start JalView...");
-		IPreferenceStore prefs = KNIMEUIPlugin.getDefault().getPreferenceStore();
+		IPreferenceStore prefs = CorePlugin.getDefault().getPreferenceStore();
 		String jalview_dir     = prefs.getString(PreferenceConstants.PREFS_JALVIEW_FOLDER); 
 		final String jre_dir   = prefs.getString(PreferenceConstants.PREFS_JRE_FOLDER);
 		final Logger l = Logger.getLogger("Alignment View");

@@ -35,8 +35,8 @@ import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
-import org.knime.workbench.ui.KNIMEUIPlugin;
 
+import au.edu.unimelb.plantcell.core.CorePlugin;
 import au.edu.unimelb.plantcell.core.ExternalProgram;
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.core.PreferenceConstants;
@@ -650,7 +650,7 @@ public class BLASTPlusNodeModel extends NodeModel {
 	}
 	
 	protected File find_blast_program(String program_to_find) {
-		IPreferenceStore prefs = KNIMEUIPlugin.getDefault().getPreferenceStore();
+		IPreferenceStore prefs = CorePlugin.getDefault().getPreferenceStore();
 		String install_dir = prefs.getString(PreferenceConstants.PREFS_BLAST_FOLDER);
 		logger.info("Got "+install_dir+" as NCBI BLAST+ software location");
 		if (!new File(install_dir).isDirectory()) {

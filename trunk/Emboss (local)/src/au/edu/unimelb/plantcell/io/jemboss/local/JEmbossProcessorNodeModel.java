@@ -31,10 +31,9 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.workbench.ui.KNIMEUIPlugin;
 
+import au.edu.unimelb.plantcell.core.CorePlugin;
 import au.edu.unimelb.plantcell.core.PreferenceConstants;
-import au.edu.unimelb.plantcell.core.PreferencePage;
 import au.edu.unimelb.plantcell.io.jemboss.FastaUnmarshaller;
 import au.edu.unimelb.plantcell.io.jemboss.GFFUnmarshaller;
 import au.edu.unimelb.plantcell.io.jemboss.GraphUnmarshaller;
@@ -352,7 +351,7 @@ public class JEmbossProcessorNodeModel extends NodeModel implements ProgramSetti
      * returns the user defined preference setting for the emboss software location for this node
      */
     public static String getEmbossRoot() {
-    	IPreferenceStore prefs = KNIMEUIPlugin.getDefault().getPreferenceStore();
+    	IPreferenceStore prefs = CorePlugin.getDefault().getPreferenceStore();
     	return prefs.getString(PreferenceConstants.PREFS_JEMBOSS_FOLDER);
     }
     
