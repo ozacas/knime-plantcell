@@ -28,6 +28,25 @@ public class EdgeFilterPredicate<T extends Context<Graph<MyVertex,MyEdge>, MyEdg
 	public boolean isVertexPredicate() {
 		return false;
 	}
+	
+	@Override
+	public boolean evaluate(T c) {
+		String propName = getProp();
+		
+		if (propName != null && propName.toLowerCase().startsWith("<is directly connected to>")) {
+			String s_name = c.element.getSource().toLowerCase();
+			String d_name = c.element.getDest().toLowerCase();
+			if (s_name == null || d_name == null)		// bad edge or maybe disjoint graph?
+				return false;
+			
+			String val    = getValue().toLowerCase();
+			if (s_name.indexOf(val) >= 0 || d_name.indexOf(val) >= 0)
+				return true;
+			return false;
+		} else {
+			return super.evaluate(c);
+		}
+	}
 
 	@Override
 	public Object[] getPropertyKeys(T c) {

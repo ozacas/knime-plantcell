@@ -25,8 +25,18 @@
         source and destination are supported: an error will be thrown if this constraint is violated. This means
         you must eliminate redundancy before using this node eg. via <b>GroupBy (First)</b>. 
         </p>
-        </intro>
         
+        <p><b>Note:</b> in practical terms, this node is limited to display graphs of fewer
+        than 10000 nodes or edges: otherwise it takes too long to render the network and interaction is painful.
+        A better option would be to save the network (see the GraphML Writer node) and use a specialised high-performance 
+        program like Gephi instead.</p>
+       
+       	<p>
+       	The view of the network has filtering (to eliminate things of interest) based on distance criteria or annotation
+       	data associated with either nodes or edges. It is <b>NOT</b> designed to be publication quality, it is designed
+       	for quick exploration of the dataset. You should verify results if you use filtering, as this is not done in a typesafe
+       	manner.</p>
+        </intro>
         
         <option name="Options">In this tab you may configure how table row colours are assigned to the view: used to colour nodes or edges.
         Show edge distance can be used to display the correlation values on the path between the two nodes (can create a cluttered graph).
@@ -44,10 +54,10 @@
     
     <ports>
         <inPort index="0" name="Input columns">One column should contain the source node (eg. gene or protein name), and another column the destination. </inPort>
-        <!-- possibly more input ports here-->
+       
         <outPort index="0" name="Network output">A (small) table with only a network name and network graph output</outPort>
-        <!-- possibly more output ports here-->
     </ports>    
+   
     <views>
         <view index="0" name="Interactive view">Display the graph with edge lengths preportional to the chosen distance column.</view>
     </views>
