@@ -42,12 +42,12 @@ public class Sequence2ColumnsCellFactory extends AbstractCellFactory {
 		m_inspec = inSpec;
 		
 	    for (String s : wanted) {
-	    	   m_logger.info("Extracting \'"+s+"\' into columns");
-	    	   if (s.startsWith("Track - ")) {
-	    		   wanted_tracks.add(s.substring("Track - ".length()));
-	    	   } else {
-	    		   want.add(s);
-	    	   }
+    	   m_logger.info("Extracting \'"+s+"\' into columns");
+    	   if (s.startsWith("Track - ")) {
+    		   wanted_tracks.add(s.substring("Track - ".length()));
+    	   } else {
+    		   want.add(s);
+    	   }
 	    }
 	}
 	

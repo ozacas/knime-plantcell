@@ -31,9 +31,9 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
-import org.knime.workbench.ui.KNIMEUIPlugin;
 
 import au.edu.unimelb.plantcell.blast.ErrorLogger;
+import au.edu.unimelb.plantcell.core.CorePlugin;
 import au.edu.unimelb.plantcell.core.ExternalProgram;
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.core.PreferenceConstants;
@@ -49,7 +49,6 @@ import au.edu.unimelb.plantcell.core.cells.TrackCreator;
 import au.edu.unimelb.plantcell.io.read.fasta.BatchSequenceRowIterator;
 import au.edu.unimelb.plantcell.io.write.fasta.FastaWriter;
 import au.edu.unimelb.plantcore.core.regions.GeneRegionsAnnotation;
-import au.edu.unimelb.plantcore.core.regions.RegionsAnnotation;
 
 /**
  * This is the model implementation of AugustusNodeModel.
@@ -94,7 +93,7 @@ public class AugustusNodeModel extends NodeModel {
     	if (m_gene_models != null) {
     		return m_gene_models;
     	}
-    	IPreferenceStore prefs = KNIMEUIPlugin.getDefault().getPreferenceStore();
+    	IPreferenceStore prefs = CorePlugin.getDefault().getPreferenceStore();
 		String install_dir = prefs.getString(PreferenceConstants.PREFS_AUGUSTUS_FOLDER);
 		
     	try {
@@ -132,7 +131,7 @@ public class AugustusNodeModel extends NodeModel {
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
-    	IPreferenceStore prefs = KNIMEUIPlugin.getDefault().getPreferenceStore();
+    	IPreferenceStore prefs = CorePlugin.getDefault().getPreferenceStore();
 		String install_dir = prefs.getString(PreferenceConstants.PREFS_AUGUSTUS_FOLDER);
     	File augustus = ExternalProgram.find(install_dir, "augustus");
     	if (augustus == null) 

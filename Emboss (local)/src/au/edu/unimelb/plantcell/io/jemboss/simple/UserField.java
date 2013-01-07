@@ -26,8 +26,8 @@ import javax.swing.filechooser.FileFilter;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.workbench.ui.KNIMEUIPlugin;
 
+import au.edu.unimelb.plantcell.core.CorePlugin;
 import au.edu.unimelb.plantcell.core.PreferenceConstants;
 
 /**
@@ -82,7 +82,7 @@ public class UserField extends ACDField implements ActionListener {
 
 				@Override
 				public void actionPerformed(ActionEvent arg0) {
-					IPreferenceStore ps = KNIMEUIPlugin.getDefault().getPreferenceStore();
+					IPreferenceStore ps = CorePlugin.getDefault().getPreferenceStore();
 					String emboss_dir = ps.getString(PreferenceConstants.PREFS_JEMBOSS_FOLDER);
 					File data_dir = new File(emboss_dir, "data");
 					if (isCodonFileWidget()) {
