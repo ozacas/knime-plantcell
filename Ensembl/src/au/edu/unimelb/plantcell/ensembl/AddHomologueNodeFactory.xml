@@ -8,21 +8,20 @@
     </shortDescription>
     
     <fullDescription>
-        <intro>Insert long description here...</intro>
+        <intro>Reports homologues (of different types) for each gene specified in the input
+        table using the <a href="http://www.ensembl.org">Ensembl</a> genome database. </intro>
         
+        <option name="Species">Specify the genome identifiers provided in the input table.
+        Only genomes provided by the ENSEMBL server are shown.</option>
         
-        <option name="short name of first option (like in the dialog)">description of first option</option>
-        <option name="short name of second option (like in the dialog)">description of second option</option>
+        <option name="Column with gene ID's">Select the column with the gene ID's to locate
+       	in the Ensembl database</option>
     </fullDescription>
     
     <ports>
-        <inPort index="0" name="In-Port name">Description of first input port...</inPort>
-        <!-- possibly more input ports here-->
-        <outPort index="0" name="Out-Port name">Description of first output port...</outPort>
-        <!-- possibly more output ports here-->
+        <inPort index="0" name="Input gene list">List of ID's representing gene names in the configured species</inPort>
+       
+        <outPort index="0" name="Homologues for the named genes">Output table consisting of reported (putative) homologues</outPort>
     </ports>    
-    <views>
-        <view index="0" name="name of first view">Description of first view...</view>
-        <!--view index="1" name="name of second view">Description of second view...</view-->
-    </views>
+   
 </knimeNode>
