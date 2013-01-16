@@ -4,6 +4,7 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
+import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.util.ColumnFilter;
 import org.knime.core.data.StringValue;
@@ -34,7 +35,7 @@ public class AddHomologueNodeDialog extends DefaultNodeSettingsPane {
     			"Species defining IDs", species));
     	
     	addDialogComponent(new DialogComponentColumnNameSelection(
-    			new SettingsModelString(AddHomologueNodeModel.CFGKEY_SEQUENCE_ID, ""), 
+    			new SettingsModelColumnName(AddHomologueNodeModel.CFGKEY_SEQUENCE_ID, ""), 
     			"Sequence IDs from... ", 0, new ColumnFilter() {
 
 					@Override
