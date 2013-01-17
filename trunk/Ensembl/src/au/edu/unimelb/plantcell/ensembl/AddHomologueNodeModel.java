@@ -33,11 +33,8 @@ import uk.ac.roslin.ensembl.config.RegistryConfiguration;
 import uk.ac.roslin.ensembl.dao.database.DBRegistry;
 import uk.ac.roslin.ensembl.dao.database.DBSpecies;
 import uk.ac.roslin.ensembl.datasourceaware.compara.DAHomologyPairRelationship;
-import uk.ac.roslin.ensembl.datasourceaware.core.DADNASequence;
 import uk.ac.roslin.ensembl.datasourceaware.core.DAGene;
 import uk.ac.roslin.ensembl.exception.DAOException;
-import uk.ac.roslin.ensembl.model.Mapping;
-import uk.ac.roslin.ensembl.model.MappingSet;
 import uk.ac.roslin.ensembl.model.compara.HomologyAlignmentProperties;
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
@@ -50,28 +47,33 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
 public class AddHomologueNodeModel extends NodeModel {
-    private final static String db_properties     = "c:/temp/au_ensembl_genomes_config.properties";
+    protected final static String db_properties     = "c:/temp/au_ensembl_genomes_config.properties";
     private final static String[] homology_column_order = new String[] { "stable-id", "common-species-name", 
     	"homology-type", "gene-id", "last-common-ancestor", "chromosome-name", "chromosome-coords",
     	"% identity", "% similarity", "% coverage", "db-version"};
+    public final static String[] DEFAULT_SPECIES = new String[] { "Homo Sapiens", "Arabidopsis thaliana" };
     
 	public final static String CFGKEY_SPECIES     = "species";
 	public final static String CFGKEY_SEQUENCE_ID = "sequence-id";
 	
 	private final static NodeLogger   logger    = NodeLogger.getLogger("Add Homologues");
-	private final SettingsModelString m_species = new SettingsModelString(CFGKEY_SPECIES, "Human");
-	private final SettingsModelColumnName m_id      = new SettingsModelColumnName(CFGKEY_SEQUENCE_ID, "");
+	protected final SettingsModelString m_species = new SettingsModelString(CFGKEY_SPECIES, "Human");
+	protected final SettingsModelColumnName m_id      = new SettingsModelColumnName(CFGKEY_SEQUENCE_ID, "");
 	
 	// map for execute() to use to locate species 
-	private final static Map<String,DBSpecies> m_map = new HashMap<String,DBSpecies>();
+	protected final static Map<String,DBSpecies> m_map = new HashMap<String,DBSpecies>();
 	
     /**
      * Constructor for the node model.
      */
     protected AddHomologueNodeModel() {
-        super(1, 1);
+        this(1, 1);
     }
 
+    protected AddHomologueNodeModel(int inPorts, int outPorts) {
+    	super(inPorts, outPorts);
+    }
+    
     /**
      * {@inheritDoc}
      */
@@ -130,7 +132,7 @@ public class AddHomologueNodeModel extends NodeModel {
 		return new BufferedDataTable[]{c.close(), c2.close()};
     }
 
-    private String get_id(DataCell id_cell) {
+    protected String get_id(DataCell id_cell) {
 		if (id_cell == null || id_cell.isMissing())
 			return null;
 		
@@ -205,7 +207,7 @@ public class AddHomologueNodeModel extends NodeModel {
 		c.addRow(cells);
 	}
 
-	private DataTableSpec[] make_output_spec(DataTableSpec spec) {
+	protected DataTableSpec[] make_output_spec(DataTableSpec spec) {
 		DataColumnSpec[] cols = new DataColumnSpec[11];
 		cols[0] = new DataColumnSpecCreator("Gene Stable ID", StringCell.TYPE).createSpec();
 		cols[1] = new DataColumnSpecCreator("Target Species Name", StringCell.TYPE).createSpec();
@@ -227,7 +229,6 @@ public class AddHomologueNodeModel extends NodeModel {
      */
     @Override
     protected void reset() {
-        // TODO: generated method stub
     }
 
     /**
@@ -306,10 +307,11 @@ public class AddHomologueNodeModel extends NodeModel {
 			 }
 			 Collections.sort(ret);
 			 logger.info("Loaded EnsemblDB species");
-			 return ret.toArray(new String[0]);
+			 String[] vec = ret.toArray(new String[0]);
+			 return (vec.length > 0) ? vec : DEFAULT_SPECIES;
 		 } catch (Exception e) {
 			 e.printStackTrace();
-			 return new String[] { "Homo Sapiens", "Arabidopsis thaliana" };
+			 return DEFAULT_SPECIES;
 		 }
 	}
 
