@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="./default.png" type="Manipulator">
-    <name>Add Homologues</name>
+    <name>Add Transcripts</name>
     
     <shortDescription>
-        Adds homologues for the input data to the output table
+        Adds transcripts for the input genes to the output table
     </shortDescription>
     
     <fullDescription>
-        <intro>Reports homologues (of different types) for each gene specified in the input
+        <intro>Reports transcripts (of different types) for each gene specified in the input
         table using the <a href="http://www.ensembl.org">Ensembl</a> genome database. </intro>
         
         <option name="Species">Specify the genome identifiers provided in the input table.
-        Only genomes provided by the ENSEMBL server are shown.</option>
+        Only genomes provided by the chosen ENSEMBL server are shown.</option>
         
         <option name="Column with gene ID's">Select the column with the gene ID's to locate
        	in the Ensembl database</option>
@@ -21,7 +21,8 @@
     <ports>
         <inPort index="0" name="Input gene list">List of ID's representing gene names in the configured species</inPort>
        
-        <outPort index="0" name="Homologues for the named genes">Output table consisting of reported (putative) homologues</outPort>
-    </ports>    
+        <outPort index="0" name="Transcripts">Output table consisting of transcript id's and sequence data</outPort>
+    	<outPort index="1" name="Exons">A list, for each transcript where known, of exons including sequence</outPort>
+    </ports>
    
 </knimeNode>
