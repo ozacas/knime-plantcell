@@ -1,8 +1,8 @@
 package au.edu.unimelb.plantcell.ensembl;
 
-import java.io.File;
 import java.util.Calendar;
 
+import org.biojava3.core.sequence.RNASequence;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -21,7 +21,6 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 
-import uk.ac.roslin.ensembl.config.RegistryConfiguration;
 import uk.ac.roslin.ensembl.dao.database.DBSpecies;
 import uk.ac.roslin.ensembl.datasourceaware.core.DAExon;
 import uk.ac.roslin.ensembl.datasourceaware.core.DAGene;
@@ -50,27 +49,21 @@ public class AddTranscriptNodeModel extends AddHomologueNodeModel {
      * Constructor for the node model.
      */
     protected AddTranscriptNodeModel() {
-        super(1,2);
+        this(1,2);
     }
 
-    /**
+    public AddTranscriptNodeModel(int i, int j) {
+		super(i, j);
+	}
+
+	/**
      * {@inheritDoc}
      */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
     	
-    	RegistryConfiguration conf = new RegistryConfiguration();
-    	conf.setDBByFile(new File(db_properties));
-    
-    	if (m_map.size() < 1) {
-    		String[] species = getGenomeSpecies();
-    		logger.info("Loaded "+species.length+" species.");
-    	}
-		DBSpecies sp =  m_map.get(m_species.getStringValue());
-		if (sp == null)
-			throw new InvalidSettingsException("Invalid ENSEMBL GENOME: "+m_species.getStringValue());
- 
+		DBSpecies sp =  load_species(logger, m_db_props.getStringValue(), null);
 		DataTableSpec[] outSpecs = make_output_spec(inData[0].getSpec());
 		MyDataContainer c = new MyDataContainer(exec.createDataContainer(outSpecs[0]), "Transcript"); 
 		MyDataContainer c2= new MyDataContainer(exec.createDataContainer(outSpecs[1]), "Exon");
@@ -126,15 +119,30 @@ public class AddTranscriptNodeModel extends AddHomologueNodeModel {
 			cells[1] = safe_string_cell(t.getStableID());
 			cells[2] = safe_string_cell(t.getDisplayName());
 			cells[3] = safe_string_cell(t.getStatus());
-			cells[4] = new SequenceCell(SequenceType.RNA, t.getStableID(), t.getPrimaryTranscriptRNASequenceAsString());
+			
+			RNASequence rnaseq = t.getPrimaryTranscriptRNASequence();
+			if (rnaseq != null && rnaseq.getLength() > 0) {
+				cells[4] = new SequenceCell(SequenceType.RNA, t.getStableID(), rnaseq.getSequenceAsString());
+			} else {
+				cells[4] = DataType.getMissingCell();
+			}
+			
 			cells[5] = safe_string_cell(t.getDescription());
 			cells[6] = safe_string_cell(t.getAssembly());
 
 			Calendar cal = Calendar.getInstance();
-			cal.setTime(t.getCreationDate());
-			cells[7] = make_date_cell(cal);
-			cal.setTime(t.getModificationDate());
-			cells[8] = make_date_cell(cal);
+			if (t.getCreationDate() != null) {
+				cal.setTime(t.getCreationDate());
+				cells[7] = make_date_cell(cal);
+			} else {
+				cells[7] = DataType.getMissingCell();
+			}
+			if (t.getModificationDate() != null) {
+				cal.setTime(t.getModificationDate());
+				cells[8] = make_date_cell(cal);
+			} else {
+				cells[8] = DataType.getMissingCell();
+			}
 			
 			c.addRow(cells);
 			
@@ -144,23 +152,6 @@ public class AddTranscriptNodeModel extends AddHomologueNodeModel {
 		}
 	}
 
-    private DataCell safe_string_cell(String s) {
-    	if (s == null)
-    		return DataType.getMissingCell();
-    	else
-    		return new StringCell(s);
-    }
-    
-    private DataCell make_date_cell(Calendar cal) {
-    	assert(cal != null);
-    	try {
-    		return new DateAndTimeCell(cal.get(Calendar.YEAR), 
-    			cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH));
-    	} catch (Exception e) {
-    		return DataType.getMissingCell();
-    	}
-    }
-    
     private void report_exons(MyDataContainer c2, DATranscript t) {
 		DataCell[] cells = new DataCell[c2.getTableSpec().getNumColumns()];
 		cells[0] = new StringCell(t.getStableID());
@@ -214,7 +205,7 @@ public class AddTranscriptNodeModel extends AddHomologueNodeModel {
 		cols[7] = new DataColumnSpecCreator("Creation date", DateAndTimeCell.TYPE).createSpec();
 		cols[8] = new DataColumnSpecCreator("Modification date", DateAndTimeCell.TYPE).createSpec();
 		
-		DataColumnSpec[] exon_cols = new DataColumnSpec[2];
+		DataColumnSpec[] exon_cols = new DataColumnSpec[3];
 		exon_cols[0] = new DataColumnSpecCreator("Transcript stable ID", StringCell.TYPE).createSpec();
 		exon_cols[1] = new DataColumnSpecCreator("Exon Sequence", StringCell.TYPE).createSpec();
 		exon_cols[2] = new DataColumnSpecCreator("Exon rank", IntCell.TYPE).createSpec();

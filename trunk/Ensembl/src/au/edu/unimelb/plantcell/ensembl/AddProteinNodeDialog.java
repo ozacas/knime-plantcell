@@ -1,8 +1,6 @@
 package au.edu.unimelb.plantcell.ensembl;
 
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 
 /**
  * <code>NodeDialog</code> for the "EnsembleAddHomologue" Node.
@@ -15,19 +13,13 @@ import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
  * 
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
-public class AddTranscriptNodeDialog extends AddHomologueNodeDialog {
-
+public class AddProteinNodeDialog extends AddHomologueNodeDialog {
+	
     /**
      * New pane for configuring the EnsembleAddHomologue node.
      */
-    protected AddTranscriptNodeDialog() {
+    protected AddProteinNodeDialog() {
     	super();
-    	
-    	addDialogComponent(
-    			new DialogComponentBoolean(new SettingsModelBoolean(
-    					AddTranscriptNodeModel.CFGKEY_REPORT_EXONS, false), 
-    					"Report exons? (warning: big data!)"
-    			));
     }
 }
 
