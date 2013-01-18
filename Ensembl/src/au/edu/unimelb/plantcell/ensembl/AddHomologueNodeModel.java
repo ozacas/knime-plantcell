@@ -2,12 +2,13 @@ package au.edu.unimelb.plantcell.ensembl;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -16,6 +17,7 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.RowIterator;
+import org.knime.core.data.date.DateAndTimeCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -28,12 +30,14 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
 import uk.ac.roslin.ensembl.config.RegistryConfiguration;
 import uk.ac.roslin.ensembl.dao.database.DBRegistry;
 import uk.ac.roslin.ensembl.dao.database.DBSpecies;
 import uk.ac.roslin.ensembl.datasourceaware.compara.DAHomologyPairRelationship;
 import uk.ac.roslin.ensembl.datasourceaware.core.DAGene;
+import uk.ac.roslin.ensembl.exception.ConfigurationException;
 import uk.ac.roslin.ensembl.exception.DAOException;
 import uk.ac.roslin.ensembl.model.compara.HomologyAlignmentProperties;
 import au.edu.unimelb.plantcell.core.MyDataContainer;
@@ -47,7 +51,6 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
 public class AddHomologueNodeModel extends NodeModel {
-    protected final static String db_properties     = "c:/temp/au_ensembl_genomes_config.properties";
     private final static String[] homology_column_order = new String[] { "stable-id", "common-species-name", 
     	"homology-type", "gene-id", "last-common-ancestor", "chromosome-name", "chromosome-coords",
     	"% identity", "% similarity", "% coverage", "db-version"};
@@ -55,13 +58,14 @@ public class AddHomologueNodeModel extends NodeModel {
     
 	public final static String CFGKEY_SPECIES     = "species";
 	public final static String CFGKEY_SEQUENCE_ID = "sequence-id";
-	
-	private final static NodeLogger   logger    = NodeLogger.getLogger("Add Homologues");
+	public static final String CFGKEY_KNOWN_GENOMES = "known-genome-species";
+	public static final String CFGKEY_DB_PROPS = "ensembl-database-properties";
+
+	private final static NodeLogger   logger    = NodeLogger.getLogger("Ensembl");
 	protected final SettingsModelString m_species = new SettingsModelString(CFGKEY_SPECIES, "Human");
 	protected final SettingsModelColumnName m_id      = new SettingsModelColumnName(CFGKEY_SEQUENCE_ID, "");
-	
-	// map for execute() to use to locate species 
-	protected final static Map<String,DBSpecies> m_map = new HashMap<String,DBSpecies>();
+	protected final SettingsModelStringArray m_known_species = new SettingsModelStringArray(CFGKEY_KNOWN_GENOMES, DEFAULT_SPECIES);
+	protected final SettingsModelString m_db_props = new SettingsModelString(CFGKEY_DB_PROPS, "");
 	
     /**
      * Constructor for the node model.
@@ -74,6 +78,35 @@ public class AddHomologueNodeModel extends NodeModel {
     	super(inPorts, outPorts);
     }
     
+    protected DBSpecies load_species(NodeLogger logger, String db_prop_str, String species_name) throws IOException, ConfigurationException, DAOException, InvalidSettingsException {
+    	File db_props = null;
+    	try {
+	    	db_props = File.createTempFile("ensembl", "db_properties");
+	    	PrintWriter pw = new PrintWriter(db_props);
+	    	pw.println(db_prop_str);
+	    	pw.close();
+	    	DBSpecies ret = load_species(logger, db_props, species_name);
+	    	logger.info("Obtained species data.");
+	    	return ret;
+    	} finally {
+    		if (db_props != null)
+    			db_props.delete();
+    	}
+    }
+    
+    protected DBSpecies load_species(NodeLogger logger, File db_properties, String species_name) throws ConfigurationException, InvalidSettingsException, DAOException {
+    	RegistryConfiguration conf = new RegistryConfiguration();
+    	conf.setDBByFile(db_properties);
+    	DBRegistry eReg = new DBRegistry(conf, true);
+    	if (species_name == null)
+    		species_name = m_species.getStringValue();
+    	logger.info("Loading genome species data for: "+species_name);
+    	DBSpecies sp = eReg.getSpeciesByAlias(species_name);
+		if (sp == null)
+			throw new InvalidSettingsException("Invalid ENSEMBL GENOME: "+species_name);
+		return sp;
+    }
+    
     /**
      * {@inheritDoc}
      */
@@ -81,20 +114,12 @@ public class AddHomologueNodeModel extends NodeModel {
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
     	
-    	RegistryConfiguration conf = new RegistryConfiguration();
-    	conf.setDBByFile(new File(db_properties));
-    
-    	if (m_map.size() < 1) {
-    		String[] species = getGenomeSpecies();
-    		logger.info("Loaded "+species.length+" species.");
-    	}
-		DBSpecies sp =  m_map.get(m_species.getStringValue());
-		if (sp == null)
-			throw new InvalidSettingsException("Invalid ENSEMBL GENOME: "+m_species.getStringValue());
- 
+    	logger.info("Identifying homologues of "+inData[0].getRowCount()+" "+m_species.getStringValue()+" genes using Ensembl.");
+    	
+    	DBSpecies sp = load_species(logger, m_db_props.getStringValue(), m_species.getStringValue());
+    	
 		DataTableSpec[] outSpecs = make_output_spec(inData[0].getSpec());
 		MyDataContainer c = new MyDataContainer(exec.createDataContainer(outSpecs[0]), "Homologue"); 
-		MyDataContainer c2= new MyDataContainer(exec.createDataContainer(outSpecs[1]), "Entry");
 		int seq_idx = -1;
 		if (! m_id.useRowID()) {
 			seq_idx = inData[0].getSpec().findColumnIndex(m_id.getStringValue());
@@ -117,7 +142,7 @@ public class AddHomologueNodeModel extends NodeModel {
 			 }
 			 
 			 try {
-				 report_homologous_genes(c, c2, sp, id);
+				 report_homologous_genes(c, null, sp, id);
 			 } catch (DAOException dao) {
 				 logger.warn("Error getting record for gene "+id+": ignored.");
 				 dao.printStackTrace();
@@ -129,7 +154,7 @@ public class AddHomologueNodeModel extends NodeModel {
 			 }
 		}
 		
-		return new BufferedDataTable[]{c.close(), c2.close()};
+		return new BufferedDataTable[]{c.close()};
     }
 
     protected String get_id(DataCell id_cell) {
@@ -224,6 +249,23 @@ public class AddHomologueNodeModel extends NodeModel {
 		return new DataTableSpec[] { new DataTableSpec(cols) };
 	}
 
+    protected DataCell safe_string_cell(String s) {
+    	if (s == null)
+    		return DataType.getMissingCell();
+    	else
+    		return new StringCell(s);
+    }
+    
+    protected DataCell make_date_cell(Calendar cal) {
+    	assert(cal != null);
+    	try {
+    		return new DateAndTimeCell(cal.get(Calendar.YEAR), 
+    			cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH));
+    	} catch (Exception e) {
+    		return DataType.getMissingCell();
+    	}
+    }
+    
 	/**
      * {@inheritDoc}
      */
@@ -247,6 +289,8 @@ public class AddHomologueNodeModel extends NodeModel {
     protected void saveSettingsTo(final NodeSettingsWO settings) {
     	m_species.saveSettingsTo(settings);
     	m_id.saveSettingsTo(settings);
+    	m_known_species.saveSettingsTo(settings);
+    	m_db_props.saveSettingsTo(settings);
     }
 
     /**
@@ -257,6 +301,14 @@ public class AddHomologueNodeModel extends NodeModel {
             throws InvalidSettingsException {
     	m_species.loadSettingsFrom(settings);
     	m_id.loadSettingsFrom(settings);
+    	m_db_props.loadSettingsFrom(settings);	// MUST be loaded before getGenomeSpecies() is called
+    	if (settings.containsKey(CFGKEY_KNOWN_GENOMES)) {
+    		m_known_species.loadSettingsFrom(settings);
+    	} else {
+    		// need to initialise from ensembl server so...
+    		String[] ret = getGenomeSpecies(logger, m_db_props.getStringValue());
+    		m_known_species.setStringArrayValue(ret);
+    	}
     }
 
     /**
@@ -267,6 +319,12 @@ public class AddHomologueNodeModel extends NodeModel {
             throws InvalidSettingsException {
     	m_species.validateSettings(settings);
     	m_id.validateSettings(settings);
+    	if (settings.containsKey(CFGKEY_KNOWN_GENOMES)) {
+    		m_known_species.validateSettings(settings);
+    	}
+    	if (settings.containsKey(CFGKEY_DB_PROPS)) {
+    		m_db_props.validateSettings(settings);
+    	}
     }
     
     /**
@@ -286,16 +344,26 @@ public class AddHomologueNodeModel extends NodeModel {
             final ExecutionMonitor exec) throws IOException,
             CanceledExecutionException {
     }
-
+    
     /**
      * Returns the display names for available genomes from Ensembl
      * @return
      */
-	public static String[] getGenomeSpecies() {
+	protected final static String[] getGenomeSpecies(NodeLogger logger, String db_props) {
+		 if (logger == null) {
+			 logger = AddHomologueNodeModel.logger;
+		 }
+		 File tmp_file= null;
+
 		 try {
+			 tmp_file = File.createTempFile("ensembl", "props.conf");
+			 PrintWriter pw = new PrintWriter(tmp_file);
+			 pw.println(db_props);
+			 pw.close();
+			 
 			 RegistryConfiguration rc = new RegistryConfiguration();
-			 logger.info("Loading EnsemblDB properties from (may take a minute or two): "+db_properties);
-			 rc.setDBByFile(new File(db_properties));
+			 logger.info("Loading EnsemblDB properties from (may take a minute or two): "+tmp_file.getAbsolutePath());
+			 rc.setDBByFile(tmp_file);
 			 
 			 DBRegistry eReg = new DBRegistry(rc, true);
 			 Collection<DBSpecies> sp =  eReg.getSpecies();
@@ -303,7 +371,6 @@ public class AddHomologueNodeModel extends NodeModel {
 			 for (DBSpecies s : sp) {
 				 String dname = s.getDisplayName();
 				 ret.add(dname);
-				 m_map.put(dname, s);
 			 }
 			 Collections.sort(ret);
 			 logger.info("Loaded EnsemblDB species");
@@ -312,6 +379,9 @@ public class AddHomologueNodeModel extends NodeModel {
 		 } catch (Exception e) {
 			 e.printStackTrace();
 			 return DEFAULT_SPECIES;
+		 } finally {
+			 if (tmp_file != null)
+				 tmp_file.delete();
 		 }
 	}
 

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>Add Proteins</name>
+    
+    <shortDescription>
+        Adds proteins for all transcripts of the input genes to the output table
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>Reports protein sequences (of different types) for each transcript of the genes
+        specified in the input table using the <a href="http://www.ensembl.org">Ensembl</a> genome database
+        as the source for data. </intro>
+        
+        <option name="Species">Specify the genome identifiers provided in the input table.
+        Only genomes provided by the chosen ENSEMBL server are shown.</option>
+        
+        <option name="Column with gene ID's">Select the column with the gene ID's to locate
+       	in the Ensembl database</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input gene list">List of ID's representing gene names in the configured species</inPort>
+       
+        <outPort index="0" name="Proteins">Output table consisting of protein id's and sequence data</outPort>
+    </ports>
+   
+</knimeNode>
