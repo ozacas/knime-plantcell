@@ -108,18 +108,34 @@ public class GolgiPNodeModel extends NodeModel {
 			@Override
 			public void process_predictions(SequenceValue sv, String[] prediction_columns) {
 				DataCell[] cells = new DataCell[4];
+				/*logger.info("Processing results for "+sv.getID());
+				logger.info("Prediction columns:");
+				for (int i=0; i<prediction_columns.length; i++) {
+					logger.info(prediction_columns[i]);
+				}*/
 				for (int i=0; i<cells.length; i++) {
 					cells[i] = DataType.getMissingCell();
 				}
+				
 				try {
 					cells[0] = new SequenceCell(sv);
 					cells[1] = new StringCell(prediction_columns[0]);
-					cells[2] = new DoubleCell(new Double(prediction_columns[1]).doubleValue());
+					try {
+						cells[2] = new DoubleCell(new Double(prediction_columns[1]).doubleValue());
+					} catch (NumberFormatException nfe) {
+						cells[2] = DataType.getMissingCell();
+						logger.warn("No score for "+sv.getID());
+					}
 					String tmp = prediction_columns[2];
 					if (tmp.endsWith("%")) {
 						tmp = tmp.substring(0, tmp.length()-1);
 					}
-					cells[3] = new DoubleCell(new Double(tmp).doubleValue());
+					try {
+						cells[3] = new DoubleCell(new Double(tmp).doubleValue());
+					} catch (NumberFormatException nfe) {
+						logger.warn("No accuracy score for "+sv.getID());
+						cells[3] = DataType.getMissingCell();
+					}
 					c2.addRow(cells);
 				} catch (InvalidSettingsException ise) {
 					// should not happen since sv comes from valid input...
