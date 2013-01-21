@@ -245,7 +245,12 @@ public class CreatorNodeModel extends NodeModel {
     private void addMetadata(boolean colour_nodes, ColorAttr rowColor,
 			List<String> includes, MyVertex v, DataTableSpec spec, DataRow r) {
     	for (String inc : includes) {
-			DataCell metadata_cell = r.getCell(spec.findColumnIndex(inc));
+    		int idx = spec.findColumnIndex(inc);
+    		if (idx < 0) {
+    			logger.warn("Unable to locate column '"+inc+"': re-configure?");
+    			continue;
+    		}
+			DataCell metadata_cell = r.getCell(idx);
 			if (metadata_cell == null || metadata_cell.isMissing())
 				continue;
 			v.setProperty(inc, metadata_cell.toString());

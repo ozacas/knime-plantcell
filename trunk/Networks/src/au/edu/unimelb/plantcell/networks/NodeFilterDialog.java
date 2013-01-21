@@ -66,7 +66,7 @@ public class NodeFilterDialog extends JDialog {
 		JPanel sub_panel = new JPanel();
 		sub_panel.setLayout(new BoxLayout(sub_panel, BoxLayout.X_AXIS));
 		props.add("<Any>");
-		props.add("<Is directly connected to>");
+		props.add("<Is visibly connected to>");
 		String[] vec = props.toArray(new String[0]);
 		Arrays.sort(vec);
 		final JComboBox cb_prop = new JComboBox(vec);
@@ -92,7 +92,7 @@ public class NodeFilterDialog extends JDialog {
 				Object sel_obj = cb_prop.getSelectedItem();
 				if (sel_obj == null)
 					return;
-				cb_op.setEnabled(!sel_obj.toString().startsWith("<Is directly connected"));
+				cb_op.setEnabled(!sel_obj.toString().startsWith("<Is visibly connected"));
 			}
 			
 		});
@@ -104,7 +104,7 @@ public class NodeFilterDialog extends JDialog {
 				// user wants the rule added so do that here...
 				NodeFilterPredicate<Context<Graph<MyVertex,MyEdge>, MyVertex>> nfp = 
 					new NodeFilterPredicate<Context<Graph<MyVertex,MyEdge>, MyVertex>>(cb_prop.getSelectedItem().toString(),
-							cb_op.getSelectedItem().toString(), t_val.getText());
+							cb_op.getSelectedItem().toString(), t_val.getText(), rule_model);
 				
 				rule_model.addElement(nfp);
 				
