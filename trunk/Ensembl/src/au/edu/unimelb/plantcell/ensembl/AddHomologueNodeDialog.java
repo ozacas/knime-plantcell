@@ -67,7 +67,7 @@ public class AddHomologueNodeDialog extends DefaultNodeSettingsPane {
      * NB: does NOT create tab itself, just the widgets for it
      */
     protected void addAdvancedTab() {
-    	final SettingsModelString sms = new SettingsModelString(AddHomologueNodeModel.CFGKEY_DB_PROPS, "");
+    	final SettingsModelString sms = new SettingsModelString(AddHomologueNodeModel.CFGKEY_DB_PROPS, AddHomologueNodeModel.DEFAULT_DB_PROPS);
     	addDialogComponent(new DialogComponentMultiLineString(
     			sms, "Ensembl data source", true, 60, 5));
     	DialogComponentButton b = new DialogComponentButton("Reload databases");

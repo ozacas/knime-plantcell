@@ -7,7 +7,22 @@
       <node
             category-path="/Bioinformatics/Web Services/Ensembl"
             factory-class="au.edu.unimelb.plantcell.ensembl.AddHomologueNodeFactory"
-            id="au.edu.unimelb.plantcell.ensembl.EnsembleAddHomologueNodeFactory"/>
+            id="au.edu.unimelb.plantcell.ensembl.AddHomologueNodeFactory"/>
    </extension>
    
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Web Services/Ensembl"
+            factory-class="au.edu.unimelb.plantcell.ensembl.AddTranscriptNodeFactory"
+            id="au.edu.unimelb.plantcell.ensembl.AddTranscriptNodeFactory" />
+   </extension>
+   
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Web Services/Ensembl"
+            factory-class="au.edu.unimelb.plantcell.ensembl.AddProteinNodeFactory"
+            id="au.edu.unimelb.plantcell.ensembl.AddProteinNodeFactory" />
+   </extension>
 </plugin>

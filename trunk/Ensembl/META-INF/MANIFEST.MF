@@ -1,23 +1,26 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: EnsembleAddHomologue-Node extension for KNIME Workbench
+Bundle-Name: Ensemble
 Bundle-SymbolicName: au.edu.unimelb.plantcell.ensembl; singleton:=true
-Bundle-Version: 1.0.0
+Bundle-Version: 1.0.1
 Bundle-ClassPath: ensembleaddhomologue.jar,
  lib/asm-1.5.3.jar,
  lib/biojava3-core-3.0.3.jar,
  lib/cglib-2.1_3.jar,
- lib/ensembl-config-1.68.jar,
- lib/ensembl-data-access-1.13.jar,
- lib/ensembl-data-access-interface-1.13.jar,
- lib/ensembl-datamapper-1.13-javadoc.jar,
- lib/ensembl-datamapper-1.13.jar,
- lib/ensembl-datasource-aware-model-1.13.jar,
- lib/ensembl-model-1.13.jar,
- lib/ensembl-test-1.13.jar,
  lib/google-collections-1.0.jar,
  lib/mybatis-3.0.2.jar,
- lib/mysql-connector-java-5.1.6.jar
+ lib/mysql-connector-java-5.1.6.jar,
+ lib/ensembl-config-1.69.jar,
+ lib/ensembl-data-access-1.14-javadoc.jar,
+ lib/ensembl-data-access-1.14.jar,
+ lib/ensembl-data-access-interface-1.14-javadoc.jar,
+ lib/ensembl-data-access-interface-1.14.jar,
+ lib/ensembl-datamapper-1.14-javadoc.jar,
+ lib/ensembl-datamapper-1.14.jar,
+ lib/ensembl-datasource-aware-model-1.14-javadoc.jar,
+ lib/ensembl-datasource-aware-model-1.14.jar,
+ lib/ensembl-model-1.14-javadoc.jar,
+ lib/ensembl-model-1.14.jar
 Bundle-Vendor: http://www.plantcell.unimelb.edu.au/bioinformatics
 Require-Bundle: org.eclipse.core.runtime,
  org.knime.workbench.core,
