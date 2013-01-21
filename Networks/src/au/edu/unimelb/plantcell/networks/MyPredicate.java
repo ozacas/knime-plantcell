@@ -125,7 +125,7 @@ public abstract class MyPredicate<T> implements Predicate<T> {
 	 */
 	@Override
 	public String toString() {
-		String type = "vertex";
+		String type = "node";
 		if (!isVertexPredicate()) {
 			type = "edge";
 		}
@@ -134,6 +134,8 @@ public abstract class MyPredicate<T> implements Predicate<T> {
 			return type+" filter: Any annotation data "+m_op+" "+m_value+".";
 		} else if (m_prop.startsWith("<Is directly conn")) {
 			return type+" filter: those with a direct connection to "+m_value+".";
+		} else if (m_prop.startsWith("<Is visibly conn")) {
+			return type+" filter: those with a visible and direct connection to "+m_value+".";
 		} else {
 			return type+" filter: Annotation named '"+m_prop+"' with a value "+m_op+" "+m_value+".";
 		}
