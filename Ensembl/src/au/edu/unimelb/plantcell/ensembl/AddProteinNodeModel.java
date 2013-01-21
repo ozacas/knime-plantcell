@@ -1,13 +1,11 @@
 package au.edu.unimelb.plantcell.ensembl;
 
-import org.biojava3.core.sequence.AccessionID;
 import org.biojava3.core.sequence.ProteinSequence;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataType;
 import org.knime.core.data.RowIterator;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
@@ -18,6 +16,7 @@ import org.knime.core.node.NodeLogger;
 import uk.ac.roslin.ensembl.dao.database.DBSpecies;
 import uk.ac.roslin.ensembl.datasourceaware.core.DAGene;
 import uk.ac.roslin.ensembl.datasourceaware.core.DATranscript;
+import uk.ac.roslin.ensembl.datasourceaware.core.DATranslation;
 import uk.ac.roslin.ensembl.exception.DAOException;
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.core.cells.SequenceCell;
@@ -97,21 +96,23 @@ public class AddProteinNodeModel extends AddHomologueNodeModel {
 			return;
 		}
 		DataCell[] cells = new DataCell[c.getTableSpec().getNumColumns()];
-		cells[0]         = new StringCell(g.getStableID());
+		cells[0]         = safe_string_cell(g.getStableID());
 		
 		// report canonical proteins translations for all transcripts of the given gene
+		int idx = 1;
 		for (DATranscript t : g.getTranscripts() ) {
-			ProteinSequence ps = t.getCanonicalTranslation().getProteinSequence();
+			// not translated to protein? ok, skip it for now
+			if (!t.isTranslated())
+				continue;
+			DATranslation mrna = t.getCanonicalTranslation();
+			if (mrna == null) 
+				continue;
+			ProteinSequence ps = mrna.getProteinSequence();
 			cells[1] = safe_string_cell(t.getStableID());
-			AccessionID aid = ps.getAccession();
-			if (aid == null) {
-				logger.warn("Protein sequence for "+t.getStableID()+" has no ID -- bad record?");
-				cells[2] = DataType.getMissingCell();
-			} else {
-				cells[2] = safe_string_cell(aid.getID());
-			}
-			
-			cells[3] = new SequenceCell(SequenceType.AA, aid.getID(), ps.getSequenceAsString());
+			String tmp = id+"_"+idx++;
+			cells[2] = safe_string_cell(tmp);
+			cells[3] = new SequenceCell(SequenceType.AA, tmp, ps.getSequenceAsString());
+		
 			c.addRow(cells);
 		}
 	}
@@ -122,7 +123,7 @@ public class AddProteinNodeModel extends AddHomologueNodeModel {
 		cols[0] = new DataColumnSpecCreator("Gene Stable ID", StringCell.TYPE).createSpec();
 		cols[1] = new DataColumnSpecCreator("Transcript stable ID", StringCell.TYPE).createSpec();
 		cols[2] = new DataColumnSpecCreator("Protein stable ID", StringCell.TYPE).createSpec();
-		cols[3] = new DataColumnSpecCreator("Protein Sequence", StringCell.TYPE).createSpec();
+		cols[3] = new DataColumnSpecCreator("Protein Sequence", SequenceCell.TYPE).createSpec();
 	
 		return new DataTableSpec[] { new DataTableSpec(cols) };
 	}

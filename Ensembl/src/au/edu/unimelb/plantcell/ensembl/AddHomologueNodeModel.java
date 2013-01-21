@@ -55,7 +55,14 @@ public class AddHomologueNodeModel extends NodeModel {
     	"homology-type", "gene-id", "last-common-ancestor", "chromosome-name", "chromosome-coords",
     	"% identity", "% similarity", "% coverage", "db-version"};
     public final static String[] DEFAULT_SPECIES = new String[] { "Homo Sapiens", "Arabidopsis thaliana" };
-    
+    public final static String DEFAULT_DB_PROPS = 
+    	"# or this for plant-related stuff\n"+
+    	"datasource=ensemblgenomes\n"+
+    	"url=jdbc:mysql://mysql.ebi.ac.uk:4157\n"+
+    	"driver=com.mysql.jdbc.Driver\n"+
+    	"username=anonymous\n"+
+    	"password=\n";
+    	
 	public final static String CFGKEY_SPECIES     = "species";
 	public final static String CFGKEY_SEQUENCE_ID = "sequence-id";
 	public static final String CFGKEY_KNOWN_GENOMES = "known-genome-species";
@@ -65,7 +72,7 @@ public class AddHomologueNodeModel extends NodeModel {
 	protected final SettingsModelString m_species = new SettingsModelString(CFGKEY_SPECIES, "Human");
 	protected final SettingsModelColumnName m_id      = new SettingsModelColumnName(CFGKEY_SEQUENCE_ID, "");
 	protected final SettingsModelStringArray m_known_species = new SettingsModelStringArray(CFGKEY_KNOWN_GENOMES, DEFAULT_SPECIES);
-	protected final SettingsModelString m_db_props = new SettingsModelString(CFGKEY_DB_PROPS, "");
+	protected final SettingsModelString m_db_props = new SettingsModelString(CFGKEY_DB_PROPS, DEFAULT_DB_PROPS);
 	
     /**
      * Constructor for the node model.
