@@ -36,7 +36,7 @@
    				  name="TogoWS"
    				  path="/Bioinformatics/Web Services" />
    		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
-   				  icon="icons/default.png"
+   				  icon="icons/ensembl.png"
    				  level-id="Ensembl"
    				  name="Ensembl"
    				  path="/Bioinformatics/Web Services" />
