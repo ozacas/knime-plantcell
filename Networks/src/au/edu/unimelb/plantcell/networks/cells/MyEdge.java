@@ -1,11 +1,14 @@
 package au.edu.unimelb.plantcell.networks.cells;
 
 import java.awt.Color;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
 import org.knime.core.data.property.ColorAttr;
+
+import edu.uci.ics.jung.graph.Graph;
 
 /**
  * 
@@ -173,6 +176,43 @@ public class MyEdge {
 	
 	public String getRowID() {
 		return m_row_id;
+	}
+
+	public boolean hasVertices(MyVertex first, MyVertex second) {
+		if ((m_src.equals(first) && m_dst.equals(second)) ||
+			(m_dst.equals(first) && m_src.equals(second))) 
+			return true;
+		 // else
+		return false;
+	}
+
+	public boolean hasVerticesIn(Collection<MyVertex> set) {
+		return  (set.contains(m_src) && set.contains(m_dst));
+	}
+
+	public void addEdge(Graph<MyVertex, MyEdge> new_g) {
+		assert(new_g != null);
+		new_g.addEdge(this, m_src, m_dst);
+	}
+
+	public MyVertex getDestVertex() {
+		return m_dst;
+	}
+	
+	public MyVertex getSourceVertex() {
+		return m_src;
+	}
+
+	public boolean hasVertexNamed(String val) {
+		if (val == null || val.length() < 1)
+			return false;
+		
+		if (m_src.getID().indexOf(val) >= 0) {
+			return true;
+		} else if (m_dst.getID().indexOf(val) >= 0) {
+			return true;
+		}
+		return false;
 	}
 
 }

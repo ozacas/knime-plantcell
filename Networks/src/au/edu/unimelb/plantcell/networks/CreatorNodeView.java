@@ -77,7 +77,8 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 	private JFrame m_frame;
     final Set<MyVertex> selected_vertices = new HashSet<MyVertex>();
 	private boolean m_locked;
-
+	private String  m_current_layout_name = "circle";
+	
     /**
      * Creates a new view.
      * 
@@ -126,6 +127,7 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
         gm.setMode(ModalGraphMouse.Mode.TRANSFORMING);
         vv.setGraphMouse(gm);
         final JTextArea txt_area = new JTextArea();
+      
         vv.getRenderContext().setVertexFillPaintTransformer(new Transformer<MyVertex,Paint>() {
 
 			@Override
@@ -194,9 +196,15 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 				
 				// if the filter rules have been changed whilst frozen, we must update the current predicate and repaint...
 				if (! is_checked) {
-					vv.getRenderContext().setVertexIncludePredicate(rule_model.getVertexFilter());
-					vv.getRenderContext().setEdgeIncludePredicate(rule_model.getEdgeFilter());
-					vv.repaint();
+					
+					try {
+						Graph<MyVertex, MyEdge> new_g = rule_model.getFilteredGraph(vv.getRenderContext(), g);
+						vv.setGraphLayout(new CircleLayout(new_g));
+						vv.repaint();
+					} catch (Exception e) {
+						e.printStackTrace();
+						return;
+					} 
 				}
 			}
         	
@@ -321,14 +329,12 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 			@Override
 			public void actionPerformed(ActionEvent ev) {
 				HashSet<String> rowids = new HashSet<String>();
-				Predicate<Context<Graph<MyVertex, MyEdge>, MyEdge>> eip = vv.getRenderContext().getEdgeIncludePredicate();
 				
+				Graph<MyVertex,MyEdge> g = vv.getGraphLayout().getGraph();
 				for (MyEdge e : g.getEdges()) {
-					if (eip != null && !eip.evaluate(Context.<Graph<MyVertex,MyEdge>,MyEdge>getInstance(g, e)))
-						continue;
-					
-					if (!rowids.contains(e.getRowID())) {
-						rowids.add(e.getRowID());
+					String rid = e.getRowID();
+					if (rid != null) {
+						rowids.add(rid);
 					}
 				}
 				
@@ -349,12 +355,17 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
         rule_model.addListDataListener(new ListDataListener() {
 
         	public void redraw() {
-        		//if (!isViewLocked()) {
-        			vv.getRenderContext().setVertexIncludePredicate(rule_model.getVertexFilter());
-        			vv.getRenderContext().setEdgeIncludePredicate(rule_model.getEdgeFilter());
-            		
-        			vv.repaint();
-        		//}
+        		try {
+					Graph<MyVertex, MyEdge> new_g = rule_model.getFilteredGraph(vv.getRenderContext(), g);
+					int n_vertices = new_g.getVertexCount();
+					int n_edges    = new_g.getEdgeCount();
+					Logger.getAnonymousLogger().info("New graph has "+n_vertices+" nodes and "+n_edges+" edges (old "+g.getVertexCount()+", "+g.getEdgeCount()+").");
+					vv.setGraphLayout(new CircleLayout(new_g));
+					vv.repaint();
+				} catch (Exception e) {
+					e.printStackTrace();
+					return;
+				}
         	}
         	
 			@Override
@@ -389,20 +400,9 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 
 			@Override
 			public void actionPerformed(ActionEvent ae) {
-				String layout_mgr = cb_layout.getSelectedItem().toString().toLowerCase().trim();
-				Layout<MyVertex, MyEdge> layout = null;
-				if (layout_mgr.startsWith("isom")) {
-					layout = new ISOMLayout(g);
-				} else if (layout_mgr.startsWith("spring")) {
-					layout = new SpringLayout2(g);
-				} else if (layout_mgr.startsWith("fr")) {
-					layout = new FRLayout2(g);
-				} else if (layout_mgr.startsWith("kk")) {
-					layout = new KKLayout(g);
-				} else {
-					layout = new CircleLayout(g);
-				}
-				vv.setGraphLayout(layout);
+				m_current_layout_name = cb_layout.getSelectedItem().toString().toLowerCase().trim();
+				
+				vv.setGraphLayout(make_layout(m_current_layout_name, vv.getGraphLayout().getGraph()));
 				vv.repaint();
 			}
         	
@@ -450,8 +450,24 @@ public class CreatorNodeView extends ExternalApplicationNodeView<CreatorNodeMode
 
 	public boolean isViewLocked() {
 		return m_locked;
-	};
+	}
 	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public Layout<MyVertex,MyEdge> make_layout(String name, Graph<MyVertex,MyEdge> g) {
+		if (name == null)
+			return new CircleLayout<MyVertex,MyEdge>(g);
+		if (name.startsWith("isom")) {
+			return new ISOMLayout(g);
+		} else if (name.startsWith("spring")) {
+			return new SpringLayout2(g);
+		} else if (name.startsWith("fr")) {
+			return new FRLayout2(g);
+		} else if (name.startsWith("kk")) {
+			return new KKLayout(g);
+		} else {
+			return new CircleLayout(g);
+		}
+	}
 	/**
 	 * Displays information eg. annotations about the most recently selected edge or vertex
 	 * @author andrew.cassin
