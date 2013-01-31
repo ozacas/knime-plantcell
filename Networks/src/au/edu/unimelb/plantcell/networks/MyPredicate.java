@@ -34,6 +34,10 @@ public abstract class MyPredicate<T> implements Predicate<T> {
 		m_op = s;
 	}
 	
+	protected String getOp() {
+		return m_op;
+	}
+	
 	/**
 	 * is the predicate an edge or vertex filter? (true = vertex, false = edge)
 	 */
@@ -80,7 +84,7 @@ public abstract class MyPredicate<T> implements Predicate<T> {
 	/*
 	 * Only invoked for string or numeric comparison (other operators are handled elsewhere)
 	 */
-	private boolean eval(String op, String val, String required_value) {
+	protected boolean eval(String op, String val, String required_value) {
 		if (val == null || required_value == null || op == null || op.length() < 1)
 			return false;
 		

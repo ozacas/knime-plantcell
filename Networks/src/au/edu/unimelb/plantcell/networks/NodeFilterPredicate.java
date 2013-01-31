@@ -1,10 +1,7 @@
 package au.edu.unimelb.plantcell.networks;
 
+import java.util.Collection;
 import java.util.HashSet;
-import java.util.Set;
-
-import javax.swing.event.ListDataEvent;
-import javax.swing.event.ListDataListener;
 
 import au.edu.unimelb.plantcell.networks.cells.MyEdge;
 import au.edu.unimelb.plantcell.networks.cells.MyVertex;
@@ -19,9 +16,6 @@ import edu.uci.ics.jung.graph.util.Context;
  * @param <T>
  */
 public class NodeFilterPredicate<T extends Context<Graph<MyVertex,MyEdge>, MyVertex>> extends MyPredicate<T> {
-	private MyFilterRuleModel m_rules;
-	private boolean m_rebuild;
-	private final Set<MyVertex> m_acceptable_vertices = new HashSet<MyVertex>();
 	
 	public NodeFilterPredicate(String propName, String op, String value, MyFilterRuleModel rules) {
 		setProp(propName);
@@ -30,26 +24,6 @@ public class NodeFilterPredicate<T extends Context<Graph<MyVertex,MyEdge>, MyVer
 		}
 		setOp(op);
 		setValue(value);
-		m_rebuild = true;
-		m_rules = rules;
-		rules.addListDataListener(new ListDataListener() {
-
-			@Override
-			public void contentsChanged(ListDataEvent arg0) {
-				m_rebuild = true;			
-			}
-
-			@Override
-			public void intervalAdded(ListDataEvent arg0) {
-				m_rebuild = true;
-			}
-
-			@Override
-			public void intervalRemoved(ListDataEvent arg0) {
-				m_rebuild = true;
-			}
-			
-		});
 	}
 
 	@Override
@@ -57,7 +31,6 @@ public class NodeFilterPredicate<T extends Context<Graph<MyVertex,MyEdge>, MyVer
 		return true;
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public boolean evaluate(T c) {
 		String propName = getProp();
@@ -65,34 +38,42 @@ public class NodeFilterPredicate<T extends Context<Graph<MyVertex,MyEdge>, MyVer
 		 * Here we are testing the proposition: do we accept v2 in the view considering all the visible edges
 		 * to a node which has val in them (partial or complete matches, ignoring case)?
 		 */
-		if (propName != null && propName.toLowerCase().equals("<is visibly connected to>")) {
-			// interactive performance is important: if we've already computed the result just return it again
-			if (!m_rebuild) {
-				return m_acceptable_vertices.contains(c.element);
-			}
+		if (propName != null) {
 			String val = getValue().toLowerCase();
-			m_acceptable_vertices.clear();
-			// no rules?
-			if (m_rules == null || m_rules.size() < 1) {
-				m_rebuild = false;
-				return true;
-			}
-			
-			try {
-				for (MyEdge e : c.graph.getEdges()) {
-					if (e.hasVertexNamed(val)) {
-						m_acceptable_vertices.add(e.getSourceVertex());
-						m_acceptable_vertices.add(e.getDestVertex());
+
+			if (propName.toLowerCase().equals("<is visibly connected to>")) {
+				// interactive performance is important: if we've already computed the result just return it again
+				// find the set of all nodes which match val
+				Collection<MyVertex> matching_nodes = new HashSet<MyVertex>();
+				for (MyVertex v : c.graph.getVertices()) {
+					if (v.getID().indexOf(val) >= 0) {
+						matching_nodes.add(v);
 					}
 				}
-				m_rebuild = false;
-				return m_acceptable_vertices.contains(c.element);
-			} catch (IllegalArgumentException iae) {
-				// may happen if the user mistypes a node ID
-				return false;
+				
+				try {
+					for (MyVertex matcher : matching_nodes) {
+						for (MyEdge e: c.graph.getEdges()) {
+							if (e.hasVertices(matcher, c.element)) {
+								return true;
+							} else if (matcher.equals(c.element)) {
+								return true;
+							}
+						}
+					}
+					return false;
+				} catch (IllegalArgumentException iae) {
+					// may happen if the user mistypes a node ID
+					iae.printStackTrace();
+					return false;
+				}
+			} else if (propName.toLowerCase().equals("<degree>")) {
+				int cnt = c.graph.degree(c.element);
+				return super.eval(super.getOp(), String.valueOf(cnt), val);
+			} else {
+				return super.evaluate(c);
 			}
 		} else {
-			m_rebuild = false;
 			return super.evaluate(c);
 		}
 	}
@@ -105,11 +86,5 @@ public class NodeFilterPredicate<T extends Context<Graph<MyVertex,MyEdge>, MyVer
 	@Override
 	public Object getProperty(T c, Object key) {
 		return c.element.getProperty(key);
-	}
-	
-	@Override
-	public void setValue(String new_value) {
-		m_rebuild = true;
-		super.setValue(new_value);
 	}
 }
