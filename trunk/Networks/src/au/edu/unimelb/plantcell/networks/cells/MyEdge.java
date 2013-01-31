@@ -19,7 +19,6 @@ public class MyEdge {
 	private MyVertex m_src, m_dst;
 	private static int m_idx = 1;
 	private String m_id;
-	private String m_row_id;
 	private final Properties props = new Properties();
 	private ColorAttr m_colour = null;
 	
@@ -40,6 +39,17 @@ public class MyEdge {
 		setDistance(distance);
 		m_src = src;
 		m_dst = dst;
+	}
+	
+	/**
+	 * 
+	 * @param src
+	 * @param dst
+	 * @param e gets initial properties from this edge's properties for the newly constructed edge
+	 */
+	public MyEdge(MyVertex src, MyVertex dst, final MyEdge e) {
+		this(src, dst, 0.0);
+		setProperties(e.props);
 	}
 
 	public final String getSource() {
@@ -113,6 +123,8 @@ public class MyEdge {
 			m_id = value;
 		} else if (key.equals("__colour")) {
 			setColour(value);
+		} else if (value == null) {
+			value = "";
 		}
 		props.put(key, value);
 	}
@@ -171,11 +183,11 @@ public class MyEdge {
 	}
 
 	public void setRowID(String s) {
-		m_row_id = s;
+		setProperty("__rowid", s);
 	}
 	
 	public String getRowID() {
-		return m_row_id;
+		return (String) getProperty("__rowid");
 	}
 
 	public boolean hasVertices(MyVertex first, MyVertex second) {
@@ -190,9 +202,9 @@ public class MyEdge {
 		return  (set.contains(m_src) && set.contains(m_dst));
 	}
 
-	public void addEdge(Graph<MyVertex, MyEdge> new_g) {
+	public boolean addEdge(Graph<MyVertex, MyEdge> new_g) {
 		assert(new_g != null);
-		new_g.addEdge(this, m_src, m_dst);
+		return new_g.addEdge(this, m_src, m_dst);
 	}
 
 	public MyVertex getDestVertex() {

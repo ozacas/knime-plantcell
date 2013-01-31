@@ -37,7 +37,7 @@ public class MyVertex implements Paint {
 	
 	
 	public MyVertex() {
-		this(null);
+		this((String)null);
 	}
 	
 	/**
@@ -51,6 +51,14 @@ public class MyVertex implements Paint {
 		m_name = name;
 	}
 	
+	public MyVertex(MyVertex v) {
+		this(v.m_name);
+		for (Object k : v.props.keySet()) {
+			props.setProperty(k.toString(), v.props.getProperty(k.toString()));
+		}
+		m_colour = v.m_colour;
+	}
+
 	public void setID(String new_id) {
 		m_name = new_id;
 	}
