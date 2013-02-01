@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Ensemble
 Bundle-SymbolicName: au.edu.unimelb.plantcell.ensembl; singleton:=true
-Bundle-Version: 1.0.1
+Bundle-Version: 1.0.2
 Bundle-ClassPath: ensembleaddhomologue.jar,
  lib/asm-1.5.3.jar,
  lib/biojava3-core-3.0.3.jar,
