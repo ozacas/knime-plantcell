@@ -8,7 +8,7 @@
     </shortDescription>
     
     <fullDescription>
-        <intro>Reports protein sequences (of different types) for each transcript of the genes
+        <intro>Reports protein sequences (of different types) for each transcript of the gene ID's
         specified in the input table using the <a href="http://www.ensembl.org">Ensembl</a> genome database
         as the source for data. </intro>
         

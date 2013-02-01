@@ -8,7 +8,7 @@
     </shortDescription>
     
     <fullDescription>
-        <intro>Reports homologues (of different types) for each gene specified in the input
+        <intro>Reports homologues (of different types) for each gene ID specified in the input
         table using the <a href="http://www.ensembl.org">Ensembl</a> genome database. </intro>
         
         <option name="Species">Specify the genome identifiers provided in the input table.
