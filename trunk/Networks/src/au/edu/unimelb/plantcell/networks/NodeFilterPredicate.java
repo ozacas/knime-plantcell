@@ -9,7 +9,7 @@ import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.util.Context;
 
 /**
- * Filters nodes based on the chosen criteria. Ugly hack. Need to interoperate better with JUNG.
+ * Filters nodes based on the chosen criteria. Need to interoperate better with JUNG.
  * 
  * @author andrew.cassin
  *
@@ -40,8 +40,9 @@ public class NodeFilterPredicate<T extends Context<Graph<MyVertex,MyEdge>, MyVer
 		 */
 		if (propName != null) {
 			String val = getValue().toLowerCase();
-
-			if (propName.toLowerCase().equals("<is visibly connected to>")) {
+			String l_prop = propName.toLowerCase();
+			
+			if (l_prop.equals("<is visibly connected to>")) {
 				// interactive performance is important: if we've already computed the result just return it again
 				// find the set of all nodes which match val
 				Collection<MyVertex> matching_nodes = new HashSet<MyVertex>();
@@ -67,9 +68,21 @@ public class NodeFilterPredicate<T extends Context<Graph<MyVertex,MyEdge>, MyVer
 					iae.printStackTrace();
 					return false;
 				}
-			} else if (propName.toLowerCase().equals("<degree>")) {
+			} else if (l_prop.equals("<degree>")) {
 				int cnt = c.graph.degree(c.element);
 				return super.eval(super.getOp(), String.valueOf(cnt), val);
+			} else if (l_prop.equals("<multi connected to>")) {
+				String[] ids = val.split("\\s+");
+				int cnt = 0;
+				for (MyEdge e : c.graph.getIncidentEdges(c.element)) {
+					for (int i=0; i<ids.length; i++) {
+						if (e.hasVertexNamed(ids[i])) {
+							cnt++;
+						}
+					}
+				}
+				
+				return (cnt > 1);
 			} else {
 				return super.evaluate(c);
 			}

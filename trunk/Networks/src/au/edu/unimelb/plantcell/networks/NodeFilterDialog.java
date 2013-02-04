@@ -68,6 +68,7 @@ public class NodeFilterDialog extends JDialog {
 		props.add("<Any>");
 		props.add("<Is visibly connected to>");
 		props.add("<degree>");
+		props.add("<multi connected to>");
 		String[] vec = props.toArray(new String[0]);
 		Arrays.sort(vec);
 		final JComboBox cb_prop = new JComboBox(vec);
