@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>PredGPI Accessor</name>
+    
+    <shortDescription>
+        Provides access to the PredGPI web server using klunky CGI-access
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+            <p>
+		Provides access to the PredGPI server, <a href="http://gpcr.biocomp.unibo.it/predgpi/">http://gpcr.biocomp.unibo.it/predgpi/</a> from
+		within KNIME, to provide identification clues for
+		possible GPI-anchored proteins. Trained on arabidopsis and Human proteins,
+		so may not perform as well for other species as described 
+		in <a href="http://link.springer.com/article/10.1186%2F1471-2105-9-392">this paper</a>. 
+            </p>
+                 
+            <p>
+            <b>WARNING:</b> the node gets data over the Internet and this makes 
+		your search data public - be careful with the data you give to this node.
+            </p>
+            
+            <p>
+            <b>WARNING:</b> this node uses <a href="http://en.wikipedia.org/wiki/Screenscraping">screen scraping (actually web scraping)</a> to
+            obtain the data. If the PredGPI website is changed, the node might produce incorrect results. Caveat emptor!
+            </p>
+    
+        </intro>
+ 	</fullDescription>
+    
+    <ports>
+	   <inPort  index="0" name="Input data">One column is used to provide the protein sequences to predict on</inPort>
+
+       <outPort index="0" name="Protein prediction results">Results of GPI prediction</outPort>
+    </ports>    
+   
+</knimeNode>
