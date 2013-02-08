@@ -100,6 +100,11 @@
             category-path="/Bioinformatics/Web Services"
             factory-class="au.edu.unimelb.plantcell.io.ws.suba.SubaNodeFactory"
             id="au.edu.unimelb.plantcell.io.ws.suba"/>
+            
+        <node
+        	category-path="/Bioinformatics/Web Services"
+        	factory-class="au.edu.unimelb.plantcell.io.ws.predgpi.PredGPINodeFactory"
+        	id="au.edu.unimelb.plantcell.io.ws.predgpi"/>
    </extension>
    
 </plugin>
