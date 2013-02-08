@@ -12,9 +12,10 @@
             <p>
 		Provides access to the PredGPI server, <a href="http://gpcr.biocomp.unibo.it/predgpi/">http://gpcr.biocomp.unibo.it/predgpi/</a> from
 		within KNIME, to provide identification clues for
-		possible GPI-anchored proteins. Trained on arabidopsis and Human proteins,
-		so may not perform as well for other species as described 
-		in <a href="http://link.springer.com/article/10.1186%2F1471-2105-9-392">this paper</a>. 
+		possible GPI-anchored proteins. It is very unlikely a partial protein fragment will produce a hit,
+		the algorithm relies on C-Terminal residues being present. The software was trained on Arabidopsis and 
+		human proteins, refer to
+		<a href="http://link.springer.com/article/10.1186%2F1471-2105-9-392">this paper</a> for more details. 
             </p>
                  
             <p>
