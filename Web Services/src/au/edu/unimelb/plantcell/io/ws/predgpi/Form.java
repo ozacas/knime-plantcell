@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -102,10 +103,13 @@ public class Form {
 		
 		int id = 1;
 	    StringBuffer sb2 = new StringBuffer();
+	    Map<String,SequenceValue> map = new HashMap<String,SequenceValue>();
 	    for (SequenceValue sv : sequences) {
-	    	sb2.append(">S"+id++);
+	    	String s_id = "S"+id++;
+	    	sb2.append(">"+s_id);
 	    	sb2.append(CRLF);
 	    	sb2.append(new WrappedSequence(sv.getStringValue()).toString());		// toString() guarantees to always end with CRLF
+	    	map.put(s_id, sv);
 	    }
 	    
 		Part[] parts = {
@@ -119,48 +123,59 @@ public class Form {
 			      );
 		int status = client.executeMethod(http_post);
 	    if (status >= 200 && status < 300) {
-	    	process_predictions(http_post.getResponseBodyAsString(), sequences, cb);
+	    	process_predictions(http_post.getResponseBodyAsString(), map, cb);
 	    } else {
 	    	throw new IOException("PredGPI server down? HTTP status "+status);
 	    }
 	}
 
 	private void process_predictions(String responseBodyAsString,
-			List<SequenceValue> sequences, Callback cb) {
+			Map<String,SequenceValue> map, Callback cb) {
 		
-		responseBodyAsString = responseBodyAsString.replaceAll("[\\r\\n]", " ");
+		responseBodyAsString = responseBodyAsString.replaceAll("[\\r\\n]+", " ");
 		Pattern p = Pattern.compile("<table>\\s*<caption>Proteins\\s*predicted\\s*</caption>(.*?)</table>");
 		Matcher m = p.matcher(responseBodyAsString);
-		HashMap<String,SequenceValue> map = new HashMap<String,SequenceValue>();
-		for (SequenceValue sv : sequences) {
-			map.put(sv.getID(), sv);
-		}
+		
 		if (m.find()) {
 			String protein_table = m.group(1);
 			String[] rows = protein_table.split("</tr>");
-			HashMap<String,String> props = new HashMap<String,String>();
-			p = Pattern.compile("<td class=\"(\\w+)\">([^<]+?)</td>");
-			for (int i=0; i<rows.length; i++) {
-				Matcher m2 = p.matcher(rows[i]);
+			p = Pattern.compile("<td\\s+class=\"([^\"]+?)\">([^<]+?)</td>");
+			for (int i=1; i<rows.length; i++) {		// skip table header row
+				String row = rows[i].trim().replaceAll("[\\r\\n]+", " ");
+				Matcher m2 = p.matcher(row);
+				HashMap<String,String> props = new HashMap<String,String>();
 				while (m2.find()) {
-					props.put(m.group(1), m2.group(2));
+					props.put(m2.group(1), m2.group(2));
 				}
 				
-				if (props.containsKey("name") && props.containsKey("omega") && props.containsKey("FP_r")) {
+				if (props.containsKey("name") && props.containsKey("omega")) {
 					String name = props.get("name").trim();
 					SequenceValue sv = map.get(name);
 					if (sv != null) {
-						String fp_r = props.get("FP_r").trim();
-						if (fp_r.endsWith("%")) {
-							fp_r = fp_r.substring(0, fp_r.length()-1);
+						for (String key : props.keySet()) {
+							if (!key.startsWith("FP_"))
+								continue;
+							String fp = props.get(key).trim();
+							if (fp.endsWith("%")) {
+								fp = fp.substring(0, fp.length()-1);
+							}
+							cb.addPrediction(sv, props.get("omega"), fp, key.substring("FP_".length()));
+							break;
 						}
-						cb.addPrediction(sv, props.get("omega"), fp_r);
 					} else {
 						cb.warn("No sequence with ID: "+name);
 					}
+					map.remove(name);
 				}
 			}
 		}
+		
+		if (map.size() > 0) {
+			for (SequenceValue sv : map.values()) {
+				cb.warn("No prediction available for "+sv.getID());
+			}
+		}
+		map.clear();
 	}
 	
 	
