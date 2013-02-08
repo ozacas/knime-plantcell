@@ -136,6 +136,7 @@ public class Form {
 		Pattern p = Pattern.compile("<table>\\s*<caption>Proteins\\s*predicted\\s*</caption>(.*?)</table>");
 		Matcher m = p.matcher(responseBodyAsString);
 		
+		// recognise what to screenscrape?
 		if (m.find()) {
 			String protein_table = m.group(1);
 			String[] rows = protein_table.split("</tr>");
@@ -170,6 +171,7 @@ public class Form {
 			}
 		}
 		
+		// should not happen...
 		if (map.size() > 0) {
 			for (SequenceValue sv : map.values()) {
 				cb.warn("No prediction available for "+sv.getID());
