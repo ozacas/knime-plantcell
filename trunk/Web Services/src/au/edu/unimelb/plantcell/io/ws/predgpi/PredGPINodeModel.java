@@ -8,7 +8,9 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
 import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -43,6 +45,12 @@ public class PredGPINodeModel extends NodeModel {
 	private final SettingsModelString m_seq_col   = new SettingsModelString(CFGKEY_SEQUENCE, "Sequence");
 	private final SettingsModelString m_model     = new SettingsModelString(CFGKEY_MODEL,    "general" );
 	
+	// internal state
+	private static StringCell m_highly_probable = new StringCell("highly probable");
+	private static StringCell m_probable        = new StringCell("probable");
+	private static StringCell m_unlikely        = new StringCell("unlikely");
+	private static StringCell m_no              = new StringCell("no");
+	
 	public PredGPINodeModel() {
 		this(1, 1);
 	}
@@ -52,10 +60,11 @@ public class PredGPINodeModel extends NodeModel {
 	}
 	
 	public DataTableSpec[] make_output_spec(DataTableSpec inSpec) {
-		DataColumnSpec[] cols = new DataColumnSpec[3];
+		DataColumnSpec[] cols = new DataColumnSpec[4];
 		cols[0] = new DataColumnSpecCreator("Sequence", SequenceCell.TYPE).createSpec();
 		cols[1] = new DataColumnSpecCreator("Omega Site", IntCell.TYPE).createSpec();
 		cols[2] = new DataColumnSpecCreator("Specificity (FP_r)", DoubleCell.TYPE).createSpec();
+		cols[3] = new DataColumnSpecCreator("Prediction summary", StringCell.TYPE).createSpec();
 		
 		return new DataTableSpec[] { new DataTableSpec(cols) };
 	}
@@ -66,7 +75,7 @@ public class PredGPINodeModel extends NodeModel {
 		DataTableSpec[]        outputSpecs = make_output_spec(inData[0].getSpec());
     	final MyDataContainer c     = new MyDataContainer(exec.createDataContainer(outputSpecs[0]), "Prot");
         	
-		int n_rows     = inData[0].getRowCount();
+		final int n_rows     = inData[0].getRowCount();
 		int seq_idx    = inData[0].getDataTableSpec().findColumnIndex(m_seq_col.getStringValue());
 		if (seq_idx < 0)
 			throw new InvalidSettingsException("Cannot find column: "+m_seq_col.getStringValue()+" - reconfigure the node?");
@@ -76,7 +85,7 @@ public class PredGPINodeModel extends NodeModel {
 		f.setModel(m_model.getStringValue());
 		
 		Callback cb = new Callback() {
-		
+			
 			@Override
 			public void updateStatus() throws CanceledExecutionException {
 				exec.checkCanceled();
@@ -88,23 +97,38 @@ public class PredGPINodeModel extends NodeModel {
 			}
 			
 			@Override
-			public void addPrediction(SequenceValue sv, String omega, String fp_r) {
-				DataCell[] cells = new DataCell[3];
+			public void addPrediction(SequenceValue sv, String omega, String fp, String key) {
+				DataCell[] cells = new DataCell[4];
 				try {
 					cells[0] = new SequenceCell(sv);
 				} catch (InvalidSettingsException e) {
 					e.printStackTrace();
 					return;
 				}
-				cells[1] = new IntCell(Integer.valueOf(omega));
-				cells[2] = new DoubleCell(Double.valueOf(fp_r));
+				cells[1] = (omega == null) ? DataType.getMissingCell() : new IntCell(Integer.valueOf(omega));
+				Double specificity = Double.valueOf(fp);
+				cells[2] = (fp == null) ? DataType.getMissingCell() : new DoubleCell(specificity);
+				cells[3] = prediction_summary(key);
 				c.addRow(cells);
+			}
+
+			// from the PredGPI publication as stated by the authors in the methods
+			private DataCell prediction_summary(String prediction_class) {
+				if (prediction_class.startsWith("g")) {
+					return m_highly_probable;
+				} else if (prediction_class.startsWith("y")) {
+					return m_probable;
+				} else if (prediction_class.startsWith("o")) {
+					return m_unlikely;
+				} else {
+					return m_no;
+				}
 			}
 		};
 		
-		int done = 0;
+		// here we stay well within the website's limits to be friendly to other users
 		BatchSequenceRowIterator bsi = new BatchSequenceRowIterator(inData[0].iterator(), 
-				seq_idx, 50, 100 * 1024, new SequenceProcessor() {
+				seq_idx, 50, 50 * 1024, new SequenceProcessor() {
 
 					@Override
 					public SequenceValue process(SequenceValue sv) {
@@ -121,6 +145,7 @@ public class PredGPINodeModel extends NodeModel {
 			
 		});
 		
+		int done = 0;
 		while (bsi.hasNext()) {
 			List<SequenceValue> batch = bsi.next();
 			if (batch == null)
@@ -134,6 +159,7 @@ public class PredGPINodeModel extends NodeModel {
 				logger.info("Waiting 30s to be nice to PredGPI server");
 				Thread.sleep(30 * 1000);
 			}
+			done += batch.size();
 		}
 		
 		return new BufferedDataTable[] { c.close() };

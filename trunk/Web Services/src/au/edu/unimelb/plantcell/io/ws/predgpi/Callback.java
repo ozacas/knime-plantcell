@@ -33,6 +33,7 @@ public interface Callback {
 	 * @param sv
 	 * @param omega_site
 	 * @param fp_r
+	 * @param key 
 	 */
-	public void addPrediction(SequenceValue sv, String omega_site, String fp_r);
+	public void addPrediction(SequenceValue sv, String omega_site, String fp_r, String key);
 }
