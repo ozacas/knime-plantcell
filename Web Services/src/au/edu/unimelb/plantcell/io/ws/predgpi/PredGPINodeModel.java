@@ -5,13 +5,14 @@ import java.net.URL;
 import java.util.List;
 
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnProperties;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.DoubleCell;
-import org.knime.core.data.def.StringCell;
 import org.knime.core.data.def.IntCell;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -25,9 +26,15 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.core.SequenceProcessor;
+import au.edu.unimelb.plantcell.core.cells.CoordinateSystem;
 import au.edu.unimelb.plantcell.core.cells.SequenceCell;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
+import au.edu.unimelb.plantcell.core.cells.Track;
+import au.edu.unimelb.plantcell.core.cells.TrackColumnPropertiesCreator;
+import au.edu.unimelb.plantcell.core.cells.TrackCreator;
 import au.edu.unimelb.plantcell.io.read.fasta.BatchSequenceRowIterator;
+import au.edu.unimelb.plantcore.core.regions.PredGPIRegionsAnnotation;
+import au.edu.unimelb.plantcore.core.regions.ScoredRegion;
 
 public class PredGPINodeModel extends NodeModel {
 	 // the logger instance
@@ -61,7 +68,23 @@ public class PredGPINodeModel extends NodeModel {
 	
 	public DataTableSpec[] make_output_spec(DataTableSpec inSpec) {
 		DataColumnSpec[] cols = new DataColumnSpec[4];
-		cols[0] = new DataColumnSpecCreator("Sequence", SequenceCell.TYPE).createSpec();
+
+		DataColumnSpecCreator dcsc = new DataColumnSpecCreator("Sequence (incl. PredGPI annotation)", SequenceCell.TYPE);
+		int index = inSpec.findColumnIndex(m_seq_col.getStringValue());
+		if (index >= 0) {
+	        DataColumnProperties isp = inSpec.getColumnSpec(index).getProperties();
+			TrackColumnPropertiesCreator tcpc;
+			try {
+				tcpc = new TrackColumnPropertiesCreator(isp,
+												new Track(Track.PREDGPI_TRACK, getTrackCreator())
+											);
+				dcsc.setProperties(tcpc.getProperties());
+			} catch (InvalidSettingsException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		cols[0] = dcsc.createSpec();
 		cols[1] = new DataColumnSpecCreator("Omega Site", IntCell.TYPE).createSpec();
 		cols[2] = new DataColumnSpecCreator("Specificity (FP_r)", DoubleCell.TYPE).createSpec();
 		cols[3] = new DataColumnSpecCreator("Prediction summary", StringCell.TYPE).createSpec();
@@ -99,16 +122,25 @@ public class PredGPINodeModel extends NodeModel {
 			@Override
 			public void addPrediction(SequenceValue sv, String omega, String fp, String key) {
 				DataCell[] cells = new DataCell[4];
+				int omega_site = Integer.valueOf(omega);
+				cells[1] = (omega == null) ? DataType.getMissingCell() : new IntCell(omega_site);
+				Double specificity = Double.valueOf(fp);
+				cells[2] = (fp == null) ? DataType.getMissingCell() : new DoubleCell(specificity);
+				cells[3] = prediction_summary(key);
 				try {
-					cells[0] = new SequenceCell(sv);
+            		SequenceCell sc = new SequenceCell(sv);
+            		// NB: only add an annotation if there is an omega site prediction
+            		if (!cells[3].equals(m_no)) {
+            			Track t = sc.addTrack(Track.PREDGPI_TRACK, getTrackCreator());
+            			PredGPIRegionsAnnotation ra = new PredGPIRegionsAnnotation();
+            			ra.addRegion(new ScoredRegion(omega_site, "omega site", specificity.doubleValue()));
+            			t.addAnnotation(ra);
+            		}
+					cells[0] = sc;
 				} catch (InvalidSettingsException e) {
 					e.printStackTrace();
 					return;
 				}
-				cells[1] = (omega == null) ? DataType.getMissingCell() : new IntCell(Integer.valueOf(omega));
-				Double specificity = Double.valueOf(fp);
-				cells[2] = (fp == null) ? DataType.getMissingCell() : new DoubleCell(specificity);
-				cells[3] = prediction_summary(key);
 				c.addRow(cells);
 			}
 
@@ -165,6 +197,17 @@ public class PredGPINodeModel extends NodeModel {
 		return new BufferedDataTable[] { c.close() };
 	}
 	
+	private TrackCreator getTrackCreator() {
+		return new TrackCreator() {
+
+			@Override
+			public Track createTrack(String name)
+					throws InvalidSettingsException {
+				return new Track(name, new PredGPIRegionsAnnotation(), CoordinateSystem.OFFSET_FROM_START);
+			}
+			
+		};
+	}
 
 	@Override
 	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
