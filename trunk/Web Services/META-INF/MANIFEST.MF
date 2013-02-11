@@ -40,6 +40,7 @@ Export-Package: au.edu.unimelb.plantcell.io.ws.aacon,
  au.edu.unimelb.plantcell.io.ws.togows,
  au.edu.unimelb.plantcell.io.ws.uniprot
 Import-Package: au.edu.unimelb.plantcell.core,
+ au.edu.unimelb.plantcell.core.cells,
  au.edu.unimelb.plantcell.io.read.xml,
  au.edu.unimelb.plantcell.io.ws.multialign,
  com.fatdog.xmlEngine,
