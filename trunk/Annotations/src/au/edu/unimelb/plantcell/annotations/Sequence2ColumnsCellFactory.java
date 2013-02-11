@@ -49,6 +49,16 @@ public class Sequence2ColumnsCellFactory extends AbstractCellFactory {
     		   want.add(s);
     	   }
 	    }
+	    
+	    /**
+	     * The KNIME code automagically assumes if no columns are being added to the main output port
+	     * that the getCells() method ie. <code>this.getCells()</code> does not need to be called. Too smart. 
+	     * Ok, so we catch this and hack around it where the user has not requested new columns in the main output port
+	     */
+	    if (wanted_tracks.size() == wanted.length) { // UGLY HACK
+	    	m_wanted = new String[] { Sequence2StringsNodeModel.SEQUENCE_ID };		
+	    	want.add(m_wanted[0]);
+	    }
 	}
 	
 
@@ -78,7 +88,7 @@ public class Sequence2ColumnsCellFactory extends AbstractCellFactory {
 	}
 
 	/**
-     * KNIME requires at least one column, so we guarantee that despite user-configuration
+     * KNIME requires at least one column, so we guarantee that despite user-configuration. 
      * @param spec
      * @param wanted 
      * @return
@@ -162,7 +172,7 @@ public class Sequence2ColumnsCellFactory extends AbstractCellFactory {
 	 * Append the necessary columns to the input table as specified by the internal state of the factory
 	 */
 	@Override
-	public DataCell[] getCells(DataRow row) {
+	public DataCell[] getCells(final DataRow row) {
 		DataCell c = row.getCell(m_col);
 		if (c == null || c.isMissing() || !(c instanceof SequenceValue))
 			return missing_cells(getColumnSpecs().length);
@@ -203,7 +213,7 @@ public class Sequence2ColumnsCellFactory extends AbstractCellFactory {
 			   // FALL-THRU
 		    } 
 		    
-		    // no tracks so just output the row
+		    // output the row
 		    return row(ocells, m_cols);
 		} catch (InvalidSettingsException ise) {
 			ise.printStackTrace();
