@@ -127,7 +127,7 @@ public class FastaReaderNodeModel extends AbstractFastaNodeModel {
         SequenceType st = SequenceType.getValue(m_seqtype.getStringValue());
         
         this.setSingleEntry(m_entry_handler.getStringValue().equals(DEFAULT_ENTRY_HANDLER));
-        this.setUseAccessionAsRowID(true);
+        this.setUseAccessionAsRowID(m_use_accsn_as_rowid.getBooleanValue());
         
         for (String fname : filenames) {
            logger.info("Processing FASTA file: "+fname);

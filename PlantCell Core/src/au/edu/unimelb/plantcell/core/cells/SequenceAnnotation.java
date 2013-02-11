@@ -16,6 +16,7 @@ import au.edu.unimelb.plantcore.core.regions.AlignedRegionsAnnotation;
 import au.edu.unimelb.plantcore.core.regions.GeneRegionsAnnotation;
 import au.edu.unimelb.plantcore.core.regions.InterProRegionsAnnotation;
 import au.edu.unimelb.plantcore.core.regions.PhobiusRegionsAnnotation;
+import au.edu.unimelb.plantcore.core.regions.PredGPIRegionsAnnotation;
 import au.edu.unimelb.plantcore.core.regions.RegionInterface;
 import au.edu.unimelb.plantcore.core.regions.RegionsAnnotation;
 import au.edu.unimelb.plantcore.core.regions.TMHMMRegionsAnnotation;
@@ -108,6 +109,8 @@ public abstract class SequenceAnnotation {
 				return new NumericAnnotation();
 			case GENE_PREDICTION_REGIONS:
 				return new GeneRegionsAnnotation();
+			case PREDGPI_REGIONS:
+				return new PredGPIRegionsAnnotation();
 			default:
 				return new UserDefinedAnnotation();
 		}
