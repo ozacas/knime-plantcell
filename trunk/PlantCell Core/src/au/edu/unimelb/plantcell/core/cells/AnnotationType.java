@@ -58,6 +58,11 @@ public enum AnnotationType implements TrackSummaryInterface {
 	GENE_PREDICTION_REGIONS {
 		public String[] labels()   { return Track.NO_LABELS; };
 		public String   toString() { return "Gene Prediction"; };
+	},
+	
+	PREDGPI_REGIONS {
+		public String[] labels() { return Track.NO_LABELS; };
+		public String   toString() { return "PredGPI prediction"; }
 	};
 	
 	/**
@@ -72,6 +77,7 @@ public enum AnnotationType implements TrackSummaryInterface {
 		case LABELLED_REGIONS:
 		case TMHMM_REGIONS:
 		case GENE_PREDICTION_REGIONS:
+		case PREDGPI_REGIONS:
 			return true;
 		default:
 			return false;
