@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.misc.biojava;
+package au.edu.unimelb.plantcell.core.biojava.tasks;
 
 import org.biojava.bio.seq.DNATools;
 import org.biojava.bio.seq.RNATools;
@@ -11,15 +11,16 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
+import au.edu.unimelb.plantcell.misc.biojava.BioJavaProcessorNodeModel;
 
 
-public class SequenceTranslationProcessor extends BioJavaProcessorTask {
+public class SequenceTranslationTask extends BioJavaProcessorTask {
 	private boolean m_convert_dna2prot;
 	private boolean m_convert_rna2prot;
 	private boolean m_convert_dna2rna;
 	private int m_col;
 	
-	public SequenceTranslationProcessor() {
+	public SequenceTranslationTask() {
 	}
 	
 	@Override
@@ -28,7 +29,7 @@ public class SequenceTranslationProcessor extends BioJavaProcessorTask {
 	}
 	
 	public static BioJavaProcessorTask getInstance() {
-		return new SequenceTranslationProcessor();
+		return new SequenceTranslationTask();
 	}
 	
 	public void init(BioJavaProcessorNodeModel m, String task, int col) {

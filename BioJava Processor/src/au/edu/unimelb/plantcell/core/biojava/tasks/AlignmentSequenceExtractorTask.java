@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.misc.biojava;
+package au.edu.unimelb.plantcell.core.biojava.tasks;
 
 import java.util.ArrayList;
 
@@ -16,6 +16,7 @@ import au.edu.unimelb.plantcell.core.cells.SequenceCell;
 import au.edu.unimelb.plantcell.core.cells.SequenceType;
 import au.edu.unimelb.plantcell.io.ws.multialign.AlignmentValue;
 import au.edu.unimelb.plantcell.io.ws.multialign.AlignmentValue.AlignmentType;
+import au.edu.unimelb.plantcell.misc.biojava.BioJavaProcessorNodeModel;
 
 public class AlignmentSequenceExtractorTask extends BioJavaProcessorTask {
 	private int m_alignment_col = -1;

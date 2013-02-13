@@ -18,6 +18,8 @@ import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.NodeLogger;
 
+import au.edu.unimelb.plantcell.core.biojava.tasks.BioJavaProcessorTask;
+
 
 /**
  * Disabled until further notice -- pending a refactoring of the biojava node

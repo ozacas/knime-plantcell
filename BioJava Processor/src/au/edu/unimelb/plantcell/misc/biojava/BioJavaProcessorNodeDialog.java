@@ -33,6 +33,8 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 
+import au.edu.unimelb.plantcell.core.biojava.tasks.BioJavaProcessorTask;
+
 /**
  * <code>NodeDialog</code> for the "BioJavaProcessor" Node.
  * Analyses the specified data (often using http://www.biojava.org) and produces the result at output

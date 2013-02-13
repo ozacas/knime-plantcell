@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.misc.biojava;
+package au.edu.unimelb.plantcell.core.biojava.tasks;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -12,8 +12,9 @@ import org.knime.core.data.def.StringCell;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceType;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
+import au.edu.unimelb.plantcell.misc.biojava.BioJavaProcessorNodeModel;
 
-public class SequenceCleanerProcessor extends BioJavaProcessorTask {
+public class SequenceCleanerTask extends BioJavaProcessorTask {
 	private final Set<Character> m_dna = new HashSet<Character>();
 	private final Set<Character> m_rna = new HashSet<Character>();
 	private final Set<Character> m_aa  = new HashSet<Character>();
@@ -68,7 +69,7 @@ public class SequenceCleanerProcessor extends BioJavaProcessorTask {
 				"<ul>" +
 				"<li>Removal of all whitespace (space, tab, other)</li>"+
 				"<li>Conversion of all residue symbols to uppercase</li>"+
-				"<li>Conversion of all stop codons to X</li>"+
+				"<li>Removal of trailing stop codon(s). Conversion of remaining stop codons to X</li>"+
 				"<li>Removal of non-coding symbols for the chosen sequence type. A count " +
 				" of any residues removed from sequences appears in a separate column."  +
 				"</li>"+

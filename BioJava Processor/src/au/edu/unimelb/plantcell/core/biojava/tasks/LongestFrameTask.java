@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.misc.biojava;
+package au.edu.unimelb.plantcell.core.biojava.tasks;
 
 import org.biojava.bio.seq.DNATools;
 import org.biojava.bio.seq.RNATools;
@@ -14,6 +14,7 @@ import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
+import au.edu.unimelb.plantcell.misc.biojava.BioJavaProcessorNodeModel;
 
 /** 
  * Gross hack to identify the "longest ORF" - but really this code is only a partial
@@ -23,13 +24,13 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
  * @author andrew.cassin
  *
  */
-public class LongestFrameProcessor extends BioJavaProcessorTask {
+public class LongestFrameTask extends BioJavaProcessorTask {
 	private boolean m_start_codon, m_stop_codon;
 	private boolean m_convert_to_protein;
 	private boolean m_forward, m_reverse;
 	private int m_col = -1;
 	
-	public LongestFrameProcessor() {
+	public LongestFrameTask() {
 	}
 	
 	@Override
@@ -38,7 +39,7 @@ public class LongestFrameProcessor extends BioJavaProcessorTask {
 	}
 	
 	public static BioJavaProcessorTask getInstance() {
-		return new LongestFrameProcessor();
+		return new LongestFrameTask();
 	}
 	
 	public void init(BioJavaProcessorNodeModel m, String task, int col) {
