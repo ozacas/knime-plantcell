@@ -3,6 +3,7 @@ package au.edu.unimelb.plantcell.misc.biojava;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
@@ -21,6 +22,19 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+
+import au.edu.unimelb.plantcell.core.biojava.tasks.AlignmentSequenceExtractorTask;
+import au.edu.unimelb.plantcell.core.biojava.tasks.AlternateTranslationTask;
+import au.edu.unimelb.plantcell.core.biojava.tasks.BioJavaProcessorTask;
+import au.edu.unimelb.plantcell.core.biojava.tasks.FrameTranslationTask;
+import au.edu.unimelb.plantcell.core.biojava.tasks.GCCalculatorTask;
+import au.edu.unimelb.plantcell.core.biojava.tasks.HydrophobicityTask;
+import au.edu.unimelb.plantcell.core.biojava.tasks.LongestFrameTask;
+import au.edu.unimelb.plantcell.core.biojava.tasks.PositionByResidueTask;
+import au.edu.unimelb.plantcell.core.biojava.tasks.ResidueFrequencyTask;
+import au.edu.unimelb.plantcell.core.biojava.tasks.SequenceCleanerTask;
+import au.edu.unimelb.plantcell.core.biojava.tasks.SequenceTranslationTask;
+import au.edu.unimelb.plantcell.core.biojava.tasks.WeightedHomopolymerRateTask;
 
 
 /**
@@ -84,20 +98,28 @@ public class BioJavaProcessorNodeModel extends NodeModel {
     
     public static BioJavaProcessorTask[] getTasks() {
     	return new BioJavaProcessorTask[] {
-				new AlternateTranslationProcessor(),
-				new FrameTranslationProcessor(),
-				new HydrophobicityProcessor(),
-				new LongestFrameProcessor(),		// experimental (warning to all users)
+				new AlternateTranslationTask(),
+				new FrameTranslationTask(),
+				new HydrophobicityTask(),
+				new LongestFrameTask(),		// experimental (warning to all users)
 				//new PositionByResidueProcessor(),
-				new ResidueFrequencyProcessor(),
-				new SequenceTranslationProcessor(),
-				new SequenceCleanerProcessor(),
+				new ResidueFrequencyTask(),
+				new SequenceTranslationTask(),
+				new SequenceCleanerTask(),
 				new SNPAssistedFrameshiftDetector(),
 				//TrypticPeptideExtractor_v2.getInstance(),		// disabled pending a re-factor
-				new WeightedHomopolymerRateProcessor(),
+				new WeightedHomopolymerRateTask(),
 				new AlignmentSequenceExtractorTask(),
 				new GCCalculatorTask()
     	};
+    }
+    
+    public static String[] getTaskNames() {
+    	Collection<BioJavaProcessorTask> tasks = new ArrayList<BioJavaProcessorTask>();
+    	for (BioJavaProcessorTask t : getTasks()) {
+    		tasks.add(t);
+    	}
+    	return getTaskNames(tasks);
     }
     
     public static String[] getTaskNames(Iterable<BioJavaProcessorTask> tasks) {
@@ -112,27 +134,27 @@ public class BioJavaProcessorNodeModel extends NodeModel {
     
     public BioJavaProcessorTask make_biojava_processor(String task) throws NotConfigurableException,NotImplementedException {
     	if (task.startsWith("Hydrophobicity")) {
-    		return new HydrophobicityProcessor();
+    		return new HydrophobicityTask();
     	} else if (task.startsWith("Six")) {
-    		return new FrameTranslationProcessor();
+    		return new FrameTranslationTask();
     	} else if (task.startsWith("Convert")) {
-    		return new SequenceTranslationProcessor();
+    		return new SequenceTranslationTask();
     	} else if (task.startsWith("Alternate translation")) {
-    		return new AlternateTranslationProcessor();
+    		return new AlternateTranslationTask();
     	} else if (task.startsWith("Count")) {
-    		return new ResidueFrequencyProcessor();
+    		return new ResidueFrequencyTask();
     	} else if (task.equals("Residue Frequency by Position")) {
-    		return new PositionByResidueProcessor();
+    		return new PositionByResidueTask();
     	} else if (task.startsWith("Longest reading frame")) {
-    		return new LongestFrameProcessor();
+    		return new LongestFrameTask();
     	} else if (task.startsWith("Weighted")) {
-    		return new WeightedHomopolymerRateProcessor();
+    		return new WeightedHomopolymerRateTask();
     	} else if (task.startsWith("SNP")) {
     		return new SNPAssistedFrameshiftDetector();
     	} else if (task.startsWith("Tryptic")) {
     		return new TrypticPeptideExtractor_v2();
     	} else if (task.startsWith("Clean")) {
-    		return new SequenceCleanerProcessor();
+    		return new SequenceCleanerTask();
     	} else if (task.startsWith("Alignment")) {
     		return new AlignmentSequenceExtractorTask();
     	} else if (task.startsWith("GC")) {

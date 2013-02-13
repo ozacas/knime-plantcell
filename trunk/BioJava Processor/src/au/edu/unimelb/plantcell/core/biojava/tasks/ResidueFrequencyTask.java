@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.misc.biojava;
+package au.edu.unimelb.plantcell.core.biojava.tasks;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -11,6 +11,7 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.def.IntCell;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
+import au.edu.unimelb.plantcell.misc.biojava.BioJavaProcessorNodeModel;
 
 /**
  *  Speed is important here, for large sequence databases (eg. short reads from NextGenSeq etc.)
@@ -18,12 +19,12 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
  * @author acassin
  *
  */
-public class ResidueFrequencyProcessor extends BioJavaProcessorTask {
+public class ResidueFrequencyTask extends BioJavaProcessorTask {
 	private boolean m_single_residue;
 	private final HashMap<String, Integer> m_colmap = new HashMap<String,Integer>(); // maps column name (ie. symbol name) to a corresponding column id
 	private int m_col = -1;
 	
-	public ResidueFrequencyProcessor() {
+	public ResidueFrequencyTask() {
 	}
 	
 	@Override
@@ -32,7 +33,7 @@ public class ResidueFrequencyProcessor extends BioJavaProcessorTask {
 	}
 	
 	public static BioJavaProcessorTask getInstance() {
-		return new ResidueFrequencyProcessor();
+		return new ResidueFrequencyTask();
 	}
 	
 	public void init(BioJavaProcessorNodeModel owner, String task, int col) {

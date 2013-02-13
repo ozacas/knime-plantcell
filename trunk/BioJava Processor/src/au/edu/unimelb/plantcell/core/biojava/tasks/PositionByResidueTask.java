@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.misc.biojava;
+package au.edu.unimelb.plantcell.core.biojava.tasks;
 
 import java.util.ArrayList;
 
@@ -12,6 +12,8 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
+import au.edu.unimelb.plantcell.misc.biojava.BioJavaProcessorNodeModel;
+import au.edu.unimelb.plantcell.misc.biojava.TaskParameter;
 
 /**
  * Adds columns for each position (up to the specified maximum length in the constructor) 
@@ -21,11 +23,11 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
  * @author andrew.cassin
  *
  */
-public class PositionByResidueProcessor extends BioJavaProcessorTask {
+public class PositionByResidueTask extends BioJavaProcessorTask {
 	private int m_maxlen;
 	private int m_col = -1;
 	
-	public PositionByResidueProcessor() {
+	public PositionByResidueTask() {
 	}
 	
 	@Override
@@ -34,7 +36,7 @@ public class PositionByResidueProcessor extends BioJavaProcessorTask {
 	}
 	
 	public static BioJavaProcessorTask getInstance() {
-		return new PositionByResidueProcessor();
+		return new PositionByResidueTask();
 	}
 	
 	public void init(BioJavaProcessorNodeModel m, String task, int col) throws InvalidSettingsException {

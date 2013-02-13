@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.misc.biojava;
+package au.edu.unimelb.plantcell.core.biojava.tasks;
 
 import java.io.InputStreamReader;
 
@@ -25,6 +25,7 @@ import org.knime.core.data.def.DoubleCell;
 import org.osgi.framework.Bundle;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
+import au.edu.unimelb.plantcell.misc.biojava.BioJavaProcessorNodeModel;
 
 /**
  * Computes the Mass, pI and hydrophobicity of the specified sequences, using the
@@ -33,13 +34,13 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
  * @author acassin
  *
  */
-public class HydrophobicityProcessor extends BioJavaProcessorTask {
+public class HydrophobicityTask extends BioJavaProcessorTask {
 	private int m_col = -1;
 	private MassCalc mc, mc_mi;
 	private AAindex hydrophobicity;
 	private IsoelectricPointCalc ic;
 	
-	public HydrophobicityProcessor() {
+	public HydrophobicityTask() {
 		super();
 	}
 	
@@ -49,7 +50,7 @@ public class HydrophobicityProcessor extends BioJavaProcessorTask {
 	}
 	
 	public static BioJavaProcessorTask getInstance() {
-		return new HydrophobicityProcessor();
+		return new HydrophobicityTask();
 	}
 	
 	public void init(BioJavaProcessorNodeModel owner, String task_name, int col) throws Exception {

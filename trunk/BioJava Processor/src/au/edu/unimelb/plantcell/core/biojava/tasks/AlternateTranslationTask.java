@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.misc.biojava;
+package au.edu.unimelb.plantcell.core.biojava.tasks;
 
 
 import org.biojava.bio.seq.DNATools;
@@ -13,14 +13,15 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.def.StringCell;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
+import au.edu.unimelb.plantcell.misc.biojava.BioJavaProcessorNodeModel;
 
 
-public class AlternateTranslationProcessor extends BioJavaProcessorTask {
+public class AlternateTranslationTask extends BioJavaProcessorTask {
 	private TranslationTable[] m_tables;
 	private String[]           m_table_names;
 	private int m_wanted_col = -1;
 	
-	public AlternateTranslationProcessor() {
+	public AlternateTranslationTask() {
 		super();
 	}
 	

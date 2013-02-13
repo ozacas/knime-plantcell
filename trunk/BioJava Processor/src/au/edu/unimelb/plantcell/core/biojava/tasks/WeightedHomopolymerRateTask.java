@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.misc.biojava;
+package au.edu.unimelb.plantcell.core.biojava.tasks;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -8,12 +8,13 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.def.DoubleCell;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
+import au.edu.unimelb.plantcell.misc.biojava.BioJavaProcessorNodeModel;
 
-public class WeightedHomopolymerRateProcessor extends
+public class WeightedHomopolymerRateTask extends
 		BioJavaProcessorTask {
 	private int m_col;
 	
-	public WeightedHomopolymerRateProcessor() {
+	public WeightedHomopolymerRateTask() {
 	}
 	
 	@Override
@@ -22,7 +23,7 @@ public class WeightedHomopolymerRateProcessor extends
 	}
 	
 	public static BioJavaProcessorTask getInstance() {
-		return new WeightedHomopolymerRateProcessor();
+		return new WeightedHomopolymerRateTask();
 	}
 	
 	public void init(BioJavaProcessorNodeModel m, String task, int col) {

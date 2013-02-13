@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.misc.biojava;
+package au.edu.unimelb.plantcell.core.biojava.tasks;
 
 import org.biojava.bio.seq.DNATools;
 import org.biojava.bio.seq.RNATools;
@@ -11,13 +11,14 @@ import org.knime.core.data.def.StringCell;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceType;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
+import au.edu.unimelb.plantcell.misc.biojava.BioJavaProcessorNodeModel;
 
 
-public class FrameTranslationProcessor extends BioJavaProcessorTask {
+public class FrameTranslationTask extends BioJavaProcessorTask {
 	private boolean m_incl_na_seqs;		// include NA frames for use by later processing steps
 	private int     m_col = -1;
 	
-	public FrameTranslationProcessor() {
+	public FrameTranslationTask() {
 	}
 	
 	@Override
@@ -26,7 +27,7 @@ public class FrameTranslationProcessor extends BioJavaProcessorTask {
 	}
 	
 	public static BioJavaProcessorTask getInstance() {
-		return new FrameTranslationProcessor();
+		return new FrameTranslationTask();
 	}
 	
 	@Override

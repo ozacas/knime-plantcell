@@ -6,6 +6,7 @@ import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.def.IntCell;
 
+import au.edu.unimelb.plantcell.core.biojava.tasks.BioJavaProcessorTask;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 
 /**
