@@ -106,7 +106,7 @@ public class Sequence2StringsNodeModel extends NodeModel {
        
        // 2. and the remainder of desired columns can be handled by the node's cell factory...
        MyDataContainer c2 = null;
-       if (left.size() > 0) {
+       if (left.size() > 0) {		// something selected which is not handled by biojava task(s)?
     	   Sequence2ColumnsCellFactory s2ccf = new Sequence2ColumnsCellFactory(m_seq_idx, 
     		   											left.toArray(new String[0]), logger, inData[0].getSpec());
     	   factories.add(s2ccf);

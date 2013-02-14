@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Sequence Annotations
 Bundle-SymbolicName: au.edu.unimelb.plantcell.annotations;singleton:=true
-Bundle-Version: 1.2.12
+Bundle-Version: 1.2.13
 Bundle-ClassPath: regionanalyzer.jar
 Bundle-Vendor: http://www.plantcell.unimelb.edu.au/bioinformatics
 Require-Bundle: org.eclipse.core.runtime,
@@ -23,7 +23,8 @@ Require-Bundle: org.eclipse.core.runtime,
  org.apache.batik.util;bundle-version="1.6.0",
  org.apache.batik.util.gui;bundle-version="1.6.0",
  org.apache.batik.xml;bundle-version="1.6.0",
- au.edu.unimelb.plantcell.misc.biojava;bundle-version="1.2.4"
+ au.edu.unimelb.plantcell.misc.biojava;bundle-version="1.2.4",
+ au.edu.unimelb.plantcell.io.ws.multialign;bundle-version="1.2.2"
 Bundle-ActivationPolicy: lazy
 Export-Package: au.edu.unimelb.plantcell.annotations
 Import-Package: org.w3c.dom,
