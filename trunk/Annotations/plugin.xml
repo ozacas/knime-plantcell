@@ -13,6 +13,14 @@
    <extension
          point="org.knime.workbench.repository.nodes">
       <node
+            category-path="/Bioinformatics/Sequence Analysis/Annotations"
+            factory-class="au.edu.unimelb.plantcell.annotations.Alignment2SequenceNodeFactory"
+            id="au.edu.unimelb.plantcell.annotations.Alignment2SequenceNodeFactory" />
+   </extension>
+   
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
             category-path="/Bioinformatics/Write"
             factory-class="au.edu.unimelb.plantcell.io.write.gff.GFF2WriterNodeFactory"
             id="au.edu.unimelb.plantcell.io.write.gff.GFF2WriterNodeFactory" />
