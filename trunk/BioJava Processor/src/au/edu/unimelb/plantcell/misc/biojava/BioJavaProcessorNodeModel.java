@@ -26,6 +26,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import au.edu.unimelb.plantcell.core.biojava.tasks.AlignmentSequenceExtractorTask;
 import au.edu.unimelb.plantcell.core.biojava.tasks.AlternateTranslationTask;
 import au.edu.unimelb.plantcell.core.biojava.tasks.BioJavaProcessorTask;
+import au.edu.unimelb.plantcell.core.biojava.tasks.CodonUsageTask;
 import au.edu.unimelb.plantcell.core.biojava.tasks.FrameTranslationTask;
 import au.edu.unimelb.plantcell.core.biojava.tasks.GCCalculatorTask;
 import au.edu.unimelb.plantcell.core.biojava.tasks.HydrophobicityTask;
@@ -103,6 +104,7 @@ public class BioJavaProcessorNodeModel extends NodeModel {
 				new AlternateTranslationTask(),
 				new FrameTranslationTask(),
 				new HydrophobicityTask(),
+				new CodonUsageTask(),
 				new LongestFrameTask(),		// experimental (warning to all users)
 				//new PositionByResidueProcessor(),
 				new ResidueFrequencyTask(),
@@ -161,6 +163,8 @@ public class BioJavaProcessorNodeModel extends NodeModel {
     		return new AlignmentSequenceExtractorTask();
     	} else if (task.startsWith("GC")) {
     		return new GCCalculatorTask();
+    	} else if (task.startsWith("Codon usage")) {
+    		return new CodonUsageTask();
     	} else if (task.trim().length() >= 1) {
         	throw new NotImplementedException("Unknown BioJava task to perform! Probably a bug...");
     	} else {
