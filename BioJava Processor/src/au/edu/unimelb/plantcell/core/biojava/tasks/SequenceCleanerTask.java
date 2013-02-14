@@ -7,12 +7,22 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
+import org.knime.core.data.DataType;
 import org.knime.core.data.def.IntCell;
-import org.knime.core.data.def.StringCell;
+import org.knime.core.node.InvalidSettingsException;
 
+import au.edu.unimelb.plantcell.core.cells.Comment;
+import au.edu.unimelb.plantcell.core.cells.SequenceCell;
 import au.edu.unimelb.plantcell.core.cells.SequenceType;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 
+/**
+ * Removes extraneous and unwanted features from sequence data which can interfere with some 
+ * programs operation. HACK: needs to be more configurable and capable!
+ * 
+ * @author andrew.cassin
+ *
+ */
 public class SequenceCleanerTask extends BioJavaProcessorTask {
 	private final Set<Character> m_dna = new HashSet<Character>();
 	private final Set<Character> m_rna = new HashSet<Character>();
@@ -54,8 +64,8 @@ public class SequenceCleanerTask extends BioJavaProcessorTask {
 	@Override
 	public DataColumnSpec[] getColumnSpecs() {
 		DataColumnSpec[] cols = new DataColumnSpec[2];
-		cols[0] = new DataColumnSpecCreator("Cleaned Sequence", StringCell.TYPE).createSpec();
-		cols[1] = new DataColumnSpecCreator("Residues rejected", IntCell.TYPE).createSpec();
+		cols[0] = new DataColumnSpecCreator("Cleaned Sequence (no annotations)", SequenceCell.TYPE).createSpec();
+		cols[1] = new DataColumnSpecCreator("Residues changed/deleted", IntCell.TYPE).createSpec();
 		return cols;
 	}
 
@@ -70,8 +80,8 @@ public class SequenceCleanerTask extends BioJavaProcessorTask {
 				"<li>Conversion of all residue symbols to uppercase</li>"+
 				"<li>Removal of trailing stop codon(s). Conversion of remaining stop codons to X</li>"+
 				"<li>Removal of non-coding symbols for the chosen sequence type. A count " +
-				" of any residues removed from sequences appears in a separate column."  +
-				"</li>"+
+				" of any residues removed from sequences appears in a separate column.</li>"  +
+				"<li>Removal of all graphical annotations</li>"+
 				"</ul>";
 	}
 	
@@ -82,7 +92,18 @@ public class SequenceCleanerTask extends BioJavaProcessorTask {
 			return missing_cells(getColumnSpecs().length);
 		SequenceValue sv = (SequenceValue) c;
 		String seq = sv.getStringValue().toUpperCase();
+		int before_len = seq.length();
+		int rejected = 0;
+		seq = seq.replaceAll("\\*+$", "");			// remove trailing stop codons
+		if (seq.length() != before_len) {
+			rejected += before_len - seq.length();
+			before_len = seq.length();
+		}
 		seq = seq.replaceAll("\\s+", "");
+		if (before_len != seq.length()) {
+			rejected += before_len - seq.length();
+		}
+		// BUG: reject is not altered for these two steps
 		seq = seq.replaceAll("\\*", "X");
 		seq = seq.toUpperCase();
 		
@@ -96,7 +117,6 @@ public class SequenceCleanerTask extends BioJavaProcessorTask {
 			letters = m_aa;
 		}
 		StringBuffer sb = new StringBuffer(seq.length());
-		int rejected = 0;
 		for (int i=0; i<seq.length(); i++) {
 			Character c2 = new Character(seq.charAt(i));
 			if (Character.isLetter(c2)) {
@@ -113,7 +133,16 @@ public class SequenceCleanerTask extends BioJavaProcessorTask {
 		}
 		
 		DataCell[] cells = new DataCell[2];
-		cells[0] = new StringCell(sb.toString());
+		try {
+			SequenceCell sc = new SequenceCell(st, sv.getID(), sb.toString());
+			if (sc.hasDescription()) {
+				sc.addComment(new Comment(sc.getDescription()));
+			}
+			cells[0] = sc;
+		} catch (InvalidSettingsException e) {
+			cells[0] = DataType.getMissingCell();
+			e.printStackTrace();
+		}
 		cells[1] = new IntCell(rejected);
 		return cells;
 	}
