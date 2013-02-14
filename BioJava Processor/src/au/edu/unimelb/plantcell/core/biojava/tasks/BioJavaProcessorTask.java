@@ -187,7 +187,7 @@ public abstract class BioJavaProcessorTask extends AbstractCellFactory {
 	 * 
 	 * @param sv
 	 * @return the converted sequence
-	 * @throws InvalidSettingsException if the conversion is ill-defined.
+	 * @throws InvalidSettingsException if the conversion is ill-defined. This includes unknown nucleotide conversion (could assume DNA is suppose)
 	 */
 	public SymbolList asBioJava(SequenceValue sv) throws InvalidSettingsException,IllegalSymbolException {
 		SequenceType st = sv.getSequenceType();
