@@ -2,9 +2,13 @@ package au.edu.unimelb.plantcell.annotations;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.container.AbstractCellFactory;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -19,7 +23,9 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
 import au.edu.unimelb.plantcell.core.MyDataContainer;
+import au.edu.unimelb.plantcell.core.biojava.tasks.BioJavaProcessorTask;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
+import au.edu.unimelb.plantcell.misc.biojava.BioJavaProcessorNodeModel;
 
 
 
@@ -70,17 +76,58 @@ public class Sequence2StringsNodeModel extends NodeModel {
     	   throw new InvalidSettingsException("Cannot find column: "+m_sequence.getStringValue()+", re-configure?");
        
        // sequence summary data in first output port
-       Sequence2ColumnsCellFactory s2ccf = new Sequence2ColumnsCellFactory(m_seq_idx, 
-    		   											m_wanted.getStringArrayValue(), logger, inData[0].getSpec());
        ColumnRearranger outputTable = new ColumnRearranger(inData[0].getDataTableSpec());
+
+       // for "small" stuff (attributes of the sequence) we just use the node's cell factory
+       // otherwise we use the cell factories from the BioJava node to do the "heavy lifting" of processing
+       // the sequences into columns.
        
-       // append the new column
-       outputTable.append(s2ccf);
+       // 1. which selected items should be handled by biojava?
+       HashSet<String> left = new HashSet<String>();
+       for (String s : m_wanted.getStringArrayValue()) {
+    	   left.add(s);
+       }
+       List<AbstractCellFactory> factories = new ArrayList<AbstractCellFactory>();
+       for (BioJavaProcessorTask t : BioJavaProcessorNodeModel.getTasks()) {
+    	   ArrayList<String> names = new ArrayList<String>();
+    	   for (String s : t.getNames()) {
+    		   names.add(s);
+    	   }
+    	   // remove biojava tasks from t in the wanted list (or whats left of it)
+    	   if (left.removeAll(names)) {
+    		   // we must instantiate a SEPARATE task for each name chosen and add to the factory list
+    		   for (String name : names) {
+    			   BioJavaProcessorTask t2 = t.getClass().newInstance();
+    			   t2.init(name, m_seq_idx);
+    			   factories.add(t2);
+    		   }
+    	   }
+       }
        
-       // c2 contains extracted features from user-specified tracks (if any were configured)
-       MyDataContainer c2 = new MyDataContainer(exec.createDataContainer(s2ccf.getTrackColumnSpec()), "r");
-       s2ccf.setTrackContainer(c2);
+       // 2. and the remainder of desired columns can be handled by the node's cell factory...
+       MyDataContainer c2 = null;
+       if (left.size() > 0) {
+    	   Sequence2ColumnsCellFactory s2ccf = new Sequence2ColumnsCellFactory(m_seq_idx, 
+    		   											left.toArray(new String[0]), logger, inData[0].getSpec());
+    	   factories.add(s2ccf);
+    	   // c2 contains extracted features from user-specified tracks (if any were configured)
+           c2 = new MyDataContainer(exec.createDataContainer(s2ccf.getTrackColumnSpec()), "r");
+           s2ccf.setTrackContainer(c2);
+       } else {
+    	   // must initialise c2 for below...
+    	   c2 = new MyDataContainer(exec.createDataContainer(new DataTableSpec()), "r");
+       }
        
+       // add the needed cell factories to the output table
+       try {
+    	   for (AbstractCellFactory acf : factories) {		// TODO: order of factories important?
+    		   outputTable.append(acf);
+    	   }
+       } catch (Exception e) {
+    	   logger.warn("Two configured items produce the same columns - re-configure!");
+    	   throw e;
+       }
+        
        // execute!
        BufferedDataTable out = exec.createColumnRearrangeTable(inData[0], outputTable, exec);
     
