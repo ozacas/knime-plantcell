@@ -10,7 +10,6 @@ import org.knime.core.data.def.DoubleCell;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 
 public class WeightedHomopolymerRateTask extends BioJavaProcessorTask {
-	private int m_col;
 	
 	public WeightedHomopolymerRateTask() {
 	}
@@ -22,10 +21,6 @@ public class WeightedHomopolymerRateTask extends BioJavaProcessorTask {
 	
 	public static BioJavaProcessorTask getInstance() {
 		return new WeightedHomopolymerRateTask();
-	}
-	
-	public void init(String task, int col) {
-		m_col = col;
 	}
 	
 	/** @InheritDoc */
@@ -45,12 +40,10 @@ public class WeightedHomopolymerRateTask extends BioJavaProcessorTask {
 	
 	@Override
 	public DataCell[] getCells(DataRow row) {
-		DataCell c = row.getCell(m_col);
-		if (c == null || c.isMissing() || !(c instanceof SequenceValue)) 
+		SequenceValue sv = getSequenceForRow(row);
+		if (sv == null || !sv.getSequenceType().isNucleotides()) 
 			return missing_cells(getColumnSpecs().length);
-		SequenceValue sv = (SequenceValue) c;
-		if (!sv.getSequenceType().isNucleotides())
-			return missing_cells(getColumnSpecs().length);
+		
 		String seq = sv.getStringValue().toUpperCase();
 		// calculation as per http://www.broadinstitute.org/crd/wiki/index.php/Homopolymer
 		int idx = 0;

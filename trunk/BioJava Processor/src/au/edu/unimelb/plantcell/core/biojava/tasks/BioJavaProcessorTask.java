@@ -12,6 +12,7 @@ import org.biojava.bio.symbol.IllegalSymbolException;
 import org.biojava.bio.symbol.SymbolList;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataRow;
 import org.knime.core.data.DataType;
 import org.knime.core.data.container.AbstractCellFactory;
 import org.knime.core.node.InvalidSettingsException;
@@ -32,7 +33,8 @@ import au.edu.unimelb.plantcell.misc.biojava.TaskParameter;
  */
 public abstract class BioJavaProcessorTask extends AbstractCellFactory {
 	private final Map<String,TaskParameter>        m_advanced = new HashMap<String,TaskParameter>();
-	
+	private int m_wanted_col = -1;
+
 	protected BioJavaProcessorTask(DataColumnSpec... cols) {
 		super(cols);
 	}
@@ -61,8 +63,11 @@ public abstract class BioJavaProcessorTask extends AbstractCellFactory {
 	 * 
 	 * @param owner
 	 */
-	public abstract void init(final String task_name, int input_column_index)
-					throws Exception;
+	public void init(final String task_name, int input_column_index) throws Exception {
+		assert(input_column_index >= 0);
+		
+		m_wanted_col = input_column_index;
+	}
 	
 
 	/**
@@ -195,5 +200,19 @@ public abstract class BioJavaProcessorTask extends AbstractCellFactory {
 		} else {
 			throw new InvalidSettingsException("Unsupported sequence conversion: "+st);
 		}
+	}
+	
+	/**
+	 * Return the user-configured <code>SequenceValue</code>. Returns <code>null</code> if the chosen
+	 * column does not contain a SequenceValue
+	 */
+	public SequenceValue getSequenceForRow(DataRow r) {
+		assert(r != null);
+		DataCell c = r.getCell(m_wanted_col);
+		if (c == null || c.isMissing())
+				return null;
+		if (!(c instanceof SequenceValue))
+				return null;
+		return (SequenceValue)c;
 	}
 }

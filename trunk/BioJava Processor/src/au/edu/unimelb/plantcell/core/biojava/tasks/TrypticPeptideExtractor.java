@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.misc.biojava;
+package au.edu.unimelb.plantcell.core.biojava.tasks;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,7 +13,7 @@ import org.knime.core.data.collection.CollectionCellFactory;
 import org.knime.core.data.collection.ListCell;
 import org.knime.core.data.def.StringCell;
 
-import au.edu.unimelb.plantcell.core.biojava.tasks.BioJavaProcessorTask;
+import au.edu.unimelb.plantcell.misc.biojava.InvalidIUPACException;
 
 
 /**
@@ -22,8 +22,7 @@ import au.edu.unimelb.plantcell.core.biojava.tasks.BioJavaProcessorTask;
  *
  */
 public class TrypticPeptideExtractor extends BioJavaProcessorTask {
-	private int m_col;
-	
+
 	/**
 	 * this is the maximum measurable peptide length (in numbers of AA's) which is
 	 * likely to be measured on the available instrumentation. Due to the mass range limitation
@@ -56,11 +55,6 @@ public class TrypticPeptideExtractor extends BioJavaProcessorTask {
 	}; 
 	
 	public TrypticPeptideExtractor() {
-	}
-	
-	
-	public void init(String task, int col) {
-		m_col = col;
 	}
 	
 	@Override

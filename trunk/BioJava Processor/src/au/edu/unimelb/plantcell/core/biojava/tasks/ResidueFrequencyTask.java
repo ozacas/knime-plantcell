@@ -21,7 +21,6 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 public class ResidueFrequencyTask extends BioJavaProcessorTask {
 	private boolean m_single_residue;
 	private final HashMap<String, Integer> m_colmap = new HashMap<String,Integer>(); // maps column name (ie. symbol name) to a corresponding column id
-	private int m_col = -1;
 	
 	public ResidueFrequencyTask() {
 	}
@@ -35,10 +34,11 @@ public class ResidueFrequencyTask extends BioJavaProcessorTask {
 		return new ResidueFrequencyTask();
 	}
 	
-	public void init(String task, int col) {
+	@Override
+	public void init(String task, int col) throws Exception {
+		super.init(task, col);
 		m_single_residue = task.equals("Count Residues");
 		m_colmap.clear();
-		m_col = col;
 	}
 	
 	/** {@inheritDoc} */	
@@ -72,10 +72,10 @@ public class ResidueFrequencyTask extends BioJavaProcessorTask {
 		}
 		
 		// process rows for user's dataset
-		DataCell c = row.getCell(m_col);
-		if (c == null || c.isMissing() || !(c instanceof SequenceValue))
+		SequenceValue sv = getSequenceForRow(row);
+		if (sv == null) {
 			return missing_cells(m_colmap.size());
-		SequenceValue sv = (SequenceValue) c;
+		}
 		String seq = sv.getStringValue().toUpperCase();
 		
 		if (m_single_residue) {			

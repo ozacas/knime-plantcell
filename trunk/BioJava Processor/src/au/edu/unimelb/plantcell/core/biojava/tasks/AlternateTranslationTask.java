@@ -18,7 +18,6 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 public class AlternateTranslationTask extends BioJavaProcessorTask {
 	private TranslationTable[] m_tables;
 	private String[]           m_table_names;
-	private int m_wanted_col = -1;
 	
 	public AlternateTranslationTask() {
 		super();
@@ -29,7 +28,9 @@ public class AlternateTranslationTask extends BioJavaProcessorTask {
 		return "Translation";
 	}
 	
-	public void init(String task_name, int col) {
+	public void init(String task_name, int col) throws Exception {
+		super.init(task_name, col);
+		
 		// load translation tables
 		m_tables = new TranslationTable[16];
 		m_table_names = new String[m_tables.length];
@@ -65,7 +66,6 @@ public class AlternateTranslationTask extends BioJavaProcessorTask {
 		m_table_names[14] = TranslationTable.VERT_MITO;
 		m_tables[15] = RNATools.getGeneticCode(TranslationTable.YEAST_MITO);
 		m_table_names[15] = TranslationTable.YEAST_MITO;
-		m_wanted_col = col;
 	}
 	
 	/** {@inheritDoc} */
@@ -94,12 +94,8 @@ public class AlternateTranslationTask extends BioJavaProcessorTask {
 
 	@Override
 	public DataCell[] getCells(DataRow row) {
-		DataCell c = row.getCell(m_wanted_col);
-		if (c == null || c.isMissing() || !(c instanceof SequenceValue)) {
-			return missing_cells(m_tables.length);
-		}
-		SequenceValue sv = (SequenceValue) c;
-		if (!sv.getSequenceType().isNucleotides())
+		SequenceValue sv = getSequenceForRow(row);
+		if (sv == null || !sv.getSequenceType().isNucleotides())
 			return missing_cells(m_tables.length);
 		
 		try {

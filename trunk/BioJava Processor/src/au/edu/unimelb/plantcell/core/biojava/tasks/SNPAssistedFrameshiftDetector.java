@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.misc.biojava;
+package au.edu.unimelb.plantcell.core.biojava.tasks;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -6,8 +6,8 @@ import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.def.IntCell;
 
-import au.edu.unimelb.plantcell.core.biojava.tasks.BioJavaProcessorTask;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
+import au.edu.unimelb.plantcell.misc.biojava.ModeSummary;
 
 /**
  * SNPs are frequently, but not always, associated with the minor base in a codon. 
@@ -20,7 +20,6 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
  *
  */
 public class SNPAssistedFrameshiftDetector extends BioJavaProcessorTask {
-	private int m_col;
 	
 	public SNPAssistedFrameshiftDetector() {
 	}
@@ -32,11 +31,6 @@ public class SNPAssistedFrameshiftDetector extends BioJavaProcessorTask {
 	
 	public static BioJavaProcessorTask getInstance() {
 		return new SNPAssistedFrameshiftDetector();
-	}
-	
-	public void init(String task, int col) {
-		m_col = col;
-		
 	}
 	
 	/** @InheritDoc */
@@ -55,13 +49,10 @@ public class SNPAssistedFrameshiftDetector extends BioJavaProcessorTask {
 	
 	@Override
 	public DataCell[] getCells(DataRow row) {
-		DataCell c = row.getCell(m_col);
-		if (c == null || c.isMissing() || !(c instanceof SequenceValue))
+		SequenceValue sv = getSequenceForRow(row);
+		if (sv == null || sv.getLength() < 1 || sv.getSequenceType().isDNA())
 			return missing_cells(getColumnSpecs().length);
-		SequenceValue sv = (SequenceValue) c;
-		if (!sv.getSequenceType().isDNA() || sv.getLength() < 1) {
-			return missing_cells(getColumnSpecs().length);
-		}
+	
 		DataCell[] cells = new DataCell[1];
 			
 		int[] codon_pos = new int[sv.getLength()];
