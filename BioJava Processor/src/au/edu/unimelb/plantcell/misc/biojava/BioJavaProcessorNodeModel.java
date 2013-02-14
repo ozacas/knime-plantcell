@@ -228,7 +228,7 @@ public class BioJavaProcessorNodeModel extends NodeModel {
         logger.info("Processing column: "+colname+" at index "+m_sequence_idx);
         m_warned_bad_chars = false;
         m_bad_char_count   = 0;
-        bjpi.init(this, m_task.getStringValue(), m_sequence_idx);
+        bjpi.init(m_task.getStringValue(), m_sequence_idx);
        
         // create the column rearranger
         ColumnRearranger outputTable = new ColumnRearranger(inData[0].getDataTableSpec());

@@ -16,7 +16,6 @@ import au.edu.unimelb.plantcell.core.cells.SequenceCell;
 import au.edu.unimelb.plantcell.core.cells.SequenceType;
 import au.edu.unimelb.plantcell.io.ws.multialign.AlignmentValue;
 import au.edu.unimelb.plantcell.io.ws.multialign.AlignmentValue.AlignmentType;
-import au.edu.unimelb.plantcell.misc.biojava.BioJavaProcessorNodeModel;
 
 public class AlignmentSequenceExtractorTask extends BioJavaProcessorTask {
 	private int m_alignment_col = -1;
@@ -37,7 +36,7 @@ public class AlignmentSequenceExtractorTask extends BioJavaProcessorTask {
 	}
 	
 	@Override
-	public void init(BioJavaProcessorNodeModel owner, String task_name, int idx) {
+	public void init(String task_name, int idx) {
 		m_alignment_col = idx;
 	}
 

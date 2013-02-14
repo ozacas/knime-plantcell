@@ -11,7 +11,6 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
-import au.edu.unimelb.plantcell.misc.biojava.BioJavaProcessorNodeModel;
 
 
 public class SequenceTranslationTask extends BioJavaProcessorTask {
@@ -32,7 +31,7 @@ public class SequenceTranslationTask extends BioJavaProcessorTask {
 		return new SequenceTranslationTask();
 	}
 	
-	public void init(BioJavaProcessorNodeModel m, String task, int col) {
+	public void init(String task, int col) {
 		m_convert_dna2prot = false;
 		m_convert_rna2prot = false;
 		m_convert_dna2rna  = false;

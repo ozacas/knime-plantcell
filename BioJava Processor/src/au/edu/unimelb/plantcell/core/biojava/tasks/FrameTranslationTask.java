@@ -11,7 +11,6 @@ import org.knime.core.data.def.StringCell;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceType;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
-import au.edu.unimelb.plantcell.misc.biojava.BioJavaProcessorNodeModel;
 
 
 public class FrameTranslationTask extends BioJavaProcessorTask {
@@ -31,7 +30,7 @@ public class FrameTranslationTask extends BioJavaProcessorTask {
 	}
 	
 	@Override
-	public void init(BioJavaProcessorNodeModel owner, String task, int col) {
+	public void init(String task, int col) {
 		m_incl_na_seqs = false;
 		if (task.toLowerCase().endsWith("(incl. dna frames)")) {
 			m_incl_na_seqs = true;

@@ -13,7 +13,6 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.def.StringCell;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
-import au.edu.unimelb.plantcell.misc.biojava.BioJavaProcessorNodeModel;
 
 
 public class AlternateTranslationTask extends BioJavaProcessorTask {
@@ -30,7 +29,7 @@ public class AlternateTranslationTask extends BioJavaProcessorTask {
 		return "Translation";
 	}
 	
-	public void init(BioJavaProcessorNodeModel owner, String task_name, int col) {
+	public void init(String task_name, int col) {
 		// load translation tables
 		m_tables = new TranslationTable[16];
 		m_table_names = new String[m_tables.length];
