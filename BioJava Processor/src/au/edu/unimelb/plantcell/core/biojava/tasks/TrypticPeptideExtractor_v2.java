@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.misc.biojava;
+package au.edu.unimelb.plantcell.core.biojava.tasks;
 
 import java.util.HashSet;
 
@@ -36,13 +36,8 @@ public class TrypticPeptideExtractor_v2 extends TrypticPeptideExtractor {
 	 */
 	private final HashSet<String> proline_codons  = new HashSet<String>();
 	
-	/**
-	 * Initialises the private state for this class and invokes the superclass constructor
-	 * 
-	 * @param m
-	 * @param task
-	 */
-	public void init(String task, int col) {
+	@Override
+	public void init(String task, int col) throws Exception {
 		super.init(task, col);
 		terminii_codons.add("AAG"); 	// K
 		terminii_codons.add("AAA");

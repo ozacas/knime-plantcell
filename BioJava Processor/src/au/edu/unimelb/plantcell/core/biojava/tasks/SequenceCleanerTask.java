@@ -27,7 +27,6 @@ public class SequenceCleanerTask extends BioJavaProcessorTask {
 	private final Set<Character> m_dna = new HashSet<Character>();
 	private final Set<Character> m_rna = new HashSet<Character>();
 	private final Set<Character> m_aa  = new HashSet<Character>();
-	private int   m_col;
 	
 	@Override
 	public String getCategory() {
@@ -35,7 +34,8 @@ public class SequenceCleanerTask extends BioJavaProcessorTask {
 	}
 	
 	@Override
-	public void init(String task_name, int col) {
+	public void init(String task_name, int col) throws Exception {
+		super.init(task_name, col);
 		// DNA
 		for (char c : new char[] { 'A', 'C', 'G', 'T' }) {
 			m_dna.add(new Character(c));
@@ -57,8 +57,6 @@ public class SequenceCleanerTask extends BioJavaProcessorTask {
 		}) {
 				m_aa.add(new Character(c));
 		}
-		
-		m_col = col;
 	}
 
 	@Override
@@ -87,10 +85,10 @@ public class SequenceCleanerTask extends BioJavaProcessorTask {
 	
 	@Override
 	public DataCell[] getCells(DataRow row) {
-		DataCell c = row.getCell(m_col);
-		if (c == null || c.isMissing() || !(c instanceof SequenceValue))
+		SequenceValue sv = getSequenceForRow(row);
+		if (sv == null)
 			return missing_cells(getColumnSpecs().length);
-		SequenceValue sv = (SequenceValue) c;
+		
 		String seq = sv.getStringValue().toUpperCase();
 		int before_len = seq.length();
 		int rejected = 0;

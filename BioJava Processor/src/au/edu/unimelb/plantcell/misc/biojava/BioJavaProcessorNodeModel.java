@@ -32,8 +32,10 @@ import au.edu.unimelb.plantcell.core.biojava.tasks.HydrophobicityTask;
 import au.edu.unimelb.plantcell.core.biojava.tasks.LongestFrameTask;
 import au.edu.unimelb.plantcell.core.biojava.tasks.PositionByResidueTask;
 import au.edu.unimelb.plantcell.core.biojava.tasks.ResidueFrequencyTask;
+import au.edu.unimelb.plantcell.core.biojava.tasks.SNPAssistedFrameshiftDetector;
 import au.edu.unimelb.plantcell.core.biojava.tasks.SequenceCleanerTask;
 import au.edu.unimelb.plantcell.core.biojava.tasks.SequenceTranslationTask;
+import au.edu.unimelb.plantcell.core.biojava.tasks.TrypticPeptideExtractor_v2;
 import au.edu.unimelb.plantcell.core.biojava.tasks.WeightedHomopolymerRateTask;
 
 

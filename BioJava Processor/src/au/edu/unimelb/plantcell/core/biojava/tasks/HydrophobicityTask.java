@@ -34,7 +34,6 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
  *
  */
 public class HydrophobicityTask extends BioJavaProcessorTask {
-	private int m_col = -1;
 	private MassCalc mc, mc_mi;
 	private AAindex hydrophobicity;
 	private IsoelectricPointCalc ic;
@@ -52,8 +51,9 @@ public class HydrophobicityTask extends BioJavaProcessorTask {
 		return new HydrophobicityTask();
 	}
 	
+	@Override
 	public void init(String task_name, int col) throws Exception {
-		m_col = col;
+		super.init(task_name, col);
 		mc    = new MassCalc(SymbolPropertyTable.AVG_MASS, true);
 		mc_mi = new MassCalc(SymbolPropertyTable.MONO_MASS, true);
 		ic    = new IsoelectricPointCalc();
@@ -83,8 +83,8 @@ public class HydrophobicityTask extends BioJavaProcessorTask {
 	
 	public DataCell[] getCells(DataRow row) {
 		try {
-			DataCell c = row.getCell(m_col);
-			if (c == null || c.isMissing() || !(c instanceof SequenceValue))
+			SequenceValue sv = getSequenceForRow(row);
+			if (sv == null || sv.getLength() < 1)
 				return missing_cells(4);
 			
 			double pI       = 0.0;
@@ -92,58 +92,54 @@ public class HydrophobicityTask extends BioJavaProcessorTask {
 			double mass_mi  = 0.0;
 			double hyd      = 0.0;
 			
-			SequenceValue sv = (SequenceValue) c;
-			if (sv.getLength() < 1)
-				return missing_cells(4);
+			SymbolList syms  = asBioJava(sv);
 			
-				SymbolList syms  = asBioJava(sv);
-				
-				if (! sv.getSequenceType().isProtein()) {
-					// need to translate it (by default assume 5' to 3' orientation)
-					if (syms.getAlphabet() != RNATools.getRNA()) {
-						syms = DNATools.transcribeToRNA(syms);
-					}
-					// truncate if not divisible by 3
-					if (syms.length() % 3 != 0) {
-						syms = syms.subList(1, syms.length() - (syms.length() % 3));
-					}
-					
-					syms = RNATools.translate(syms);
+			if (! sv.getSequenceType().isProtein()) {
+				// need to translate it (by default assume 5' to 3' orientation)
+				if (syms.getAlphabet() != RNATools.getRNA()) {
+					syms = DNATools.transcribeToRNA(syms);
+				}
+				// truncate if not divisible by 3
+				if (syms.length() % 3 != 0) {
+					syms = syms.subList(1, syms.length() - (syms.length() % 3));
 				}
 				
-				// remove * if necessary
-				if (syms.symbolAt(syms.length()) == ProteinTools.ter()) {
-					syms = syms.subList(1, syms.length()-1);
-				}
-				
-				
-				// unknown residues? Dont calculate, leave user to figure it out...
-				DataCell[] cells = new DataCell[4];
-				for (int i=0; i<cells.length; i++) {
-					cells[i] = DataType.getMissingCell();
-				}
-				
-				if (syms.seqString().indexOf("X") >= 0) {
-					return missing_cells(cells.length);
-				}
-			
-				mass_avg = mc.getMass(syms);
-				mass_mi  = mc_mi.getMass(syms);
-				pI   = ic.getPI(syms, true, true); // assume a free NH and COOH
-				
-				for (int i=1; i<= syms.length(); i++) {
-					hyd += hydrophobicity.getDoubleValue(syms.symbolAt(i));
-				}
-				hyd /= syms.length();
-				cells[3]         = new DoubleCell(hyd);
-				cells[0]         = new DoubleCell(pI); 
-				cells[1]         = new DoubleCell(mass_avg);
-				cells[2]         = new DoubleCell(mass_mi);
-				return cells;
-			} catch (Exception e) {
-				e.printStackTrace();
-				return missing_cells(4);
+				syms = RNATools.translate(syms);
 			}
+			
+			// remove * if necessary
+			if (syms.symbolAt(syms.length()) == ProteinTools.ter()) {
+				syms = syms.subList(1, syms.length()-1);
+			}
+			
+			
+			// unknown residues? Dont calculate, leave user to figure it out...
+			DataCell[] cells = new DataCell[4];
+			for (int i=0; i<cells.length; i++) {
+				cells[i] = DataType.getMissingCell();
+			}
+			
+			if (syms.seqString().indexOf("X") >= 0) {
+				return missing_cells(cells.length);
+			}
+		
+			mass_avg = mc.getMass(syms);
+			mass_mi  = mc_mi.getMass(syms);
+			pI   = ic.getPI(syms, true, true); // assume a free NH and COOH
+			
+			for (int i=1; i<= syms.length(); i++) {
+				hyd += hydrophobicity.getDoubleValue(syms.symbolAt(i));
+			}
+			hyd /= syms.length();
+			cells[3]         = new DoubleCell(hyd);
+			cells[0]         = new DoubleCell(pI); 
+			cells[1]         = new DoubleCell(mass_avg);
+			cells[2]         = new DoubleCell(mass_mi);
+			return cells;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return missing_cells(4);
+		}
 	}
 
 	@Override

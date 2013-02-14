@@ -17,7 +17,6 @@ public class SequenceTranslationTask extends BioJavaProcessorTask {
 	private boolean m_convert_dna2prot;
 	private boolean m_convert_rna2prot;
 	private boolean m_convert_dna2rna;
-	private int m_col;
 	
 	public SequenceTranslationTask() {
 	}
@@ -31,11 +30,12 @@ public class SequenceTranslationTask extends BioJavaProcessorTask {
 		return new SequenceTranslationTask();
 	}
 	
-	public void init(String task, int col) {
+	public void init(String task, int col) throws Exception {
+		super.init(task, col);
+		
 		m_convert_dna2prot = false;
 		m_convert_rna2prot = false;
 		m_convert_dna2rna  = false;
-		m_col = col;
 		task = task.toLowerCase().trim();
 		if (task.endsWith("dna to protein sequence")) {
 			m_convert_dna2prot = true;
@@ -62,14 +62,10 @@ public class SequenceTranslationTask extends BioJavaProcessorTask {
 	}
 	
 	public DataCell[] getCells(DataRow row) {
-		DataCell c = row.getCell(m_col);
-		if (c == null || c.isMissing() || !(c instanceof SequenceValue))
+		SequenceValue sv = getSequenceForRow(row);
+		if (sv == null || sv.getLength() < 1)
 			return missing_cells(getColumnSpecs().length);
-		SequenceValue sv = (SequenceValue) c;
-		
-		// skip missing sequences -- TODO: should we put into output table?
-		if (sv.getLength() < 1)
-			return missing_cells(getColumnSpecs().length);
+	
 		SymbolList sl;
 		try {
 			sl = asBioJava(sv);

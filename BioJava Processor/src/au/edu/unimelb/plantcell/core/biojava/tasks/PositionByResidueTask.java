@@ -12,7 +12,6 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
-import au.edu.unimelb.plantcell.misc.biojava.BioJavaProcessorNodeModel;
 import au.edu.unimelb.plantcell.misc.biojava.TaskParameter;
 
 /**
@@ -25,7 +24,6 @@ import au.edu.unimelb.plantcell.misc.biojava.TaskParameter;
  */
 public class PositionByResidueTask extends BioJavaProcessorTask {
 	private int m_maxlen;
-	private int m_col = -1;
 	
 	public PositionByResidueTask() {
 	}
@@ -39,9 +37,10 @@ public class PositionByResidueTask extends BioJavaProcessorTask {
 		return new PositionByResidueTask();
 	}
 	
-	public void init(String task, int col) throws InvalidSettingsException {
+	@Override
+	public void init(String task, int col) throws Exception {
+		super.init(task, col);
 		m_maxlen = 75;
-		m_col = col;
 		TaskParameter maxlen_tp = getParameter("Maximum Sequence Length", "75");
 		Integer i_maxlen = new Integer(maxlen_tp.getValue());
 		if (i_maxlen.intValue() < 1) {
@@ -73,10 +72,9 @@ public class PositionByResidueTask extends BioJavaProcessorTask {
 		}
 		
 		// scan the sequences -- speed is key here
-		DataCell c = row.getCell(m_col);
-		if (c == null || c.isMissing() || !(c instanceof SequenceValue)) 
+		SequenceValue sv = getSequenceForRow(row);
+		if (sv == null) 
 			return missing_cells(m_maxlen);
-		SequenceValue sv = (SequenceValue) c;
 		
 		int len = m_maxlen;
 		if (sv.getLength() < m_maxlen)

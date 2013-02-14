@@ -16,7 +16,6 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
  *
  */
 public class GCCalculatorTask extends BioJavaProcessorTask {
-	private int m_col = -1;
 	
 	public GCCalculatorTask() {
 		super();
@@ -29,11 +28,6 @@ public class GCCalculatorTask extends BioJavaProcessorTask {
 	
 	public static BioJavaProcessorTask getInstance() {
 		return new GCCalculatorTask();
-	}
-	
-	@Override
-	public void init(String task_name, int col) {
-		m_col = col;
 	}
 	
 	/** {@inheritDoc} */
@@ -61,13 +55,8 @@ public class GCCalculatorTask extends BioJavaProcessorTask {
 	
 	@Override
 	public DataCell[] getCells(DataRow row) {
-		DataCell c = row.getCell(m_col);
-		if (c == null || c.isMissing() || !(c instanceof SequenceValue)) {
-			return missing_cells(getColumnSpecs().length);
-		}
-					
-		SequenceValue sv = (SequenceValue) c;
-		if (!sv.getSequenceType().isDNA() || sv.getLength() < 1) {
+		SequenceValue sv = getSequenceForRow(row);
+		if (sv == null || !sv.getSequenceType().isDNA() || sv.getLength() < 1) {
 			return missing_cells(getColumnSpecs().length);
 		}
 		

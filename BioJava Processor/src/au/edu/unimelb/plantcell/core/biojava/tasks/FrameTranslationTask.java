@@ -9,13 +9,11 @@ import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.def.StringCell;
 
-import au.edu.unimelb.plantcell.core.cells.SequenceType;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 
 
 public class FrameTranslationTask extends BioJavaProcessorTask {
 	private boolean m_incl_na_seqs;		// include NA frames for use by later processing steps
-	private int     m_col = -1;
 	
 	public FrameTranslationTask() {
 	}
@@ -30,12 +28,13 @@ public class FrameTranslationTask extends BioJavaProcessorTask {
 	}
 	
 	@Override
-	public void init(String task, int col) {
+	public void init(String task, int col) throws Exception {
+		super.init(task, col);
+		
 		m_incl_na_seqs = false;
 		if (task.toLowerCase().endsWith("(incl. dna frames)")) {
 			m_incl_na_seqs = true;
 		}
-		m_col = col;
 	}
 	
 	/** {@inheritDoc} */
@@ -100,11 +99,11 @@ public class FrameTranslationTask extends BioJavaProcessorTask {
 		}
 		
 		try {
-			DataCell c = row.getCell(m_col);
-			if (c == null || c.isMissing() || !(c instanceof SequenceValue)) 
+			SequenceValue sv = getSequenceForRow(row);
+			if (sv == null) 
 				return missing_cells(ncols);
-			SequenceValue sv = (SequenceValue) c;
-			boolean is_dna = sv.getSequenceType().equals(SequenceType.DNA);
+			
+			boolean is_dna = sv.getSequenceType().isDNA();
 			SymbolList syms = asBioJava(sv);
 			DataCell[] cells = new DataCell[ncols];
 		
