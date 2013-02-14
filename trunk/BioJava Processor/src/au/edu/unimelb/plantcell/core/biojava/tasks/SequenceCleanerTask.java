@@ -12,7 +12,6 @@ import org.knime.core.data.def.StringCell;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceType;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
-import au.edu.unimelb.plantcell.misc.biojava.BioJavaProcessorNodeModel;
 
 public class SequenceCleanerTask extends BioJavaProcessorTask {
 	private final Set<Character> m_dna = new HashSet<Character>();
@@ -26,7 +25,7 @@ public class SequenceCleanerTask extends BioJavaProcessorTask {
 	}
 	
 	@Override
-	public void init(BioJavaProcessorNodeModel owner, String task_name, int col) {
+	public void init(String task_name, int col) {
 		// DNA
 		for (char c : new char[] { 'A', 'C', 'G', 'T' }) {
 			m_dna.add(new Character(c));

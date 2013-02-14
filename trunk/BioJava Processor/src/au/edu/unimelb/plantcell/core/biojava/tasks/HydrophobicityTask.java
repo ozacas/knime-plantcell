@@ -25,7 +25,6 @@ import org.knime.core.data.def.DoubleCell;
 import org.osgi.framework.Bundle;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
-import au.edu.unimelb.plantcell.misc.biojava.BioJavaProcessorNodeModel;
 
 /**
  * Computes the Mass, pI and hydrophobicity of the specified sequences, using the
@@ -53,7 +52,7 @@ public class HydrophobicityTask extends BioJavaProcessorTask {
 		return new HydrophobicityTask();
 	}
 	
-	public void init(BioJavaProcessorNodeModel owner, String task_name, int col) throws Exception {
+	public void init(String task_name, int col) throws Exception {
 		m_col = col;
 		mc    = new MassCalc(SymbolPropertyTable.AVG_MASS, true);
 		mc_mi = new MassCalc(SymbolPropertyTable.MONO_MASS, true);

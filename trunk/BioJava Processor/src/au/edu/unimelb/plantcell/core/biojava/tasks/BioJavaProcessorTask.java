@@ -21,7 +21,6 @@ import org.knime.core.node.util.ColumnFilter;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceType;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
-import au.edu.unimelb.plantcell.misc.biojava.BioJavaProcessorNodeModel;
 import au.edu.unimelb.plantcell.misc.biojava.TaskParameter;
 
 /**
@@ -62,7 +61,7 @@ public abstract class BioJavaProcessorTask extends AbstractCellFactory {
 	 * 
 	 * @param owner
 	 */
-	public abstract void init(final BioJavaProcessorNodeModel owner, final String task_name, int input_column_index)
+	public abstract void init(final String task_name, int input_column_index)
 					throws Exception;
 	
 

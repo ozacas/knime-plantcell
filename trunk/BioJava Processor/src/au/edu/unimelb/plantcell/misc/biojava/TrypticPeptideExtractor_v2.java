@@ -4,10 +4,6 @@ import java.util.HashSet;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
-import org.knime.core.node.BufferedDataContainer;
-import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.NodeLogger;
 
 /**
  * DISABLED UNTIL FURTHER NOTICE -- pending a refactoring of the biojava node
@@ -46,8 +42,8 @@ public class TrypticPeptideExtractor_v2 extends TrypticPeptideExtractor {
 	 * @param m
 	 * @param task
 	 */
-	public void init(BioJavaProcessorNodeModel m, String task, int col) {
-		super.init(m, task, col);
+	public void init(String task, int col) {
+		super.init(task, col);
 		terminii_codons.add("AAG"); 	// K
 		terminii_codons.add("AAA");
 		terminii_codons.add("CGA");		// R

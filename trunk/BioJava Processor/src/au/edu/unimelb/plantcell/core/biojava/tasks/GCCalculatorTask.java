@@ -7,7 +7,6 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.def.DoubleCell;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
-import au.edu.unimelb.plantcell.misc.biojava.BioJavaProcessorNodeModel;
 
 /**
  * Adds a column to the input table with the %GC added. Algorithm is as described at:
@@ -33,7 +32,7 @@ public class GCCalculatorTask extends BioJavaProcessorTask {
 	}
 	
 	@Override
-	public void init(BioJavaProcessorNodeModel owner, String task_name, int col) {
+	public void init(String task_name, int col) {
 		m_col = col;
 	}
 	

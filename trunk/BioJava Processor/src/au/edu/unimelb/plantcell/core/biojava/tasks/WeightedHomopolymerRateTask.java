@@ -8,10 +8,8 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.def.DoubleCell;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
-import au.edu.unimelb.plantcell.misc.biojava.BioJavaProcessorNodeModel;
 
-public class WeightedHomopolymerRateTask extends
-		BioJavaProcessorTask {
+public class WeightedHomopolymerRateTask extends BioJavaProcessorTask {
 	private int m_col;
 	
 	public WeightedHomopolymerRateTask() {
@@ -26,7 +24,7 @@ public class WeightedHomopolymerRateTask extends
 		return new WeightedHomopolymerRateTask();
 	}
 	
-	public void init(BioJavaProcessorNodeModel m, String task, int col) {
+	public void init(String task, int col) {
 		m_col = col;
 	}
 	

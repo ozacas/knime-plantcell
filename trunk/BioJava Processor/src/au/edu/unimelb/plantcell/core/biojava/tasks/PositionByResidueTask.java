@@ -39,7 +39,7 @@ public class PositionByResidueTask extends BioJavaProcessorTask {
 		return new PositionByResidueTask();
 	}
 	
-	public void init(BioJavaProcessorNodeModel m, String task, int col) throws InvalidSettingsException {
+	public void init(String task, int col) throws InvalidSettingsException {
 		m_maxlen = 75;
 		m_col = col;
 		TaskParameter maxlen_tp = getParameter("Maximum Sequence Length", "75");

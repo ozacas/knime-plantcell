@@ -42,7 +42,7 @@ public class LongestFrameTask extends BioJavaProcessorTask {
 		return new LongestFrameTask();
 	}
 	
-	public void init(BioJavaProcessorNodeModel m, String task, int col) {
+	public void init(String task, int col) {
 		m_convert_to_protein = (task != null && task.trim().toLowerCase().endsWith("aa)")) ? true : false;
 		m_forward = (task != null && (task.indexOf("(all") > 0 || task.indexOf("(3 forward") > 0)) ? true : false;
 		m_reverse = (task != null && (task.indexOf("(all") > 0 || task.indexOf("(3 reverse") > 0)) ? true : false;

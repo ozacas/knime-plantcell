@@ -11,7 +11,6 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.def.IntCell;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
-import au.edu.unimelb.plantcell.misc.biojava.BioJavaProcessorNodeModel;
 
 /**
  *  Speed is important here, for large sequence databases (eg. short reads from NextGenSeq etc.)
@@ -36,7 +35,7 @@ public class ResidueFrequencyTask extends BioJavaProcessorTask {
 		return new ResidueFrequencyTask();
 	}
 	
-	public void init(BioJavaProcessorNodeModel owner, String task, int col) {
+	public void init(String task, int col) {
 		m_single_residue = task.equals("Count Residues");
 		m_colmap.clear();
 		m_col = col;

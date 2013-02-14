@@ -34,7 +34,7 @@ public class SNPAssistedFrameshiftDetector extends BioJavaProcessorTask {
 		return new SNPAssistedFrameshiftDetector();
 	}
 	
-	public void init(BioJavaProcessorNodeModel m, String task, int col) {
+	public void init(String task, int col) {
 		m_col = col;
 		
 	}
