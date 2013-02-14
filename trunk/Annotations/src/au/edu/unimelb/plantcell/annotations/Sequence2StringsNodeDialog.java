@@ -10,10 +10,14 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import org.knime.core.data.DataColumnProperties;
 import org.knime.core.data.DataColumnSpec;
@@ -27,8 +31,10 @@ import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelectio
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.util.ColumnFilter;
 
+import au.edu.unimelb.plantcell.core.biojava.tasks.BioJavaProcessorTask;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 import au.edu.unimelb.plantcell.core.cells.Track;
+import au.edu.unimelb.plantcell.misc.biojava.BioJavaProcessorNodeModel;
 
 /**
  * Convert a sequence to tabular format based on user-chosen items of interest
@@ -43,16 +49,24 @@ import au.edu.unimelb.plantcell.core.cells.Track;
 public class Sequence2StringsNodeDialog extends DefaultNodeSettingsPane implements ChangeListener {
 	
 	private final static int SHOW_N_ROWS = 5;
-	public final static String[] DATA_TO_EXTRACT = new String[] {
-		Sequence2StringsNodeModel.SEQUENCE_ID,
-		Sequence2StringsNodeModel.DESCRIPTION_PRIMARY,
-		Sequence2StringsNodeModel.SEQUENCE_SINGLE_LETTER,
-		Sequence2StringsNodeModel.INPUT_SEQUENCE,
-		Sequence2StringsNodeModel.SEQUENCE_LENGTH
+	
+	private final static ArrayList<String> m_items = new ArrayList<String>();
+	static {
+		m_items.add(Sequence2StringsNodeModel.SEQUENCE_ID);
+		m_items.add(Sequence2StringsNodeModel.DESCRIPTION_PRIMARY);
+		m_items.add(Sequence2StringsNodeModel.SEQUENCE_SINGLE_LETTER);
+		m_items.add(Sequence2StringsNodeModel.INPUT_SEQUENCE);
+		m_items.add(Sequence2StringsNodeModel.SEQUENCE_LENGTH);
+		
+		for (String t : BioJavaProcessorNodeModel.getTaskNames()) {
+			m_items.add(t);
+		}
+        Collections.sort(m_items);
 	};
 	private DataTableSpec m_specs = null;
     private final SettingsModelString sms = new SettingsModelString(Sequence2StringsNodeModel.CFGKEY_SEQUENCE_COL, "");
     private JList items;
+    private final JTextPane m_help_label = new JTextPane();
  
 	protected Sequence2StringsNodeDialog() {
         super();
@@ -77,16 +91,54 @@ public class Sequence2StringsNodeDialog extends DefaultNodeSettingsPane implemen
         		}));
         
         JPanel p = ((JPanel) getTab("Options"));
-        items = new JList(DATA_TO_EXTRACT);
+        
+        items = new JList(m_items.toArray());
         items.setMinimumSize(new Dimension(150,60));
         items.setVisibleRowCount(SHOW_N_ROWS);
         items.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         JPanel p2 = new JPanel();
-        p2.setBorder(BorderFactory.createTitledBorder("What to extract?"));
+        p2.setBorder(BorderFactory.createTitledBorder("What to extract? (several can be chosen)"));
         p2.setLayout(new BoxLayout(p2, BoxLayout.X_AXIS));
-        p2.add(items);
+        p2.add(new JScrollPane(items));
         p.add(p2);
+        JPanel help_panel = new JPanel();
+        help_panel.setBorder(BorderFactory.createTitledBorder("Help for current task"));
+        help_panel.add(m_help_label);
+        m_help_label.setContentType("text/html");
+        final JScrollPane help_sp = new JScrollPane(help_panel);
+        p.add(help_sp);
+        
+        // update help when a suitable list selection is made
+        items.addListSelectionListener(new ListSelectionListener() {
+
+			@Override
+			public void valueChanged(ListSelectionEvent arg0) {
+				int[] sel = items.getSelectedIndices();
+				if (sel.length == 1) {
+					String name = items.getSelectedValue().toString();
+					BioJavaProcessorTask found = findTask(name);
+					if (found != null) {
+						m_help_label.setText("<html><h3>"+name+
+								"</h3><br/><br/>"+found.getHTMLDescription(name));
+						m_help_label.setCaretPosition(0);
+						return;
+					}
+					// fallthru...
+				}
+				m_help_label.setText("<html>No help available. Select a single task to see help.");
+			}
+        	
+        });
     }
+	 
+	private BioJavaProcessorTask findTask(String name) {
+		for (BioJavaProcessorTask t : BioJavaProcessorNodeModel.getTasks()) {
+			if (t.hasName(name)) {
+				return t;
+			}
+		}
+		return null;
+	}
 	
 	@Override
 	public void loadAdditionalSettingsFrom(NodeSettingsRO s, DataTableSpec[] specs) 
@@ -153,11 +205,11 @@ public class Sequence2StringsNodeDialog extends DefaultNodeSettingsPane implemen
 		
 		int col_idx = m_specs.findColumnIndex(sms.getStringValue());
 		if (col_idx < 0) {
-			items.setListData(DATA_TO_EXTRACT);
+			items.setListData(m_items.toArray(new String[0]));
 			return;
 		}
 		ArrayList<String> new_items = new ArrayList<String>();
-		for (String s : DATA_TO_EXTRACT) {
+		for (String s : m_items) {
 			new_items.add(s);
 		}
 		DataColumnProperties props = m_specs.getColumnSpec(col_idx).getProperties();
