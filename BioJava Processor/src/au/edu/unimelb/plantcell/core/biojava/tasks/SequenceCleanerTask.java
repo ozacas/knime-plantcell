@@ -160,15 +160,15 @@ public class SequenceCleanerTask extends BioJavaProcessorTask {
 				if (m_task.indexOf("all") >= 0) {
 					String seq = sv.getStringValue();
 					int before = sv.getLength();
-					seq.replaceAll("-", "");
+					seq = seq.replaceAll("-", "");
 					int after = seq.length();
 					cells[0] = new SequenceCell(sv.getSequenceType(), sv.getID(), seq);
 					cells[1] = new IntCell(before - after);
 				} else {
 					String seq = sv.getStringValue();
 					int before = sv.getLength();
-					seq.replaceFirst("^\\-+", "");
-					seq.replaceFirst("\\-+$", "");
+					seq = seq.replaceFirst("^\\-+", "");
+					seq = seq.replaceFirst("\\-+$", "");
 					int after = seq.length();
 					cells[0] = new SequenceCell(sv.getSequenceType(), sv.getID(), seq);
 					cells[1] = new IntCell(before - after);
