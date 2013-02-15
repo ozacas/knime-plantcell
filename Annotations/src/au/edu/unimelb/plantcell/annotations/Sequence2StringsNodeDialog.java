@@ -7,6 +7,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -101,8 +102,8 @@ public class Sequence2StringsNodeDialog extends DefaultNodeSettingsPane implemen
         p2.setLayout(new BoxLayout(p2, BoxLayout.X_AXIS));
         p2.add(new JScrollPane(items));
         p.add(p2);
+        p.add(Box.createRigidArea(new Dimension(6,6)));
         JPanel help_panel = new JPanel();
-        help_panel.setBorder(BorderFactory.createTitledBorder("Help for current task"));
         help_panel.add(m_help_label);
         m_help_label.setContentType("text/html");
         final JScrollPane help_sp = new JScrollPane(help_panel);
