@@ -84,8 +84,12 @@ public class Sequence2StringsNodeModel extends NodeModel {
        
        // 1. which selected items should be handled by biojava?
        HashSet<String> left = new HashSet<String>();
+       HashSet<String> total = new HashSet<String>();
+       logger.info("Wanted tasks: ");
        for (String s : m_wanted.getStringArrayValue()) {
     	   left.add(s);
+    	   logger.info(s);
+    	   total.add(s);
        }
        List<AbstractCellFactory> factories = new ArrayList<AbstractCellFactory>();
        for (BioJavaProcessorTask t : BioJavaProcessorNodeModel.getTasks()) {
@@ -97,9 +101,11 @@ public class Sequence2StringsNodeModel extends NodeModel {
     	   if (left.removeAll(names)) {
     		   // we must instantiate a SEPARATE task for each name chosen and add to the factory list
     		   for (String name : names) {
-    			   BioJavaProcessorTask t2 = t.getClass().newInstance();
-    			   t2.init(name, m_seq_idx);
-    			   factories.add(t2);
+    			   if (total.contains(name)) {
+    				   BioJavaProcessorTask t2 = t.getClass().newInstance();
+    				   t2.init(name, m_seq_idx);
+    				   factories.add(t2);
+    			   }
     		   }
     	   }
        }
@@ -119,6 +125,7 @@ public class Sequence2StringsNodeModel extends NodeModel {
        }
        
        // add the needed cell factories to the output table
+       logger.info("Got "+factories.size()+" cell factories to run.");
        try {
     	   for (AbstractCellFactory acf : factories) {		// TODO: order of factories important?
     		   outputTable.append(acf);
