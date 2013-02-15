@@ -151,6 +151,7 @@ public class TrypticPeptideExtractor_v2 extends TrypticPeptideExtractor {
 	*/
 	}
 
+	@SuppressWarnings("unused")
 	private int next_tryptic_terminii(String codons, HashSet<String> terminii_codons) {
 		for (int n_codons=6; n_codons<(TrypticPeptideExtractor.MAX_MEASURABLE_PEPTIDE_LENGTH_IN_AA-2); n_codons++) {
 			int offset = n_codons*3;
