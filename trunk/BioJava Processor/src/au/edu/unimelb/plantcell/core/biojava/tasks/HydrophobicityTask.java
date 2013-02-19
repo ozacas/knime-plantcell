@@ -200,6 +200,7 @@ public class HydrophobicityTask extends BioJavaProcessorTask {
 			String aa = ""+prot.charAt(i);
 			if (!kyteDoolittle.containsKey(aa)) {
 				invalid++;
+				continue;
 			}
 			kyte      += this.kyteDoolittle.get(aa);
 			hopp      += this.hoppWoods.get(aa);
