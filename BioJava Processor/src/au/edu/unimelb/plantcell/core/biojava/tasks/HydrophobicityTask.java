@@ -1,160 +1,226 @@
 package au.edu.unimelb.plantcell.core.biojava.tasks;
 
-import java.io.InputStreamReader;
+import java.util.HashMap;
 
-import org.biojava.bio.proteomics.IsoelectricPointCalc;
-import org.biojava.bio.proteomics.MassCalc;
-import org.biojava.bio.proteomics.aaindex.AAindex;
-import org.biojava.bio.proteomics.aaindex.AAindexStreamReader;
-import org.biojava.bio.proteomics.aaindex.SimpleSymbolPropertyTableDB;
-import org.biojava.bio.seq.DNATools;
-import org.biojava.bio.seq.ProteinTools;
-import org.biojava.bio.seq.RNATools;
-import org.biojava.bio.symbol.SymbolList;
-import org.biojava.bio.symbol.SymbolPropertyTable;
-import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
-import org.knime.core.data.DataType;
 import org.knime.core.data.def.DoubleCell;
-import org.osgi.framework.Bundle;
+import org.knime.core.data.def.IntCell;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 
 /**
- * Computes the Mass, pI and hydrophobicity of the specified sequences, using the
- * parameters as specified by the model given to execute()
+ * Computes six different hydrophobicity values from published authors and adds them to the table.
  * 
- * @author acassin
+ * @author andrew.cassin
  *
  */
-public class HydrophobicityTask extends BioJavaProcessorTask {
-	private MassCalc mc, mc_mi;
-	private AAindex hydrophobicity;
-	private IsoelectricPointCalc ic;
-	
-	public HydrophobicityTask() {
-		super();
-	}
-	
+public class HydrophobicityTask extends BioJavaProcessorTask { 
+    private static HashMap<String, Double> kyteDoolittle = new HashMap<String, Double>();
+    private static HashMap<String, Double> hoppWoods = new HashMap<String, Double>();
+    private static HashMap<String, Double> cornette = new HashMap<String, Double>();
+    private static HashMap<String, Double> eisenberg = new HashMap<String, Double>();
+    private static HashMap<String, Double> janin = new HashMap<String, Double>();
+    private static HashMap<String, Double> engelman = new HashMap<String, Double>();
+
+    // WARNING HACK TODO: these values have not been manually checked! Are they right?
+    static {
+        kyteDoolittle.put("A", 1.80);
+        hoppWoods.put("A", -0.50);
+        cornette.put("A", 0.20);
+        eisenberg.put("A", 0.62);
+        janin.put("A", 0.74);
+        engelman.put("A", 0.30);
+        kyteDoolittle.put("C", 2.50);
+        hoppWoods.put("C", -1.00);
+        cornette.put("C", 4.10);
+        eisenberg.put("C", 0.29);
+        janin.put("C", 0.91);
+        engelman.put("C", 0.90);
+        kyteDoolittle.put("D", -3.50);
+        hoppWoods.put("D", 3.00);
+        cornette.put("D", -3.10);
+        eisenberg.put("D", -0.90);
+        janin.put("D", 0.62);
+        engelman.put("D", -0.60);
+        kyteDoolittle.put("E", -3.50);
+        hoppWoods.put("E", 3.00);
+        cornette.put("E", -1.80);
+        eisenberg.put("E", -0.74);
+        janin.put("E", 0.62);
+        engelman.put("E", -0.70);
+        kyteDoolittle.put("F", 2.80);
+        hoppWoods.put("F", -2.50);
+        cornette.put("F", 4.40);
+        eisenberg.put("F", 1.19);
+        janin.put("F", 0.88);
+        engelman.put("F", 0.50);
+        kyteDoolittle.put("G", -0.40);
+        hoppWoods.put("G", 0.00);
+        cornette.put("G", 0.00);
+        eisenberg.put("G", 0.48);
+        janin.put("G", 0.72);
+        engelman.put("G", 0.30);
+        kyteDoolittle.put("H", -3.20);
+        hoppWoods.put("H", -0.50);
+        cornette.put("H", 0.50);
+        eisenberg.put("H", -0.40);
+        janin.put("H", 0.78);
+        engelman.put("H", -0.10);
+        kyteDoolittle.put("I", 4.50);
+        hoppWoods.put("I", -1.80);
+        cornette.put("I", 4.80);
+        eisenberg.put("I", 1.38);
+        janin.put("I", 0.88);
+        engelman.put("I", 0.70);
+        kyteDoolittle.put("K", -3.90);
+        hoppWoods.put("K", 3.00);
+        cornette.put("K", -3.10);
+        eisenberg.put("K", -1.50);
+        janin.put("K", 0.52);
+        engelman.put("K", -1.80);
+        kyteDoolittle.put("L", 3.80);
+        hoppWoods.put("L", -1.80);
+        cornette.put("L", 5.70);
+        eisenberg.put("L", 1.06);
+        janin.put("L", 0.85);
+        engelman.put("L", 0.50);
+        kyteDoolittle.put("M", 1.90);
+        hoppWoods.put("M", -1.30);
+        cornette.put("M", 4.20);
+        eisenberg.put("M", 0.64);
+        janin.put("M", 0.85);
+        engelman.put("M", 0.40);
+        kyteDoolittle.put("N", -3.50);
+        hoppWoods.put("N", 0.20);
+        cornette.put("N", -0.50);
+        eisenberg.put("N", -0.78);
+        janin.put("N", 0.63);
+        engelman.put("N", -0.50);
+        kyteDoolittle.put("P", -1.60);
+        hoppWoods.put("P", 0.00);
+        cornette.put("P", -2.20);
+        eisenberg.put("P", 0.12);
+        janin.put("P", 0.64);
+        engelman.put("P", -0.30);
+        kyteDoolittle.put("Q", -3.50);
+        hoppWoods.put("Q", 0.20);
+        cornette.put("Q", -2.80);
+        eisenberg.put("Q", -0.85);
+        janin.put("Q", 0.62);
+        engelman.put("Q", -0.70);
+        kyteDoolittle.put("R", -4.50);
+        hoppWoods.put("R", 3.00);
+        cornette.put("R", 1.40);
+        eisenberg.put("R", -2.53);
+        janin.put("R", 0.64);
+        engelman.put("R", -1.40);
+        kyteDoolittle.put("S", -0.80);
+        hoppWoods.put("S", 0.30);
+        cornette.put("S", -0.50);
+        eisenberg.put("S", -0.18);
+        janin.put("S", 0.66);
+        engelman.put("S", -0.10);
+        kyteDoolittle.put("T", -0.70);
+        hoppWoods.put("T", -0.40);
+        cornette.put("T", -1.90);
+        eisenberg.put("T", -0.05);
+        janin.put("T", 0.70);
+        engelman.put("T", -0.20);
+        kyteDoolittle.put("V", 4.20);
+        hoppWoods.put("V", -1.50);
+        cornette.put("V", 4.70);
+        eisenberg.put("V", 1.08);
+        janin.put("V", 0.86);
+        engelman.put("V", 0.60);
+        kyteDoolittle.put("W", -0.90);
+        hoppWoods.put("W", -3.40);
+        cornette.put("W", 1.00);
+        eisenberg.put("W", 0.81);
+        janin.put("W", 0.85);
+        engelman.put("W", 0.30);
+        kyteDoolittle.put("Y", -1.30);
+        hoppWoods.put("Y", -2.30);
+        cornette.put("Y", 3.20);
+        eisenberg.put("Y", 0.26);
+        janin.put("Y", 0.76);
+        engelman.put("Y", -0.40);
+    }
+
 	@Override
 	public String getCategory() {
 		return "Statistics";
 	}
 	
-	public static BioJavaProcessorTask getInstance() {
-		return new HydrophobicityTask();
+	@Override 
+	public String getHTMLDescription(String task) {
+		return "<html>Adds six different measures of hydrophobicity from Eisenberg, Hopp-Woods and many others" +
+				" to the given protein sequence. If the sequences contains invalid AA, this calculation" +
+				" will not emit hydrophobicity data as it is likely meaningless.";
 	}
 	
-	@Override
-	public void init(String task_name, int col) throws Exception {
-		super.init(task_name, col);
-		mc    = new MassCalc(SymbolPropertyTable.AVG_MASS, true);
-		mc_mi = new MassCalc(SymbolPropertyTable.MONO_MASS, true);
-		ic    = new IsoelectricPointCalc();
-	
-		Bundle plugin = Platform.getBundle("au.edu.unimelb.plantcell.misc.biojava");
-		IPath p = new Path("lib/aaindex1");
-		
-		SimpleSymbolPropertyTableDB db = new SimpleSymbolPropertyTableDB(new AAindexStreamReader(new InputStreamReader(FileLocator.openStream(plugin, p, false))));
-		hydrophobicity = (AAindex) db.table("CIDH920105");
-	}
-	
-	/** {@inheritDoc} */
 	@Override
 	public String[] getNames() {
-		 return new String[] { "Hydrophobicity, pI and total mass" }; 
+		return new String[] { "Add six different measures of hydrophobicity (eg. Eisenberg, Hopp-Woods)" };
 	}
 	
-	/** {@inheritDoc} */
-	@Override
-	public String getHTMLDescription(String task) {
-		return "<html>Compute hydrophobicity, isoelectric point and total mass of "+
-		"the sequences. The sequences are converted to protein if necessary (without any "+
-		"translation) before performing the calculation. Hydrophobicity calculations are performed using" +
-		" CIDH920105 average along sequence as implemented in BioJava (http://www.biojava.org)</li>" +
-		"</ol>";
-	}
-	
-	public DataCell[] getCells(DataRow row) {
-		try {
-			SequenceValue sv = getSequenceForRow(row);
-			if (sv == null || sv.getLength() < 1)
-				return missing_cells(4);
-			
-			double pI       = 0.0;
-			double mass_avg = 0.0;
-			double mass_mi  = 0.0;
-			double hyd      = 0.0;
-			
-			SymbolList syms  = asBioJava(sv);
-			
-			if (! sv.getSequenceType().isProtein()) {
-				// need to translate it (by default assume 5' to 3' orientation)
-				if (syms.getAlphabet() != RNATools.getRNA()) {
-					syms = DNATools.transcribeToRNA(syms);
-				}
-				// truncate if not divisible by 3
-				if (syms.length() % 3 != 0) {
-					syms = syms.subList(1, syms.length() - (syms.length() % 3));
-				}
-				
-				syms = RNATools.translate(syms);
-			}
-			
-			// remove * if necessary
-			if (syms.symbolAt(syms.length()) == ProteinTools.ter()) {
-				syms = syms.subList(1, syms.length()-1);
-			}
-			
-			
-			// unknown residues? Dont calculate, leave user to figure it out...
-			DataCell[] cells = new DataCell[4];
-			for (int i=0; i<cells.length; i++) {
-				cells[i] = DataType.getMissingCell();
-			}
-			
-			if (syms.seqString().indexOf("X") >= 0) {
-				return missing_cells(cells.length);
-			}
-		
-			mass_avg = mc.getMass(syms);
-			mass_mi  = mc_mi.getMass(syms);
-			pI   = ic.getPI(syms, true, true); // assume a free NH and COOH
-			
-			for (int i=1; i<= syms.length(); i++) {
-				hyd += hydrophobicity.getDoubleValue(syms.symbolAt(i));
-			}
-			hyd /= syms.length();
-			cells[3]         = new DoubleCell(hyd);
-			cells[0]         = new DoubleCell(pI); 
-			cells[1]         = new DoubleCell(mass_avg);
-			cells[2]         = new DoubleCell(mass_mi);
-			return cells;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return missing_cells(4);
-		}
-	}
-
 	@Override
 	public DataColumnSpec[] getColumnSpecs() {
-		DataColumnSpec[] allColSpecs = new DataColumnSpec[4];
-        allColSpecs[0] = 
-            new DataColumnSpecCreator("pI", DoubleCell.TYPE).createSpec();
-        allColSpecs[1] = 
-            new DataColumnSpecCreator("Mass (Average, Da, +MH)", DoubleCell.TYPE).createSpec();
-        allColSpecs[2] =
-        	new DataColumnSpecCreator("Mass (Monoisotopic, Da, +MH)", DoubleCell.TYPE).createSpec();
-        allColSpecs[3] = 
-            new DataColumnSpecCreator("Average AA Hydrophobicity (aaindex1/CIDH920105)", DoubleCell.TYPE).createSpec();
-     
-        return allColSpecs;
+		DataColumnSpec[] cols = new DataColumnSpec[7];
+		cols[0] = new DataColumnSpecCreator("Eisenberg scale", DoubleCell.TYPE).createSpec();
+		cols[1] = new DataColumnSpecCreator("Kyte-Doolittle scale", DoubleCell.TYPE).createSpec();
+		cols[2] = new DataColumnSpecCreator("Hopp-Woods scale", DoubleCell.TYPE).createSpec();
+		cols[3] = new DataColumnSpecCreator("Cornette scale", DoubleCell.TYPE).createSpec();
+		cols[4] = new DataColumnSpecCreator("Janin scale", DoubleCell.TYPE).createSpec();
+		cols[5] = new DataColumnSpecCreator("Engelman scale", DoubleCell.TYPE).createSpec();
+		cols[6] = new DataColumnSpecCreator("Number of invalid AA", IntCell.TYPE).createSpec();
+
+		return cols;
+	}
+	
+	@SuppressWarnings("static-access")
+	@Override
+	public DataCell[] getCells(DataRow row) {
+		SequenceValue sv = getSequenceForRow(row);
+		if (sv == null || !sv.getSequenceType().isProtein()) 
+			return missing_cells(getColumnSpecs().length);
+		
+		String      prot = sv.getStringValue();
+		DataCell[] cells = missing_cells(getColumnSpecs().length);
+		double kyte = 0.0;
+		double hopp = 0.0;
+		double cornette = 0.0;
+		double eisenberg = 0.0;
+		double janin = 0.0;
+		double engelman = 0.0;
+		int invalid = 0;
+		for (int i=0; i<prot.length(); i++) {
+			String aa = ""+prot.charAt(i);
+			if (!kyteDoolittle.containsKey(aa)) {
+				invalid++;
+			}
+			kyte      += this.kyteDoolittle.get(aa);
+			hopp      += this.hoppWoods.get(aa);
+			cornette  += this.cornette.get(aa);
+			eisenberg += this.eisenberg.get(aa);
+			janin     += this.janin.get(aa);
+			engelman  += this.engelman.get(aa);
+		}
+		
+		if (invalid > 0) {
+			cells[6] = new IntCell(invalid);
+		} else {
+			cells[1] = new DoubleCell(kyte);
+			cells[2] = new DoubleCell(hopp);
+			cells[3] = new DoubleCell(cornette);
+			cells[0] = new DoubleCell(eisenberg);
+			cells[4] = new DoubleCell(janin);
+			cells[5] = new DoubleCell(engelman);
+			cells[6] = new IntCell(0);
+		}
+		return cells;
 	}
 
 }

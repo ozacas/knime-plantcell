@@ -30,8 +30,10 @@ import au.edu.unimelb.plantcell.core.biojava.tasks.CodonUsageTask;
 import au.edu.unimelb.plantcell.core.biojava.tasks.FrameTranslationTask;
 import au.edu.unimelb.plantcell.core.biojava.tasks.GCCalculatorTask;
 import au.edu.unimelb.plantcell.core.biojava.tasks.HydrophobicityTask;
+import au.edu.unimelb.plantcell.core.biojava.tasks.ProteinChargeSummaryTask;
 import au.edu.unimelb.plantcell.core.biojava.tasks.LongestFrameTask;
 import au.edu.unimelb.plantcell.core.biojava.tasks.PositionByResidueTask;
+import au.edu.unimelb.plantcell.core.biojava.tasks.ResidueAnalysisTask;
 import au.edu.unimelb.plantcell.core.biojava.tasks.ResidueFrequencyTask;
 import au.edu.unimelb.plantcell.core.biojava.tasks.SNPAssistedFrameshiftDetector;
 import au.edu.unimelb.plantcell.core.biojava.tasks.SequenceCleanerTask;
@@ -103,7 +105,7 @@ public class BioJavaProcessorNodeModel extends NodeModel {
     	return new BioJavaProcessorTask[] {
 				new AlternateTranslationTask(),
 				new FrameTranslationTask(),
-				new HydrophobicityTask(),
+				new ProteinChargeSummaryTask(),
 				new CodonUsageTask(),
 				new LongestFrameTask(),		// experimental (warning to all users)
 				//new PositionByResidueProcessor(),
@@ -114,7 +116,9 @@ public class BioJavaProcessorNodeModel extends NodeModel {
 				//TrypticPeptideExtractor_v2.getInstance(),		// disabled pending a re-factor
 				new WeightedHomopolymerRateTask(),
 				new AlignmentSequenceExtractorTask(),
-				new GCCalculatorTask()
+				new GCCalculatorTask(),
+				new ResidueAnalysisTask(),
+				new HydrophobicityTask()
     	};
     }
     
@@ -137,8 +141,8 @@ public class BioJavaProcessorNodeModel extends NodeModel {
     }
     
     public BioJavaProcessorTask make_biojava_processor(String task) throws NotConfigurableException,NotImplementedException {
-    	if (task.startsWith("Hydrophobicity")) {
-    		return new HydrophobicityTask();
+    	if (task.startsWith("Hydrophobicity, pI, Total mass, Grantham-scale polarity")) {
+    		return new ProteinChargeSummaryTask();
     	} else if (task.startsWith("Six")) {
     		return new FrameTranslationTask();
     	} else if (task.startsWith("Convert")) {
@@ -165,6 +169,10 @@ public class BioJavaProcessorNodeModel extends NodeModel {
     		return new GCCalculatorTask();
     	} else if (task.startsWith("Codon usage")) {
     		return new CodonUsageTask();
+    	} else if (task.startsWith("Add counts of polar")) {
+    		return new ResidueAnalysisTask();
+    	} else if (task.startsWith("Add six different measure of hydrophobicity")) {
+    		return new HydrophobicityTask();
     	} else if (task.trim().length() >= 1) {
         	throw new NotImplementedException("Unknown BioJava task to perform! Probably a bug...");
     	} else {
