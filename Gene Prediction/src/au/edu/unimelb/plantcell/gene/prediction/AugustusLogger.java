@@ -14,14 +14,11 @@ import org.knime.core.node.InvalidSettingsException;
 
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.core.UniqueID;
-import au.edu.unimelb.plantcell.core.cells.CoordinateSystem;
 import au.edu.unimelb.plantcell.core.cells.SequenceCell;
 import au.edu.unimelb.plantcell.core.cells.SequenceType;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 import au.edu.unimelb.plantcell.core.cells.Track;
-import au.edu.unimelb.plantcell.core.cells.TrackCreator;
 import au.edu.unimelb.plantcore.core.regions.FramedScoredRegion;
-import au.edu.unimelb.plantcore.core.regions.GeneRegionsAnnotation;
 import au.edu.unimelb.plantcore.core.regions.RegionsAnnotation;
 import au.edu.unimelb.plantcore.core.regions.ScoredRegion;
 
@@ -88,11 +85,16 @@ public class AugustusLogger extends LogOutputStream {
 			m = re_feature_line.matcher(line);
 			if (m.find()) {
 				String cur_id   = m.group(1);
-				SequenceValue sv= m_batch_map.get(cur_id);
-				if (sv == null)
-					m_last_seq_id = "";
-				else
-					m_last_seq_id   = sv.getID();
+				// be careful not to use String but UniqueID instances otherwise get() -> equals() will always be false
+				try {
+					SequenceValue sv= m_batch_map.get(new UniqueID(cur_id));
+					if (sv == null)
+						m_last_seq_id = "";
+					else
+						m_last_seq_id   = sv.getID();
+				} catch (NumberFormatException nfe) {
+					// be silent for poor regular expression matches
+				}
 				String[] fields = line.split("\\t+");
 				if (fields.length == 9) 
 					add_feature(fields);
