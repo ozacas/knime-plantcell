@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+     <name>PFAM Accessor</name>
+    
+    <shortDescription>
+        Provides an interface to Sanger Institute PFAM RESTful webservice.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+        Provides an interface to Sanger Institute PFAM RESTful webservice.
+        
+        <p><b>NOTE:</b> the node is deliberately slow (which is not user-configurable) to ensure that Sanger's websites
+        are not overloaded, and that a KNIME user is not banned.</p>
+        
+        <p><b>NOTE:</b> This node does not provide all the functionality of the website, but it does provide enough, if carefully used,
+        to be able to fetch the data. It is <b>strongly</b> recommended that you test with just a few rows and verify results with the website itself
+        before processing large datasets.</p>
+        
+        </intro>
+        
+        
+      
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="PFAM input dataset">Input data which contains the column with identifiers to use</inPort>
+        
+        <outPort index="0" name="PFAM dataset">Input columns with additional entry information provided via PFAM</outPort>
+    </ports>    
+    
+</knimeNode>
