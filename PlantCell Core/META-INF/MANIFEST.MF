@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: PlantCell Core
 Bundle-SymbolicName: au.edu.unimelb.plantcell.core;singleton:=true
-Bundle-Version: 1.2.19
+Bundle-Version: 1.2.20
 Bundle-ClassPath: plantcellcore.jar,
  lib/axis-1.4.jar,
  lib/commons-cli-1.1.jar,
@@ -118,6 +118,9 @@ Export-Package: au.edu.unimelb.plantcell.core,
  org.apache.commons.exec.environment,
  org.apache.commons.exec.launcher,
  org.apache.commons.exec.util,
+ org.apache.commons.httpclient,
+ org.apache.commons.httpclient.methods,
+ org.apache.commons.httpclient.methods.multipart,
  org.biojava.bibliography,
  org.biojava.bio,
  org.biojava.bio.alignment,

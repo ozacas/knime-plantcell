@@ -43,6 +43,10 @@ public class BlastHitRegion extends ScoredRegion {
 		setIdentity(-1d);
 	}
 	
+	/**
+	 * The field names are as set by NCBI BLAST+ with its tsv format column names
+	 * @param fields
+	 */
 	public BlastHitRegion(Map<String,String> fields) {
 		for (String key : fields.keySet()) {
 			String val = fields.get(key);
@@ -125,7 +129,7 @@ public class BlastHitRegion extends ScoredRegion {
 	public void serialize(DataCellDataOutput output) throws IOException {
 		super.serialize(output);
 		
-		output.writeUTF(m_q_id);
+		output.writeUTF((m_q_id != null) ? m_q_id : "");
 		output.writeDouble(m_evalue);
 		output.writeDouble(m_identity);
 		output.writeInt(m_alignment_length);

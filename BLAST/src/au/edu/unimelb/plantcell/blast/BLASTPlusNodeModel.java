@@ -95,7 +95,7 @@ public class BLASTPlusNodeModel extends NodeModel {
 
     // internal state (not persisted)
     private File m_tmp_fasta;		// holds the current batch of query sequences
-
+    
     /**
      * Constructor for the node model.
      */
@@ -298,7 +298,7 @@ public class BLASTPlusNodeModel extends NodeModel {
     	CommandLine cmdLine = new CommandLine(blast);
     	
     	// run makeblastdb if needed
-    	make_blastdb(new File(getBLASTDatabase()));
+    	make_blastdb(new File(getBLASTDatabase(false)));
    
     	// add arguments to BLAST
     	addArguments(cmdLine);
@@ -533,7 +533,8 @@ public class BLASTPlusNodeModel extends NodeModel {
      * @param cmdLine
      */
     public void addBLASTDatabase(CommandLine cmdLine) {
-    	cmdLine.addArgument(getBLASTDatabase());
+    	String db = getBLASTDatabase(true);
+    	cmdLine.addArgument(db, false);		// MUST turn commons-exec quoting off since getBLASTDatabase() will do the right quoting
     }
     
     protected void addArguments(CommandLine cmdLine) {
@@ -606,7 +607,7 @@ public class BLASTPlusNodeModel extends NodeModel {
     	// dont use this as it seems to cause database building failures (incorrect duplicate sequence IDs)
     	//cmdLine.addArgument("-hash_index");
     	cmdLine.addArgument("-in");
-    	cmdLine.addArgument(db.getName());
+    	cmdLine.addArgument(getBLASTDatabase(true), false); // MUST turn commons-exec quoting off since getBLASTDatabase() will do it
     	
     	DefaultExecutor exe = new DefaultExecutor();
     	exe.setExitValues(new int[] {0});	// only 0 is considered success
@@ -764,8 +765,15 @@ public class BLASTPlusNodeModel extends NodeModel {
 
     }
 
-	protected String getBLASTDatabase() {
-		return m_db.getStringValue();
+	protected String getBLASTDatabase(boolean quoted) {
+		String ret = m_db.getStringValue();
+		if (quoted && ret.indexOf(" ") >= 0) {
+			// according to http://www.ncbi.nlm.nih.gov/books/NBK1763/#CmdLineAppsManual.I515_Multiple_database
+			// we must specially quote a database with whitespaces in it. Watch out for java string quoting too...
+			ret = "\"\\\"" + ret + "\\\"\"";
+			// fallthru
+		}
+		return ret;
 	}
 	
 	protected String getQueryDatabase() {

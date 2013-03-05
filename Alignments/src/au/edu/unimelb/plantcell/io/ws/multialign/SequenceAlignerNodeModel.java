@@ -31,6 +31,7 @@ import neobio.alignment.ScoringMatrix;
 import neobio.alignment.SmithWaterman;
 
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.RowIterator;
@@ -151,11 +152,14 @@ public class SequenceAlignerNodeModel extends NodeModel {
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
     	
-         int sequence_col    = inData[0].getDataTableSpec().findColumnIndex(m_seq_col.getStringValue());
-         boolean is_pairwise = m_is_pairwise.getStringValue().equals("1col");
-         if ((!is_pairwise && sequence_col < 0)) {
-         	throw new Exception("Cannot locate column: have you configured the node correctly?");
-         }
+    	int sequence_col    = inData[0].getDataTableSpec().findColumnIndex(m_seq_col.getStringValue());
+    	if (sequence_col < 0) {
+    		sequence_col = useSequenceColumn(inData[0].getDataTableSpec(), 2);
+    		if (sequence_col < 0) {
+    			throw new Exception("Cannot locate first sequence column: re-configure?");
+    		}
+    	}
+    	boolean is_pairwise = m_is_pairwise.getStringValue().equals("1col");
          
         // log summary of node execution
         double gap_open_penalty   = m_gap_penalty_open.getDoubleValue();
@@ -192,6 +196,27 @@ public class SequenceAlignerNodeModel extends NodeModel {
         	return execute_pairs(inData, exec, gap_open_penalty, gap_extend_penalty, n_rows, sequence_col);
         }
     }
+
+	private int useSequenceColumn(DataTableSpec inSpec, int idx_from_last) {
+		assert(idx_from_last >= 1);
+		
+		int got = 0;
+		for (int i=inSpec.getNumColumns()-1; i >= 0; i--) {
+			DataColumnSpec cs = inSpec.getColumnSpec(i);
+			if (cs.getType().isCompatible(SequenceValue.class)) {
+				got++;
+				if (got == idx_from_last) {
+					if (logger != null) {
+						logger.warn("Using '"+cs.getName()+"' column for biological sequences.");
+					}
+				
+					return i;
+				}
+				// else continue for more columns...
+			}
+		}
+		return -1;
+	}
 
 	protected BufferedDataTable[] execute_pairwise(final BufferedDataTable[] inData,
             final ExecutionContext exec, double gap_open_penalty, 
@@ -240,7 +265,9 @@ public class SequenceAlignerNodeModel extends NodeModel {
     	
     	int sequence2_col = inData[0].getDataTableSpec().findColumnIndex(m_seq2_col.getStringValue());
     	if (sequence2_col < 0) {
-    		throw new Exception("Cannot locate sequence2 column: have you configured the node correctly?");
+    		sequence2_col = useSequenceColumn(inData[0].getSpec(), 1);
+    		if (sequence2_col < 0)
+    			throw new Exception("Cannot locate sequence2 column: have you configured the node correctly?");
     	}
     	if (sequence_col == sequence2_col) {
     		throw new Exception("Cannot use the same column for both sequences!");

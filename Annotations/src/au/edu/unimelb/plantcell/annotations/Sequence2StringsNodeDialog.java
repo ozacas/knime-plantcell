@@ -2,23 +2,24 @@ package au.edu.unimelb.plantcell.annotations;
 
 import java.awt.Dimension;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Enumeration;
-import java.util.HashMap;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JList;
+import javax.swing.Icon;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
-import javax.swing.ListModel;
-import javax.swing.ListSelectionModel;
+import javax.swing.JTree;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 
 import org.knime.core.data.DataColumnProperties;
 import org.knime.core.data.DataColumnSpec;
@@ -51,22 +52,24 @@ public class Sequence2StringsNodeDialog extends DefaultNodeSettingsPane implemen
 	
 	private final static int SHOW_N_ROWS = 5;
 	
-	private final static ArrayList<String> m_items = new ArrayList<String>();
+	private final static TreeModel m_tree = new TreeModel();
 	static {
-		m_items.add(Sequence2StringsNodeModel.SEQUENCE_ID);
-		m_items.add(Sequence2StringsNodeModel.DESCRIPTION_PRIMARY);
-		m_items.add(Sequence2StringsNodeModel.SEQUENCE_SINGLE_LETTER);
-		m_items.add(Sequence2StringsNodeModel.INPUT_SEQUENCE);
-		m_items.add(Sequence2StringsNodeModel.SEQUENCE_LENGTH);
+		m_tree.add("Common", Sequence2StringsNodeModel.SEQUENCE_ID);
+		m_tree.add("Common", Sequence2StringsNodeModel.DESCRIPTION_PRIMARY);
+		m_tree.add("Common", Sequence2StringsNodeModel.SEQUENCE_SINGLE_LETTER);
+		m_tree.add("Common", Sequence2StringsNodeModel.INPUT_SEQUENCE);
+		m_tree.add("Common", Sequence2StringsNodeModel.SEQUENCE_LENGTH);
 		
-		for (String t : BioJavaProcessorNodeModel.getTaskNames()) {
-			m_items.add(t);
+		for (BioJavaProcessorTask t : BioJavaProcessorNodeModel.getTasks()) {
+			String category = t.getCategory();
+			for (String name : t.getNames()) {
+				m_tree.add(category, name);
+			}
 		}
-        Collections.sort(m_items);
 	};
 	private DataTableSpec m_specs = null;
     private final SettingsModelString sms = new SettingsModelString(Sequence2StringsNodeModel.CFGKEY_SEQUENCE_COL, "");
-    private JList items;
+    private JTree m_items;
     private final JTextPane m_help_label = new JTextPane();
  
 	protected Sequence2StringsNodeDialog() {
@@ -93,14 +96,27 @@ public class Sequence2StringsNodeDialog extends DefaultNodeSettingsPane implemen
         
         JPanel p = ((JPanel) getTab("Options"));
         
-        items = new JList(m_items.toArray());
-        items.setMinimumSize(new Dimension(150,60));
-        items.setVisibleRowCount(SHOW_N_ROWS);
-        items.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        m_items = new JTree(m_tree);
+        m_items.setMinimumSize(new Dimension(150,120));
+        m_items.setVisibleRowCount(SHOW_N_ROWS);
+        m_items.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
+        m_items.setRootVisible(false);
+        m_items.setCellRenderer(new DefaultTreeCellRenderer() {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 5858855517017002635L;
+        	
+			public Icon getLeafIcon() {
+				// no icons for the leaves
+				return null;
+			}
+        });
         JPanel p2 = new JPanel();
         p2.setBorder(BorderFactory.createTitledBorder("What to extract? (several can be chosen)"));
         p2.setLayout(new BoxLayout(p2, BoxLayout.X_AXIS));
-        p2.add(new JScrollPane(items));
+        p2.add(new JScrollPane(m_items));
         p.add(p2);
         p.add(Box.createRigidArea(new Dimension(6,6)));
         JPanel help_panel = new JPanel();
@@ -110,23 +126,29 @@ public class Sequence2StringsNodeDialog extends DefaultNodeSettingsPane implemen
         p.add(help_sp);
         
         // update help when a suitable list selection is made
-        items.addListSelectionListener(new ListSelectionListener() {
+        m_items.addTreeSelectionListener(new TreeSelectionListener() {
 
 			@Override
-			public void valueChanged(ListSelectionEvent arg0) {
-				int[] sel = items.getSelectedIndices();
-				if (sel.length == 1) {
-					String name = items.getSelectedValue().toString();
-					BioJavaProcessorTask found = findTask(name);
-					if (found != null) {
+			public void valueChanged(TreeSelectionEvent arg0) {
+				TreePath[] sel = m_items.getSelectionPaths();
+				List<TreePath> leaf_selected = m_tree.paths2leaves(sel);
+				if (leaf_selected.size() == 1) {
+					String name = m_tree.findName(leaf_selected.get(0));
+					BioJavaProcessorTask t = findTask(name);
+					if (t != null) {
 						m_help_label.setText("<html><h3>"+name+
-								"</h3><br/><br/>"+found.getHTMLDescription(name));
+								"</h3><br/><br/>"+t.getHTMLDescription(name));
 						m_help_label.setCaretPosition(0);
 						return;
 					}
 					// fallthru...
 				}
-				m_help_label.setText("<html>No help available. Select a single task to see help.");
+				m_help_label.setText("<html><h3>Please select a single task for help.");
+				
+				// ensure last user selection is always visible (eg. when loading the dialog for the first time)
+				if (leaf_selected.size() >= 1) {
+					m_items.scrollPathToVisible(leaf_selected.get(0));
+				}
 			}
         	
         });
@@ -145,55 +167,36 @@ public class Sequence2StringsNodeDialog extends DefaultNodeSettingsPane implemen
 	public void loadAdditionalSettingsFrom(NodeSettingsRO s, DataTableSpec[] specs) 
 					throws NotConfigurableException {
 		m_specs = specs[0];
-		stateChanged(null);
-		if (items != null && items.getSelectedIndex() < 0) {
+		stateChanged(null);		// HACK: invoke the ChangeListener method indirectly which ensures the annotation tracks are added
+		if (m_items != null && m_items.getSelectionCount() < 1) {
 			if (s.containsKey(Sequence2StringsNodeModel.CFGKEY_WANTED)) {
 				try {
-					items.setSelectedIndices(getIndices(s.getStringArray(Sequence2StringsNodeModel.CFGKEY_WANTED)));
+					List<TreePath> tp_list = new ArrayList<TreePath>();
+					m_items.clearSelection();
+					for (String tmp : s.getStringArray(Sequence2StringsNodeModel.CFGKEY_WANTED)) {
+						TreePath tp = m_tree.getPath(tmp);
+						if (tp != null) {
+							tp_list.add(tp);
+						}
+					}
+					m_items.addSelectionPaths(tp_list.toArray(new TreePath[0]));
 				} catch (InvalidSettingsException e) {
 					e.printStackTrace();
 				}
 			}
 		}
 	}
-	
-	private int[] getIndices(String[] sel_items) throws InvalidSettingsException {
-		HashMap<String,Integer> item2idx = new HashMap<String,Integer>();
-		ListModel lm = items.getModel();
-		for (int i=0; i<lm.getSize(); i++) {
-			item2idx.put(lm.getElementAt(i).toString(), new Integer(i));
-		}
-		
-		ArrayList<Integer> ret = new ArrayList<Integer>();
-		for (String s : sel_items) {
-			if (item2idx.containsKey(s)) {
-				ret.add(item2idx.get(s));
-				// prevent duplicates
-				item2idx.remove(s);
-			}
-		}
-		
-		if (ret.size() < 1)
-			return null;
-		
-		int[] vec = new int[ret.size()];
-		int idx = 0;
-		for (Integer i : ret) {
-			vec[idx++] = i.intValue();
-		}
-		return vec;
-	}
 
 	@Override
 	public void saveAdditionalSettingsTo(NodeSettingsWO settings) throws InvalidSettingsException {
-		Object[] selitems = items.getSelectedValues();
-		if (selitems == null || selitems.length < 1) {
+		List<TreePath> selitems = m_tree.paths2leaves(m_items.getSelectionPaths());
+		if (selitems == null || selitems.size() < 1) {
 			settings.addStringArray(Sequence2StringsNodeModel.CFGKEY_WANTED, "");
 		} else {
-			String[] sel = new String[selitems.length];
+			String[] sel = new String[selitems.size()];
 			int i=0;
-			for (Object o : selitems) {
-				sel[i++] = o.toString();
+			for (TreePath o : selitems) {
+				sel[i++] = m_tree.findName(o);
 			}
 			settings.addStringArray(Sequence2StringsNodeModel.CFGKEY_WANTED, sel);
 		}
@@ -206,32 +209,23 @@ public class Sequence2StringsNodeDialog extends DefaultNodeSettingsPane implemen
 		
 		int col_idx = m_specs.findColumnIndex(sms.getStringValue());
 		if (col_idx < 0) {
-			items.setListData(m_items.toArray(new String[0]));
 			return;
 		}
-		ArrayList<String> new_items = new ArrayList<String>();
-		for (String s : m_items) {
-			new_items.add(s);
-		}
+		
 		DataColumnProperties props = m_specs.getColumnSpec(col_idx).getProperties();
 		if (props == null || props.size() < 1) {
-			items.setListData(new_items.toArray(new String[0]));
 			return;
 		}
 		
 		Enumeration<String> it = props.properties();
+		
 		while (it.hasMoreElements()) {
 			String propName = it.nextElement();
 			
 			if (propName.startsWith(Track.PLANTCELL_TRACK_PREFIX)) {
 				propName = propName.substring(Track.PLANTCELL_TRACK_PREFIX.length());
-				new_items.add("Track - "+propName);
+				m_tree.add("Annotation Tracks", "Track - "+propName);
 			}
-		}
-		Collections.sort(new_items);
-		items.setListData(new_items.toArray(new String[0]));
-		if (new_items.size() == 1) {
-			items.setSelectedIndex(0);
 		}
 	}
 }

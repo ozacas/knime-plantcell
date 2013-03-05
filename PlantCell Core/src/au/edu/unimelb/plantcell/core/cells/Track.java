@@ -44,7 +44,8 @@ public class Track extends StandardTrackRenderer implements SerializableInterfac
 	public static final String EMBOSS_TRACKS            = "EMBOSS:";
 	public static final String GENE_PREDICTION_AUGUSTUS = "GenePrediction:Augustus";
 	public static final String PREDGPI_TRACK            = "PredGPI";
-	public static final String SIGNALP_TRACK = "CBS:SignalP";
+	public static final String PFAM_TRACK               = "PFAM";
+	public static final String SIGNALP_TRACK            = "CBS:SignalP";
 
 	
 	private String             m_name;

@@ -40,7 +40,7 @@ public class PFAMSourceNodeModel extends AbstractWebServiceNodeModel {
  
 	public final static String[] PFAM_Task_Labels = new String[] {
 		" find information about selected PFAM families eg. PF00171",
-		" find PFAM annotation about known sequences",
+		" find PFAM annotation for my sequences",
 		" find PFAM annotation for UniProt ID's eg. P00789"
 	};
 	
@@ -63,7 +63,7 @@ public class PFAMSourceNodeModel extends AbstractWebServiceNodeModel {
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
 
-    	logger.info("Using "+m_url.getStringValue()+ " to find PFAM information.");
+    	logger.info("Using "+m_url.getStringValue()+ " as PFAM data source.");
     	logger.info("Fetching "+m_type.getStringValue()+".");
     	
     	PFAMTask t = make_pfam_task();
@@ -73,7 +73,7 @@ public class PFAMSourceNodeModel extends AbstractWebServiceNodeModel {
 		if (col_idx < 0) {
 			throw new InvalidSettingsException("Cannot find column: "+m_col.getStringValue()+" - reconfigure?");
 		}
-		t.init(logger, col_idx, new URL(m_url.getStringValue()));
+		t.init(logger, col_idx, new URL(m_url.getStringValue()), inData[0].getSpec());
 		
 		// create the column rearranger
 		ColumnRearranger outputTable = new ColumnRearranger(inData[0].getDataTableSpec());
@@ -96,6 +96,10 @@ public class PFAMSourceNodeModel extends AbstractWebServiceNodeModel {
     	String type = m_type.getStringValue().toLowerCase();
     	if (type.indexOf("selected pfam families") >= 0) 
     		return new PFAMGetFamilyTask();
+    	else if (type.indexOf("uniprot") >= 0) 
+    		return new PFAMUniProtGetTask();
+    	else if (type.indexOf("my sequences") >= 0)
+    		return new PFAMSequenceSearchTask();
     	
     	return null;
     }
@@ -111,7 +115,7 @@ public class PFAMSourceNodeModel extends AbstractWebServiceNodeModel {
     	 if (col_idx < 0)
     		 throw new IllegalArgumentException("Cannot find input column: "+m_col.getStringValue()+" - reconfigure?");
     	 try {
-			t.init(logger, col_idx, new URL(m_url.getStringValue()));
+			t.init(logger, col_idx, new URL(m_url.getStringValue()), inSpec);
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 			throw new IllegalArgumentException(e.getMessage());

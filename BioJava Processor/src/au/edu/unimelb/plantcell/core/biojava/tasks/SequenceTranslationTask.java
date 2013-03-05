@@ -57,8 +57,10 @@ public class SequenceTranslationTask extends BioJavaProcessorTask {
 	/** {@inheritDoc} */
 	@Override
 	public String getHTMLDescription(String task) {
-		return "<html>Computes a translation of sequence from DNA->RNA, RNA->AA or DNA->AA based "+
-		"based on the node configuration. Currently, back translation from AA to DNA is not supported by this node.";
+		return "<html>Computes a translation of sequence from DNA->RNA, RNA->AA or DNA->AA" +
+				"Will trim a non-triplet nucleotide sequence as required. " +
+				"Currently, back translation from AA to DNA is not supported, although the EMBOSS node does support this " +
+				"via backtranseq and other tools.";
 	}
 	
 	public DataCell[] getCells(DataRow row) {
@@ -66,6 +68,8 @@ public class SequenceTranslationTask extends BioJavaProcessorTask {
 		if (sv == null || sv.getLength() < 1)
 			return missing_cells(getColumnSpecs().length);
 	
+		// TODO: validate sv.getSequenceType() against requested conversion
+		
 		SymbolList sl;
 		try {
 			sl = asBioJava(sv);

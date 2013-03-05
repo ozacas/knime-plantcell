@@ -15,6 +15,7 @@ import org.knime.core.data.DataColumnSpec;
 import au.edu.unimelb.plantcore.core.regions.AlignedRegionsAnnotation;
 import au.edu.unimelb.plantcore.core.regions.GeneRegionsAnnotation;
 import au.edu.unimelb.plantcore.core.regions.InterProRegionsAnnotation;
+import au.edu.unimelb.plantcore.core.regions.PFAMRegionsAnnotation;
 import au.edu.unimelb.plantcore.core.regions.PhobiusRegionsAnnotation;
 import au.edu.unimelb.plantcore.core.regions.PredGPIRegionsAnnotation;
 import au.edu.unimelb.plantcore.core.regions.RegionInterface;
@@ -111,6 +112,8 @@ public abstract class SequenceAnnotation {
 				return new GeneRegionsAnnotation();
 			case PREDGPI_REGIONS:
 				return new PredGPIRegionsAnnotation();
+			case PFAM_REGIONS:
+				return new PFAMRegionsAnnotation();
 			default:
 				return new UserDefinedAnnotation();
 		}

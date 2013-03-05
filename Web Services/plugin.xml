@@ -9,6 +9,11 @@
             category-path="/Bioinformatics/Web Services"
             factory-class="au.edu.unimelb.plantcell.io.ws.uniprot.UniProtAccessorNodeFactory"
             id="au.edu.unimelb.plantcell.io.ws.uniprot"/>
+      
+     <node
+            category-path="/Bioinformatics/Web Services"
+            factory-class="au.edu.unimelb.plantcell.io.ws.pfam.PFAMSourceNodeFactory"
+            id="au.edu.unimelb.plantcell.io.ws.pfam"/>
             
       <node
             category-path="/Bioinformatics/Web Services/Nectar Cloud"

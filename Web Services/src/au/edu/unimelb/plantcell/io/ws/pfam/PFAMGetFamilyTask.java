@@ -9,7 +9,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
@@ -37,12 +36,12 @@ import au.edu.unimelb.plantcell.core.MyHttpClient;
 public class PFAMGetFamilyTask extends PFAMTask {
 	private static Pattern pfam_accsn_re    = Pattern.compile("^(PF\\d+)");
 	private static Pattern pfam_family_name = Pattern.compile("^(\\w+)$");
-	private static MyHttpClient m_http;		
+	private MyHttpClient m_http;		
 	
 	
 	@Override
-	public void init(final NodeLogger l, int user_configured_column_index, final URL pfam_base_url) { 
-		super.init(l, user_configured_column_index, pfam_base_url);
+	public void init(final NodeLogger l, int user_configured_column_index, final URL pfam_base_url, DataTableSpec inSpec) { 
+		super.init(l, user_configured_column_index, pfam_base_url, inSpec);
 		m_http = new MyHttpClient(); // rate limited to one query per 5 seconds (MAX.)
 	}
 	
@@ -279,38 +278,8 @@ public class PFAMGetFamilyTask extends PFAMTask {
 			
 		});
 		
-		Stack<XMLMatcher> object_stack = new Stack<XMLMatcher>();
-		
-		StringBuilder sb = new StringBuilder();
-		for (int event = parser.next();
-		         event != XMLStreamConstants.END_DOCUMENT;
-		         event = parser.next()) {
-		  
-			  if ((event == XMLStreamConstants.CHARACTERS || event == XMLStreamConstants.CDATA) && object_stack.size() > 0) {
-				  sb.append(parser.getText());
-			  }
-			  
-			  /**
-			   * Cant call getLocalName() unless its an element so...
-			   */
-			  if (event != XMLStreamConstants.START_ELEMENT && event != XMLStreamConstants.END_ELEMENT)
-				  continue;
-			 
-			  String localName = parser.getLocalName();
-			  if (event == XMLStreamConstants.START_ELEMENT && start_map.containsKey(localName)) {
-				  XMLMatcher x = start_map.get(localName);
-				  assert(x != null);
-				  sb = new StringBuilder();
-				  x.processElement(m_logger, parser, object_stack, out);
-				  object_stack.push(x);
-			  } 
-			  if (event == XMLStreamConstants.END_ELEMENT && start_map.containsKey(localName)) {
-				  XMLMatcher x = object_stack.pop();
-				  x.saveText(sb.toString(), out);
-			  }
-		}
-		
-		parser.close();	// NB: does NOT close the input stream
+		parse_xml(parser, start_map, out);
+		parser.close();
 		sr.close();
 		return out;
 	}
