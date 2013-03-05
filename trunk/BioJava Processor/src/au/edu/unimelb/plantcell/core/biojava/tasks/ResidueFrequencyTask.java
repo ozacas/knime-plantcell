@@ -1,5 +1,6 @@
 package au.edu.unimelb.plantcell.core.biojava.tasks;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
@@ -8,19 +9,21 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
+import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 
 /**
- *  Speed is important here, for large sequence databases (eg. short reads from NextGenSeq etc.)
+ *  Speed is somewhat important here, for large sequence databases (eg. short reads from NextGenSeq etc.)
  *  
  * @author acassin
  *
  */
 public class ResidueFrequencyTask extends BioJavaProcessorTask {
-	private boolean m_single_residue;
+	private boolean m_single_residue, m_tri_mers;
 	private final HashMap<String, Integer> m_colmap = new HashMap<String,Integer>(); // maps column name (ie. symbol name) to a corresponding column id
+	private String m_task;
 	
 	public ResidueFrequencyTask() {
 	}
@@ -37,8 +40,10 @@ public class ResidueFrequencyTask extends BioJavaProcessorTask {
 	@Override
 	public void init(String task, int col) throws Exception {
 		super.init(task, col);
-		m_single_residue = task.equals("Count Residues");
+		m_single_residue = task.startsWith("Count Residues");
+		m_tri_mers       = (task.toLowerCase().indexOf("tri-mers") >= 0);
 		m_colmap.clear();
+		m_task = task;
 	}
 	
 	/** {@inheritDoc} */	
@@ -46,7 +51,9 @@ public class ResidueFrequencyTask extends BioJavaProcessorTask {
 	public String[] getNames() {
 		 return new String[] { 
 		    "Count Residues", 
-	        "Count Di-mers (overlapping)" 
+		    "Count Residues (% of total length)",
+	        "Count Di-mers (overlapping)",
+	        "Count Tri-mers (overlapping, Protein)"
 		 };
 	}
 	
@@ -55,31 +62,46 @@ public class ResidueFrequencyTask extends BioJavaProcessorTask {
 	public String getHTMLDescription(String task) {
 		return "<html>Totals the occurrence of each residue (DNA+IUPAC or AA) for the " +
 				"set of sequences. Ambiguous calls (N etc.) are included. It is also possible "+
-				"to compute the overlapping di-mer frequencies for a set of sequences";
+				"to compute the overlapping di-mer frequencies for a set of sequences and tri-mer " +
+				"frequencies for protein sequences";
 	}
 	
 	@Override
 	public DataCell[] getCells(DataRow row) {
 		int[] vec = new int[m_colmap.size()];
-		String[] id = new String[m_colmap.size()];
-		
-		// populate id array
-		Iterator<String> iid = m_colmap.keySet().iterator();
-		int j = 0;
-		while (iid.hasNext()) {
-			String col_id = iid.next();
-			id[j++] = col_id;
-		}
+		DataCell[] cells = missing_cells(vec.length);
 		
 		// process rows for user's dataset
 		SequenceValue sv = getSequenceForRow(row);
 		if (sv == null) {
-			return missing_cells(m_colmap.size());
+			return cells;
 		}
 		String seq = sv.getStringValue().toUpperCase();
 		
-		if (m_single_residue) {			
-			DataCell[] cells = new DataCell[vec.length];
+		if (m_tri_mers && seq.length() >= 3) {
+			for (int i=0; i<seq.length()-2; i++) {
+				String trimer = seq.substring(i,i+3);
+				Integer column_idx = m_colmap.get(trimer);
+				assert(column_idx != null);
+				if (column_idx == null)
+					continue;
+				vec[column_idx.intValue()]++;
+			}
+			for (String s : m_colmap.keySet()) {
+				int idx = m_colmap.get(s);
+				cells[idx] = new IntCell(vec[idx]);
+			}
+			return cells;
+		} else if (m_single_residue) {			
+			String[] id = new String[m_colmap.size()];
+			
+			// populate id array
+			Iterator<String> iid = m_colmap.keySet().iterator();
+			int j = 0;
+			while (iid.hasNext()) {
+				String col_id = iid.next();
+				id[j++] = col_id;
+			}
 			for (int k=0; k<vec.length; k++) {
 				int cnt = 0;
 				String colname = id[k];
@@ -92,15 +114,19 @@ public class ResidueFrequencyTask extends BioJavaProcessorTask {
 				
 				if (m_colmap.containsKey(colname)) {
 					Integer column_idx = m_colmap.get(colname);
-					cells[column_idx.intValue()] = new IntCell(cnt);
+					if (m_task.indexOf("%") >= 0) {
+						cells[column_idx.intValue()] = new DoubleCell(((double)cnt) * 100.0 / sv.getLength());
+					} else {
+						cells[column_idx.intValue()] = new IntCell(cnt);
+					}
 				}
 			}
 			return cells;
 		} else {
 			// di-mer/di-peptide composition?
-			int[] cells = new int[vec.length];
+			int[] values = new int[vec.length];
 			for (int k=0; k<cells.length; k++) {
-				cells[k] = 0;
+				values[k] = 0;
 			}
 			for (int k=0; k<seq.length()-1; k++) {
 				StringBuffer sb = new StringBuffer();
@@ -110,24 +136,39 @@ public class ResidueFrequencyTask extends BioJavaProcessorTask {
 				
 				if (m_colmap.containsKey(dimer)) {
 					Integer column_idx = m_colmap.get(dimer);
-					cells[column_idx.intValue()]++;
+					values[column_idx.intValue()]++;
 				}
 			}
 			
-			DataCell[] knime_cells = new DataCell[cells.length];
 			for (int k=0; k<cells.length; k++) {
-				knime_cells[k] = new IntCell(new Integer(cells[k]));
+				cells[k] = new IntCell(new Integer(values[k]));
 			}
-			return knime_cells;
+			return cells;
 		}
 	}
 
 	@Override
 	public DataColumnSpec[] getColumnSpecs() {
-		DataColumnSpec[] cols;
+		
+		// tri-mer AA table?
+		if (m_task.toLowerCase().indexOf("tri-mers") >= 0) {
+			char[] aa = new char[] { 'A', 'R', 'N', 'D', 'C', 'E', 'Q', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V' };
+			ArrayList<DataColumnSpec> ret = new ArrayList<DataColumnSpec>();
+			int idx=0;
+			for (char a : aa) {
+				for (char b : aa) {
+					for (char c : aa) {
+						String name = ""+a+b+c;
+						m_colmap.put(name, new Integer(idx++));
+						ret.add(new DataColumnSpecCreator(name, IntCell.TYPE).createSpec());
+					}
+				}
+			}
+			return ret.toArray(new DataColumnSpec[0]);
+		}
 		
 		// report any strange characters in whatever sequence type for QA purposes
-	
+		DataColumnSpec[] cols;
 		char[] vec = new char[26];
 		int idx = 0;
 		for (char c= 'A'; c<= 'Z'; c++) {
@@ -161,7 +202,11 @@ public class ResidueFrequencyTask extends BioJavaProcessorTask {
 		
 		for (String colname : colnames) {
 			k = m_colmap.get(colname).intValue();
-			cols[k] = new DataColumnSpecCreator(colname, IntCell.TYPE).createSpec();
+			if (m_task.indexOf("%") >= 0) {
+				cols[k] = new DataColumnSpecCreator(colname+"%", DoubleCell.TYPE).createSpec();
+			} else {
+				cols[k] = new DataColumnSpecCreator(colname, IntCell.TYPE).createSpec();
+			}
 		}
 		return  cols;
 	}

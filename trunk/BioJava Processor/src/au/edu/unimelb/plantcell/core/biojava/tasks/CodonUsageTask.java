@@ -75,7 +75,7 @@ public class CodonUsageTask extends BioJavaProcessorTask {
 
 	@Override
 	public String getCategory() {
-		return "Basic";
+		return "Common";
 	}
 
 	@Override

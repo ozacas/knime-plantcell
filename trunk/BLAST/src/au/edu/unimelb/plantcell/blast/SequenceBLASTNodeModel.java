@@ -85,7 +85,7 @@ public class SequenceBLASTNodeModel extends BLASTPlusNodeModel {
     	
     	
     	// run makeblastdb if needed
-    	make_blastdb(new File(getBLASTDatabase()));
+    	make_blastdb(new File(getBLASTDatabase(false)));
     	
     	addArguments(cmdLine);
     

@@ -2,11 +2,17 @@ package au.edu.unimelb.plantcell.io.ws.tmhmm;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.collection.CollectionCellFactory;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
@@ -120,22 +126,18 @@ public abstract class AbstractWebServiceNodeModel extends NodeModel {
 
 	@Override
 	protected void saveSettingsTo(NodeSettingsWO settings) {
-		// TODO Auto-generated method stub
-		int x = 0;
 	}
 
 	@Override
 	protected void validateSettings(NodeSettingsRO settings)
 			throws InvalidSettingsException {
-		// TODO Auto-generated method stub
-		int x=0;
+		
 	}
 
 	@Override
 	protected void loadValidatedSettingsFrom(NodeSettingsRO settings)
 			throws InvalidSettingsException {
-		// TODO Auto-generated method stub
-		int x=0;
+	
 	}
 
 
@@ -172,4 +174,21 @@ public abstract class AbstractWebServiceNodeModel extends NodeModel {
 		}
 		return -1;
 	}
+	
+    protected DataCell safe_string_list(List<String> s) {
+    	if (s == null || s.size() < 1)
+    		return DataType.getMissingCell();
+		List<StringCell> ret = new ArrayList<StringCell>();
+		for (String t : s) {
+			ret.add(new StringCell(t));
+		}
+		return CollectionCellFactory.createListCell(ret);
+	}
+
+	protected DataCell safe_string(String s) {
+		if (s == null)
+			return DataType.getMissingCell();
+		return new StringCell(s);
+	}
+
 }

@@ -34,14 +34,14 @@ public class AlignedRegionsAnnotation extends RegionsAnnotation implements Track
 	}
 	
 	/**
-	 * Co-ordinates of predictions start at 1 for phobius?
+	 * Co-ordinates of predictions start at 1 for phobius?o
 	 */
 	@Override
 	public int getOffset() {
 		return 1;
 	}
 
-	public void addRegions(List<BlastHitRegion> tmp) {
+	public void addRegions(List<? extends BlastHitRegion> tmp) {
 		for (BlastHitRegion bhr : tmp) {
 			addRegion(bhr);
 		}
