@@ -25,6 +25,11 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 import au.edu.unimelb.plantcell.core.cells.Track;
 import au.edu.unimelb.plantcore.core.regions.RegionInterface;
 
+/**
+ * 
+ * @author andrew.cassin
+ *
+ */
 public class Sequence2ColumnsCellFactory extends AbstractCellFactory {
 	private int m_col;
 	private String[] m_wanted;
@@ -89,7 +94,7 @@ public class Sequence2ColumnsCellFactory extends AbstractCellFactory {
 
 	/**
      * KNIME requires at least one column, so we guarantee that despite user-configuration. 
-     * @param spec
+     * @param spec always contains at least one column
      * @param wanted 
      * @return
      * @throws InvalidSettingsException 
@@ -129,6 +134,12 @@ public class Sequence2ColumnsCellFactory extends AbstractCellFactory {
 			int col_idx = 0;
 			for (DataColumnSpec colSpec : cols) {
 		    	   m_cols.put(colSpec.getName(), new Integer(col_idx++));
+		    	   
+		    	   // duplicate column name? must adjust name in this case to ensure execute() does not throw during its execution
+		    	   if (m_inspec.containsName(colSpec.getName())) {
+		    		   String new_name = DataTableSpec.getUniqueColumnName(m_inspec, colSpec.getName());
+		    		   cols.set(col_idx-1, new DataColumnSpecCreator(new_name, colSpec.getType()).createSpec());
+		    	   }
 		    }
 		}
 		 
