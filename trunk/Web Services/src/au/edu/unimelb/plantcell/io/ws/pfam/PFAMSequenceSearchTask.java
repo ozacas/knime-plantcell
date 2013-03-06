@@ -32,7 +32,6 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 import au.edu.unimelb.plantcell.core.cells.Track;
 import au.edu.unimelb.plantcell.core.cells.TrackColumnPropertiesCreator;
 import au.edu.unimelb.plantcell.core.cells.TrackCreator;
-import au.edu.unimelb.plantcore.core.regions.AlignedRegionsAnnotation;
 import au.edu.unimelb.plantcore.core.regions.PFAMHitRegion;
 import au.edu.unimelb.plantcore.core.regions.PFAMRegionsAnnotation;
 
@@ -66,8 +65,8 @@ public class PFAMSequenceSearchTask extends PFAMTask {
 	    	}
 	     }
 	    cols[0] = dcsc.createSpec();
-		cols[1] = new DataColumnSpecCreator("PFAM matches", SetCell.getCollectionType(StringCell.TYPE)).createSpec();
-		cols[2] = new DataColumnSpecCreator("Number of significant locations", IntCell.TYPE).createSpec();
+		cols[1] = new DataColumnSpecCreator("PFAM families hit (set)", SetCell.getCollectionType(StringCell.TYPE)).createSpec();
+		cols[2] = new DataColumnSpecCreator("Number of significant match locations", IntCell.TYPE).createSpec();
 		
 		return new DataTableSpec(cols);
 	}
@@ -162,7 +161,7 @@ public class PFAMSequenceSearchTask extends PFAMTask {
 		
 		String resp = get(m_http, new URL(destination_url));
 		
-		/**
+		/** EG:
 		 * <pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns="http://pfam.sanger.ac.uk/"
       xsi:schemaLocation="http://pfam.sanger.ac.uk/
@@ -247,8 +246,8 @@ public class PFAMSequenceSearchTask extends PFAMTask {
 					fields.put("evalue", parser.getAttributeValue(null, "evalue"));
 					fields.put("q. start", parser.getAttributeValue(null, "start"));
 					fields.put("q. end", parser.getAttributeValue(null, "end"));
-					fields.put("query id", parser.getAttributeValue(null, "query id"));
-					fields.put("subject id", parser.getAttributeValue(null, "subject id"));
+					fields.put("query id", mm.getLastAccession());
+					fields.put("label", mm.getLastID());
 					PFAMHitRegion hit = new PFAMHitRegion(fields);
 					pfam_hits.add(hit);
 				}
@@ -261,7 +260,13 @@ public class PFAMSequenceSearchTask extends PFAMTask {
 			
 		});
 		
-		parse_xml(parser, start_map, out);
+		try {
+			parse_xml(parser, start_map, out);
+		} catch (Exception e) {
+			// only done during debugging (dont want to fill the console with crapml)
+			//m_logger.info(resp);
+			throw e;
+		}
 		SequenceCell sc = new SequenceCell(sv);
 		Track t = sc.addTrack(Track.PFAM_TRACK, getTrackCreator());
 		PFAMRegionsAnnotation pra = new PFAMRegionsAnnotation();
