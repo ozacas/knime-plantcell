@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.def.IntCell;
+import org.knime.core.data.def.StringCell;
 
 import au.edu.unimelb.plantcell.core.cells.AnnotationType;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
@@ -30,13 +33,16 @@ public class PFAMRegionsAnnotation extends AlignedRegionsAnnotation {
 		List<DataColumnSpec> cols = super.asColumnSpec(prefix);
 		DataColumnSpec found1 = null;
 		DataColumnSpec found2 = null;
+		DataColumnSpec found3 = null;
 		// PFAM has no notion of a frame or %identity for the HMM match, so we remove them
 		for (DataColumnSpec col: cols) {
 			String name = col.getName();
 			if (name.endsWith(": Frame")) {
 				found1 = col;
-			} else if (name.endsWith(": % identity")) {
+			} else if (name.endsWith(": %Identity")) {
 				found2 = col;
+			} else if (name.endsWith(": Alignment length")) {
+				found3 = col;
 			}
 		}
 		if (found1 != null) {
@@ -45,8 +51,17 @@ public class PFAMRegionsAnnotation extends AlignedRegionsAnnotation {
 		if (found2 != null) {
 			cols.remove(found2);
 		}
+		if (found3 != null) {
+			cols.remove(found3);
+		}
+		
 		// add PFAM-specific columns eg. HMM related match information
-		// TODO...
+		cols.add(new DataColumnSpecCreator(prefix+": HMM Start", IntCell.TYPE).createSpec());
+		cols.add(new DataColumnSpecCreator(prefix+": HMM End", IntCell.TYPE).createSpec());
+		cols.add(new DataColumnSpecCreator(prefix+": Class", StringCell.TYPE).createSpec());
+		cols.add(new DataColumnSpecCreator(prefix+": Type", StringCell.TYPE).createSpec());
+		cols.add(new DataColumnSpecCreator(prefix+": Location Evidence", StringCell.TYPE).createSpec());
+		
 		return cols;
 	}
 	

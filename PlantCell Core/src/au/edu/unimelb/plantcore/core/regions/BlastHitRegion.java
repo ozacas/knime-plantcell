@@ -48,6 +48,7 @@ public class BlastHitRegion extends ScoredRegion {
 	 * @param fields
 	 */
 	public BlastHitRegion(Map<String,String> fields) {
+		// NB: we dont call super(fields) here because we call the methods explicitly below where provided
 		for (String key : fields.keySet()) {
 			String val = fields.get(key);
 			if (key.equals("q. start")) {
@@ -68,6 +69,8 @@ public class BlastHitRegion extends ScoredRegion {
 				setQuery(val);
 			} else if (key.equals("subject id")) {
 				setSubject(val);
+			} else if (key.equals("label")) {
+				setLabel(val);
 			}
 		}
 	}

@@ -80,6 +80,8 @@ public class RegionsAnnotation extends SequenceAnnotation implements TrackRender
 			r = new ScoredRegion();
 		} else if (id.startsWith("fs")) {
 			r = new FramedScoredRegion();
+		} else if (id.startsWith("pfamreg")) {
+			r = new PFAMHitRegion();
 		} else {
 			r = new Region();
 		}

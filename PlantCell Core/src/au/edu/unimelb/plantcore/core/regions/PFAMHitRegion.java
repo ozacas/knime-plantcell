@@ -7,6 +7,8 @@ import java.util.Map;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataCellDataInput;
 import org.knime.core.data.DataCellDataOutput;
+import org.knime.core.data.def.IntCell;
+import org.knime.core.data.def.StringCell;
 
 /**
  * Derived from <code>BlastHitRegion</code> so that it can be part of <code>AlignedRegionsAnnotation</code>,
@@ -90,6 +92,7 @@ public class PFAMHitRegion extends BlastHitRegion {
 	public void serialize(DataCellDataOutput output) throws IOException {
 		super.serialize(output);
 		String t = getPFAMType();
+		// NB: never persist null to disk...
 		output.writeUTF(t != null ? t : "");
 		String c = getPFAMClass();
 		output.writeUTF(c != null ? c : "");
@@ -116,7 +119,12 @@ public class PFAMHitRegion extends BlastHitRegion {
 	@Override
 	public Map<String,DataCell> asCells(String prefix) {
 		Map<String,DataCell> ret = super.asCells(prefix);
-		
+
+		ret.put(prefix+": HMM Start", new IntCell(getHMMStart()));
+		ret.put(prefix+": HMM End",   new IntCell(getHMMEnd()));
+		ret.put(prefix+": Class",     new StringCell(getPFAMClass()));
+		ret.put(prefix+": Type",      new StringCell(getPFAMType()));
+		ret.put(prefix+": Location Evidence",  new StringCell(getLocationEvidence()));
 		return ret;
 	}
 }
