@@ -167,6 +167,11 @@ public class TreeModel extends DefaultTreeModel {
 	public Object getRoot() {
 		return m_root;
 	}
+
+	public void invalidate() {
+		// signal listeners that the entire tree as needs to be updated
+		this.nodeChanged(new DefaultMutableTreeNode(getRoot()));
+	}
 	
 	
 }
