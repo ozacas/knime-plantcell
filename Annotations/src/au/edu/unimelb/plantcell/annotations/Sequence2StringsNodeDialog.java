@@ -17,7 +17,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
@@ -155,27 +154,7 @@ public class Sequence2StringsNodeDialog extends DefaultNodeSettingsPane implemen
 	
 	@Override
 	public void onOpen() {
-		m_tree.clear();
-		m_tree.add("Common", Sequence2StringsNodeModel.SEQUENCE_ID);
-		m_tree.add("Common", Sequence2StringsNodeModel.DESCRIPTION_PRIMARY);
-		m_tree.add("Common", Sequence2StringsNodeModel.SEQUENCE_SINGLE_LETTER);
-		m_tree.add("Common", Sequence2StringsNodeModel.INPUT_SEQUENCE);
-		m_tree.add("Common", Sequence2StringsNodeModel.SEQUENCE_LENGTH);
-		
-		for (BioJavaProcessorTask t : BioJavaProcessorNodeModel.getTasks()) {
-			// this node only supports SequenceCell related tasks
-			if (!( t.isCompatibleWith(SequenceCell.TYPE)))
-				continue;
-			
-			// else
-			String category = t.getCategory();
-			for (String name : t.getNames()) {
-				m_tree.add(category, name);
-			}
-		}
-		stateChanged(null);		// get annotation tracks added
-		update_selection(m_default_selection);
-		m_tree.invalidate();
+		stateChanged(null);
 	}
 	
 	private void update_selection(final String[] sel) {
@@ -228,29 +207,43 @@ public class Sequence2StringsNodeDialog extends DefaultNodeSettingsPane implemen
 		if (m_specs == null) 
 			return;
 		
-		int col_idx = m_specs.findColumnIndex(sms.getStringValue());
-		if (col_idx < 0) {
-			return;
-		}
+		m_tree.clear();
+		m_tree.add("Common", Sequence2StringsNodeModel.SEQUENCE_ID);
+		m_tree.add("Common", Sequence2StringsNodeModel.DESCRIPTION_PRIMARY);
+		m_tree.add("Common", Sequence2StringsNodeModel.SEQUENCE_SINGLE_LETTER);
+		m_tree.add("Common", Sequence2StringsNodeModel.INPUT_SEQUENCE);
+		m_tree.add("Common", Sequence2StringsNodeModel.SEQUENCE_LENGTH);
 		
-		DataColumnProperties props = m_specs.getColumnSpec(col_idx).getProperties();
-		if (props == null || props.size() < 1) {
-			return;
-		}
-		
-		Enumeration<String> it = props.properties();
-		
-		while (it.hasMoreElements()) {
-			String propName = it.nextElement();
+		for (BioJavaProcessorTask t : BioJavaProcessorNodeModel.getTasks()) {
+			// this node only supports SequenceCell related tasks
+			if (!(t.isCompatibleWith(SequenceCell.TYPE)))
+				continue;
 			
-			if (propName.startsWith(Track.PLANTCELL_TRACK_PREFIX)) {
-				propName = propName.substring(Track.PLANTCELL_TRACK_PREFIX.length());
-				// must prepend "Track - " as this is used to recognise a user-defined annotation track during execute()
-				m_tree.add("Annotation Tracks", "Track - "+propName);
-				m_tree.invalidate();		// signal listeners
+			// else
+			String category = t.getCategory();
+			for (String name : t.getNames()) {
+				m_tree.add(category, name);
 			}
 		}
-		m_tree.nodeStructureChanged(new DefaultMutableTreeNode(m_tree.getRoot()));
+		
+		int col_idx = m_specs.findColumnIndex(sms.getStringValue());
+		if (col_idx >= 0) {
+			DataColumnProperties props = m_specs.getColumnSpec(col_idx).getProperties();
+			if (props != null && props.size() >= 1) {
+				Enumeration<String> it = props.properties();
+				while (it.hasMoreElements()) {
+					String propName = it.nextElement();
+					
+					if (propName.startsWith(Track.PLANTCELL_TRACK_PREFIX)) {
+						propName = propName.substring(Track.PLANTCELL_TRACK_PREFIX.length());
+						// must prepend "Track - " as this is used to recognise a user-defined annotation track during execute()
+						m_tree.add("Annotation Tracks", "Track - "+propName);
+					}
+				}
+			}
+		}
+		m_tree.invalidate();		// signal listeners
+		update_selection(m_default_selection);
 	}
 }
 
