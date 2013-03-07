@@ -63,7 +63,7 @@ public class PFAMSequenceSearchTask extends PFAMTask {
 	    	} catch (InvalidSettingsException ise) {
 	    		// be silent... fallthru
 	    	}
-	     }
+	    }
 	    cols[0] = dcsc.createSpec();
 		cols[1] = new DataColumnSpecCreator("PFAM families hit (set)", SetCell.getCollectionType(StringCell.TYPE)).createSpec();
 		cols[2] = new DataColumnSpecCreator("Number of significant match locations", IntCell.TYPE).createSpec();
