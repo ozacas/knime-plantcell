@@ -35,6 +35,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.util.ColumnFilter;
 
 import au.edu.unimelb.plantcell.core.biojava.tasks.BioJavaProcessorTask;
+import au.edu.unimelb.plantcell.core.cells.SequenceCell;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 import au.edu.unimelb.plantcell.core.cells.Track;
 import au.edu.unimelb.plantcell.misc.biojava.BioJavaProcessorNodeModel;
@@ -162,6 +163,11 @@ public class Sequence2StringsNodeDialog extends DefaultNodeSettingsPane implemen
 		m_tree.add("Common", Sequence2StringsNodeModel.SEQUENCE_LENGTH);
 		
 		for (BioJavaProcessorTask t : BioJavaProcessorNodeModel.getTasks()) {
+			// this node only supports SequenceCell related tasks
+			if (!( t.isCompatibleWith(SequenceCell.TYPE)))
+				continue;
+			
+			// else
 			String category = t.getCategory();
 			for (String name : t.getNames()) {
 				m_tree.add(category, name);
