@@ -170,7 +170,7 @@ public class TreeModel extends DefaultTreeModel {
 
 	public void invalidate() {
 		// signal listeners that the entire tree as needs to be updated
-		this.nodeChanged(new DefaultMutableTreeNode(getRoot()));
+		fireTreeStructureChanged(this, new Object[] { getRoot() }, null, null);
 	}
 	
 	
