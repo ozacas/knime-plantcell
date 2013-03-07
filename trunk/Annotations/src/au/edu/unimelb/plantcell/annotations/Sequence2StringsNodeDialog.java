@@ -17,6 +17,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
@@ -49,24 +50,12 @@ import au.edu.unimelb.plantcell.misc.biojava.BioJavaProcessorNodeModel;
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
 public class Sequence2StringsNodeDialog extends DefaultNodeSettingsPane implements ChangeListener {
-	
-	private final static int SHOW_N_ROWS = 5;
-	
-	private final static TreeModel m_tree = new TreeModel();
-	static {
-		m_tree.add("Common", Sequence2StringsNodeModel.SEQUENCE_ID);
-		m_tree.add("Common", Sequence2StringsNodeModel.DESCRIPTION_PRIMARY);
-		m_tree.add("Common", Sequence2StringsNodeModel.SEQUENCE_SINGLE_LETTER);
-		m_tree.add("Common", Sequence2StringsNodeModel.INPUT_SEQUENCE);
-		m_tree.add("Common", Sequence2StringsNodeModel.SEQUENCE_LENGTH);
-		
-		for (BioJavaProcessorTask t : BioJavaProcessorNodeModel.getTasks()) {
-			String category = t.getCategory();
-			for (String name : t.getNames()) {
-				m_tree.add(category, name);
-			}
-		}
-	};
+	/**
+	 * How many rows to show in the tree view
+	 */
+	private final static int SHOW_N_ROWS = 10;
+	private String[] m_default_selection;
+	private final TreeModel m_tree = new TreeModel();
 	private DataTableSpec m_specs = null;
     private final SettingsModelString sms = new SettingsModelString(Sequence2StringsNodeModel.CFGKEY_SEQUENCE_COL, "");
     private JTree m_items;
@@ -164,22 +153,48 @@ public class Sequence2StringsNodeDialog extends DefaultNodeSettingsPane implemen
 	}
 	
 	@Override
+	public void onOpen() {
+		m_tree.clear();
+		m_tree.add("Common", Sequence2StringsNodeModel.SEQUENCE_ID);
+		m_tree.add("Common", Sequence2StringsNodeModel.DESCRIPTION_PRIMARY);
+		m_tree.add("Common", Sequence2StringsNodeModel.SEQUENCE_SINGLE_LETTER);
+		m_tree.add("Common", Sequence2StringsNodeModel.INPUT_SEQUENCE);
+		m_tree.add("Common", Sequence2StringsNodeModel.SEQUENCE_LENGTH);
+		
+		for (BioJavaProcessorTask t : BioJavaProcessorNodeModel.getTasks()) {
+			String category = t.getCategory();
+			for (String name : t.getNames()) {
+				m_tree.add(category, name);
+			}
+		}
+		stateChanged(null);		// get annotation tracks added
+		update_selection(m_default_selection);
+		m_tree.invalidate();
+	}
+	
+	private void update_selection(final String[] sel) {
+		List<TreePath> tp_list = new ArrayList<TreePath>();
+		if (sel.length > 0) {
+			m_items.clearSelection();
+			for (String tmp : sel) {
+				TreePath tp = m_tree.getPath(tmp);
+				if (tp != null) {
+					tp_list.add(tp);
+				}
+			}
+			m_items.addSelectionPaths(tp_list.toArray(new TreePath[0]));
+		}
+	}
+	
+	@Override
 	public void loadAdditionalSettingsFrom(NodeSettingsRO s, DataTableSpec[] specs) 
 					throws NotConfigurableException {
 		m_specs = specs[0];
-		stateChanged(null);		// HACK: invoke the ChangeListener method indirectly which ensures the annotation tracks are added
 		if (m_items != null && m_items.getSelectionCount() < 1) {
 			if (s.containsKey(Sequence2StringsNodeModel.CFGKEY_WANTED)) {
 				try {
-					List<TreePath> tp_list = new ArrayList<TreePath>();
-					m_items.clearSelection();
-					for (String tmp : s.getStringArray(Sequence2StringsNodeModel.CFGKEY_WANTED)) {
-						TreePath tp = m_tree.getPath(tmp);
-						if (tp != null) {
-							tp_list.add(tp);
-						}
-					}
-					m_items.addSelectionPaths(tp_list.toArray(new TreePath[0]));
+					m_default_selection = s.getStringArray(Sequence2StringsNodeModel.CFGKEY_WANTED);
+					update_selection(m_default_selection);
 				} catch (InvalidSettingsException e) {
 					e.printStackTrace();
 				}
@@ -224,9 +239,12 @@ public class Sequence2StringsNodeDialog extends DefaultNodeSettingsPane implemen
 			
 			if (propName.startsWith(Track.PLANTCELL_TRACK_PREFIX)) {
 				propName = propName.substring(Track.PLANTCELL_TRACK_PREFIX.length());
+				// must prepend "Track - " as this is used to recognise a user-defined annotation track during execute()
 				m_tree.add("Annotation Tracks", "Track - "+propName);
+				m_tree.invalidate();		// signal listeners
 			}
 		}
+		m_tree.nodeStructureChanged(new DefaultMutableTreeNode(m_tree.getRoot()));
 	}
 }
 
