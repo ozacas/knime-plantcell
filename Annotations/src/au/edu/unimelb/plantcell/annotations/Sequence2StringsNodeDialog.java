@@ -67,7 +67,7 @@ public class Sequence2StringsNodeDialog extends DefaultNodeSettingsPane implemen
         sms.addChangeListener(this);
         addDialogComponent(
         		new DialogComponentColumnNameSelection(sms,
-        				"Sequence column", 0,  true, false, new ColumnFilter() {
+        				"Column to analyze", 0,  true, false, new ColumnFilter() {
 
 							@Override
 							public boolean includeColumn(DataColumnSpec colSpec) {
