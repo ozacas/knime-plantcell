@@ -98,7 +98,6 @@ public class GFF2WriterNodeModel extends NodeModel {
         	throw new Exception("Will not overwrite existing: "+fname+" - configure the node to override if this is what you want.");
         }
         // replicate input data on output port
-        DataTableSpec inSpec  = inData[0].getDataTableSpec();
         PrintWriter out_stream = new PrintWriter(new BufferedWriter(new FileWriter(fname)));
         BatchSequenceRowIterator bsi = new BatchSequenceRowIterator(inData[0].iterator(), seq_idx, 100, 1024 * 1024, null);
         int done = 0;
