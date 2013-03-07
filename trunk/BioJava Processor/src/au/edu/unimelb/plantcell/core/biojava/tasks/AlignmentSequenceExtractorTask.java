@@ -31,6 +31,11 @@ public class AlignmentSequenceExtractorTask extends BioJavaProcessorTask {
 	}
 	
 	@Override
+	public boolean isCompatibleWith(DataType dt) {
+		return dt.isCompatible(AlignmentValue.class);
+	}
+	
+	@Override
 	public String getCategory() {
 		return "Alignment";
 	}
