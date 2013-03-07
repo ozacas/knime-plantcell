@@ -131,7 +131,8 @@ public class Sequence2StringsNodeModel extends NodeModel {
     		   outputTable.append(acf);
     	   }
        } catch (Exception e) {
-    	   logger.warn("Two configured items produce the same columns - re-configure!");
+    	   e.printStackTrace();
+    	   logger.warn("Failed to add columns (perhaps duplicate names?) - re-configure!");
     	   throw e;
        }
         
