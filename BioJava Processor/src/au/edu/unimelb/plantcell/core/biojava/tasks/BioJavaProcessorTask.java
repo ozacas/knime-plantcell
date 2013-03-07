@@ -171,6 +171,18 @@ public abstract class BioJavaProcessorTask extends AbstractCellFactory {
 		return getCategory().equalsIgnoreCase(cat);
 	}
 
+	/**
+	 * For nodes which can handle only a certain type of task, we provide this method
+	 * which, by default, only returns true if the supplied parameter is compatible with a {@link SequenceValue}.
+	 * Subclasses which work with different cell types (eg. Alignments) will need to override.
+	 * 
+	 * @param   dt
+	 * @return  
+	 */
+	public boolean isCompatibleWith(DataType dt) {
+		return (dt.isCompatible(SequenceValue.class));
+	}
+	
 	public boolean hasName(String taskName) {
 		for (String s : getNames()) {
 			if (s.equals(taskName)) {
