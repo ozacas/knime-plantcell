@@ -129,10 +129,13 @@ public class Sequence2StringsNodeDialog extends DefaultNodeSettingsPane implemen
 								"</h3><br/><br/>"+t.getHTMLDescription(name));
 						m_help_label.setCaretPosition(0);
 						return;
+					} else {
+						m_help_label.setText("<html><h3>No help available for "+name+".");
 					}
 					// fallthru...
+				} else {
+					m_help_label.setText("<html><h3>Please select a single task for help.");
 				}
-				m_help_label.setText("<html><h3>Please select a single task for help.");
 				
 				// ensure last user selection is always visible (eg. when loading the dialog for the first time)
 				if (leaf_selected.size() >= 1) {
