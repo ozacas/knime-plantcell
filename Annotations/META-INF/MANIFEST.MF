@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Sequence Annotations
 Bundle-SymbolicName: au.edu.unimelb.plantcell.annotations;singleton:=true
-Bundle-Version: 1.2.14
+Bundle-Version: 1.2.15
 Bundle-ClassPath: regionanalyzer.jar
 Bundle-Vendor: http://www.plantcell.unimelb.edu.au/bioinformatics
 Require-Bundle: org.eclipse.core.runtime,
