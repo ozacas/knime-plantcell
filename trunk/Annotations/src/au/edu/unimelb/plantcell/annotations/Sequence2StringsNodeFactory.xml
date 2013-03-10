@@ -46,7 +46,7 @@
         </table>
         </intro>
         
-        <option name="Annotated sequences">Column to obtain the data from</option>
+        <option name="Column to analyze">Column to obtain the data from</option>
         <option name="Data to extract">Specify the data desired. See above table for details.</option>
     </fullDescription>
     
