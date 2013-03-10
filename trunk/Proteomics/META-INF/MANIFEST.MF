@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Proteomics
 Bundle-SymbolicName: au.edu.unimelb.plantcell.proteomics; singleton:=true
-Bundle-Version: 1.2.7
+Bundle-Version: 1.2.8
 Bundle-ClassPath: insilicodigestor.jar,
  lib/jpl-commons-collection-1.0.jar,
  lib/jpl-core-1.0.jar,
@@ -24,8 +24,12 @@ Require-Bundle: org.eclipse.core.runtime,
  org.apache.xerces;bundle-version="2.9.0"
 Bundle-ActivationPolicy: lazy
 Export-Package: au.edu.unimelb.plantcell.io.read.mascot,
+ au.edu.unimelb.plantcell.io.read.spectra,
+ au.edu.unimelb.plantcell.io.write.spectra,
  au.edu.unimelb.plantcell.proteomics.digestion,
- au.edu.unimelb.plantcell.proteomics.inference
+ au.edu.unimelb.plantcell.proteomics.inference,
+ au.edu.unimelb.plantcell.proteomics.phosphorylation,
+ au.edu.unimelb.plantcell.proteomics.spectra.quality
 Import-Package: au.edu.unimelb.plantcell.io.read.spectra,
  org.apache.commons.logging,
  org.knime.workbench.ui

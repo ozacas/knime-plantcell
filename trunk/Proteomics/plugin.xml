@@ -3,10 +3,40 @@
 <plugin>
    <extension
          point="org.knime.workbench.repository.nodes">
+         
       <node
             category-path="/Bioinformatics/Mass Spectrometry/Proteomics"
             factory-class="au.edu.unimelb.plantcell.proteomics.inference.MinProteinListNodeFactory"
-            id="au.edu.unimelb.plantcell.proteomics.inference.MinProteinListNodeFactory"/>
+            id="au.edu.unimelb.plantcell.proteomics.inference.MinProteinListNodeFactory" />
+      <node
+            category-path="/Bioinformatics/Mass Spectrometry/Proteomics"
+            factory-class="au.edu.unimelb.plantcell.proteomics.spectra.quality.SpectraQualityAssessorNodeFactory"
+            id="au.edu.unimelb.plantcell.proteomics.spectra.quality.SpectraQualityAssessorNodeFactory" />
+      <node 
+      		category-path="/Bioinformatics/Mass Spectrometry/Proteomics"
+      		factory-class="au.edu.unimelb.plantcell.proteomics.phosphorylation.PhosphorylationScorerNodeFactory"
+      		id="au.edu.unimelb.plantcell.proteomics.phosphorylation.PhosphorylationScorerNodeFactory" />
+      <node 
+      		category-path="/Bioinformatics/Mass Spectrometry/Proteomics"
+      		factory-class="au.edu.unimelb.plantcell.proteomics.peakextractor.SpectralPeakExtractorNodeFactory"
+      		id="au.edu.unimelb.plantcell.proteomics.phosphorylation.PhosphorylationScorerNodeFactory" />
+      		
+   </extension>
+   
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Read"
+            factory-class="au.edu.unimelb.plantcell.io.read.spectra.SpectraReaderNodeFactory"
+            id="au.edu.unimelb.plantcell.io.read.spectra.SpectraReaderNodeFactory"/>
+   </extension>
+   
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Write"
+            factory-class="au.edu.unimelb.plantcell.io.write.spectra.SpectraWriterNodeFactory"
+            id="au.edu.unimelb.plantcell.io.write.spectra.SpectraWriterNodeFactory"/>
    </extension>
    
    <extension
