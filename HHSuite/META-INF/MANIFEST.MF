@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: HHSuite - remote homology detection using Hidden Markov Models
+Bundle-SymbolicName: au.edu.unimelb.plantcell.hhsuite; singleton:=true
+Bundle-Version: 1.0.0
+Bundle-ClassPath: hhsuite.jar
+Bundle-Vendor: http://www.plantcell.unimelb.edu.au/bioinformatics
+Require-Bundle: org.eclipse.core.runtime,
+ org.knime.workbench.core,
+ org.knime.workbench.repository,
+ org.knime.base,
+ au.edu.unimelb.plantcell.core;bundle-version="1.2.20"
+Bundle-ActivationPolicy: lazy
+Export-Package: au.edu.unimelb.plantcell.hhsuite
+
