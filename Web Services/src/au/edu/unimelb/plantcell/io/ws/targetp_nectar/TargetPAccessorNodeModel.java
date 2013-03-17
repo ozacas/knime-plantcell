@@ -1,6 +1,9 @@
 package au.edu.unimelb.plantcell.io.ws.targetp_nectar;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -12,6 +15,7 @@ import org.eclipse.core.runtime.Platform;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.DoubleCell;
@@ -49,7 +53,7 @@ public class TargetPAccessorNodeModel extends AbstractWebServiceNodeModel {
     // the logger instance
     private static final NodeLogger logger = NodeLogger.getLogger("TargetP");
         
-    private final int NUM_COLUMNS = 8;			// number of columns in output table
+    private final int NUM_COLUMNS = 7;			// number of columns in output table
     public static final String CFGKEY_SEQUENCE = "sequence-column";
     public static final String CFGKEY_ORGANISM = "organism";
     public static final String CFGKEY_CTP_CUTOFF = "ctp-cutoff";
@@ -129,16 +133,18 @@ public class TargetPAccessorNodeModel extends AbstractWebServiceNodeModel {
     	});
     
     	int done = 0;
+    	bsi.setSaveRows(true);
     	while (bsi.hasNext()) {
     		Map<UniqueID,SequenceValue> batch = bsi.nextAsMap();
-    			
+    		List<DataRow> rows_in_batch = bsi.lastBatchRows();
+    		
     		// submit and process entire batch
     		String job_id = submit_job(getClientProxy(), batch);
     		// wait until done (or exception thrown)
     		wait_for_completion(logger, exec, job_id);
     		
     		logger.info("Processing result for TargetP job "+job_id+ ": "+batch.size()+" sequences.");
-    		int got_results = grok_results(batch, container, job_id);
+    		int got_results = grok_results(batch, container, job_id, rows_in_batch);
 			if (got_results < batch.size()) {
 				logger.warn("Expected results for "+batch.size()+" sequences, only got results for "+got_results);
 			}
@@ -151,10 +157,40 @@ public class TargetPAccessorNodeModel extends AbstractWebServiceNodeModel {
         return new BufferedDataTable[]{container.close()};
     }
 
-    private int grok_results(Map<UniqueID, SequenceValue> batch, MyDataContainer c, String job_id) throws NumberFormatException,InvalidSettingsException {
+    private void add_row(MyDataContainer c, DataRow input_row, DataCell[] cells) {
+    	assert(input_row != null && cells != null && cells.length > 0);
+    	
+    	ArrayList<DataCell> new_cells = new ArrayList<DataCell>(cells.length + input_row.getNumCells());
+    	for (int i=0; i<input_row.getNumCells(); i++) {
+    		new_cells.add(input_row.getCell(i));
+    	}
+    	for (int i=0; i<cells.length; i++) {
+    		new_cells.add(cells[i]);
+    	}
+    	c.addRow(new_cells.toArray(new DataCell[0]));
+    }
+    
+    private int grok_results(Map<UniqueID, SequenceValue> batch, MyDataContainer c, String job_id, List<DataRow> rows) throws NumberFormatException,InvalidSettingsException {
 		String result = getClientProxy().getResult(job_id);
-		if (result == null)
+		if (result == null || m_seq_idx < 0)
 			return 0;
+		
+		// 1. establish the map between the SequenceValue and DataRow so we can merge the output cells
+		Map<String,UniqueID> rev_batch = new HashMap<String,UniqueID>();
+		Map<UniqueID,DataRow> rev_rows = new HashMap<UniqueID,DataRow>();
+		for (UniqueID uid : batch.keySet()) {
+			rev_batch.put(batch.get(uid).getID(), uid);
+		}
+		for (DataRow r : rows) {
+			DataCell cell = r.getCell(m_seq_idx);
+			if (cell == null || cell.isMissing() || !(cell instanceof SequenceValue))
+				continue;
+			SequenceValue sv = (SequenceValue) cell;
+			
+			rev_rows.put(rev_batch.get(sv.getID()), r);
+		}
+		
+		// 2. process the results
 		int found = 0;
 		String[] lines = result.split("\n");
 		boolean processing = false;
@@ -167,15 +203,14 @@ public class TargetPAccessorNodeModel extends AbstractWebServiceNodeModel {
 			}
 			
 			if (processing) {
-				String[] fields = line.split("\\s+");
-				DataCell[] cells = new DataCell[NUM_COLUMNS];
-				for (int i=0; i<cells.length; i++) {
-					cells[i] = DataType.getMissingCell();
-				}
-				SequenceValue sv = batch.get(new UniqueID(fields[0]));
-				if (sv == null)
-					throw new InvalidSettingsException("No sequence "+fields[0]+" in batch!");
-				cells[7] = new SequenceCell(sv);
+				String[]  fields = line.split("\\s+");
+				DataCell[] cells = missing_cells(NUM_COLUMNS);
+				UniqueID uid = new UniqueID(fields[0]);
+				
+				DataRow input_row = rev_rows.get(uid);
+				if (input_row == null)
+					throw new InvalidSettingsException("Unable to find data row");
+				
 				if (fields.length == 9) {	// plant?
 					cells[0] = new DoubleCell(Double.valueOf(fields[2]));
 					cells[1] = new DoubleCell(Double.valueOf(fields[3]));
@@ -187,10 +222,10 @@ public class TargetPAccessorNodeModel extends AbstractWebServiceNodeModel {
 						cells[5] = new IntCell(Integer.valueOf(fields[7]));
 					if (fields[8].length() > 0 && !fields[8].equals("-"))
 						cells[6] = new IntCell(Integer.valueOf(fields[8]));
-					c.addRow(cells);
+					add_row(c, input_row, cells);
 					found++;
 				} else if (fields.length == 8) { // non-plant?
-					cells[0] = DataType.getMissingCell();	// non-plants have no chloroplast (usually)
+					//cells[0] = DataType.getMissingCell();	// non-plants have no chloroplast (usually)
 					cells[1] = new DoubleCell(Double.valueOf(fields[2]));
 					cells[2] = new DoubleCell(Double.valueOf(fields[3]));
 					cells[3] = new DoubleCell(Double.valueOf(fields[4]));
@@ -200,7 +235,7 @@ public class TargetPAccessorNodeModel extends AbstractWebServiceNodeModel {
 						cells[5] = new IntCell(Integer.valueOf(fields[6]));
 					if (fields[7].length() > 0 && !fields[7].equals("-"))
 						cells[6] = new IntCell(Integer.valueOf(fields[7]));
-					c.addRow(cells);
+					add_row(c, input_row, cells);
 					found++;
 				} else {
 					throw new InvalidSettingsException("Unknown results format from TargetP server: "+line);
@@ -210,8 +245,14 @@ public class TargetPAccessorNodeModel extends AbstractWebServiceNodeModel {
 		return found;
 	}
 
+    /**
+     * Send the job via the specified <code>proxy</code> for the batch of sequences specified by <code>batch</code>
+     * @param proxy
+     * @param batch
+     * @return
+     * @throws Exception
+     */
 	private String submit_job(TargetPServicePortType proxy, Map<UniqueID,SequenceValue> batch) throws Exception {
-    	
 		logger.info("Submitting batch of "+batch.size()+" sequences.");
 		String jobID = proxy.submit(m_organism.getStringValue().toLowerCase().equals("plant"), 
 				m_ctp.getDoubleValue(), m_sp.getDoubleValue(), m_mtp.getDoubleValue(), 
@@ -233,9 +274,8 @@ public class TargetPAccessorNodeModel extends AbstractWebServiceNodeModel {
     	cols[4] = new DataColumnSpecCreator("Localisation Prediction", StringCell.TYPE).createSpec();
     	cols[5] = new DataColumnSpecCreator("Reliability Class (lower is better)", IntCell.TYPE).createSpec();
     	cols[6] = new DataColumnSpecCreator("TPlen", IntCell.TYPE).createSpec();
-    	cols[7] = new DataColumnSpecCreator("Annotated Sequence", SequenceCell.TYPE).createSpec();
-    	
-		return new DataTableSpec[] { new DataTableSpec(cols) };
+    
+		return new DataTableSpec[] { new DataTableSpec(input_table_spec, new DataTableSpec(cols)) };
 	}
 
 

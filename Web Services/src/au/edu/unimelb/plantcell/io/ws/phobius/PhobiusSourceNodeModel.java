@@ -2,14 +2,21 @@ package au.edu.unimelb.plantcell.io.ws.phobius;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.xml.namespace.QName;
+
+import org.eclipse.core.runtime.FileLocator;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnProperties;
 import org.knime.core.data.DataColumnSpec;
@@ -30,6 +37,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.osgi.framework.Bundle;
 
 import uk.ac.ebi.jdispatcher.soap.phobius.InputParameters;
 import uk.ac.ebi.jdispatcher.soap.phobius.JDispatcherService;
@@ -110,6 +118,29 @@ public class PhobiusSourceNodeModel extends NodeModel {
     }
     
     /**
+     * Here we cant use the default constructor as it wont find the WSDL at the hardcoded location. So
+     * we extract the WSDL from the plugin and invoke the appropriate constructor.
+     * 
+     * @return
+     */
+    public JDispatcherService getClientProxy() {
+  		 // NB: need to use the local WSDL copy rather than go online for it... so...
+  		 try {
+  			 Bundle bundle = Platform.getBundle("au.edu.unimelb.plantcell.io.ws");
+  			 URL u = FileLocator.find(bundle, new Path("/wsdl/phobius@ebi.wsdl"), null);
+  			 
+  			 // must not call default constructor for local WSDL... so...
+  			JDispatcherService_Service srv = new JDispatcherService_Service(u,
+  					new QName("http://soap.jdispatcher.ebi.ac.uk", "JDispatcherService"));
+  			return srv.getJDispatcherServiceHttpPort();
+  		 } catch (Exception e) {
+  			 e.printStackTrace();
+  			 Logger.getAnonymousLogger().warning("Unable to get Phobius proxy: "+e.getMessage());
+  			 return null;
+  		 }
+  	}
+    
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -128,8 +159,7 @@ public class PhobiusSourceNodeModel extends NodeModel {
           
         RowIterator it = inData[0].iterator();
 
-        JDispatcherService_Service srv = new JDispatcherService_Service();
-        m_phobius     = srv.getJDispatcherServiceHttpPort();
+        m_phobius     = getClientProxy();
         int batch_cnt = 0;
         m_done_rows   = 0;
     	@SuppressWarnings("rawtypes")
