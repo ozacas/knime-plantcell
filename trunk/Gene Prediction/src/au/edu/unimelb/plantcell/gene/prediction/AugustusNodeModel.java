@@ -32,8 +32,8 @@ import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
-import au.edu.unimelb.plantcell.blast.ErrorLogger;
 import au.edu.unimelb.plantcell.core.CorePlugin;
+import au.edu.unimelb.plantcell.core.ErrorLogger;
 import au.edu.unimelb.plantcell.core.ExternalProgram;
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.core.PreferenceConstants;
