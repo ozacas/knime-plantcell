@@ -29,6 +29,13 @@ import au.edu.unimelb.plantcell.core.cells.Track;
 import au.edu.unimelb.plantcell.core.cells.TrackCreator;
 import au.edu.unimelb.plantcore.core.regions.RegionsAnnotation;
 
+/**
+ * Common baseclass to many of the webservice nodes with methods commonly used by all services. Some services
+ * dont use this yet, but should eventually.
+ * 
+ * @author andrew.cassin
+ *
+ */
 public abstract class AbstractWebServiceNodeModel extends NodeModel {
 	private static final int INITIAL_CAPACITY = 100 * 1024;
 
@@ -48,6 +55,16 @@ public abstract class AbstractWebServiceNodeModel extends NodeModel {
 		};
 	}
 
+	protected DataCell[] missing_cells(int n) {
+		assert(n > 0);
+		DataCell[] ret = new DataCell[n];
+		DataCell missing = DataType.getMissingCell();
+		for (int i=0; i<ret.length; i++) {
+			ret[i] = missing;
+		}
+		return ret;
+	}
+	
 	/**
 	 * Converts a small table of data to FASTA format using the uniqueID as the sequence ID
 	 * 
