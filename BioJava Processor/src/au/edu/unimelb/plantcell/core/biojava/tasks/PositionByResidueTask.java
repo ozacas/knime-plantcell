@@ -30,11 +30,16 @@ public class PositionByResidueTask extends BioJavaProcessorTask {
 	
 	@Override
 	public String getCategory() {
-		return "Statistics";
+		return "Common";
 	}
 	
 	public static BioJavaProcessorTask getInstance() {
 		return new PositionByResidueTask();
+	}
+	
+	@Override
+	public boolean canWindow() {
+		return true;
 	}
 	
 	@Override
