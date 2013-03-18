@@ -263,8 +263,10 @@ public class FindGlobalNodeModel extends NodeModel {
 			int i = 0;
 			while (done < (cells.length - n_rpt)) {
 				// annotated sequence cells which are searched are not copied from input row
-				if (m_annotate && i == m_match_col_idx)
+				if (m_annotate && i == m_match_col_idx) {
+					i++;
 					continue;
+				}
 				// but every other cell is
 				cells[idx++] = r.getCell(i++);
 				done++;
