@@ -1,5 +1,6 @@
 package au.edu.unimelb.plantcell.algorithms.StringFinder;
 
+import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.JoinedRow;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.data.property.ColorAttr;
 import org.knime.core.data.vector.bitvector.DenseBitVector;
 import org.knime.core.data.vector.bitvector.DenseBitVectorCell;
 import org.knime.core.node.BufferedDataContainer;
@@ -95,9 +97,10 @@ public class FindGlobalNodeModel extends NodeModel {
     private boolean m_highlight_single_colour;
     private boolean m_annotate;
     private ArrayList<MatchReporter> m_reporters;
-    private HashMap<Integer,String>  m_orig_patterns;
+    private HashMap<Integer,String>  m_orig_patterns;	  // only initialised if m_search_strings is true
     private List<String> m_matching_search_strings;		  // only created if m_search_strings is true (performance)
     private HashMap<String,Integer> m_search_string_freq; // only created if m_search_strings is true
+    protected HashMap<String,Color>   m_patterns2colours;	  // always store the row colour of each pattern for using in highlighting matches (red if none)
     
     /**
      * Constructor for the node model.
@@ -234,7 +237,13 @@ public class FindGlobalNodeModel extends NodeModel {
     			int start = m.start();
     			int end   = m.end();
     			m_bv.set(start, end);
-    			m_match_pos.add(new Extent(start,end));
+    			Color col = m_patterns2colours.get(m.pattern().toString());
+    			if (col == null ) {
+    				throw new InvalidSettingsException("Unable to find pattern: "+m.pattern().toString());
+    			}
+    			Extent e = new Extent(start,end, col);
+    			m_match_pos.add(e);
+    			
     			base      = m.start() + 1;
     			if (m_search_strings) {
     				String pat = m_orig_patterns.get(new Integer(i));
@@ -317,8 +326,8 @@ public class FindGlobalNodeModel extends NodeModel {
 				m_reporters.add(new MatchLengthsReporter());
 			} else if (want.startsWith("Highlight Matches (HTML, single colour)")) {
 				m_highlight_single_colour = true;
-				cols.add(new DataColumnSpecCreator("Highlighted (HTML, single colour)", StringCell.TYPE).createSpec());
-				m_reporters.add(new HighlightMatchReporter(true));	// true: use single colour for all matches
+				cols.add(new DataColumnSpecCreator("Highlighted (HTML, using row colours of patterns)", StringCell.TYPE).createSpec());
+				m_reporters.add(new HighlightMatchReporter());	// true: use single colour for all matches
 			} else if (want.startsWith("Match Extent")) {
 				m_overall_extent = true;
 				// NB: KNIME wont allow duplicate column names, so we must adjust the title depending on want
@@ -390,9 +399,8 @@ public class FindGlobalNodeModel extends NodeModel {
 		}
 		return new DataTableSpec(cols.toArray(new DataColumnSpec[0]));
 	}
-    
-    
-    public int getNumMatches() {
+   
+	public int getNumMatches() {
     	return (m_matches != null) ? m_matches.size() : 0;
     }
     
@@ -408,6 +416,7 @@ public class FindGlobalNodeModel extends NodeModel {
     	String s = null;
     	try {
     		Map<Integer,String> orig_patterns = new HashMap<Integer,String>();
+    		m_patterns2colours = new HashMap<String,Color>();
     		while (i.hasNext()) {
     			DataRow  r = i.next();
     			DataCell c = r.getCell(col_idx);
@@ -419,6 +428,8 @@ public class FindGlobalNodeModel extends NodeModel {
     			logger.info("Compiling pattern: "+s);
     			orig_patterns.put(new Integer(idx), s);
     			ret[idx++] = Pattern.compile(s);
+    			ColorAttr ca = in_data.getSpec().getRowColor(r);
+    			m_patterns2colours.put(s, ca.getColor());
     		}
     		
     		setOriginalPatterns(orig_patterns);
