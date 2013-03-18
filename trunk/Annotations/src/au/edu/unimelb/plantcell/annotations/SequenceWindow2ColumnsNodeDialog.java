@@ -151,7 +151,7 @@ public class SequenceWindow2ColumnsNodeDialog extends DefaultNodeSettingsPane im
     		   ));
        
        addDialogComponent(new DialogComponentNumber(
-    		   new SettingsModelIntegerBounded(SequenceWindow2ColumnsNodeModel.CFGKEY_NMER, 3, 1, 1000000), "Window Size", 1
+    		   new SettingsModelIntegerBounded(SequenceWindow2ColumnsNodeModel.CFGKEY_NMER, 7, 1, 1000000), "Window Size", 1
     		   ));
        
        addDialogComponent(new DialogComponentNumber(
@@ -224,10 +224,9 @@ public class SequenceWindow2ColumnsNodeDialog extends DefaultNodeSettingsPane im
 			return;
 		
 		m_tree.clear();
-	
 		for (BioJavaProcessorTask t : BioJavaProcessorNodeModel.getTasks()) {
-			// this node only supports SequenceCell related tasks
-			if (!(t.isCompatibleWith(SequenceCell.TYPE)))
+			// this node only supports SequenceCell related tasks which can work with sub-sequences
+			if (!(t.isCompatibleWith(SequenceCell.TYPE)) || !t.canWindow())
 				continue;
 			
 			// else
