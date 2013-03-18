@@ -79,6 +79,11 @@ public class CodonUsageTask extends BioJavaProcessorTask {
 	}
 
 	@Override
+	public boolean canWindow() {
+		return true;
+	}
+	
+	@Override
 	public String[] getNames() {
 		return new String[] { "Codon usage table" };
 	}

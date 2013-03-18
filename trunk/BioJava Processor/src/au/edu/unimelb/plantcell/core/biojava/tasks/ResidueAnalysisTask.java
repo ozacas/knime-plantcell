@@ -15,7 +15,12 @@ public class ResidueAnalysisTask extends BioJavaProcessorTask {
 	
 	@Override
 	public String getCategory() {
-		return "Statistics";
+		return "Common";
+	}
+	
+	@Override
+	public boolean canWindow() {
+		return true;
 	}
 	
 	@Override

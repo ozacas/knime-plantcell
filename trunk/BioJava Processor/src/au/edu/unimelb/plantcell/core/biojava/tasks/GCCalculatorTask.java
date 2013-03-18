@@ -23,7 +23,12 @@ public class GCCalculatorTask extends BioJavaProcessorTask {
 	
 	@Override
 	public String getCategory() {
-		return "Statistics";
+		return "Common";
+	}
+	
+	@Override
+	public boolean canWindow() {
+		return true;
 	}
 	
 	public static BioJavaProcessorTask getInstance() {

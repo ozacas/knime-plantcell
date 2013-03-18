@@ -193,6 +193,14 @@ public abstract class BioJavaProcessorTask extends AbstractCellFactory {
 	}
 	
 	/**
+	 * For nodes which only want tasks that make sense when operating on sub-sequences, this method can be used
+	 * Returns <code>true</code> when the task can be window'ed, <code>false</code> otherwise. Default is false.
+	 */
+	public boolean canWindow() {
+		return false;
+	}
+	
+	/**
 	 * Converts <code>sv</code> to the specified type of sequence using BioJava. The only
 	 * valid translations are: DNA -> Protein, DNA -> RNA, RNA -> Protein. Other types of
 	 * conversions will result in an exception.
