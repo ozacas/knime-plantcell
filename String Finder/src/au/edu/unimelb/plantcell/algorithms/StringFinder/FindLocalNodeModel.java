@@ -1,5 +1,6 @@
 package au.edu.unimelb.plantcell.algorithms.StringFinder;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -67,7 +68,7 @@ public class FindLocalNodeModel extends FindGlobalNodeModel {
         logger.info("Searching "+n_rows+" rows.");
         while (it.hasNext()) {
         	DataRow r = it.next();
-        	setMatchers(compile_patterns(r.getCell(matching_col_idx)));
+        	setMatchers(compile_patterns(r.getCell(matching_col_idx), inData[0].getSpec().getRowColor(r).getColor()));
         	match_string(getInputCell(r), c, r);
         	done++;
         	if (done % 10 == 0) {
@@ -86,7 +87,7 @@ public class FindLocalNodeModel extends FindGlobalNodeModel {
      * @return
      * @throws Exception
      */
-    private Pattern[] compile_patterns(DataCell cell) throws Exception {
+    private Pattern[] compile_patterns(DataCell cell, Color colour) throws Exception {
 		if (cell == null || cell.isMissing()) {
 			throw new InvalidSettingsException("Search strings cannot be missing!");
 		}
@@ -105,6 +106,7 @@ public class FindLocalNodeModel extends FindGlobalNodeModel {
 		int idx = 0;
     	try {
     		Map<Integer,String> orig_patterns = new HashMap<Integer,String>();
+    		m_patterns2colours = new HashMap<String,Color>();
     		while (it.hasNext()) {
     			DataCell c = it.next();
     			if (c == null || c.isMissing())
@@ -118,6 +120,7 @@ public class FindLocalNodeModel extends FindGlobalNodeModel {
     			orig_patterns.put(new Integer(idx++), s);
     			ret.add(Pattern.compile(s));
     			done.add(s);
+    			m_patterns2colours.put(s, colour);
     		}
     		setOriginalPatterns(orig_patterns);
     	} catch (Exception e) {
