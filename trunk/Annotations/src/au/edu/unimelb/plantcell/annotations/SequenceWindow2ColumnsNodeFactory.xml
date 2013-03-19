@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="./seq2str.png" type="Manipulator">
-    <name>Analyse sequence (windows)</name>
+    <name>Window sequence analysis</name>
     
     <shortDescription>
-        Extracts the user configured data from sequence cells into separate columns for
-        further analysis. See the related String2Sequence node for further information.
+       Extracts computational results for a short window(s) of sequence(s) to the output port.
+        You may specify how the window is to be computed and sized.
     </shortDescription>
     
     <fullDescription>
         <intro>Extracts computational results for a short window(s) of sequence(s) to the output port.
-        You may specify how the window is to be computed and sized, see the <em>Window Settings</em> tab in the
+        You may specify how the window is to be computed and sized, see the <i>Window Settings</i> tab in the
         configuration for details.
         
         <p>
@@ -21,14 +21,21 @@
         </intro>
         
         <option name="Sequences to analyze">Column to obtain the sequence data from. Each sequence is analysed independently</option>
-        <option name="Data to extract">Specify the data desired. See above table for details.</option>
+        
+        <option name="Task to perform">Specify the data desired. See above table for details.</option>
+        
+        <option name="Window size">Windows consist of N-residues (except for last window) - enter N here. Default 7 which is a
+        reasonable starting point for many analyses.</option>
+        
+        <option name="Step size">How far to move the window after processing each one. The default is to shift by one residue,
+        but you can enter any reasonable value you like.</option>
+        
     </fullDescription>
     
     <ports>
-        <inPort index="0" name="Input sequences">Data including annotated sequences</inPort>
+        <inPort index="0" name="Input sequences">Data including input sequences to be analysed</inPort>
         
-        <outPort index="0" name="Sequence summary columns">Columns of data as configured</outPort>
-        <outPort index="1" name="Extracted tracks/features">If any tracks are extracted, the data will be here</outPort>
+        <outPort index="0" name="Reported window data">Columns of data as configured</outPort>
     </ports>    
  
 </knimeNode>
