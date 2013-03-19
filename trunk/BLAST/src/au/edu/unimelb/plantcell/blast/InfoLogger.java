@@ -2,6 +2,8 @@ package au.edu.unimelb.plantcell.blast;
 
 import org.knime.core.node.NodeLogger;
 
+import au.edu.unimelb.plantcell.core.ErrorLogger;
+
 public class InfoLogger extends ErrorLogger {
 	private NodeLogger m_l;
 	

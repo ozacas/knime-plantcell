@@ -37,6 +37,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
 import au.edu.unimelb.plantcell.core.CorePlugin;
+import au.edu.unimelb.plantcell.core.ErrorLogger;
 import au.edu.unimelb.plantcell.core.ExternalProgram;
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.core.PreferenceConstants;
@@ -57,7 +58,10 @@ import au.edu.unimelb.plantcore.core.regions.BlastHitRegion;
 
 /**
  * This is the model implementation of BLASTPlus.
- * Supports local execution of NCBI BLAST+ executables (which must be  installed separately)
+ * Supports local execution of NCBI BLAST+ executables (which must be  installed separately).
+ * 
+ * TODO: the hoops you have to jump thru to get multi-platform whitespace quoting correct are horrendous. It mostly doesnt work.
+ * Cant find decent documentation for commons-exec which gets me over the mental hurdles. Or maybe its just me ;-)
  *
  * @author http://www.plantcell.unimelb.edu.au/
  */

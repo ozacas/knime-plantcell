@@ -23,6 +23,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
+import au.edu.unimelb.plantcell.core.ErrorLogger;
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.core.UniqueID;
 import au.edu.unimelb.plantcell.core.cells.SequenceCell;

@@ -25,8 +25,8 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 import au.edu.unimelb.plantcell.blast.BLASTPlusNodeModel;
 import au.edu.unimelb.plantcell.blast.BlastResultsWalker;
-import au.edu.unimelb.plantcell.blast.ErrorLogger;
 import au.edu.unimelb.plantcell.blast.TabbedCSVLogger;
+import au.edu.unimelb.plantcell.core.ErrorLogger;
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.core.UniqueID;
 import au.edu.unimelb.plantcell.core.cells.SequenceCell;
