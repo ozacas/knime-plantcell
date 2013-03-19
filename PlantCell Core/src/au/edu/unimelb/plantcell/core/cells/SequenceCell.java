@@ -36,10 +36,24 @@ public class SequenceCell extends DataCell implements SequenceValue, StringValue
     private static final SequenceImplSerializer<SequenceCell> SERIALIZER = new SequenceImplSerializer<SequenceCell>();
     
 
+    /**
+     * Commonly used constructor for a new sequence cell (requires a sequence type, ID and the sequence data).
+     * @param st
+     * @param accsn
+     * @param seq
+     * @throws InvalidSettingsException an exception may be thrown if {@link} 
+     */
 	public SequenceCell(SequenceType st, String accsn, String seq) throws InvalidSettingsException {
 		m_sequence = new SequenceImpl(st, accsn, seq);
 	}
 
+	/**
+	 * Constructs a new {@link SequenceCell} from the specified cell. If the supplied cell is a sequence,
+	 * a copy is made. Otherwise the cell's string content is used to create a sequence of unknown type.
+	 * 
+	 * @param dc
+	 * @throws InvalidSettingsException if the cell is null
+	 */
 	public SequenceCell(DataCell dc) throws InvalidSettingsException {
 		if (dc == null)
 			throw new InvalidSettingsException("Cannot create a sequence from null data!");
@@ -50,7 +64,14 @@ public class SequenceCell extends DataCell implements SequenceValue, StringValue
 			m_sequence = new SequenceImpl(SequenceType.UNKNOWN, "", dc.toString());
 		}
 	}
-
+	
+	/**
+	 * Constructs a new {@link SequenceImpl} from the specified {@link SequenceValue} and initialises
+	 * the cell to the new constructed <code>SequenceImpl</code>. An exception is thrown if <code>null</code> is supplied
+	 * 
+	 * @param sv
+	 * @throws InvalidSettingsException
+	 */
 	public SequenceCell(SequenceValue sv) throws InvalidSettingsException {
 		if (sv == null)
 			throw new InvalidSettingsException("No sequence to construct!");
