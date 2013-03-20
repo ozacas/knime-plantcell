@@ -238,7 +238,7 @@ public class FindGlobalNodeModel extends NodeModel {
     			int end   = m.end();
     			m_bv.set(start, end);
     			Color col = m_patterns2colours.get(m.pattern().toString());
-    			if (col == null ) {
+    			if (col == null ) {	// debugging only: should really be an assertion
     				throw new InvalidSettingsException("Unable to find pattern: "+m.pattern().toString());
     			}
     			Extent e = new Extent(start,end, col);
@@ -369,6 +369,15 @@ public class FindGlobalNodeModel extends NodeModel {
 				cols.add(new DataColumnSpecCreator("Input Coverage (%)", DoubleCell.TYPE).createSpec());
 				m_coverage = true;
 				m_reporters.add(new CoverageReporter());
+			} else if (want.startsWith("Distance: between matches")) {
+				cols.add(new DataColumnSpecCreator("Distances between matches", ListCell.getCollectionType(IntCell.TYPE)).createSpec());
+				m_reporters.add(new ExtentDistanceReporter());
+			} else if (want.startsWith("Distance: to first match")) {
+				cols.add(new DataColumnSpecCreator("Distance: to first match", IntCell.TYPE).createSpec());
+				m_reporters.add(new FirstDistanceReporter());
+			} else if (want.startsWith("Distance: from last match")) {
+				cols.add(new DataColumnSpecCreator("Distance: from last match", IntCell.TYPE).createSpec());
+				m_reporters.add(new LastDistanceReporter());
 			} else if (want.startsWith("Annotate sequences")) {
 				if (m_match_col_idx >= 0) {		
 					DataColumnSpec seq_col = inSpec.getColumnSpec(m_match_col_idx);
@@ -541,7 +550,11 @@ public class FindGlobalNodeModel extends NodeModel {
 		return m_bv;
 	}
 	
-	List<Extent> getMatchPos() {
+	/**
+	 * Returns an unordered set of extents matched (may be empty if no matches)
+	 * @return
+	 */
+	public List<Extent> getMatchPos() {
 		return m_match_pos;
 	}
 
