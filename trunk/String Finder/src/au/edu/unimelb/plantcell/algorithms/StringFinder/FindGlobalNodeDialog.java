@@ -27,7 +27,8 @@ public class FindGlobalNodeDialog extends DefaultNodeSettingsPane {
 		"Match Extent (substring)", "Match Extent (position)", "Patterns (successful, distinct)", "Non-overlapping matches (collection)",
 		"Match Start Position Density (Bit Vector)", "Match Position Density (Bit Vector)", "Non-overlapping match count",
 		"Number of matches per position (collection)", "Unique Match Distribution", "Pattern distribution (successful only)",
-		"Input String Coverage (%)", "Highlight Matches (HTML, single colour)", "Annotate sequences"
+		"Input String Coverage (%)", "Highlight Matches (HTML, single colour)", "Annotate sequences", "Distance: between matches (collection)",
+		"Distance: to first match", "Distance: from last match (end)"
 	};
 	
   

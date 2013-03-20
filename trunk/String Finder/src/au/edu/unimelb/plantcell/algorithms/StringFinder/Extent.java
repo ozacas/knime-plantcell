@@ -5,9 +5,11 @@ import java.awt.Color;
 /**
  * Used to represent the state associated with a match
  * @author andrew.cassin
+ * @param <T>
  *
  */
-public class Extent {
+@SuppressWarnings("rawtypes")
+public class Extent implements Comparable {
 	public int m_start;
 	public int m_end;
 	private Color m_colour;
@@ -33,5 +35,33 @@ public class Extent {
 	
 	public String toString() {
 		return m_start + "-" + m_end;
+	}
+
+	@Override
+	public int compareTo(Object o) {
+		Extent arg0 = (Extent) o;
+		
+		// compare start
+		if (m_start < arg0.m_start) {
+			return -1;
+		} else if (m_start > arg0.m_start) {
+			return 1;
+		} else {
+			// compare end
+			if (m_end < arg0.m_end)
+				return -1;
+			else if (m_end > arg0.m_end)
+				return 1;
+			else
+				return 0;
+		}
+	}
+
+	public int getStart() {
+		return m_start;
+	}
+	
+	public int getEnd() {
+		return m_end;
 	}
 }
