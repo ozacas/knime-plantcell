@@ -372,11 +372,11 @@ public class FindGlobalNodeModel extends NodeModel {
 			} else if (want.startsWith("Distance: between matches")) {
 				cols.add(new DataColumnSpecCreator("Distances between matches", ListCell.getCollectionType(IntCell.TYPE)).createSpec());
 				m_reporters.add(new ExtentDistanceReporter());
-			} else if (want.startsWith("Distance: to first match")) {
-				cols.add(new DataColumnSpecCreator("Distance: to first match", IntCell.TYPE).createSpec());
+			} else if (want.startsWith("Distance: from start to first match")) {
+				cols.add(new DataColumnSpecCreator("Distance: from start to first match", IntCell.TYPE).createSpec());
 				m_reporters.add(new FirstDistanceReporter());
-			} else if (want.startsWith("Distance: from last match")) {
-				cols.add(new DataColumnSpecCreator("Distance: from last match", IntCell.TYPE).createSpec());
+			} else if (want.startsWith("Distance: from last match to end")) {
+				cols.add(new DataColumnSpecCreator("Distance: from last match to end", IntCell.TYPE).createSpec());
 				m_reporters.add(new LastDistanceReporter());
 			} else if (want.startsWith("Annotate sequences")) {
 				if (m_match_col_idx >= 0) {		
