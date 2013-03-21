@@ -27,7 +27,6 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
@@ -146,9 +145,6 @@ public class SequenceWindow2ColumnsNodeDialog extends DefaultNodeSettingsPane im
         });
         
        createNewTab("Window Settings");
-       addDialogComponent(new DialogComponentButtonGroup(new SettingsModelString(SequenceWindow2ColumnsNodeModel.CFGKEY_METHOD, ""), 
-    		   "Method", true, SequenceWindow2ColumnsNodeModel.METHODS, SequenceWindow2ColumnsNodeModel.METHODS
-    		   ));
        
        addDialogComponent(new DialogComponentNumber(
     		   new SettingsModelIntegerBounded(SequenceWindow2ColumnsNodeModel.CFGKEY_NMER, 7, 1, 1000000), "Window Size", 1

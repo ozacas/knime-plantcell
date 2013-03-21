@@ -49,13 +49,11 @@ public class SequenceWindow2ColumnsNodeModel extends NodeModel {
     // dialog configuration code
     public final static String CFGKEY_SEQUENCE_COL = "sequence-column";
 	public final static String CFGKEY_WANTED       = "wanted-items";
-	public final static String CFGKEY_METHOD       = "window-method";
 	public final static String CFGKEY_NMER		   = "window-size";		// how many residues
     public final static String CFGKEY_STEP         = "step-size";		// bump window size after each window by this amount
     
     private final SettingsModelString    m_sequence = new SettingsModelString(CFGKEY_SEQUENCE_COL, "");
     private final SettingsModelStringArray m_wanted = new SettingsModelStringArray(CFGKEY_WANTED, new String[] { });
-    private final SettingsModelString    m_method   = new SettingsModelString(CFGKEY_METHOD, "");
     private final SettingsModelIntegerBounded m_n   = new SettingsModelIntegerBounded(CFGKEY_NMER, 3, 1, 1000000);
     private final SettingsModelIntegerBounded m_step= new SettingsModelIntegerBounded(CFGKEY_STEP, 1, 1, 1000);
     
@@ -68,18 +66,25 @@ public class SequenceWindow2ColumnsNodeModel extends NodeModel {
         super(1, 1);
     }
 
+    /**
+     * Constructs the {@link BioJavaProcessorTask} of the specified name or returns <code>null</code> if there is no such task.
+     * It is the caller's responsibility to call the task's <code>init()</code> method.
+     * 
+     * @param wanted
+     * @return
+     * @throws Exception
+     */
     protected BioJavaProcessorTask getTask(String wanted) throws Exception {
-    	 BioJavaProcessorTask t = null;
          for (BioJavaProcessorTask bjt : BioJavaProcessorNodeModel.getTasks()) { 
-  		   for (String name : bjt.getNames()) {
-  			   if (wanted.contains(name)) {
-  				   t = bjt.getClass().newInstance();
-  				   t.init(name, m_seq_idx);
-  			   }
-  		   }
+			for (String name : bjt.getNames()) {
+				if (wanted.contains(name)) {
+					BioJavaProcessorTask t = bjt.getClass().newInstance();
+					return t;
+				}
+			}
          }
          
-         return t;
+         return null;
     }
     
     /**
@@ -90,18 +95,23 @@ public class SequenceWindow2ColumnsNodeModel extends NodeModel {
             final ExecutionContext exec) throws Exception {
 
        logger.info("Creating and analysing windows of input sequences to a table...");
-       DataTableSpec outSpec = make_output_spec(inData[0].getSpec());
        
-       MyDataContainer out = new MyDataContainer(exec.createDataContainer(outSpec), "w");
+       // prepare task
        String[] wanted = m_wanted.getStringArrayValue();
        if (wanted == null || wanted.length < 1)
     	   throw new InvalidSettingsException("No task chosen!");
        
-       // prepare task
        BioJavaProcessorTask t = getTask(wanted[0]);
        if (t == null) {
     	   throw new InvalidSettingsException("No such task: "+wanted[0]);
        }
+       t.init(wanted[0], m_seq_idx);
+       
+       // CAREFUL: the same instance (t) must be used for configuring the output columns AND execute()
+       DataTableSpec outSpec = make_output_spec(inData[0].getSpec(), t);
+       
+       MyDataContainer out = new MyDataContainer(exec.createDataContainer(outSpec), "w");
+      
        
        // iterate over the rows compute the windows over each sequence and dumping the results
        RowIterator it = inData[0].iterator();
@@ -115,7 +125,7 @@ public class SequenceWindow2ColumnsNodeModel extends NodeModel {
     	   
     	   SequenceValue       sv = (SequenceValue) c;
     	   DataCell[]       cells = new DataCell[r.getNumCells()];
-    	   WindowSequenceCell wsc = new WindowSequenceCell(sv, m_method.getStringValue(), m_n.getIntValue(), m_step.getIntValue());
+    	   WindowSequenceCell wsc = new WindowSequenceCell(sv, m_n.getIntValue(), m_step.getIntValue());
     	   for (int i=0; i<cells.length; i++) {
     		   cells[i] = r.getCell(i);
     		   if (i == m_seq_idx) {
@@ -161,7 +171,7 @@ public class SequenceWindow2ColumnsNodeModel extends NodeModel {
     protected void reset() {
     }
 
-    protected DataTableSpec make_output_spec(DataTableSpec inSpec) throws InvalidSettingsException {
+    protected DataTableSpec make_output_spec(DataTableSpec inSpec, BioJavaProcessorTask t) throws InvalidSettingsException {
 	   m_seq_idx = inSpec.findColumnIndex(m_sequence.getStringValue());
        if (m_seq_idx < 0) {
        		if (hasSequenceColumn(inSpec)) {
@@ -170,10 +180,11 @@ public class SequenceWindow2ColumnsNodeModel extends NodeModel {
        }
        
        try {
+    	   // if the task is null then we assume it needs to be found and initialised, otherwise we assume thats all done
     	   String[] wanted = m_wanted.getStringArrayValue();
-    	   BioJavaProcessorTask t = null;
-    	   if (wanted.length > 0) {
+    	   if (wanted.length > 0 && t == null) {
     		   t = getTask(wanted[0]);
+    		   t.init(wanted[0], m_seq_idx);
     	   } 
     	   ArrayList<DataColumnSpec> cols = new ArrayList<DataColumnSpec>();
     	   cols.add(new DataColumnSpecCreator("Sequence ID", StringCell.TYPE).createSpec());
@@ -202,7 +213,7 @@ public class SequenceWindow2ColumnsNodeModel extends NodeModel {
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
             throws InvalidSettingsException {
      
-        return new DataTableSpec[]{ make_output_spec(inSpecs[0]) };
+        return new DataTableSpec[]{ make_output_spec(inSpecs[0], null) };
     }
     
     // GRUBBY HACK FIXME TODO: code copied from AbstractWebServiceNodeModel
@@ -240,7 +251,6 @@ public class SequenceWindow2ColumnsNodeModel extends NodeModel {
     protected void saveSettingsTo(final NodeSettingsWO settings) {
     	m_sequence.saveSettingsTo(settings);
     	m_wanted.saveSettingsTo(settings);
-    	m_method.saveSettingsTo(settings);
     	m_n.saveSettingsTo(settings);
     	m_step.saveSettingsTo(settings);
     }
@@ -253,7 +263,6 @@ public class SequenceWindow2ColumnsNodeModel extends NodeModel {
             throws InvalidSettingsException {
     	m_sequence.loadSettingsFrom(settings);
     	m_wanted.loadSettingsFrom(settings);
-    	m_method.loadSettingsFrom(settings);
     	m_n.loadSettingsFrom(settings);
     	m_step.loadSettingsFrom(settings);
     }
@@ -266,7 +275,6 @@ public class SequenceWindow2ColumnsNodeModel extends NodeModel {
             throws InvalidSettingsException {
     	m_sequence.validateSettings(settings);
     	m_wanted.validateSettings(settings);
-    	m_method.validateSettings(settings);
     	m_n.validateSettings(settings);
     	m_step.validateSettings(settings);
     }
