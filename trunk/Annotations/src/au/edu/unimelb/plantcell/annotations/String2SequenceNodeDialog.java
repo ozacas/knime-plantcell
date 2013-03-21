@@ -3,8 +3,10 @@ package au.edu.unimelb.plantcell.annotations;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.StringValue;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.util.ColumnFilter;
@@ -12,7 +14,7 @@ import org.knime.core.node.util.ColumnFilter;
 import au.edu.unimelb.plantcell.core.cells.SequenceType;
 
 /**
- * Converts two columns (accession, sequence) into a sequence cell (dialog implementation)
+ * Dialog for node which converts two columns (accession, sequence) and optionally a description into a {@link SequenceCell}
  *
  * This node dialog derives from {@link DefaultNodeSettingsPane} which allows
  * creation of a simple dialog with standard components. If you need a more 
@@ -39,6 +41,8 @@ public class String2SequenceNodeDialog extends DefaultNodeSettingsPane {
         addDialogComponent(new DialogComponentColumnNameSelection(
         		new SettingsModelString(String2SequenceNodeModel.CFGKEY_SEQUENCE_COL, "Sequence"), 
         		"Sequence from... ", 0, StringValue.class));
+        addDialogComponent(new DialogComponentBoolean(
+        		new SettingsModelBoolean(String2SequenceNodeModel.CFGKEY_REPLACE_COLUMN, false), "Replace sequence column?"));
         
         addDialogComponent(new DialogComponentColumnNameSelection(
         		new SettingsModelString(String2SequenceNodeModel.CFGKEY_DESCR, "None"),
