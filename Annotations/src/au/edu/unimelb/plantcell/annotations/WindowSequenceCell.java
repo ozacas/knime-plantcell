@@ -6,8 +6,9 @@ import au.edu.unimelb.plantcell.core.cells.SequenceCell;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 
 /**
- * Similar to a {@link SequenceCell} but this modifies <code>getStringValue</code> to return one window at a time.
- * Instances of this class are for in-memory use only, they should never be persisted. Its really more of an interator.
+ * Similar to a {@link SequenceCell} but this modifies <code>getStringValue()</code> and <code>getLength()</code> to return one window at a time.
+ * Instances of this class are for in-memory use only, they should never be persisted. Its really more of an iterator, but needs to derive
+ * from a cell to be compatible with the KNIME row API.
  * 
  * @author andrew.cassin
  *
@@ -17,36 +18,18 @@ public class WindowSequenceCell extends SequenceCell {
 	 * not used
 	 */
 	private static final long serialVersionUID = -4668767149193490953L;
-	
+	private SequenceValue m_sv;
 	private int m_size, m_step;
-	private boolean m_shift;
-	private int m_pos;
-	private int m_total_windows;
+	private int m_pos;	
 	
-	
-	public WindowSequenceCell(SequenceValue sv, String window_method, int size, int step) throws InvalidSettingsException {
+	public WindowSequenceCell(SequenceValue sv, int size, int step) throws InvalidSettingsException {
 		super(sv);
 		assert(size > 0 && step > 0 && sv != null);
-		
+	
 		m_size = size;
 		m_step = step;
-		m_shift= window_method.toLowerCase().equals("overlapping");
+		m_sv   = sv;
 		m_pos  = -1;
-		int len = sv.getLength();
-		
-		if (m_shift) {
-			// ie. overlapping
-			if (len <= m_size) {
-				m_total_windows = 1;
-			} else {
-				m_total_windows = len - m_size + 1;
-			}
-		} else {
-			// discontiguous?
-			m_total_windows = len / m_size;
-			if (len % m_size > 0) 
-				m_total_windows++;
-		}
 	}
 	
 	/**
@@ -54,7 +37,8 @@ public class WindowSequenceCell extends SequenceCell {
 	 * @return true if there are more windows, false otherwise
 	 */
 	public boolean hasNextWindow() {
-		return (m_pos < m_total_windows);
+		// cant call getLength() as it will recurse infinitely
+		return (m_pos < m_sv.getLength());
 	}
 	
 	/**
@@ -72,6 +56,15 @@ public class WindowSequenceCell extends SequenceCell {
 		return ret;
 	}
 	
+	/**
+	 * Returns the length of the current window (NOT the whole sequence)
+	 * @return
+	 */
+	@Override
+	public int getLength() {
+		return peekStringWindow().length();
+	}
+	
 	public int getStart() {
 		if (m_pos <= 0)
 			return 1;
@@ -80,16 +73,16 @@ public class WindowSequenceCell extends SequenceCell {
 	
 	public int getEnd() {
 		int end = getStart() + m_size;
-		if (end > getLength()) {
-			return getLength();
+		if (end > m_sv.getLength()) {
+			return m_sv.getLength();
 		}
 		return end;
 	}
 
 	public String peekStringWindow() {
-		int start = getStart();
-		int end   = getEnd();
-		String seq = super.getStringValue();
-		return seq.substring(start - 1, end-1);
+		int start = getStart() - 1;
+		int end   = getEnd() - 1;
+		String seq = m_sv.getStringValue();
+		return seq.substring(start, end);
 	}
 }
