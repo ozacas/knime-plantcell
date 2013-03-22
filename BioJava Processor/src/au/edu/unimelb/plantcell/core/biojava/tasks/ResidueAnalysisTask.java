@@ -137,7 +137,7 @@ public class ResidueAnalysisTask extends BioJavaProcessorTask {
 		
 		DataCell[] cells = new DataCell[13];
 		if (m_want_percent) {
-			double len = sv.getLength();
+			double len = prot.length();
 			cells[0] = new DoubleCell(((double)neutrals)*100.0/len);
 			cells[1] = new DoubleCell(((double)non_polar)*100.0/len);
 			cells[2] = new DoubleCell(((double)slightly_polar)*100.0/len);

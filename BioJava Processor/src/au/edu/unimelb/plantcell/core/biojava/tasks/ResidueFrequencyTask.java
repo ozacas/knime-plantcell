@@ -82,9 +82,10 @@ public class ResidueFrequencyTask extends BioJavaProcessorTask {
 			return cells;
 		}
 		String seq = sv.getStringValue().toUpperCase();
+		int len = seq.length();		// NB: NOT equivalent to sv.getLength() when using the window analysis node
 		
-		if (m_tri_mers && seq.length() >= 3) {
-			for (int i=0; i<seq.length()-2; i++) {
+		if (m_tri_mers && len >= 3) {
+			for (int i=0; i<len-2; i++) {
 				String trimer = seq.substring(i,i+3);
 				Integer column_idx = m_colmap.get(trimer);
 				assert(column_idx != null);
@@ -120,7 +121,7 @@ public class ResidueFrequencyTask extends BioJavaProcessorTask {
 				if (m_colmap.containsKey(colname)) {
 					Integer column_idx = m_colmap.get(colname);
 					if (m_task.indexOf("%") >= 0) {
-						cells[column_idx.intValue()] = new DoubleCell(((double)cnt) * 100.0 / sv.getLength());
+						cells[column_idx.intValue()] = new DoubleCell(((double)cnt) * 100.0 / len);
 					} else {
 						cells[column_idx.intValue()] = new IntCell(cnt);
 					}
