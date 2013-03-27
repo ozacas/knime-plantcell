@@ -13,7 +13,9 @@
         loaded into KNIME: 
         
         <p><b>WARNING:</b> this node does not guarantee to preserve all data present
-        in the loaded files as the software is incomplete and imperfect. Use this node at own risk.</p>
+        in the loaded files as the software is incomplete and imperfect. Use this node at own risk.
+        In particular MGF does not preserve SCANS header lines, even if the input data has it. This can
+        be useful if you are using software which does not support these headers!</p>
         
         </intro>
         

@@ -31,7 +31,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 
 import au.edu.unimelb.plantcell.io.read.spectra.MGFSpectraCell;
-import au.edu.unimelb.plantcell.io.read.spectra.SpectralDataInterface;
+import au.edu.unimelb.plantcell.io.read.spectra.SpectraValue;
 
 
 /**
@@ -94,7 +94,7 @@ public class SpectraWriterNodeModel extends NodeModel {
     	
     	while (it.hasNext()) {
     		DataRow r = it.next();
-    		SpectralDataInterface sdi = (SpectralDataInterface) r.getCell(col_idx);
+    		SpectraValue sdi = (SpectraValue) r.getCell(col_idx);
     		double[] mz = sdi.getMZ();
     		double[] intensity = sdi.getIntensity();
     		String title = sdi.getID();
@@ -118,10 +118,11 @@ public class SpectraWriterNodeModel extends NodeModel {
     		
     		// write the spectra to the output file
     		pw.println("BEGIN IONS");
-    		pw.println("TITLE="+title);
-    		pw.println("CHARGE="+charge);
+    		// some mascot implementations require PEPMASS right after the BEGIN IONS so...
     		if (pepmass != null)
     			pw.println("PEPMASS="+pepmass);
+    		pw.println("TITLE="+title);
+    		pw.println("CHARGE="+charge);
     		for (int i=0; i<mz.length; i++) {
     			pw.print(mz[i]);
     			pw.print(' ');
