@@ -1,7 +1,7 @@
 package au.edu.unimelb.plantcell.io.write.spectra;
 
 import au.edu.unimelb.plantcell.io.read.spectra.MGFSpectraCell;
-import au.edu.unimelb.plantcell.io.read.spectra.SpectralDataInterface;
+import au.edu.unimelb.plantcell.io.read.spectra.SpectraValue;
 import au.edu.unimelb.plantcell.io.read.spectra.mzMLSpectraCell;
 
 /**
@@ -12,11 +12,11 @@ import au.edu.unimelb.plantcell.io.read.spectra.mzMLSpectraCell;
  *
  */
 public class SpectraAdapter {
-	private SpectralDataInterface m_sdi;
+	private SpectraValue m_sdi;
 	private boolean m_from_mgf;
 	private boolean m_from_mzml;
 	
-	public SpectraAdapter(SpectralDataInterface sdi) {
+	public SpectraAdapter(SpectraValue sdi) {
 		assert(sdi != null);
 		m_from_mgf = false;
 		m_from_mzml= false;

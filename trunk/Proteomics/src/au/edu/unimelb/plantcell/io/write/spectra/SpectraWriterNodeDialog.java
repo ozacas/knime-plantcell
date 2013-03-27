@@ -14,7 +14,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 import au.edu.unimelb.plantcell.io.read.spectra.AbstractSpectraCell;
-import au.edu.unimelb.plantcell.io.read.spectra.SpectralDataInterface;
+import au.edu.unimelb.plantcell.io.read.spectra.SpectraValue;
 
 /**
  * <code>NodeDialog</code> for the "SpectraWriter" Node.
@@ -39,7 +39,7 @@ public class SpectraWriterNodeDialog extends DefaultNodeSettingsPane {
         
         addDialogComponent(new DialogComponentFileChooser(new SettingsModelString(SpectraWriterNodeModel.CFGKEY_FILE, ""), "file-history", JFileChooser.SAVE_DIALOG, false, null));
         addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(SpectraWriterNodeModel.CFGKEY_OVERWRITE, false), "Overwrite?"));
-        addDialogComponent(new DialogComponentColumnNameSelection(new SettingsModelString(SpectraWriterNodeModel.CFGKEY_COLUMN, ""), "Column to save: ", 0, SpectralDataInterface.class));
+        addDialogComponent(new DialogComponentColumnNameSelection(new SettingsModelString(SpectraWriterNodeModel.CFGKEY_COLUMN, ""), "Column to save: ", 0, SpectraValue.class));
         addDialogComponent(new DialogComponentStringSelection(new SettingsModelString(SpectraWriterNodeModel.CFGKEY_FORMAT, "Mascot Generic Format"), "Output format", "Mascot Generic Format"));
     }
 }
