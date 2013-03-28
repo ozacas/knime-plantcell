@@ -32,6 +32,7 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 import au.edu.unimelb.plantcell.core.cells.Track;
 import au.edu.unimelb.plantcell.core.cells.TrackColumnPropertiesCreator;
 import au.edu.unimelb.plantcell.core.cells.TrackCreator;
+import au.edu.unimelb.plantcell.io.ws.tmhmm.AbstractWebServiceNodeModel;
 import au.edu.unimelb.plantcore.core.regions.PFAMHitRegion;
 import au.edu.unimelb.plantcore.core.regions.PFAMRegionsAnnotation;
 
@@ -153,13 +154,28 @@ public class PFAMSequenceSearchTask extends PFAMTask {
 		DataCell[] out = missing_cells();
 		if (!sv.getSequenceType().isProtein())
 			return out;
-		
-		// submit rest-ful query to PFAM
-		String destination_url = post(sv);
-		if (destination_url == null)
-			return out;
-		
-		String resp = get(m_http, new URL(destination_url));
+	
+		String resp = "";
+		String destination_url = "";
+		for (int i=0; i<AbstractWebServiceNodeModel.MAX_RETRIES; i++) {
+			try {
+				// submit rest-ful query to PFAM
+				destination_url = post(sv);
+				if (destination_url == null)
+					return out;
+				
+				resp = get(m_http, new URL(destination_url));
+				break;
+			} catch (Exception e) {
+				if (i == AbstractWebServiceNodeModel.MAX_RETRIES)
+					throw e;
+				m_logger.warn("Failed to fetch from "+destination_url);
+				int delay = 30 + (30+(i*60));
+				m_logger.warn("Delaying for "+delay+"secs. before retry");
+				Thread.sleep(delay * 1000);
+			}
+		}
+		 
 		
 		/** EG:
 		 * <pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

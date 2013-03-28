@@ -46,7 +46,7 @@ public class PFAMSourceNodeModel extends AbstractWebServiceNodeModel {
 	
     // node state (persisted)
     private final SettingsModelString m_url = new SettingsModelString(CFGKEY_URL, DEFAULT_URL);
-    private final SettingsModelString m_type= new SettingsModelString(CFGKEY_TYPE, "family-info");
+    private final SettingsModelString m_type= new SettingsModelString(CFGKEY_TYPE, PFAM_Task_Labels[2]);
     private final SettingsModelString m_col = new SettingsModelString(CFGKEY_COLUMN, "");
     
     /**
