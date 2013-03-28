@@ -2,8 +2,9 @@ package au.edu.unimelb.plantcell.io.read.spectra;
 
 import javax.swing.Icon;
 
-import au.edu.unimelb.plantcell.io.read.spectra.SpectralDataInterface;
+import au.edu.unimelb.plantcell.io.read.spectra.SpectraValue;
 
+import org.expasy.jpl.io.ms.jrap.Scan;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
@@ -12,13 +13,12 @@ import org.knime.core.data.DataValueComparator;
 import org.knime.core.data.DataValue.UtilityFactory;
 import org.knime.core.data.renderer.DataValueRendererFamily;
 import org.knime.core.data.renderer.DefaultDataValueRendererFamily;
-import org.systemsbiology.jrap.stax.Scan;
 
 public class SpectraUtilityFactory extends UtilityFactory {
 	 private static int spectra_id = 1;
 	 
      private static final Icon ICON =
-             loadIcon(SpectralDataInterface.class, "spectra-icon-16x16.png");
+             loadIcon(SpectraValue.class, "spectra-icon-16x16.png");
      
      public static DataCell createCell(MyMGFPeakList mgf) {
     	 return new MGFSpectraCell(mgf);

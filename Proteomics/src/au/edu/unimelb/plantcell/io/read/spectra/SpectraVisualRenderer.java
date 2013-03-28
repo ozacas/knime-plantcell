@@ -9,6 +9,11 @@ import javax.swing.JTable;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.renderer.DataValueRenderer;
 
+/**
+ * TODO FIXME: Not implemented (yet)
+ * @author andrew.cassin
+ *
+ */
 public class SpectraVisualRenderer implements DataValueRenderer {
 
 	@Override

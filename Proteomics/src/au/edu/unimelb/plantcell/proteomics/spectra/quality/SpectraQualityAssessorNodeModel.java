@@ -36,7 +36,7 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 
-import au.edu.unimelb.plantcell.io.read.spectra.SpectralDataInterface;
+import au.edu.unimelb.plantcell.io.read.spectra.SpectraValue;
 
 
 /**
@@ -97,9 +97,9 @@ public class SpectraQualityAssessorNodeModel extends NodeModel {
     			if (index<0)
     				return DataType.getMissingCell();
     			DataCell c = r.getCell(index);
-    			if (c.isMissing() || !(c instanceof SpectralDataInterface))
+    			if (c.isMissing() || !(c instanceof SpectraValue))
     				return DataType.getMissingCell();
-    			SpectralDataInterface spectrum = (SpectralDataInterface) c;
+    			SpectraValue spectrum = (SpectraValue) c;
     			
     			// this list is computed here and then thrown away at the end of processing each row for other quality ranking code to use
     	    	double sum = 0.0;
@@ -122,7 +122,7 @@ public class SpectraQualityAssessorNodeModel extends NodeModel {
     	CellFactory cf2 = new SingleCellFactory(bigPeakSpec) {
     		public DataCell getCell(DataRow r) {
     			DataCell c = r.getCell(index);
-    			if (c.isMissing() || !(c instanceof SpectralDataInterface)) {
+    			if (c.isMissing() || !(c instanceof SpectraValue)) {
     				return DataType.getMissingCell();
     			}
     			return new DoubleCell(calc_adjusted_xrea());
@@ -298,7 +298,7 @@ public class SpectraQualityAssessorNodeModel extends NodeModel {
             throws InvalidSettingsException {
         
     	DataColumnSpec c = inSpecs[0].getColumnSpec(m_spectra.getStringValue());
-    	if (c==null || !c.getType().isCompatible(SpectralDataInterface.class)) {
+    	if (c==null || !c.getType().isCompatible(SpectraValue.class)) {
     		throw new InvalidSettingsException("No suitable spectra column found!");
     	}
     	ColumnRearranger cr = createColumnRearranger(inSpecs[0]);

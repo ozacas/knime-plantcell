@@ -3,28 +3,18 @@ package au.edu.unimelb.plantcell.io.read.spectra;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.logging.Logger;
 
 import org.knime.base.node.util.BufferedFileReader;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
-import org.knime.core.data.RowKey;
-import org.knime.core.data.container.DataContainer;
-import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.NodeLogger;
-import org.proteomecommons.io.Peak;
-import org.proteomecommons.io.GenericPeak;
-import org.systemsbiology.jrap.stax.DataProcessingInfo;
-import org.systemsbiology.jrap.stax.MSInstrumentInfo;
-import org.systemsbiology.jrap.stax.MSOperator;
-import org.systemsbiology.jrap.stax.MZXMLFileInfo;
-import org.systemsbiology.jrap.stax.SoftwareInfo;
+
+import au.edu.unimelb.plantcell.core.MyDataContainer;
+
 
 
 /**
@@ -62,10 +52,10 @@ public class MGFDataProcessor extends AbstractDataProcessor {
 		return (ext.endsWith(".mgf") || ext.endsWith(".mgf.gz"));
 	}
 
+	@SuppressWarnings("unused")
 	@Override
-	public void process(boolean load_spectra, RowSequence scan_seq,
-			RowSequence file_seq, ExecutionContext exec,
-			DataContainer scan_container, DataContainer file_container)
+	public void process(boolean load_spectra, ExecutionContext exec,
+			MyDataContainer scan_container, MyDataContainer file_container)
 			throws Exception {
 		
 		if (m_is == null) 
@@ -92,7 +82,7 @@ public class MGFDataProcessor extends AbstractDataProcessor {
 				done++;
 				if (peaks > 0) {
 					process_spectra(headers.toString(), peak_list.toString(), peaks,
-						        scan_seq, load_spectra, ncols, scan_container);
+						       load_spectra, ncols, scan_container);
 					
 				} else {
 					NodeLogger.getLogger(SpectraReaderNodeModel.class).warn("Got spectra with no peaks!");
@@ -134,7 +124,7 @@ public class MGFDataProcessor extends AbstractDataProcessor {
 	    cells[7] = DataType.getMissingCell();
 	    cells[8] = safe_cell(m_filename);
 	    
-	    file_container.addRowToTable(new DefaultRow(new RowKey(file_seq.get()), cells));
+	    file_container.addRow(cells);
 }
 
 	/**
@@ -146,7 +136,7 @@ public class MGFDataProcessor extends AbstractDataProcessor {
 	 * @param peak_list
 	 */
 	protected void process_spectra(String header, String peak_list, int n_peaks,
-			RowSequence sseq, boolean load_spectra, int ncols, DataContainer c) {
+			boolean load_spectra, int ncols, MyDataContainer c) {
 		assert(header != null && peak_list != null);
 		MyMGFPeakList mgf = new MyMGFPeakList();
 		
@@ -209,7 +199,7 @@ public class MGFDataProcessor extends AbstractDataProcessor {
 		}
 		cells[0]  = new StringCell(mgf.getTitle_safe());
 		
-		c.addRowToTable(new DefaultRow(sseq.get(), cells));
+		c.addRow(cells);
 	}
 	
 	@Override

@@ -2,7 +2,14 @@ package au.edu.unimelb.plantcell.io.read.spectra;
 
 import org.knime.core.data.DataValue;
 
-public interface SpectralDataInterface extends DataValue {
+/**
+ * Implements a KNIME DataValue which represent a single scan from a Mass Spectrometer of some kind.
+ * Methods below allow inquisition of key data with subclassing permitted to extend to new types of MS.
+ * 
+ * @author http://www.plantcell.unimelb.edu.au/bioinformatics
+ *
+ */
+public interface SpectraValue extends DataValue {
     
     /** Derived locally. */
     public static final UtilityFactory UTILITY = new SpectraUtilityFactory();

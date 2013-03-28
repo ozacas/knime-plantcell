@@ -33,7 +33,7 @@ public class MGFSpectraCell extends AbstractSpectraCell {
 	}
 	
 	public static final Class<? extends DataValue> getPreferredValueClass() {
-        return SpectralDataInterface.class;
+        return SpectraValue.class;
     }
 	
 	public static final DataCellSerializer<MGFSpectraCell> getCellSerializer() {

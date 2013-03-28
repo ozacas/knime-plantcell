@@ -1,12 +1,8 @@
 package au.edu.unimelb.plantcell.io.read.spectra;
 
-import java.awt.Component;
 import java.awt.Dimension;
 import java.util.Arrays;
 import java.util.Comparator;
-
-import javax.swing.JList;
-import javax.swing.JTable;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.renderer.DefaultDataValueRenderer;
@@ -19,6 +15,11 @@ import org.knime.core.data.renderer.DefaultDataValueRenderer;
  *
  */
 public class SpectraTop10Renderer extends DefaultDataValueRenderer {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -4769347522541135416L;
 
 	@Override
 	public boolean accepts(DataColumnSpec spec) {
@@ -37,9 +38,9 @@ public class SpectraTop10Renderer extends DefaultDataValueRenderer {
 	
 	@Override
 	protected void setValue(final Object value) {
-		if (value instanceof SpectralDataInterface) {
+		if (value instanceof SpectraValue) {
 			// 1. compute the tenth-biggest intensity (dont worry about ties)
-			SpectralDataInterface si = (SpectralDataInterface) value;
+			SpectraValue si = (SpectraValue) value;
 			double[] intensities = si.getIntensity();
 			double[] mz = si.getMZ();
 			SortablePeak[] big_peaks = new SortablePeak[mz.length];
@@ -68,15 +69,13 @@ public class SpectraTop10Renderer extends DefaultDataValueRenderer {
 	 * @author andrew.cassin
 	 *
 	 */
-	private class SortablePeak implements Comparator,Comparable {
+	private class SortablePeak implements Comparator<SortablePeak>,Comparable<SortablePeak> {
 		private double m_mz, m_intensity;
 		private boolean m_sort_by_intensity;
 		
 		@Override
-		public int compare(Object a, Object b) {
-			SortablePeak oa = (SortablePeak) a;
-			SortablePeak ob = (SortablePeak) b;
-			if (oa == null || ob == null || a == b ) 
+		public int compare(SortablePeak oa, SortablePeak ob) {
+			if (oa == null || ob == null || oa == ob ) 
 				return 0;
 			assert(oa.m_sort_by_intensity == ob.m_sort_by_intensity);
 			
@@ -107,7 +106,7 @@ public class SpectraTop10Renderer extends DefaultDataValueRenderer {
 		public double getIntensity() { return m_intensity; }
 
 		@Override
-		public int compareTo(Object arg0) {
+		public int compareTo(SortablePeak arg0) {
 			return compare(this, arg0);
 		}
 	}

@@ -1,15 +1,13 @@
 package au.edu.unimelb.plantcell.io.read.spectra;
 
 import java.io.File;
-import java.io.InputStream;
-import java.util.logging.Logger;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
-import org.knime.core.data.container.DataContainer;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.NodeLogger;
+
+import au.edu.unimelb.plantcell.core.MyDataContainer;
 
 /**
  * An interface to permit the model to be generic to any format. The model simply invokes
@@ -46,8 +44,8 @@ public abstract class AbstractDataProcessor {
 	 * @param file_container
 	 * @return
 	 */
-	public abstract void process(boolean load_spectra, RowSequence scan_seq, RowSequence file_seq, 
-			ExecutionContext exec, DataContainer scan_container, DataContainer file_container)
+	public abstract void process(boolean load_spectra, ExecutionContext exec, 
+			MyDataContainer scan_container, MyDataContainer file_container)
 				throws Exception;
 	
 	

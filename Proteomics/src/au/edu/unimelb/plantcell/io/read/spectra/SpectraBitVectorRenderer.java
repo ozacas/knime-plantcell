@@ -3,8 +3,6 @@ package au.edu.unimelb.plantcell.io.read.spectra;
 import org.knime.core.data.renderer.BitVectorValuePixelRenderer;
 import org.knime.core.data.renderer.DataValueRenderer;
 import org.knime.core.data.vector.bitvector.BitVectorValue;
-import org.knime.core.data.vector.bitvector.DenseBitVector;
-import org.knime.core.data.vector.bitvector.DenseBitVectorCell;
 import org.knime.core.data.vector.bitvector.DenseBitVectorCellFactory;
 
 public class SpectraBitVectorRenderer extends BitVectorValuePixelRenderer
