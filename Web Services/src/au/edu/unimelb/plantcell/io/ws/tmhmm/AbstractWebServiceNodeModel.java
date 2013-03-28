@@ -38,6 +38,10 @@ import au.edu.unimelb.plantcore.core.regions.RegionsAnnotation;
  */
 public abstract class AbstractWebServiceNodeModel extends NodeModel {
 	private static final int INITIAL_CAPACITY = 100 * 1024;
+	/**
+	 * How many times to retry a single web request before failing the execution?
+	 */
+	public static final int MAX_RETRIES = 5;
 
 	protected AbstractWebServiceNodeModel(int nrInDataPorts, int nrOutDataPorts) {
 		super(nrInDataPorts, nrOutDataPorts);
