@@ -23,6 +23,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 
 import au.edu.unimelb.plantcell.core.MyHttpClient;
+import au.edu.unimelb.plantcell.io.ws.tmhmm.AbstractWebServiceNodeModel;
 
 
 /**
@@ -91,7 +92,21 @@ public class PFAMGetFamilyTask extends PFAMTask {
 		URL u = new URL(m_url, "/family/"+pfam_family);
 		m_logger.info("Fetching: "+u);
 	
-		String resp = get(m_http, u);
+		String resp = "";
+		for (int i=0; i<AbstractWebServiceNodeModel.MAX_RETRIES; i++) {
+			try {
+				resp = get(m_http, u);
+				break;
+			} catch (Exception e) {
+				if (i == AbstractWebServiceNodeModel.MAX_RETRIES)
+					throw e;
+				m_logger.warn("Failed to fetch from "+u);
+				int delay = 30 + (30+(i*60));
+				m_logger.warn("Delaying for "+delay+"secs. before retry");
+				Thread.sleep(delay * 1000);
+			}
+		}
+		
 		
 		XMLInputFactory factory = XMLInputFactory.newInstance();
 		factory.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.FALSE);
