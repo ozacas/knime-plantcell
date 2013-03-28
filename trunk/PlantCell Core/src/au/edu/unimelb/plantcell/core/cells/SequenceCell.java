@@ -3,6 +3,7 @@ package au.edu.unimelb.plantcell.core.cells;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataCellSerializer;
 import org.knime.core.data.DataType;
+import org.knime.core.data.DataValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.node.InvalidSettingsException;
 
@@ -30,7 +31,7 @@ public class SequenceCell extends DataCell implements SequenceValue, StringValue
 	private SequenceImpl m_sequence;
 	
 	/**
-	 * Convenience method
+	 * Accessed by KNIME core using reflection to construct the cell
 	 */
     public static final DataType TYPE = DataType.getType(SequenceCell.class);
     private static final SequenceImplSerializer<SequenceCell> SERIALIZER = new SequenceImplSerializer<SequenceCell>();
@@ -63,6 +64,14 @@ public class SequenceCell extends DataCell implements SequenceValue, StringValue
 		} else {
 			m_sequence = new SequenceImpl(SequenceType.UNKNOWN, "", dc.toString());
 		}
+	}
+	
+	/**
+	 * A {@link SequenceCell} has a preferred value class: {@link SequenceValue} which we establish here.
+	 * Great care must be taken with this method, it has significant impacts right across the entire KNIME platform.
+	 */
+	public static final Class<? extends DataValue> getPreferredValueClass() {
+		return SequenceValue.class;
 	}
 	
 	/**
