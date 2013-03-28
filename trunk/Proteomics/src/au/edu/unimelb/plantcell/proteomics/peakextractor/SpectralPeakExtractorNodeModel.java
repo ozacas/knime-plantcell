@@ -34,7 +34,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
-import au.edu.unimelb.plantcell.io.read.spectra.SpectralDataInterface;
+import au.edu.unimelb.plantcell.io.read.spectra.SpectraValue;
 
 
 /**
@@ -171,7 +171,7 @@ public class SpectralPeakExtractorNodeModel extends NodeModel {
         	
         	int k = 0;
         	for (int col_idx : col_vec_idx) {
-        		SpectralDataInterface sdi = (SpectralDataInterface) r.getCell(col_idx);
+        		SpectraValue sdi = (SpectraValue) r.getCell(col_idx);
         		if (sdi != null && hasPeaksOfInterest(sdi, extracted_peaks[k])) {
         			// still not sure if the exact window has been met, so we check for this before saving rows...
         			if (savePeaksOfInterest(sdi, container, 
@@ -206,7 +206,7 @@ public class SpectralPeakExtractorNodeModel extends NodeModel {
     	return ret;
     }
     
-    protected boolean hasPeaksOfInterest(SpectralDataInterface sdi, BitSet target) {
+    protected boolean hasPeaksOfInterest(SpectraValue sdi, BitSet target) {
     	assert(sdi != null && target != null);
     	assert(m_peakset != null);
     	double[] mz = sdi.getMZ();		// parallel ordered arrays: mz & intensity ie. equal length
@@ -221,7 +221,7 @@ public class SpectralPeakExtractorNodeModel extends NodeModel {
     	return (s != null) ? new StringCell(s) : DataType.getMissingCell();
     }
     
-    protected boolean savePeaksOfInterest(SpectralDataInterface sdi, BufferedDataContainer c, PeakWindow[] peaks, String rowkey) {
+    protected boolean savePeaksOfInterest(SpectraValue sdi, BufferedDataContainer c, PeakWindow[] peaks, String rowkey) {
     	int added = 0;		// number of rows added to table for the current spectra
     	
     	double[] mz = sdi.getMZ();

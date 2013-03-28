@@ -1,18 +1,8 @@
 package au.edu.unimelb.plantcell.io.read.spectra;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-import java.util.logging.Logger;
-
+import org.expasy.jpl.io.ms.jrap.Scan;
 import org.knime.core.data.DataCell;
-import org.knime.core.data.DataCellDataInput;
-import org.knime.core.data.DataCellDataOutput;
-import org.knime.core.data.DataCellSerializer;
-import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
-import org.knime.core.data.StringValue;
-import org.systemsbiology.jrap.stax.Scan;
 
 /**
  * A cell which works with mzXML/mzML data as read by the JRAP-stax library
@@ -43,7 +33,7 @@ public class mzMLSpectraCell extends AbstractSpectraCell {
 	public mzMLSpectraCell(Scan s, String id) {
 		m_scan = s;
 		m_id = id;
-		double[] mz = s.getDoubleMassList();
+		double[] mz = getMZ();
 		m_mz_min = Double.POSITIVE_INFINITY;
 		m_mz_max = Double.NEGATIVE_INFINITY;
 		for (int i=0; i<mz.length; i++) {
@@ -55,7 +45,7 @@ public class mzMLSpectraCell extends AbstractSpectraCell {
 	}
 	
 	public static final Class<? extends DataValue> getPreferredValueClass() {
-        return SpectralDataInterface.class;
+        return SpectraValue.class;
     }
     
 	/*
@@ -137,12 +127,26 @@ public class mzMLSpectraCell extends AbstractSpectraCell {
 	
 	@Override
 	public double[] getIntensity() {
-		return m_scan.getDoubleIntensityList();
+		double[][] mat = m_scan.getDoubleMassIntensityList();
+		if (mat == null)
+			return null;
+		double[] intensity = new double[mat[1].length];
+		for (int i=0; i<intensity.length; i++) {
+			intensity[i] = mat[1][i];
+		}
+		return intensity;
 	}
 
 	@Override
 	public double[] getMZ() {
-		return m_scan.getDoubleMassList();
+		double[][] mat = m_scan.getDoubleMassIntensityList();
+		if (mat == null)
+			return null;
+		double[] mz = new double[mat[0].length];
+		for (int i=0; i<mz.length; i++) {
+			mz[i] = mat[0][i];
+		}
+		return mz;
 	}
 
 	@Override

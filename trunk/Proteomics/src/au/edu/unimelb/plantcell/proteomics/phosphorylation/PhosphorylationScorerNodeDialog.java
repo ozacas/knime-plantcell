@@ -9,7 +9,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.core.node.util.ColumnFilter;
 
-import au.edu.unimelb.plantcell.io.read.spectra.SpectralDataInterface;
+import au.edu.unimelb.plantcell.io.read.spectra.SpectraValue;
 
 /**
  * <code>NodeDialog</code> for the "PhosphorylationScorer" Node.
@@ -39,7 +39,7 @@ public class PhosphorylationScorerNodeDialog extends DefaultNodeSettingsPane {
 									@Override
 									public boolean includeColumn(
 											DataColumnSpec colSpec) {
-										return (colSpec.getType().isCompatible(SpectralDataInterface.class));
+										return (colSpec.getType().isCompatible(SpectraValue.class));
 									}
 
 									@Override

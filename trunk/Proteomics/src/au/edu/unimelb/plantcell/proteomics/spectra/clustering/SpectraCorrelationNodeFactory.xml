@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>Correlate Spectra</name>
+    
+    <shortDescription>
+        
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+        Uses the javaprotlib spectra clustering to identified correlated spectra. This can be combined
+        with peptide identifications to identify clusters of spectra. The correlation is done pairwise:
+        all spectra in the top input port are correlated with all spectra in the bottom input port.
+        
+        <p>
+        Spectra which satisfy the configured threshold are reported, other comparisons are not.
+        </p>
+        </intro>
+        
+        
+        <option name="Spectra column (top port)">Column containing spectra to evaluate for quality score. </option>
+        <option name="Spectra column (bottom port)">Column containing spectra to be pairwise-matched against spectra from the top-port</option>
+        
+       
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input spectra">Data with Spectra column</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="Correlated spectra">Pairs of Spectra which meet the score threshold</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+   
+</knimeNode>

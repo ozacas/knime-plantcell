@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
 
-public abstract class AbstractSpectraCell extends DataCell implements SpectralDataInterface {
+public abstract class AbstractSpectraCell extends DataCell implements SpectraValue {
 	/**
 	 * for serialisation
 	 */

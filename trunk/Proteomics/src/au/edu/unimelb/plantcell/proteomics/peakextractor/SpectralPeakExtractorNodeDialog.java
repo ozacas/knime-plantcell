@@ -28,7 +28,7 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.util.DataColumnSpecListCellRenderer;
 
-import au.edu.unimelb.plantcell.io.read.spectra.SpectralDataInterface;
+import au.edu.unimelb.plantcell.io.read.spectra.SpectraValue;
 
 
 
@@ -176,7 +176,7 @@ public class SpectralPeakExtractorNodeDialog extends NodeDialogPane {
 	        for (int i = 0; i < specs[0].getNumColumns(); i++) {
 	            DataColumnSpec cspec = specs[0].getColumnSpec(i);
 	            //LOGGER.info(cspec.getType());
-	            if (cspec.getType().isCompatible(SpectralDataInterface.class)) {
+	            if (cspec.getType().isCompatible(SpectraValue.class)) {
 	                m_spectraMdl.addElement(cspec);
 	            }
 	        }

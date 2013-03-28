@@ -29,15 +29,14 @@ import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
 /**
- * <code>NodeDialog</code> for the "MzXMLReader" Node.
- * Using the jrap-stax library, this node reads mzXML/mzML
- *
+ * Dialog for the spectra reader. 
+ * 
  * This node dialog derives from {@link DefaultNodeSettingsPane} which allows
  * creation of a simple dialog with standard components. If you need a more 
  * complex dialog please derive directly from 
  * {@link org.knime.core.node.NodeDialogPane}.
  * 
- * @author Andrew Cassin
+ * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
 public class SpectraReaderNodeDialog extends DefaultNodeSettingsPane {
 
@@ -48,12 +47,14 @@ public class SpectraReaderNodeDialog extends DefaultNodeSettingsPane {
      * This is just a suggestion to demonstrate possible default dialog
      * components.
      */
-    protected SpectraReaderNodeDialog() {
+    @SuppressWarnings("unchecked")
+	protected SpectraReaderNodeDialog() {
         super();
         
         final JList flist = new JList(file_list.getStringArrayValue());
         file_list.addChangeListener( new ChangeListener() {
 
+			@SuppressWarnings("unchecked")
 			@Override
 			public void stateChanged(ChangeEvent arg0) {
 				final String[] cur_files = file_list.getStringArrayValue();
@@ -169,10 +170,16 @@ public class SpectraReaderNodeDialog extends DefaultNodeSettingsPane {
     
         createNewGroup("File Formats to load");
         setHorizontalPlacement(true);
-        addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(SpectraReaderNodeModel.CFGKEY_MZML, true), "mzML/mzXML"));
-        addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(SpectraReaderNodeModel.CFGKEY_MGF, true), "Mascot Generic Format (MGF)")); 
+        addDialogComponent(new DialogComponentBoolean(
+        		new SettingsModelBoolean(SpectraReaderNodeModel.CFGKEY_MZML, true), "mzML"));
+        addDialogComponent(new DialogComponentBoolean(
+        		new SettingsModelBoolean(SpectraReaderNodeModel.CFGKEY_MZXML, true), "mzXML"));
+        addDialogComponent(new DialogComponentBoolean(
+        		new SettingsModelBoolean(SpectraReaderNodeModel.CFGKEY_MGF, true), "Mascot Generic Format (MGF)")); 
         
     }
+    
+    
     
     @Override
     public void loadAdditionalSettingsFrom(NodeSettingsRO settings, DataTableSpec[] specs) throws NotConfigurableException {

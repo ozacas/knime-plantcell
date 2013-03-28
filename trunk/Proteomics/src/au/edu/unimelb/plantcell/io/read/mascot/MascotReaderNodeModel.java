@@ -39,16 +39,16 @@ import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.io.read.spectra.AbstractSpectraCell;
 import au.edu.unimelb.plantcell.io.read.spectra.MyMGFPeakList;
 import au.edu.unimelb.plantcell.io.read.spectra.SpectraUtilityFactory;
-import be.proteomics.mascotdatfile.util.interfaces.FragmentIon;
-import be.proteomics.mascotdatfile.util.interfaces.MascotDatfileInf;
-import be.proteomics.mascotdatfile.util.interfaces.QueryToPeptideMapInf;
-import be.proteomics.mascotdatfile.util.mascot.Parameters;
-import be.proteomics.mascotdatfile.util.mascot.PeptideHit;
-import be.proteomics.mascotdatfile.util.mascot.PeptideHitAnnotation;
-import be.proteomics.mascotdatfile.util.mascot.ProteinHit;
-import be.proteomics.mascotdatfile.util.mascot.Query;
-import be.proteomics.mascotdatfile.util.mascot.enumeration.MascotDatfileType;
-import be.proteomics.mascotdatfile.util.mascot.factory.MascotDatfileFactory;
+import com.compomics.mascotdatfile.util.interfaces.FragmentIon;
+import com.compomics.mascotdatfile.util.interfaces.MascotDatfileInf;
+import com.compomics.mascotdatfile.util.interfaces.QueryToPeptideMapInf;
+import com.compomics.mascotdatfile.util.mascot.Parameters;
+import com.compomics.mascotdatfile.util.mascot.PeptideHit;
+import com.compomics.mascotdatfile.util.mascot.PeptideHitAnnotation;
+import com.compomics.mascotdatfile.util.mascot.ProteinHit;
+import com.compomics.mascotdatfile.util.mascot.Query;
+import com.compomics.mascotdatfile.util.mascot.enumeration.MascotDatfileType;
+import com.compomics.mascotdatfile.util.mascot.factory.MascotDatfileFactory;
 
 
 /**

@@ -11,7 +11,6 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -24,6 +23,8 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
+import au.edu.unimelb.plantcell.core.MyDataContainer;
+
 
 /**
  * This is the model implementation of MzXMLReader.
@@ -34,20 +35,21 @@ import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 public class SpectraReaderNodeModel extends NodeModel {
     
     // the logger instance
-    private static final NodeLogger logger = NodeLogger
-            .getLogger(SpectraReaderNodeModel.class);
+    private static final NodeLogger logger = NodeLogger.getLogger("Spectra Reader");
         
     /** the settings key which is used to retrieve and 
         store the settings (from the dialog or from a settings file)    
        (package visibility to be usable from the dialog). */
     static final String CFGKEY_FILES= "spectra-folder";
     static final String CFGKEY_LOAD_SPECTRA= "load-spectra";
-    static final String CFGKEY_MZML = "load-mzml";
+    static final String CFGKEY_MZML = "load-mzml";			// using jMZML library
+    static final String CFGKEY_MZXML= "load-mzxml";			// using JRAP library
     static final String CFGKEY_MGF  = "load-mgf";
     
     /** initial default folder to scan for mzxml */
     static final String DEFAULT_SPECTRA_FOLDER = "c:/temp";
     static final boolean DEFAULT_MZML = true;
+    static final boolean DEFAULT_MZXML= true;
     static final boolean DEFAULT_MGF  = true;
     
     // number of columns in scan output
@@ -61,6 +63,7 @@ public class SpectraReaderNodeModel extends NodeModel {
     private final SettingsModelStringArray m_files=new SettingsModelStringArray(CFGKEY_FILES, new String[] { "c:/temp/crap.mgf" });
     private final SettingsModelBoolean m_spectra= new SettingsModelBoolean(CFGKEY_LOAD_SPECTRA, true);
     private final SettingsModelBoolean m_mzml = new SettingsModelBoolean(CFGKEY_MZML, DEFAULT_MZML);
+    private final SettingsModelBoolean m_mzxml= new SettingsModelBoolean(CFGKEY_MZXML, DEFAULT_MZXML);
     private final SettingsModelBoolean m_mgf  = new SettingsModelBoolean(CFGKEY_MGF, DEFAULT_MGF);
     
     /**
@@ -86,6 +89,81 @@ public class SpectraReaderNodeModel extends NodeModel {
         	}
         }
         logger.info("Found "+entries.size()+" mzXML/mzML/MGF files to process");
+        
+        // make output specs and output containers
+        DataTableSpec[] outSpecs = make_output_spec();
+        MyDataContainer container = new MyDataContainer(exec.createDataContainer(outSpecs[0]), "Scan");
+        MyDataContainer file_container = new MyDataContainer(exec.createDataContainer(outSpecs[1]), "File");
+       
+        // NB: here we dont check with the readers for each filename (maybe take too long with a large number of readers...)
+        //     instead, we just hardcode what is supported
+        int done = 0;
+        ArrayList<File> filtered_entries = new ArrayList<File>();
+        for (File f : entries) {
+        	String ext = f.getName().toLowerCase();
+        	if (! f.isFile()) {
+        		continue;
+        	}
+        	if (ext.endsWith(".xml") || ext.endsWith(".mzxml") 
+        			|| ext.endsWith(".mzml") || ext.endsWith(".mgf") || ext.endsWith(".mgf.gz")) {
+        		filtered_entries.add(f);
+        	}
+        }
+        int cnt = filtered_entries.size();
+        logger.info("Found "+cnt+" plausible files for loading.");
+        
+        // instantiate the data processor's for each supported filetype
+        ArrayList<AbstractDataProcessor> dp_list = new ArrayList<AbstractDataProcessor>();
+        if (m_mzml.getBooleanValue())
+        	dp_list.add(new mzMLDataProcessor(logger));
+        if (m_mgf.getBooleanValue())
+        	dp_list.add(new MGFDataProcessor());
+        if (m_mzxml.getBooleanValue())
+        	dp_list.add(new mzXMLDataProcessor(logger));
+        
+        /*
+         * For each filtered file we try each processor which can process the file in the order
+         * constructed above
+         */
+        for (File f : filtered_entries) {
+	        String filename = f.getName();
+
+    		try {
+    			logger.info("Processing file: "+filename);
+        		exec.checkCanceled();
+        		exec.setProgress(((double)done)/cnt, "Processing file "+f.getName());
+            	
+	    		for (int i=0; i<dp_list.size(); i++) {
+	    			AbstractDataProcessor dp = dp_list.get(i);
+	    			if (dp.can(f)) {
+	    				dp.setInput(f.getAbsolutePath());
+	    				dp.process(m_spectra.getBooleanValue(), exec, container, file_container);
+	    				dp.finish();
+	    				// short-circuit if successfully processed
+	    				break;
+	    			}
+	    		}
+    		} catch (CanceledExecutionException ce) {
+    			container.close();
+    			file_container.close();
+    			throw ce;
+    		} catch (Exception e) {
+    			e.printStackTrace();
+    			logger.warn("Unable to process "+filename+ "... skipping! (file ignored)");
+    			logger.warn(e);
+    		}
+	        
+	        done++;
+	    	exec.setProgress(((double)done)/cnt, "Completed processing file "+f.getName());
+        }
+        
+        // once we are done, we close the container and return its table
+        return new BufferedDataTable[]{container.close(),file_container.close()};
+    }
+
+   
+    
+    private DataTableSpec[] make_output_spec() {
 
         // if user requests it we will add columns for spectra/chromatograms
         int extra = 0;
@@ -93,8 +171,7 @@ public class SpectraReaderNodeModel extends NodeModel {
         	extra++;
         }
         
-        // first output port
-        DataColumnSpec[] allColSpecs = new DataColumnSpec[NUM_SCAN_COLS+extra];
+    	DataColumnSpec[] allColSpecs = new DataColumnSpec[NUM_SCAN_COLS+extra];
         allColSpecs[0] = new DataColumnSpecCreator("Scan Type", StringCell.TYPE).createSpec();
         allColSpecs[1] = new DataColumnSpecCreator("Polarity", StringCell.TYPE).createSpec();
         allColSpecs[2] = new DataColumnSpecCreator("Retention Time", StringCell.TYPE).createSpec();
@@ -122,7 +199,6 @@ public class SpectraReaderNodeModel extends NodeModel {
         	allColSpecs[23] = new DataColumnSpecCreator("Spectra", AbstractSpectraCell.TYPE).createSpec();
         }
         
-        // second output port
         DataColumnSpec[] fileSpecs =  new DataColumnSpec[NUM_FILE_COLS];
         fileSpecs[8] = new DataColumnSpecCreator("Filename", StringCell.TYPE).createSpec();
         fileSpecs[0] = new DataColumnSpecCreator("Instrument Manufacturer", StringCell.TYPE).createSpec();
@@ -134,94 +210,10 @@ public class SpectraReaderNodeModel extends NodeModel {
         fileSpecs[6] = new DataColumnSpecCreator("Detector", StringCell.TYPE).createSpec();
         fileSpecs[7] = new DataColumnSpecCreator("Data Processing", StringCell.TYPE).createSpec();
         
-        
-        DataTableSpec outputSpec = new DataTableSpec(allColSpecs);
-        
-        // the execution context will provide us with storage capacity, in this
-        // case a data container to which we will add rows sequentially
-        // Note, this container can also handle arbitrary big data tables, it
-        // will buffer to disc if necessary.
-        BufferedDataContainer container = exec.createDataContainer(outputSpec);
-        DataTableSpec outputFileSpec = new DataTableSpec(fileSpecs);
-        BufferedDataContainer file_container = exec.createDataContainer(outputFileSpec);
-       
-        // NB: here we dont check with the readers for each filename (maybe take too long with a large number of readers...)
-        //     instead, we just hardcode what is supported
-        int done = 0;
-        ArrayList<File> filtered_entries = new ArrayList<File>();
-        for (File f : entries) {
-        	String ext = f.getName().toLowerCase();
-        	if (! f.isFile()) {
-        		continue;
-        	}
-        	if (ext.endsWith(".xml") || ext.endsWith(".mzxml") 
-        			|| ext.endsWith(".mzml") || ext.endsWith(".mgf") || ext.endsWith(".mgf.gz")) {
-        		filtered_entries.add(f);
-        	}
-        }
-        int cnt = filtered_entries.size();
-        logger.info("Found "+cnt+" plausible files for loading.");
-        long scan_id = 1; // must be unique across multiple files
-        int file_id = 1;
-        
-        // instantiate the data processor's for each supported filetype
-        ArrayList<AbstractDataProcessor> dp_list = new ArrayList<AbstractDataProcessor>();
-        if (m_mzml.getBooleanValue())
-        	dp_list.add(new mzMLDataProcessor());
-        if (m_mgf.getBooleanValue())
-        	dp_list.add(new MGFDataProcessor());
-        
-        /*
-         * For each filtered file we try each processor which can process the file in the order
-         * constructed above
-         */
-        RowSequence scan_seq = new RowSequence("Scan");
-        RowSequence file_seq = new RowSequence("File");
-        
-        for (File f : filtered_entries) {
-	        String filename = f.getName();
+        return new DataTableSpec[] { new DataTableSpec(allColSpecs), new DataTableSpec(fileSpecs) };
+	}
 
-    		try {
-    			logger.info("Processing file: "+filename);
-        		exec.checkCanceled();
-        		exec.setProgress(((double)done)/cnt, "Processing file "+f.getName());
-            	
-	    		for (int i=0; i<dp_list.size(); i++) {
-	    			AbstractDataProcessor dp = dp_list.get(i);
-	    			if (dp.can(f)) {
-	    				dp.setInput(f.getAbsolutePath());
-	    				dp.process(m_spectra.getBooleanValue(), scan_seq, file_seq,
-	    						   exec, container, file_container);
-	    				dp.finish();
-	    				// short-circuit if successfully processed
-	    				break;
-	    			}
-	    		}
-    		} catch (CanceledExecutionException ce) {
-    			container.close();
-    			file_container.close();
-    			throw ce;
-    		} catch (Exception e) {
-    			e.printStackTrace();
-    			logger.warn("Unable to process "+filename+ "... skipping! (file ignored)");
-    			logger.warn(e);
-    		}
-	        
-	        done++;
-	    	exec.setProgress(((double)done)/cnt, "Completed processing file "+f.getName());
-        }
-        
-        // once we are done, we close the container and return its table
-        container.close();
-        file_container.close();
-        BufferedDataTable out = container.getTable();
-        BufferedDataTable out2= file_container.getTable();
-        return new BufferedDataTable[]{out,out2};
-    }
-
-   
-    
-    /**
+	/**
      * {@inheritDoc}
      */
     @Override
@@ -234,7 +226,7 @@ public class SpectraReaderNodeModel extends NodeModel {
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
             throws InvalidSettingsException {
-        return new DataTableSpec[]{null,null};
+        return make_output_spec();
     }
 
     /**
@@ -246,6 +238,7 @@ public class SpectraReaderNodeModel extends NodeModel {
         m_spectra.saveSettingsTo(settings);
         m_mgf.saveSettingsTo(settings);
         m_mzml.saveSettingsTo(settings);
+        m_mzxml.saveSettingsTo(settings);
     }
 
     /**
@@ -258,6 +251,11 @@ public class SpectraReaderNodeModel extends NodeModel {
         m_spectra.loadSettingsFrom(settings);
         m_mgf.loadSettingsFrom(settings);
         m_mzml.loadSettingsFrom(settings);
+        if (settings.containsKey(CFGKEY_MZXML)) {		// backward compatibility
+        	m_mzxml.loadSettingsFrom(settings);
+        } else {
+        	m_mzxml.setBooleanValue(DEFAULT_MZXML);
+        }
     }
 
     /**
@@ -270,6 +268,9 @@ public class SpectraReaderNodeModel extends NodeModel {
         m_spectra.validateSettings(settings);
         m_mgf.validateSettings(settings);
         m_mzml.validateSettings(settings);
+        if (settings.containsKey(CFGKEY_MZXML)) {		// backward compatibility
+        	m_mzxml.validateSettings(settings);
+        }
     }
     
     /**
@@ -279,14 +280,6 @@ public class SpectraReaderNodeModel extends NodeModel {
     protected void loadInternals(final File internDir,
             final ExecutionMonitor exec) throws IOException,
             CanceledExecutionException {
-        
-        // TODO load internal data. 
-        // Everything handed to output ports is loaded automatically (data
-        // returned by the execute method, models loaded in loadModelContent,
-        // and user settings set through loadSettingsFrom - is all taken care 
-        // of). Load here only the other internals that need to be restored
-        // (e.g. data used by the views).
-
     }
     
     /**
@@ -296,14 +289,6 @@ public class SpectraReaderNodeModel extends NodeModel {
     protected void saveInternals(final File internDir,
             final ExecutionMonitor exec) throws IOException,
             CanceledExecutionException {
-       
-        // TODO save internal models. 
-        // Everything written to output ports is saved automatically (data
-        // returned by the execute method, models saved in the saveModelContent,
-        // and user settings saved through saveSettingsTo - is all taken care 
-        // of). Save here only the other internals that need to be preserved
-        // (e.g. data used by the views).
-
     }
 
 }
