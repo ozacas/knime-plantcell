@@ -67,4 +67,16 @@ public abstract class AbstractDataProcessor {
     	else
     		return DataType.getMissingCell();
     }
+    
+    /**
+     * Return an initialised array of {@link DataType.getMissingCell()} cells of the specified length
+     */
+    protected DataCell[] missing_cells(int n) {
+    	assert(n > 0);
+    	DataCell[] ret = new DataCell[n];
+    	for (int i=0; i<n; i++) {
+    		ret[i] = DataType.getMissingCell();
+    	}
+    	return ret;
+    }
 }
