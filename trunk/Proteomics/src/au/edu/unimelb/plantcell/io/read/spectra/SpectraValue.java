@@ -1,5 +1,6 @@
 package au.edu.unimelb.plantcell.io.read.spectra;
 
+import org.expasy.jpl.core.ms.spectrum.peak.Peak;
 import org.knime.core.data.DataValue;
 
 /**
@@ -17,6 +18,9 @@ public interface SpectraValue extends DataValue {
     /** The interface methods. */
     AbstractSpectraCell getMyValue();
 
+    /* precursor peak data */
+    Peak getPrecursor();
+    
     /* return a human-readable form of the spectra */
     String asString(boolean round_mz);
     String asString();		// this method returns a summary: required to be fast AND memory efficient

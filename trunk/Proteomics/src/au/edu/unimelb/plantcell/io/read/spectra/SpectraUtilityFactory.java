@@ -4,6 +4,7 @@ import javax.swing.Icon;
 
 import au.edu.unimelb.plantcell.io.read.spectra.SpectraValue;
 
+import org.expasy.jpl.core.ms.spectrum.PeakList;
 import org.expasy.jpl.io.ms.jrap.Scan;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -14,16 +15,33 @@ import org.knime.core.data.DataValue.UtilityFactory;
 import org.knime.core.data.renderer.DataValueRendererFamily;
 import org.knime.core.data.renderer.DefaultDataValueRendererFamily;
 
+/**
+ * Contains important methods related to spectra cells used widely. Care must be taken to understand the KNIME platform
+ * and backward compatibility before changing these methods.
+ * 
+ * @author http://www.plantcell.unimelb.edu.au/bioinformatics
+ *
+ */
 public class SpectraUtilityFactory extends UtilityFactory {
 	 private static int spectra_id = 1;
 	 
      private static final Icon ICON =
              loadIcon(SpectraValue.class, "spectra-icon-16x16.png");
      
-     public static DataCell createCell(MyMGFPeakList mgf) {
+     public static DataCell createCell(BasicPeakList mgf) {
     	 return new MGFSpectraCell(mgf);
      }
      
+     /**
+      * Convenience wrapper around <code>createCell(MyMGFPeakList)</code>
+      * 
+      * @param pl
+      * @return
+      */
+ 	 public static DataCell createCell(PeakList pl) {
+ 		return createCell(new BasicPeakList(pl));
+ 	 }
+ 	
      public static DataCell createCell(Scan scn, String id) {
     	 if (id == null) {
     		 id = "Spectra" + spectra_id;
@@ -71,4 +89,5 @@ public class SpectraUtilityFactory extends UtilityFactory {
              }
          };
      }
+
 }

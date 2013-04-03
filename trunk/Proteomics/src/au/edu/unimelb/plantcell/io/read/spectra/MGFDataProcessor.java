@@ -2,9 +2,11 @@ package au.edu.unimelb.plantcell.io.read.spectra;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
+import java.util.Iterator;
 
-import org.knime.base.node.util.BufferedFileReader;
+import org.expasy.jpl.core.ms.spectrum.peak.Peak;
+import org.expasy.jpl.io.ms.MSScan;
+import org.expasy.jpl.io.ms.reader.MGFReader;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.DoubleCell;
@@ -18,7 +20,7 @@ import au.edu.unimelb.plantcell.core.MyDataContainer;
 
 
 /**
- * Implements support for .mgf and .mgf.gz files using ProteomeCommons IO framework. The
+ * Implements support for .mgf and .mgf.gz files using JavaProtLib. The
  * only data loaded into the table (in the spectra column!) is as follows:
  * BEGIN IONS
    TITLE=The first peptide - dodgy peak detection, so extra wide tolerance
@@ -39,7 +41,7 @@ import au.edu.unimelb.plantcell.core.MyDataContainer;
  */
 public class MGFDataProcessor extends AbstractDataProcessor {
 	private BufferedReader m_is;
-	private String m_filename;
+	private File m_file;
 	
 	public MGFDataProcessor() {
 		m_is = null;
@@ -47,169 +49,64 @@ public class MGFDataProcessor extends AbstractDataProcessor {
 
 	@Override
 	public boolean can(File f) throws Exception {
-		m_filename = f.getName();
-		String ext = m_filename.toLowerCase();
+		m_file = f;
+		String ext = f.getName().toLowerCase();
 		return (ext.endsWith(".mgf") || ext.endsWith(".mgf.gz"));
 	}
 
-	@SuppressWarnings("unused")
 	@Override
 	public void process(boolean load_spectra, ExecutionContext exec,
 			MyDataContainer scan_container, MyDataContainer file_container)
 			throws Exception {
 		
-		if (m_is == null) 
-			throw new Exception("No file to load!");
+		// load peaklists from input file
+		MGFReader rdr = MGFReader.newInstance();
+		rdr.parse(m_file);
 		
-		String line;
-		StringBuilder headers   = new StringBuilder(10 * 1024);
-		StringBuilder peak_list = new StringBuilder(10 * 1024);
-		boolean got_start = false;
-		boolean in_headers= false;
-		int done = 0;
-		int peaks= 0;
-		int ncols= scan_container.getTableSpec().getNumColumns();
-		while ((line = m_is.readLine()) != null) {
-			if (!got_start && line.startsWith("BEGIN IONS")) {
-				got_start = true;
-				in_headers = true;
-				headers.delete(0, headers.length());
-				peak_list.delete(0, peak_list.length());
-				peaks = 0;
-			} else if (got_start && line.startsWith("END IONS")) {
-				got_start = false;
-				in_headers= false;
-				done++;
-				if (peaks > 0) {
-					process_spectra(headers.toString(), peak_list.toString(), peaks,
-						       load_spectra, ncols, scan_container);
-					
-				} else {
-					NodeLogger.getLogger(SpectraReaderNodeModel.class).warn("Got spectra with no peaks!");
-				}
-				if (done % 100 == 0) {
-					exec.checkCanceled();
-				}
-			} else if (got_start) {
-				// if its a digit, we have finished the headers
-				char c = line.charAt(0);
-				if (Character.isDigit(c)) {
-					in_headers = false;
-					peaks++;
-					peak_list.append(line);
-					peak_list.append("\n");
-				} else {
-					in_headers = true;
-					headers.append(line);
-					headers.append("\n");
-				}
+		Iterator<MSScan> it = rdr.iterator();
+		int ncols = scan_container.getTableSpec().getNumColumns();
+		int no_precursor = 0;
+		
+		while (it.hasNext()) {
+			BasicPeakList mgf = new BasicPeakList(it.next());
+			Peak precursor = mgf.getPrecursor();
+			if (precursor == null) {
+				no_precursor++;
 			}
-		}
-		
-		// HACK: add a largely blank file container row as the MGF will not
-		// provide any suitable data for this table
-	    ncols = file_container.getTableSpec().getNumColumns();
-	    DataCell[] cells = new DataCell[ncols];
-	    assert(ncols == 9);
-	    	
-	    cells[0] = DataType.getMissingCell();
-	    cells[1] = DataType.getMissingCell();
-	    cells[2] = DataType.getMissingCell();
-	   
-	    cells[3] = DataType.getMissingCell();
-	  
-	    cells[4] = DataType.getMissingCell();
-	    cells[5] = DataType.getMissingCell();
-	    cells[6] = DataType.getMissingCell();
-	    cells[7] = DataType.getMissingCell();
-	    cells[8] = safe_cell(m_filename);
-	    
-	    file_container.addRow(cells);
-}
-
-	/**
-	 * Called with the data for a single spectra at a time, this routine must update the 
-	 * spectra cells and add the row as appropriate. This code is pretty ugly so as to handle
-	 * the variability and flexibility in what may or may not be specified in the file.
-	 * 
-	 * @param header
-	 * @param peak_list
-	 */
-	protected void process_spectra(String header, String peak_list, int n_peaks,
-			boolean load_spectra, int ncols, MyDataContainer c) {
-		assert(header != null && peak_list != null);
-		MyMGFPeakList mgf = new MyMGFPeakList();
-		
-		// 1. process the headers
-		for (String line : header.split("\\n")) {
-			int pos = line.indexOf('=');
-			if (pos >= 0) {
-				String key = line.substring(0, pos);
-				String val = line.substring(pos+1).trim();
+			DataCell[] cells = missing_cells(ncols);
+			cells[21] = new StringCell(m_file.getAbsolutePath());
+			if (ncols > 23) {
+			         cells[23] = SpectraUtilityFactory.createCell(mgf);
+			}
+			cells[22] = new IntCell(mgf.getNumPeaks());
 			
-				mgf.addHeader(key, val);
-			}
-		}
-		
-		// 2. process the peak list
-		double[] mz = new double[n_peaks];
-		double[] intensity = new double[n_peaks];
-		int cnt = 0;
-		boolean has_intensity = true;
-		for (String line : peak_list.split("\\n")) {
-			String[] fields = line.split("\\s+");
-			if (fields.length > 1) {
-				mz[cnt] = Double.parseDouble(fields[0]);
-				intensity[cnt] = Double.parseDouble(fields[1]);
-			} else {
-				has_intensity = false;
-				mz[cnt] = Double.parseDouble(fields[0]);
-			}
-			cnt++;
-		}
-		
-		if (has_intensity) {
-			mgf.setPeaks(mz, intensity);
-		} else {
-			mgf.setPeaks(mz);
-		}
-		
-		DataCell[] cells = new DataCell[ncols];
-		for (int i=0; i<ncols; i++) {
-			cells[i] = DataType.getMissingCell();
-		}
-		cells[21] = new StringCell(m_filename);
-		if (ncols > 23) {
-			cells[23] = SpectraUtilityFactory.createCell(mgf);
-		}
-		cells[22] = new IntCell(mgf.getNumPeaks());
-		
-		String pepmass = mgf.getPepmass_safe();
-		if (pepmass != null)
-			cells[13] = new DoubleCell(Double.parseDouble(pepmass));
-		else 
-			cells[13] = DataType.getMissingCell();
-		String charge = mgf.getCharge_safe();
-		if (charge != null) {
-			charge    = charge.trim().replaceAll("\\+", "");
-			if (charge.length() > 0)
-				cells[10] = new IntCell(Integer.parseInt(charge));
+			String pepmass = mgf.getPepmass_safe();
+			if (pepmass != null)
+			         cells[13] = new DoubleCell(Double.parseDouble(pepmass));
 			else
-				cells[10] = DataType.getMissingCell();
+			         cells[13] = DataType.getMissingCell();
+			String charge = mgf.getCharge_safe();
+			if (charge != null) {
+			         charge    = charge.trim().replaceAll("\\+", "");
+			         if (charge.length() > 0)
+			                 cells[10] = new IntCell(Integer.parseInt(charge));
+			         else
+			                 cells[10] = DataType.getMissingCell();
+			}
+			cells[0]  = new StringCell(mgf.getTitle_safe());
+			
+			scan_container.addRow(cells);
 		}
-		cells[0]  = new StringCell(mgf.getTitle_safe());
 		
-		c.addRow(cells);
+		if (no_precursor > 0)
+			NodeLogger.getLogger("MGF Data Reader").warn("Cannot find precursor peaks in "+no_precursor+" spectra, some processing will be disabled.");
+		// file_container is mostly blank as MGF doesnt provide necessary data
+		DataCell[] file_cells = missing_cells(file_container.getTableSpec().getNumColumns());
 	}
 	
 	@Override
 	public void setInput(String filename) throws Exception {
-		try {
-			m_is = BufferedFileReader.createNewReader(new FileInputStream(new File(filename)));
-		} catch (Exception e) {
-			m_is = null;
-			NodeLogger.getLogger(SpectraReaderNodeModel.class).warn("Cannot open "+filename+", reason: "+e);
-		}
+		// nothing to do: handled by can()
 	}
 
 }

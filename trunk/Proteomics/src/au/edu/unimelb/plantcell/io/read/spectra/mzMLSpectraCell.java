@@ -1,5 +1,7 @@
 package au.edu.unimelb.plantcell.io.read.spectra;
 
+import org.expasy.jpl.core.ms.spectrum.peak.Peak;
+import org.expasy.jpl.core.ms.spectrum.peak.PeakImpl;
 import org.expasy.jpl.io.ms.jrap.Scan;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataValue;
@@ -47,26 +49,6 @@ public class mzMLSpectraCell extends AbstractSpectraCell {
 	public static final Class<? extends DataValue> getPreferredValueClass() {
         return SpectraValue.class;
     }
-    
-	/*
-    public static final DataCellSerializer<mzMLSpectraCell> getCellSerializer() {
-        return new DataCellSerializer() {
-          
-			@Override
-			public DataCell deserialize(DataCellDataInput input)
-					throws IOException {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			@Override
-			public void serialize(DataCell cell, DataCellDataOutput output)
-					throws IOException {
-				// TODO Auto-generated method stub
-				
-			}
-        };
-    }*/
 
 	@Override
 	protected boolean equalsDataCell(DataCell dc) {
@@ -157,6 +139,16 @@ public class mzMLSpectraCell extends AbstractSpectraCell {
 	@Override
 	public double getMinMZ() {
 		return m_mz_min;
+	}
+
+	/**
+	 * NB: the returned peak has no intensity set (information not readily available) at this time
+	 */
+	@Override
+	public Peak getPrecursor() {
+		if (m_scan == null)
+			return null;
+		return new PeakImpl.Builder(m_scan.getPrecursorMz()).charge(m_scan.getPrecursorCharge()).build();
 	}
 
 }

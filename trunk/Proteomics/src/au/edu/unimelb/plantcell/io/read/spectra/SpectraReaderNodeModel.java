@@ -44,7 +44,7 @@ public class SpectraReaderNodeModel extends NodeModel {
     static final String CFGKEY_LOAD_SPECTRA= "load-spectra";
     static final String CFGKEY_MZML = "load-mzml";			// using jMZML library
     static final String CFGKEY_MZXML= "load-mzxml";			// using JRAP library
-    static final String CFGKEY_MGF  = "load-mgf";
+    static final String CFGKEY_MGF  = "load-mgf";			// using javaprotlib
     
     /** initial default folder to scan for mzxml */
     static final String DEFAULT_SPECTRA_FOLDER = "c:/temp";
