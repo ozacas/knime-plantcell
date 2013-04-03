@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
+import org.expasy.jpl.core.ms.spectrum.peak.Peak;
+import org.expasy.jpl.core.ms.spectrum.peak.PeakImpl;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -37,7 +39,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.io.read.spectra.AbstractSpectraCell;
-import au.edu.unimelb.plantcell.io.read.spectra.MyMGFPeakList;
+import au.edu.unimelb.plantcell.io.read.spectra.BasicPeakList;
 import au.edu.unimelb.plantcell.io.read.spectra.SpectraUtilityFactory;
 import com.compomics.mascotdatfile.util.interfaces.FragmentIon;
 import com.compomics.mascotdatfile.util.interfaces.MascotDatfileInf;
@@ -473,11 +475,16 @@ public class MascotReaderNodeModel extends NodeModel {
     	if (q == null || q.getNumberOfPeaks() < 1) 
     		return DataType.getMissingCell();
     	
-    	MyMGFPeakList mgf = new MyMGFPeakList();
-    	mgf.setCharge(q.getChargeString());
-    	mgf.setTitle(q.getTitle());
-    	mgf.setPeaks(q.getMZArray(), q.getIntensityArray());
-    	mgf.setPepMass(new Double(q.getPrecursorMZ()).toString());
+    	// HACK TODO: assumes MS/MS - 2 in the final parameter
+    	BasicPeakList mgf = new BasicPeakList(String.valueOf(q.getPrecursorMZ()), q.getChargeString(), q.getTitle(), 2);
+    	
+    	// NB: careful! two different java packages have a class Peak, carefully work around this...
+    	ArrayList<Peak> peaks = new ArrayList<Peak>();
+    	for (com.compomics.mascotdatfile.util.mascot.Peak p : q.getPeakList()) {
+    		peaks.add(new PeakImpl.Builder(p.getMZ()).intensity(p.getIntensity()).build());
+    	}
+    	mgf.setPeakList(peaks);
+    	
     	return SpectraUtilityFactory.createCell(mgf);	
     }
 
