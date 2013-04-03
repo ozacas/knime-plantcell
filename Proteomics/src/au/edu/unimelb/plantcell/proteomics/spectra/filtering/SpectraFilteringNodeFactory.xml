@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>Spectra Filtering</name>
+    
+    <shortDescription>
+        Filters and/or normalises spectral values for subsequent processing.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+        Manipulates values in spectra columns. The node adds columns to the input data, but does not alter any input data.
+        The results of processing are available as a new column. 
+        </intro>
+        
+        
+        <option name="Spectra column">Column containing spectra to process</option>
+        <option name="Filtering method">what the node should do</option>
+        <option name="N">Number of peaks (only used by the Keep N peaks per window method)</option>
+        <option name="Window size">Window size in spectral units (only used by the Keep N peaks per window)</option>
+        <option name="m/z Tolerance">Used by several methods, this specifies how stringent peak matching should be</option>
+       
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input spectra">Data with Spectra column</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="Input data with filtered spectra">All input data with the number of peaks filtered (if any) and the number of peaks remaining. The spectra
+        produced is also output</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+   
+</knimeNode>
