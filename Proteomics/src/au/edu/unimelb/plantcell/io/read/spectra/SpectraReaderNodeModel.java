@@ -45,12 +45,14 @@ public class SpectraReaderNodeModel extends NodeModel {
     static final String CFGKEY_MZML = "load-mzml";			// using jMZML library
     static final String CFGKEY_MZXML= "load-mzxml";			// using JRAP library
     static final String CFGKEY_MGF  = "load-mgf";			// using javaprotlib
+    static final String CFGKEY_DTA  = "load-dta";			// also using javaprotlib
     
     /** initial default folder to scan for mzxml */
     static final String DEFAULT_SPECTRA_FOLDER = "c:/temp";
     static final boolean DEFAULT_MZML = true;
     static final boolean DEFAULT_MZXML= true;
     static final boolean DEFAULT_MGF  = true;
+    static final boolean DEFAULT_DTA  = false;
     
     // number of columns in scan output
     private final static int NUM_SCAN_COLS = 23;
@@ -65,6 +67,7 @@ public class SpectraReaderNodeModel extends NodeModel {
     private final SettingsModelBoolean m_mzml = new SettingsModelBoolean(CFGKEY_MZML, DEFAULT_MZML);
     private final SettingsModelBoolean m_mzxml= new SettingsModelBoolean(CFGKEY_MZXML, DEFAULT_MZXML);
     private final SettingsModelBoolean m_mgf  = new SettingsModelBoolean(CFGKEY_MGF, DEFAULT_MGF);
+    private final SettingsModelBoolean m_dta  = new SettingsModelBoolean(CFGKEY_DTA, DEFAULT_DTA);
     
     /**
      * Constructor for the node model.
@@ -98,21 +101,8 @@ public class SpectraReaderNodeModel extends NodeModel {
         // NB: here we dont check with the readers for each filename (maybe take too long with a large number of readers...)
         //     instead, we just hardcode what is supported
         int done = 0;
-        ArrayList<File> filtered_entries = new ArrayList<File>();
-        for (File f : entries) {
-        	String ext = f.getName().toLowerCase();
-        	if (! f.isFile()) {
-        		continue;
-        	}
-        	if (ext.endsWith(".xml") || ext.endsWith(".mzxml") 
-        			|| ext.endsWith(".mzml") || ext.endsWith(".mgf") || ext.endsWith(".mgf.gz")) {
-        		filtered_entries.add(f);
-        	}
-        }
-        int cnt = filtered_entries.size();
-        logger.info("Found "+cnt+" plausible files for loading.");
         
-        // instantiate the data processor's for each supported filetype
+        // instantiate the data processor's for each desired filetype
         ArrayList<AbstractDataProcessor> dp_list = new ArrayList<AbstractDataProcessor>();
         if (m_mzml.getBooleanValue())
         	dp_list.add(new mzMLDataProcessor(logger));
@@ -120,7 +110,28 @@ public class SpectraReaderNodeModel extends NodeModel {
         	dp_list.add(new MGFDataProcessor());
         if (m_mzxml.getBooleanValue())
         	dp_list.add(new mzXMLDataProcessor(logger));
+        if (m_dta.getBooleanValue()) 
+        	dp_list.add(new DTADataProcessor());
+        if (dp_list.size() == 0) {
+        	throw new InvalidSettingsException("No filetypes enabled! Re-configure...");
+        }
         
+        ArrayList<File> filtered_entries = new ArrayList<File>();
+        for (File f : entries) {
+        	String ext = f.getName().toLowerCase();
+        	if (! f.isFile()) {
+        		continue;
+        	}
+        	for (AbstractDataProcessor p : dp_list) {
+        		if (p.can(f)) {
+        			filtered_entries.add(f);
+        		}
+        	}
+        }
+        int cnt = filtered_entries.size();
+        logger.info("Found "+cnt+" plausible files for loading.");
+        
+       
         /*
          * For each filtered file we try each processor which can process the file in the order
          * constructed above
@@ -239,6 +250,7 @@ public class SpectraReaderNodeModel extends NodeModel {
         m_mgf.saveSettingsTo(settings);
         m_mzml.saveSettingsTo(settings);
         m_mzxml.saveSettingsTo(settings);
+        m_dta.saveSettingsTo(settings);
     }
 
     /**
@@ -256,6 +268,11 @@ public class SpectraReaderNodeModel extends NodeModel {
         } else {
         	m_mzxml.setBooleanValue(DEFAULT_MZXML);
         }
+        if (settings.containsKey(CFGKEY_DTA)) {			// backward compatibility
+        	m_dta.loadSettingsFrom(settings);
+        } else {
+        	m_dta.setBooleanValue(DEFAULT_DTA);
+        }
     }
 
     /**
@@ -270,6 +287,9 @@ public class SpectraReaderNodeModel extends NodeModel {
         m_mzml.validateSettings(settings);
         if (settings.containsKey(CFGKEY_MZXML)) {		// backward compatibility
         	m_mzxml.validateSettings(settings);
+        }
+        if (settings.containsKey(CFGKEY_DTA)) {			// backward compatibility
+        	m_dta.validateSettings(settings);
         }
     }
     

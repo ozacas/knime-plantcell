@@ -109,7 +109,8 @@ public class SpectraReaderNodeDialog extends DefaultNodeSettingsPane {
 						String fname = arg0.getName().toLowerCase();
 						
 						if (fname.endsWith(".xml") || fname.endsWith(".mzxml") || fname.endsWith(".mzml") ||
-								fname.endsWith(".mgf") || fname.endsWith(".mgf.gz")) {
+								fname.endsWith(".mgf") || fname.endsWith(".mgf.gz") || fname.endsWith(".dta") || 
+								fname.endsWith(".dta.gz")) {
 							return true;
 						}
 						return false;
@@ -176,6 +177,9 @@ public class SpectraReaderNodeDialog extends DefaultNodeSettingsPane {
         		new SettingsModelBoolean(SpectraReaderNodeModel.CFGKEY_MZXML, true), "mzXML"));
         addDialogComponent(new DialogComponentBoolean(
         		new SettingsModelBoolean(SpectraReaderNodeModel.CFGKEY_MGF, true), "Mascot Generic Format (MGF)")); 
+        addDialogComponent(new DialogComponentBoolean(
+        		new SettingsModelBoolean(SpectraReaderNodeModel.CFGKEY_DTA, true), "Sequest DTA Format"
+        		));
         
     }
     

@@ -39,7 +39,6 @@ public class MyFilterCellFactory extends AbstractCellFactory {
 			m_failed = 0;
 		}
 		
-		
 		@Override
 		public DataCell[] getCells(DataRow row) {
 			DataCell c = row.getCell(m_idx);

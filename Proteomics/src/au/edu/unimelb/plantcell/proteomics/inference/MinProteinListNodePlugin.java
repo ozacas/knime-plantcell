@@ -37,7 +37,7 @@ public class MinProteinListNodePlugin extends Plugin {
     @Override
     public void start(final BundleContext context) throws Exception {
         super.start(context);
-
+        Thread.currentThread().setContextClassLoader( getClass().getClassLoader() );
     }
 
     /**
