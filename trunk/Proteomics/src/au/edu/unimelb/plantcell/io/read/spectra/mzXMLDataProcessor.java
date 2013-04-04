@@ -47,8 +47,7 @@ public class mzXMLDataProcessor extends AbstractDataProcessor {
 		m_file = f;
 		String ext = f.getName().toLowerCase();
 		
-		if (ext.endsWith(".xml") || ext.endsWith(".mzml")) {
-			
+		if (ext.endsWith(".xml") || ext.endsWith(".mzxml")) {
 	        return true;
 		}
 		return false;

@@ -100,8 +100,10 @@ public class MGFDataProcessor extends AbstractDataProcessor {
 		
 		if (no_precursor > 0)
 			NodeLogger.getLogger("MGF Data Reader").warn("Cannot find precursor peaks in "+no_precursor+" spectra, some processing will be disabled.");
+		
 		// file_container is mostly blank as MGF doesnt provide necessary data
 		DataCell[] file_cells = missing_cells(file_container.getTableSpec().getNumColumns());
+		file_container.addRow(file_cells);
 	}
 	
 	@Override

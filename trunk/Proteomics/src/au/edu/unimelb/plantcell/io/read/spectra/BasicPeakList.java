@@ -11,6 +11,8 @@ import org.expasy.jpl.core.ms.spectrum.peak.Peak;
 import org.expasy.jpl.core.ms.spectrum.peak.PeakImpl;
 import org.expasy.jpl.io.ms.MSScan;
 
+import uk.ac.ebi.jmzml.model.mzml.Spectrum;
+
 
 /**
  * MGF-derived peaklist cells are generally instances of this class. We keep track of MGF headers explicity,
@@ -81,6 +83,16 @@ public class BasicPeakList implements Serializable {
 		addHeader("TITLE", title);
 		addHeader("PEPMASS", pepmass);
 		addHeader("CHARGE", charge);
+	}
+
+	/**
+	 * Constructs a BPL from a jMZML {@link Spectrum} instance
+	 * 
+	 * @param next
+	 */
+	public BasicPeakList(Spectrum s) {
+		addHeader("TITLE", s.getId());
+		setPeakList((PeakList)null);
 	}
 
 	@Override
@@ -241,6 +253,8 @@ public class BasicPeakList implements Serializable {
 	}
 
 	public Peak getPrecursor() {
+		if (m_pl == null)
+			return null;
 		return m_pl.getPrecursor();
 	}
 	

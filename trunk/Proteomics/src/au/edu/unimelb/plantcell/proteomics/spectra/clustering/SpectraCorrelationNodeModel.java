@@ -64,8 +64,8 @@ public class SpectraCorrelationNodeModel extends NodeModel {
 	
 	public final static String[] ALGORITHMS = new String[] { "M/Z differences between all peak pairs", "Bipartite graph comparison", "Binned peak-list comparison"  };
 	public final static String[] SCORE_FUNCS= new String[] {  
-		// the commented out options dont seem to be producing a score: always zero
-		// "Correlation of spectral bins", "Normalised correlation of spectral bins", 
+		// the commented out options dont seem to be producing a score: always zero - maybe i'm not setting up the data properly??? hard to tell without docs...
+		//"Correlation of spectral bins", "Normalised correlation of spectral bins", 
 		"Normalised correlation of peaks", "Correlation of peaks", "Shared Peak Count (SPC)" };
 
  
@@ -183,8 +183,12 @@ public class SpectraCorrelationNodeModel extends NodeModel {
 		assert(sfunc != null);
 		
 		if (sfunc.startsWith("Correlation of spectral bins")) {
+			m_pl_versus_pl = false;
+			m_bpl_versus_bpl = true;
 			return BinCorrScorer.getInstance();
 		} else if (sfunc.startsWith("Normalised correlation of spectral bins")) {
+			m_pl_versus_pl = false;
+			m_bpl_versus_bpl = true;
 			return BinNCorrScorer.getInstance();
 		} else if (sfunc.startsWith("Correlation of peaks")) {
 			return CorrScorer.getInstance();
@@ -239,8 +243,7 @@ public class SpectraCorrelationNodeModel extends NodeModel {
 		// 2. score using javaprotlib
 		if (m_bpl_versus_bpl) {
 			matcher.computeMatch(new BinnedPeakListImpl.Builder(pl1).build(), 
-					new BinnedPeakListImpl.Builder(pl2).build()
-					);
+					new BinnedPeakListImpl.Builder(pl2).build());
 		} else if (m_pl_versus_pl) {
 			matcher.computeMatch(pl1, pl2);
 		} else {

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import org.expasy.jpl.core.mol.chem.MassCalculator;
+import org.expasy.jpl.core.ms.spectrum.editor.AbstractPeakListEditor;
 import org.expasy.jpl.core.ms.spectrum.filter.AbstractPeakListFilter;
 import org.expasy.jpl.core.ms.spectrum.filter.IntensityThresholdFilter;
 import org.expasy.jpl.core.ms.spectrum.filter.NHighestPeaksFilter;
@@ -50,7 +51,8 @@ public class SpectraFilteringNodeModel extends NodeModel {
 													"Top 10 most intense peaks", "Top 100 most intense peaks",
 													"Keep highest N peaks per window of size Y",
 													"Normalise to highest intensity peak", "Normalise to lowest intensity peak",
-													"Normalise to total peak intensity"
+													"Normalise to total peak intensity", "Log-transform peak intensities", 
+													"Transform peak intensities to ranks", "Square-root transform peak intensities"
 												};
 	static {
 		Arrays.sort(SpectraFilteringNodeModel.METHODS);
@@ -90,18 +92,33 @@ public class SpectraFilteringNodeModel extends NodeModel {
     	if (idx < 0)
     		throw new InvalidSettingsException("Cannot find column: "+m_col.getStringValue()+" - reconfigure?");
     	
-    	final AbstractPeakListFilter filter = make_filter(m_method.getStringValue());
     	
     	ColumnRearranger rearranger = new ColumnRearranger(inData[0].getSpec());
-    	MyFilterCellFactory cf = new MyFilterCellFactory(idx, filter, m_method.getStringValue());
-    	rearranger.append(cf);
-    	BufferedDataTable out = exec.createColumnRearrangeTable(inData[0], rearranger, exec.createSubProgress(1.0));
-    	
-    	if (cf.getFailed() > 0) {
-    		logger.warn("Failed to process "+cf.getFailed()+" spectra ie. missing values present in output table. Problem with the data?");
+    	BufferedDataTable out = null;
+    	if (m_method.getStringValue().toLowerCase().indexOf("transform") < 0) {
+    		final AbstractPeakListFilter filter = make_filter(m_method.getStringValue());
+    		MyFilterCellFactory cf = new MyFilterCellFactory(idx, filter, m_method.getStringValue());
+    		rearranger.append(cf);
+    		out = exec.createColumnRearrangeTable(inData[0], rearranger, exec.createSubProgress(1.0));
+        	
+        	if (cf.getFailed() > 0) {
+        		logger.warn("Failed to process "+cf.getFailed()+" spectra ie. missing values present in output table. Problem with the data?");
+        	}
+    	} else {
+    		final AbstractPeakListEditor editor = make_editor(m_method.getStringValue());
+    		MyEditorCellFactory cf = new MyEditorCellFactory(idx, editor, m_method.getStringValue());
+    		rearranger.append(cf);
+    		out = exec.createColumnRearrangeTable(inData[0], rearranger, exec.createSubProgress(1.0));
     	}
+    	
     	return new BufferedDataTable[] {out};
     }
+
+	private AbstractPeakListEditor make_editor(String stringValue) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 	private AbstractPeakListFilter make_filter(String meth) {
 		AbstractPeakListFilter filter = null;
