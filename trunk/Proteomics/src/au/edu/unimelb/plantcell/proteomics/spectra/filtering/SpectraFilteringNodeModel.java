@@ -48,8 +48,7 @@ public class SpectraFilteringNodeModel extends NodeModel {
 	
 	public static final String[] METHODS = new String[] { "Remove precursor peaks (monoisotopic)", 
 													"Retain 95% of the highest intensity peaks",
-													"Top 10 most intense peaks", "Top 100 most intense peaks",
-													"Keep highest N peaks per window of size Y",
+													"Top N most intense peaks", "Keep highest N peaks per window of size Y",
 													"Normalise to highest intensity peak", "Normalise to lowest intensity peak",
 													"Normalise to total peak intensity", "Log-transform peak intensities", 
 													"Transform peak intensities to ranks", "Square-root transform peak intensities"
@@ -125,10 +124,8 @@ public class SpectraFilteringNodeModel extends NodeModel {
 		if (meth.startsWith("Remove precursor peaks")) {
 			filter = PrecursorFilter.newInstance(m_tolerance.getDoubleValue(), m_tolerance.getDoubleValue());
 			((PrecursorFilter)filter).setMassCalc(MassCalculator.getMonoAccuracyInstance());
-		} else if (meth.startsWith("Top 10 most intense")) {
-			filter = new NHighestPeaksFilter(10.0d);
-		} else if (meth.startsWith("Top 100 most intense")) {
-			filter = new NHighestPeaksFilter(100.0d);
+		} else if (meth.startsWith("Top N most intense")) {
+			filter = new NHighestPeaksFilter((double)m_keep_n.getIntValue());
 		} else if (meth.startsWith("Retain 95%")) {
 			filter = new NHighestPeaksFilter(0.95d);
 		} else if (meth.startsWith("Keep highest N")) {

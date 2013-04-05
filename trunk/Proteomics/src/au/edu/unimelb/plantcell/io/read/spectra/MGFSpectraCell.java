@@ -163,9 +163,13 @@ public class MGFSpectraCell extends AbstractSpectraCell {
 			int         tc = input.readInt();
 		
 			BasicPeakList   mgf = new BasicPeakList(pepmass, charge, title, tc);
-			Peak peak_precursor = new PeakImpl.Builder(pre_mz).intensity(pre_intensity).msLevel(pre_ms_level).charge(pre_charge).build();
-			PeakList pl = new PeakListImpl.Builder(mz).intensities(intensity).msLevel(tc).precursor(peak_precursor).build();
-			mgf.setPeakList(pl);
+			try {
+				Peak peak_precursor = new PeakImpl.Builder(pre_mz).intensity(pre_intensity).msLevel(pre_ms_level).charge(pre_charge).build();
+				PeakList pl = new PeakListImpl.Builder(mz).intensities(intensity).msLevel(tc).precursor(peak_precursor).build();
+				mgf.setPeakList(pl);
+			} catch (Exception be) {
+				be.printStackTrace();
+			}
 			
 			return new MGFSpectraCell(mgf);
 		}
@@ -189,17 +193,31 @@ public class MGFSpectraCell extends AbstractSpectraCell {
 			
 			// 2. write precursor peak
 			Peak precursor = spectra.getPrecursor();
-			output.writeDouble(precursor.getMz());
-			output.writeDouble(precursor.getIntensity());
-			output.writeInt(precursor.getCharge());
-			output.writeInt(precursor.getMSLevel());
+			if (precursor != null) { 	// handle this exceptional case
+				output.writeDouble(precursor.getMz());
+				output.writeDouble(precursor.getIntensity());
+				output.writeInt(precursor.getCharge());
+				output.writeInt(precursor.getMSLevel());
+			} else {
+				output.writeDouble(0.0d);
+				output.writeDouble(0.0d);
+				output.writeInt(-1);
+				output.writeInt(-1);
+			}
 			
 			// 3. save header
 			BasicPeakList pl = spectra.m_pl;
-			output.writeUTF(pl.getTitle_safe());
-			output.writeUTF(pl.getPepmass_safe());
-			output.writeUTF(pl.getCharge_safe());
-			output.writeInt(pl.getTandemCount());
+			if (pl != null) {
+				output.writeUTF(pl.getTitle_safe());
+				output.writeUTF(pl.getPepmass_safe());
+				output.writeUTF(pl.getCharge_safe());
+				output.writeInt(pl.getTandemCount());
+			} else {
+				output.writeUTF("");
+				output.writeUTF("0.0");
+				output.writeUTF("");
+				output.writeInt(-1);
+			}
 		}
 	}
 

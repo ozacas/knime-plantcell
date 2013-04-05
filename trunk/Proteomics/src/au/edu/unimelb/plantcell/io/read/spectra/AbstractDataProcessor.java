@@ -4,6 +4,7 @@ import java.io.File;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
+import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.ExecutionContext;
 
@@ -66,6 +67,18 @@ public abstract class AbstractDataProcessor {
     		return new StringCell(content);
     	else
     		return DataType.getMissingCell();
+    }
+    
+    /**
+     * Returns a double cell representing the numeric value of the input string or missing cell if
+     * conversion to double fails.
+     */
+    protected DataCell safe_double_cell(String content) {
+    	try {
+    		return new DoubleCell(Double.valueOf(content));
+    	} catch (Exception e) {
+    		return DataType.getMissingCell();
+    	}
     }
     
     /**

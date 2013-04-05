@@ -122,7 +122,10 @@ public class SpectraWriterNodeModel extends NodeModel {
     		if (pepmass != null)
     			pw.println("PEPMASS="+pepmass);
     		pw.println("TITLE="+title);
-    		pw.println("CHARGE="+charge);
+    		String term = "";
+    		if (charge.indexOf("+") < 0) 
+    			term = "+";
+    		pw.println("CHARGE="+charge+term);
     		for (int i=0; i<mz.length; i++) {
     			pw.print(mz[i]);
     			pw.print(' ');
