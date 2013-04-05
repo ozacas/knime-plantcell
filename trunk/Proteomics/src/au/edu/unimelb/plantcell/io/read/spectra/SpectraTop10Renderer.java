@@ -50,8 +50,11 @@ public class SpectraTop10Renderer extends DefaultDataValueRenderer {
 			StringBuilder sb = new StringBuilder();
 			Arrays.sort(big_peaks);
 		
-			// 3. sort peaks by ascending mz
-			for (int i= big_peaks.length-10; i<big_peaks.length; i++) {
+			// 3. sort peaks by ascending mz (permit spectra to have less than ten peaks to begin with)
+			int min = big_peaks.length-10;
+			if (min < 0)
+				min = 0;
+			for (int i=min; i<big_peaks.length; i++) {
 				sb.append(big_peaks[i].getMZ());
 				sb.append(' ');
 				sb.append(big_peaks[i].getIntensity());
