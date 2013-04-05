@@ -11,8 +11,6 @@ import org.expasy.jpl.core.ms.spectrum.peak.Peak;
 import org.expasy.jpl.core.ms.spectrum.peak.PeakImpl;
 import org.expasy.jpl.io.ms.MSScan;
 
-import uk.ac.ebi.jmzml.model.mzml.Spectrum;
-
 
 /**
  * MGF-derived peaklist cells are generally instances of this class. We keep track of MGF headers explicity,
@@ -64,6 +62,7 @@ public class BasicPeakList implements Serializable {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	public BasicPeakList(String pepmass, String charge, String title, int tc) {
 		assert(tc >= 1);
 		
@@ -86,15 +85,23 @@ public class BasicPeakList implements Serializable {
 	}
 
 	/**
-	 * Constructs a BPL from a jMZML {@link Spectrum} instance
-	 * 
+	
 	 * @param next
 	 */
-	public BasicPeakList(Spectrum s) {
-		addHeader("TITLE", s.getId());
-		setPeakList((PeakList)null);
+	public BasicPeakList(SpectrumAdapter sa) {
+		assert(sa != null);
+	
+		String title = "TITLE=Scan:"+sa.getIndex()+", RT: "+sa.getRetentionTime()+", ID: "+ sa.getID();
+		addHeader("TITLE", title);
+		addHeader("PEPMASS", ""+sa.getParentMZ()+" "+sa.getParentIntensity());
+		addHeader("CHARGE", String.valueOf(sa.getParentCharge()));
+		if (sa.getRetentionTime() > 0.0) {
+			addHeader("RTINSECONDS", String.valueOf(sa.getRetentionTime()));
+		}
+		addHeader("SCANS", String.valueOf(sa.getIndex()));
+		setPeakList(sa.getPeakList());
 	}
-
+	 
 	@Override
 	protected Object clone() throws CloneNotSupportedException {
 		throw new CloneNotSupportedException("MyMGFPeakList does not support clone yet!");
@@ -110,6 +117,11 @@ public class BasicPeakList implements Serializable {
 		return m_pl.hashCode();
 	}
 
+	/**
+	 * Convenience wrapper around <code>setPeakList(PeakList pl)</code>
+	 * 
+	 * @param pl
+	 */
 	public void setPeakList(List<Peak> pl) {
 		// construct a new peak list
 		double[] mz = new double[pl.size()];
@@ -142,6 +154,8 @@ public class BasicPeakList implements Serializable {
 			}
 			m_mz_min = min;
 			m_mz_max = max;
+		} else {
+			m_pl = PeakListImpl.newEmptyInstance();
 		}
 	}
 	
