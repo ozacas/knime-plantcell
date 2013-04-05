@@ -175,8 +175,8 @@ public class ProteinChargeSummaryTask extends BioJavaProcessorTask {
 		return "<html>Compute hydrophobicity, isoelectric point and total mass of "+
 		"the sequences. The sequences are converted to protein if necessary (without any "+
 		"translation) before performing the calculation. Hydrophobicity calculations are performed using" +
-		" CIDH920105 average along sequence as implemented in BioJava (http://www.biojava.org)</li>" +
-		"</ol>";
+		" CIDH920105 average along sequence as implemented in BioJava (http://www.biojava.org)." +
+		"Presence of ambiguous amino acids (eg. X, B, J) will cause missing values (?) in cells to be returned.";
 	}
 	
 	public DataCell[] getCells(DataRow row) {
@@ -209,7 +209,9 @@ public class ProteinChargeSummaryTask extends BioJavaProcessorTask {
 			// unknown residues? Dont calculate, leave user to figure it out...
 			DataCell[] cells = missing_cells(m_cols);
 			
-			if (syms.seqString().indexOf("X") >= 0) {
+			String seq = syms.seqString();
+			// return missing value if mass cannot be precisely known
+			if (seq.indexOf("X") >= 0 || seq.indexOf("B") >= 0 || seq.indexOf("J") >= 0) {
 				return cells;
 			}
 		
