@@ -62,8 +62,15 @@ public class SpectraFilteringNodeDialog extends DefaultNodeSettingsPane {
 
 			@Override
 			public void stateChanged(ChangeEvent arg0) {
-				 if (sms.getStringValue().startsWith("Keep highest N")) {
+				 String meth = sms.getStringValue();
+				 if (meth.startsWith("Keep highest N")) {
 			        	keep_n.setEnabled(true);
+			        	window_size.setEnabled(true);
+			        } else if (meth.startsWith("Top N most intense")) {
+			        	keep_n.setEnabled(true);
+			        	window_size.setEnabled(false);
+			        } else if (meth.startsWith("Centroid peaks (specify")) {
+			        	keep_n.setEnabled(false);
 			        	window_size.setEnabled(true);
 			        } else {
 			        	keep_n.setEnabled(false);

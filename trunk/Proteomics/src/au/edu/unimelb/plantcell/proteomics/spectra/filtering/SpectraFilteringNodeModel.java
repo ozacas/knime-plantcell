@@ -6,6 +6,7 @@ import java.util.Arrays;
 
 import org.expasy.jpl.core.mol.chem.MassCalculator;
 import org.expasy.jpl.core.ms.spectrum.editor.AbstractPeakListEditor;
+import org.expasy.jpl.core.ms.spectrum.editor.IntensityTransformer;
 import org.expasy.jpl.core.ms.spectrum.filter.AbstractPeakListFilter;
 import org.expasy.jpl.core.ms.spectrum.filter.IntensityThresholdFilter;
 import org.expasy.jpl.core.ms.spectrum.filter.NHighestPeaksFilter;
@@ -46,12 +47,15 @@ public class SpectraFilteringNodeModel extends NodeModel {
 	static final String CFGKEY_WINDOW_SIZE          = "window-size";
 	static final String CFGKEY_TOLERANCE            = "mz-tolerance";
 	
+	
 	public static final String[] METHODS = new String[] { "Remove precursor peaks (monoisotopic)", 
 													"Retain 95% of the highest intensity peaks",
-													"Top N most intense peaks", "Keep highest N peaks per window of size Y",
+													"Top N most intense peaks", "Keep highest N peaks per window (specify N and window below)",
 													"Normalise to highest intensity peak", "Normalise to lowest intensity peak",
 													"Normalise to total peak intensity", "Log-transform peak intensities", 
-													"Transform peak intensities to ranks", "Square-root transform peak intensities"
+													"Transform peak intensities to normalised ranks", "Square-root transform peak intensities",
+													"Centroid peaks (adaptive)", "Centroid peaks (specify window and tolerance below)",
+													"Intensity threshold (set tolerance below to determine threshold)"
 												};
 	static {
 		Arrays.sort(SpectraFilteringNodeModel.METHODS);
@@ -94,7 +98,8 @@ public class SpectraFilteringNodeModel extends NodeModel {
     	
     	ColumnRearranger rearranger = new ColumnRearranger(inData[0].getSpec());
     	BufferedDataTable out = null;
-    	if (m_method.getStringValue().toLowerCase().indexOf("transform") < 0) {
+    	String meth = m_method.getStringValue().toLowerCase();
+    	if (meth.indexOf("transform") < 0 && !meth.startsWith("centroid")) {
     		final AbstractPeakListFilter filter = make_filter(m_method.getStringValue());
     		MyFilterCellFactory cf = new MyFilterCellFactory(idx, filter, m_method.getStringValue());
     		rearranger.append(cf);
@@ -113,28 +118,49 @@ public class SpectraFilteringNodeModel extends NodeModel {
     	return new BufferedDataTable[] {out};
     }
 
-	private AbstractPeakListEditor make_editor(String stringValue) {
-		// TODO Auto-generated method stub
-		return null;
+	private AbstractPeakListEditor make_editor(String meth) throws InvalidSettingsException {
+		AbstractPeakListEditor editor = null;
+		if (meth.startsWith("Centroid peaks (adaptive)")) {
+			editor = new MyCentroider(true);
+		} else if (meth.startsWith("Centroid peaks (specify")) {
+			editor = new MyCentroider(m_window_size.getDoubleValue(), m_tolerance.getDoubleValue());
+		} else if (meth.startsWith("Log-transform")) {
+			editor = new IntensityTransformer(IntensityTransformer.LOG);
+		} else if (meth.startsWith("Transform peak intensities to normalised rank")) {
+			editor = new IntensityTransformer(IntensityTransformer.RANK);
+		} else if (meth.startsWith("Square-root transform")) {
+			editor = new IntensityTransformer(IntensityTransformer.SQRT);
+		} else {
+			throw new InvalidSettingsException("Unknown peak list editor: "+meth);
+		}
+		
+		return editor;
 	}
-
 
 	private AbstractPeakListFilter make_filter(String meth) {
 		AbstractPeakListFilter filter = null;
 		if (meth.startsWith("Remove precursor peaks")) {
 			filter = PrecursorFilter.newInstance(m_tolerance.getDoubleValue(), m_tolerance.getDoubleValue());
 			((PrecursorFilter)filter).setMassCalc(MassCalculator.getMonoAccuracyInstance());
+			logger.info("Rejecting precursor peaks within tolerance of "+m_tolerance.getDoubleValue());
 		} else if (meth.startsWith("Top N most intense")) {
 			filter = new NHighestPeaksFilter((double)m_keep_n.getIntValue());
+			logger.info("Rejecting all peaks except top "+m_keep_n.getIntValue());
 		} else if (meth.startsWith("Retain 95%")) {
 			filter = new NHighestPeaksFilter(0.95d);
+			logger.info("Retaining 95% of highest peaks");
 		} else if (meth.startsWith("Keep highest N")) {
 			filter = new NPeakGroupsPerWindowFilter(m_keep_n.getIntValue(), m_window_size.getDoubleValue(), m_tolerance.getDoubleValue());
+			logger.info("Retaining "+m_keep_n.getIntValue()+" peaks per group in window of "+m_window_size.getDoubleValue());
 		} else if (meth.startsWith("Normalise")) {
 			filter = new NormalisationFilter(meth);
+			logger.info("Normalising all peaks according to: "+meth);
+		} else if (meth.startsWith("Intensity threshold")) {
+			filter = new IntensityThresholdFilter(m_tolerance.getDoubleValue());
+			logger.info("Removing all peaks with intensity less than "+m_tolerance.getDoubleValue());
 		} else {
 			logger.warn("Unknown filter method: "+meth+". Assuming intensity threshold of 5 units");
-			filter = new IntensityThresholdFilter(5);
+			filter = new IntensityThresholdFilter(5.0d);
 		}
 		
 		return filter;
