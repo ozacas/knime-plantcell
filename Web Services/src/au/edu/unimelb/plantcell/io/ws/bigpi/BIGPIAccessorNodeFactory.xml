@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>BIG-PI@Nectar</name>
+    
+    <shortDescription>
+        Provides a KNIME interface to GPI Anchor prediction from BIG-PI (an academic license of this
+        software was obtained from the authors)
+    </shortDescription>
+    
+    <fullDescription>
+        <intro> Provides a KNIME interface to GPI Anchor prediction from BIG-PI (an academic license of this
+        software was obtained from the authors)
+        
+        <p>
+        <b>Note: </b> this node is only workable for University of Melbourne staff/students and collaborators as it
+        uses a server only accessible from on-campus.
+        </p>
+        </intro>
+        
+        <option name="Sequence to predict">Column to obtain the protein sequences from</option>
+        <option name="Organism type">Please select the best model for your organism: viridplantae (green plants), metazoa, protozoa or fungi</option>
+   		<option name="Endpoint URL (advanced users only)">Site to use for the BIGPI web service</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Protein Sequences">Input table must contain one String column with protein (amino acid) sequences.
+        Unknown residues (eg. <tt>X</tt>) in sequences are not recommended.</inPort>
+       
+        <outPort index="0" name="Prediction results">Summary output from BIG-PI for each input sequence</outPort>
+      
+    </ports>    
+ 
+</knimeNode>
