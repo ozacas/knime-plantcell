@@ -1,6 +1,7 @@
 package au.edu.unimelb.plantcell.core;
 
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.node.BufferedDataContainer;
@@ -30,6 +31,15 @@ public class MyDataContainer {
 		if (id_prefix == null)
 			id_prefix = "Row";
 		m_prefix = id_prefix;
+	}
+	
+	/**
+	 * add a row to the DataContainer, using the row key specified by the container (and NOT the input row)
+	 */
+	public void addRow(DataRow dr) {
+		assert(dr != null);
+		
+		m_dc.addRowToTable(new DefaultRow(m_prefix+m_id++, dr));
 	}
 	
 	/**
