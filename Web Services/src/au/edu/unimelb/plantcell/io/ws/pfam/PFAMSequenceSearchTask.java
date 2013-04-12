@@ -36,6 +36,13 @@ import au.edu.unimelb.plantcell.io.ws.tmhmm.AbstractWebServiceNodeModel;
 import au.edu.unimelb.plantcore.core.regions.PFAMHitRegion;
 import au.edu.unimelb.plantcore.core.regions.PFAMRegionsAnnotation;
 
+/**
+ * given a column of {@link SequenceCell}'s this task iterates thru them on the public server.
+ * It is deliberately slow to avoid a site being banned.
+ * 
+ * @author andrew.cassin
+ *
+ */
 public class PFAMSequenceSearchTask extends PFAMTask {
 	private MyHttpClient m_http;
 	private String m_result_url;
