@@ -289,6 +289,7 @@ public class PhobiusSourceNodeModel extends NodeModel {
     protected void grok_batch(String[] jobs, 
     		ExecutionContext exec, MyDataContainer c1, Map<String,SequenceValue> job2seq) throws Exception {
 
+		@SuppressWarnings("unused")
 		int idx = 0;
 		for (String jobId : jobs) {
         	String result= getJobResult(jobId);
