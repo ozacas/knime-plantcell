@@ -118,7 +118,6 @@ public class SpectraReaderNodeModel extends NodeModel {
         
         ArrayList<File> filtered_entries = new ArrayList<File>();
         for (File f : entries) {
-        	String ext = f.getName().toLowerCase();
         	if (! f.isFile()) {
         		continue;
         	}
@@ -129,7 +128,12 @@ public class SpectraReaderNodeModel extends NodeModel {
         	}
         }
         int cnt = filtered_entries.size();
-        logger.info("Found "+cnt+" plausible files for loading.");
+        
+        if (cnt > 0) {
+        	logger.info("Found "+cnt+" acceptable files for loading.");
+        } else {
+        	throw new InvalidSettingsException("No files to load - did you enable the right file formats?");
+        }
         
        
         /*
