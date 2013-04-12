@@ -111,17 +111,17 @@ public class PFAMSourceNodeModel extends AbstractWebServiceNodeModel {
     			 throw new IllegalArgumentException("No such task: "+m_type.getStringValue());
     	 }
     		
-    	 int col_idx = inSpec.findColumnIndex(m_col.getStringValue());
-    	 if (col_idx < 0)
-    		 throw new IllegalArgumentException("Cannot find input column: "+m_col.getStringValue()+" - reconfigure?");
-    	 try {
+    	int col_idx = inSpec.findColumnIndex(m_col.getStringValue());
+    	if (col_idx < 0)
+    		throw new IllegalArgumentException("Cannot find input column: "+m_col.getStringValue()+" - reconfigure?");
+    	try {
 			t.init(logger, col_idx, new URL(m_url.getStringValue()), inSpec);
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 			throw new IllegalArgumentException(e.getMessage());
 		}
     	 
-         return new DataTableSpec(inSpec, t.getTableSpec());
+        return new DataTableSpec(inSpec, t.getTableSpec());
 	}
 
 	
@@ -139,8 +139,13 @@ public class PFAMSourceNodeModel extends AbstractWebServiceNodeModel {
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
             throws InvalidSettingsException {
-        DataTableSpec out = make_output_spec(inSpecs[0], null);
-        return new DataTableSpec[]{out};
+    	try {
+    		DataTableSpec out = make_output_spec(inSpecs[0], null);
+    		return new DataTableSpec[]{out};
+    	} catch (IllegalArgumentException iae) {
+    		// be silent, user will configure the column or execute() wont work
+    		return new DataTableSpec[]{null};
+    	}
     }
 
     /**
