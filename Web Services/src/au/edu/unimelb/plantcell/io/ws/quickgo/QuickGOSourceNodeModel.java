@@ -204,7 +204,8 @@ public class QuickGOSourceNodeModel extends NodeModel {
         
         int cnt = 0;
         int rk_id = 1;
-        int errors = 0;
+        @SuppressWarnings("unused")
+		int errors = 0;
         double so_far = 0.0;
         double p_size = inData[0].getRowCount();
         RowIterator it = inData[0].iterator();
