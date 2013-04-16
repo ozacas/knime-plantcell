@@ -85,6 +85,8 @@ public class ResidueFrequencyTask extends BioJavaProcessorTask {
 		int len = seq.length();		// NB: NOT equivalent to sv.getLength() when using the window analysis node
 		
 		if (m_tri_mers && len >= 3) {
+			if (len < 3)
+				return cells;
 			for (int i=0; i<len-2; i++) {
 				String trimer = seq.substring(i,i+3);
 				Integer column_idx = m_colmap.get(trimer);
@@ -99,6 +101,8 @@ public class ResidueFrequencyTask extends BioJavaProcessorTask {
 			}
 			return cells;
 		} else if (m_single_residue) {			
+			if (len < 1)
+				return cells;
 			String[] id = new String[m_colmap.size()];
 			
 			// populate id array
@@ -129,6 +133,9 @@ public class ResidueFrequencyTask extends BioJavaProcessorTask {
 			}
 			return cells;
 		} else {
+			if (len < 2)
+				return cells;
+			
 			// di-mer/di-peptide composition?
 			int[] values = new int[vec.length];
 			for (int k=0; k<cells.length; k++) {
