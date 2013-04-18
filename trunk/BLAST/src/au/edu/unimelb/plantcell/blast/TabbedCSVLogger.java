@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import org.apache.commons.exec.LogOutputStream;
 import org.knime.core.data.DataCell;
@@ -17,6 +16,7 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 
 import au.edu.unimelb.plantcell.core.MyDataContainer;
@@ -105,10 +105,14 @@ public class TabbedCSVLogger extends LogOutputStream {
 		for (int i=0; i<n_cols; i++) {
 			// map input query id to sequence batch id?
 			if (want_idx != null && want_idx.intValue() == i) {
-				uid = new UniqueID(tabbed_fields[i]);
-				sv = m_batch.get(uid);
-				if (sv != null)
-					tabbed_fields[i] = sv.getID();
+				try {
+					uid = new UniqueID(tabbed_fields[i]);
+					sv = m_batch.get(uid);
+					if (sv != null)
+						tabbed_fields[i] = sv.getID();
+				} catch (InvalidSettingsException ise) {		// handle invalid sequence ID
+					ise.printStackTrace();
+				}
 			} 
 			cells[i] = new StringCell(tabbed_fields[i]);
 			fields.put(m_idx2col.get(new Integer(i)), tabbed_fields[i]);
