@@ -207,10 +207,24 @@ public abstract class BioJavaProcessorTask extends AbstractCellFactory {
 	 * 
 	 * @param sv
 	 * @return the converted sequence
-	 * @throws InvalidSettingsException if the conversion is ill-defined. This includes unknown nucleotide conversion (could assume DNA is suppose)
 	 */
 	public SymbolList asBioJava(SequenceValue sv) throws InvalidSettingsException,IllegalSymbolException {
+		return asBioJava(sv, sv.getSequenceType());
+	}
+	
+	/**
+	 * Similar to the above, but this method has a default SequenceType to use if the sequence type is ambiguous
+	 * 
+	 * @param sv
+	 * @param assume_by_default if the sequence type is not really known assume this sequence type instead
+	 * @return the BioJava {@link SymbolList} instance (no caching or optimisation is done by this method)
+	 * @throws InvalidSettingsException if the conversion is ill-defined. This includes unknown nucleotide conversion (could assume DNA is suppose)
+	 */
+	public SymbolList asBioJava(SequenceValue sv, SequenceType assume_by_default) throws InvalidSettingsException,IllegalSymbolException {
 		SequenceType st = sv.getSequenceType();
+		if (st == st.Nucleotide || st == st.UNKNOWN)		// ambiguous symbol type: use assume_by_default instead
+			st = assume_by_default;
+		
 		if (st.equals(SequenceType.DNA)) {
 			return DNATools.createDNA(sv.getStringValue());
 		} else if (st.equals(SequenceType.RNA)) {
