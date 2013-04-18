@@ -41,7 +41,14 @@ import au.edu.unimelb.plantcell.servers.bigpi.BIGPIService;
 import au.edu.unimelb.plantcell.servers.bigpi.BIGPIServicePortType;
 
 
-
+/**
+ * Accessor for the BIG-PI web server installed on the Nectar cloud (nectar.org.au) or any server with the 
+ * cloud-bioservices tomcat webapp installed. The node supports both primary omega and, where applicable, secondary site predictions
+ * in short format (for now). BIG-PI predicts GPI anchors amongst C-Terminal protein sequence
+ * 
+ * @author http://www.plantcell.unimelb.edu.au/bioinformatics
+ *
+ */
 public class BIGPIAccessorNodeModel extends AbstractWebServiceNodeModel {
 	 // the logger instance
     private static final NodeLogger logger = NodeLogger.getLogger("BIG-PI Accessor");
