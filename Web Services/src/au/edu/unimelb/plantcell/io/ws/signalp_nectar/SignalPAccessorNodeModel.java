@@ -261,7 +261,7 @@ public class SignalPAccessorNodeModel extends AbstractWebServiceNodeModel {
 		}
 	}
 
-	private void grok_line(DataCell[] cells, String[] fields, Map<UniqueID,SequenceValue> batch) {
+	private void grok_line(DataCell[] cells, String[] fields, Map<UniqueID,SequenceValue> batch) throws InvalidSettingsException {
 		/*
 		cols[0] = new DataColumnSpecCreator("Sequence ID", StringCell.TYPE).createSpec();
 		cols[1] = new DataColumnSpecCreator("CMax", DoubleCell.TYPE).createSpec();
