@@ -49,10 +49,17 @@ public class GFFReader extends LogOutputStream {
 			DataCell[] cells = new DataCell[9];		// must match EmbossPredictorNodeModel.make_output_spec()
 			
 			ScoredRegion sr = getScoredRegion(fields);
-			UniqueID uid = new UniqueID(fields[0]);
-			SequenceValue sv = m_batch.get(uid);
-			if (sv == null)
+			UniqueID uid;
+			SequenceValue sv;
+			try {
+				uid = new UniqueID(fields[0]);
+				sv = m_batch.get(uid);
+				if (sv == null)
+					throw new InvalidSettingsException("Cannot locate input sequence!");
+			} catch (InvalidSettingsException ise) {
+				ise.printStackTrace();
 				return;
+			}
 			
 			cells[0] = new StringCell(sv.getID());
 			cells[1] = new StringCell(fields[1]);
