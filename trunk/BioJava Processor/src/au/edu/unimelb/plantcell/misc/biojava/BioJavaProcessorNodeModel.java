@@ -35,6 +35,7 @@ import au.edu.unimelb.plantcell.core.biojava.tasks.LongestFrameTask;
 import au.edu.unimelb.plantcell.core.biojava.tasks.PositionByResidueTask;
 import au.edu.unimelb.plantcell.core.biojava.tasks.ResidueAnalysisTask;
 import au.edu.unimelb.plantcell.core.biojava.tasks.ResidueFrequencyTask;
+import au.edu.unimelb.plantcell.core.biojava.tasks.ReverseComplementTask;
 import au.edu.unimelb.plantcell.core.biojava.tasks.SNPAssistedFrameshiftDetector;
 import au.edu.unimelb.plantcell.core.biojava.tasks.SequenceCleanerTask;
 import au.edu.unimelb.plantcell.core.biojava.tasks.SequenceTranslationTask;
@@ -118,6 +119,7 @@ public class BioJavaProcessorNodeModel extends NodeModel {
 				new AlignmentSequenceExtractorTask(),
 				new GCCalculatorTask(),
 				new ResidueAnalysisTask(),
+				new ReverseComplementTask(),
 				new HydrophobicityTask()
     	};
     }
@@ -173,6 +175,8 @@ public class BioJavaProcessorNodeModel extends NodeModel {
     		return new ResidueAnalysisTask();
     	} else if (task.startsWith("Add six different measure of hydrophobicity")) {
     		return new HydrophobicityTask();
+    	} else if (task.startsWith("Reverse Complement")) {
+    		return new ReverseComplementTask();
     	} else if (task.trim().length() >= 1) {
         	throw new NotImplementedException("Unknown BioJava task to perform! Probably a bug...");
     	} else {
