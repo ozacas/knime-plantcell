@@ -1,6 +1,8 @@
 package au.edu.unimelb.plantcell.annotations;
 
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -8,7 +10,10 @@ import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultListModel;
 import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
@@ -19,7 +24,6 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
 
 import org.knime.core.data.DataColumnProperties;
 import org.knime.core.data.DataColumnSpec;
@@ -54,11 +58,11 @@ public class Sequence2StringsNodeDialog extends DefaultNodeSettingsPane implemen
 	 * How many rows to show in the tree view
 	 */
 	private final static int SHOW_N_ROWS = 10;
-	private String[] m_default_selection;
 	private final TreeModel m_tree = new TreeModel();
 	private DataTableSpec m_specs = null;
     private final SettingsModelString sms = new SettingsModelString(Sequence2StringsNodeModel.CFGKEY_SEQUENCE_COL, "");
     private JTree m_items;
+    private JList<String> m_sel_items;
     private final JTextPane m_help_label = new JTextPane();
  
 	protected Sequence2StringsNodeDialog() {
@@ -83,12 +87,14 @@ public class Sequence2StringsNodeDialog extends DefaultNodeSettingsPane implemen
         			
         		}));
         
-        JPanel p = ((JPanel) getTab("Options"));
+        JPanel options_panel =  ((JPanel) getTab("Options"));
+        JPanel p = new JPanel();
+        p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+        options_panel.add(p);
         
         m_items = new JTree(m_tree);
         m_items.setMinimumSize(new Dimension(150,120));
         m_items.setVisibleRowCount(SHOW_N_ROWS);
-        m_items.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
         m_items.setRootVisible(false);
         m_items.setCellRenderer(new DefaultTreeCellRenderer() {
 
@@ -103,16 +109,61 @@ public class Sequence2StringsNodeDialog extends DefaultNodeSettingsPane implemen
 			}
         });
         JPanel p2 = new JPanel();
-        p2.setBorder(BorderFactory.createTitledBorder("What to extract? (several can be chosen)"));
+        p2.setBorder(BorderFactory.createTitledBorder("Available methods"));
         p2.setLayout(new BoxLayout(p2, BoxLayout.X_AXIS));
         p2.add(new JScrollPane(m_items));
+        JPanel button_panel = new JPanel();
+        button_panel.setLayout(new BoxLayout(button_panel, BoxLayout.Y_AXIS));
+        m_sel_items = new JList<String>(new DefaultListModel<String>());
+
+        JButton button_add = new JButton("Add >>");
+        button_add.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				String name = m_tree.findName(m_items.getSelectionPath());
+				if (name != null) {
+					DefaultListModel<String> lm = (DefaultListModel<String>) m_sel_items.getModel();
+					if (lm.indexOf(name) < 0)
+						lm.addElement(name);
+				}
+			}
+        	
+        });
+        JButton button_rm  = new JButton("<< Remove");
+        button_rm.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int idx = m_sel_items.getSelectedIndex();
+				if (idx >= 0) {
+					DefaultListModel<String> lm = (DefaultListModel<String>) m_sel_items.getModel();
+					lm.removeElementAt(idx);
+				}
+			}
+        	
+        });
+        
+        button_panel.add(button_add);
+        button_panel.add(Box.createRigidArea(new Dimension(0, 10)));
+        button_panel.add(button_rm);
+  
+        JPanel selected_items_panel = new JPanel();
+        selected_items_panel.setBorder(BorderFactory.createTitledBorder("Methods to execute (ie. add columns)"));
+        selected_items_panel.setLayout(new BoxLayout(selected_items_panel, BoxLayout.X_AXIS));
+        selected_items_panel.add(new JScrollPane(m_sel_items));
+       
         p.add(p2);
-        p.add(Box.createRigidArea(new Dimension(6,6)));
+        p.add(button_panel);
+        p.add(selected_items_panel);
+        
         JPanel help_panel = new JPanel();
         help_panel.add(m_help_label);
         m_help_label.setContentType("text/html");
-        final JScrollPane help_sp = new JScrollPane(help_panel);
-        p.add(help_sp);
+        m_help_label.setEditable(false);
+               
+        final JScrollPane help_sp = new JScrollPane(help_panel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        options_panel.add(help_sp);
         
         // update help when a suitable list selection is made
         m_items.addTreeSelectionListener(new TreeSelectionListener() {
@@ -134,12 +185,7 @@ public class Sequence2StringsNodeDialog extends DefaultNodeSettingsPane implemen
 					}
 					// fallthru...
 				} else {
-					m_help_label.setText("<html><h3>Please select a single task for help.");
-				}
-				
-				// ensure last user selection is always visible (eg. when loading the dialog for the first time)
-				if (leaf_selected.size() >= 1) {
-					m_items.scrollPathToVisible(leaf_selected.get(0));
+					m_help_label.setText("<html><h3>Please select a single task on the left for help.");
 				}
 			}
         	
@@ -159,50 +205,39 @@ public class Sequence2StringsNodeDialog extends DefaultNodeSettingsPane implemen
 	public void onOpen() {
 		stateChanged(null);
 	}
-	
-	private void update_selection(final String[] sel) {
-		List<TreePath> tp_list = new ArrayList<TreePath>();
-		if (sel.length > 0) {
-			m_items.clearSelection();
-			for (String tmp : sel) {
-				TreePath tp = m_tree.getPath(tmp);
-				if (tp != null) {
-					tp_list.add(tp);
-				}
-			}
-			m_items.addSelectionPaths(tp_list.toArray(new TreePath[0]));
-		}
-	}
+
 	
 	@Override
 	public void loadAdditionalSettingsFrom(NodeSettingsRO s, DataTableSpec[] specs) 
 					throws NotConfigurableException {
 		m_specs = specs[0];
-		if (m_items != null && m_items.getSelectionCount() < 1) {
-			if (s.containsKey(Sequence2StringsNodeModel.CFGKEY_WANTED)) {
-				try {
-					m_default_selection = s.getStringArray(Sequence2StringsNodeModel.CFGKEY_WANTED);
-					update_selection(m_default_selection);
-				} catch (InvalidSettingsException e) {
-					e.printStackTrace();
+		
+		if (s.containsKey(Sequence2StringsNodeModel.CFGKEY_WANTED)) {
+			try {
+				String[] sel = s.getStringArray(Sequence2StringsNodeModel.CFGKEY_WANTED);
+				DefaultListModel<String> mdl = ((DefaultListModel<String>)m_sel_items.getModel());
+				mdl.removeAllElements();
+				for (String item : sel) {
+					mdl.addElement(item);
 				}
+			} catch (InvalidSettingsException e) {
+				e.printStackTrace();
 			}
+		} else {
+			DefaultListModel<String> mdl = ((DefaultListModel<String>)m_sel_items.getModel());
+			mdl.addElement(Sequence2StringsNodeModel.SEQUENCE_ID);
+			mdl.addElement(Sequence2StringsNodeModel.SEQUENCE_LENGTH);
 		}
 	}
 
 	@Override
 	public void saveAdditionalSettingsTo(NodeSettingsWO settings) throws InvalidSettingsException {
-		List<TreePath> selitems = m_tree.paths2leaves(m_items.getSelectionPaths());
-		if (selitems == null || selitems.size() < 1) {
-			settings.addStringArray(Sequence2StringsNodeModel.CFGKEY_WANTED, "");
-		} else {
-			String[] sel = new String[selitems.size()];
-			int i=0;
-			for (TreePath o : selitems) {
-				sel[i++] = m_tree.findName(o);
-			}
-			settings.addStringArray(Sequence2StringsNodeModel.CFGKEY_WANTED, sel);
+		ArrayList<String> items = new ArrayList<String>();
+		for (int i=0; i<m_sel_items.getModel().getSize(); i++) {
+			items.add(m_sel_items.getModel().getElementAt(i));
 		}
+		
+		settings.addStringArray(Sequence2StringsNodeModel.CFGKEY_WANTED, items.toArray(new String[0]));
 	}
 
 	@Override
@@ -246,7 +281,6 @@ public class Sequence2StringsNodeDialog extends DefaultNodeSettingsPane implemen
 			}
 		}
 		m_tree.invalidate();		// signal listeners
-		update_selection(m_default_selection);
 	}
 }
 
