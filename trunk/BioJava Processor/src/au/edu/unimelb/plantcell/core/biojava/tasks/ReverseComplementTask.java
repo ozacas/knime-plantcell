@@ -46,7 +46,9 @@ public class ReverseComplementTask extends BioJavaProcessorTask {
 	/** {@inheritDoc} */
 	@Override
 	public String getHTMLDescription(String task) {
-		return "<html>Using BioJava, this routine computes the reverse complement of the input nucleotide (ie. RNA or DNA) sequence";
+		return "<html>Using BioJava, this routine computes the reverse complement of the input nucleotide (ie. RNA or DNA) sequence "+
+				"using a procedure similar to http://biojava.org/wiki/BioJava:Cookbook:Sequence:Reverse. This routine will assume " +
+				"DNA sequence if no sequence type information is available (eg. from the Fasta Reader)";
 	}
 
 	@Override
