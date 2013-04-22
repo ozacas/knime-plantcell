@@ -92,7 +92,7 @@ public class AugustusLogger extends LogOutputStream {
 						m_last_seq_id = "";
 					else
 						m_last_seq_id   = sv.getID();
-				} catch (NumberFormatException nfe) {
+				} catch (Exception e) {
 					// be silent for poor regular expression matches
 				}
 				String[] fields = line.split("\\t+");
