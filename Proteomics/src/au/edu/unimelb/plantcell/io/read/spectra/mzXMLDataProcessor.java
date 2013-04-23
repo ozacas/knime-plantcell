@@ -11,7 +11,6 @@ import org.expasy.jpl.io.ms.jrap.Scan;
 import org.expasy.jpl.io.ms.jrap.ScanHeader;
 import org.expasy.jpl.io.ms.jrap.SoftwareInfo;
 import org.knime.core.data.DataCell;
-import org.knime.core.data.DataType;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
@@ -67,16 +66,16 @@ public class mzXMLDataProcessor extends AbstractDataProcessor {
 
 	protected void process_scans(ExecutionContext exec, MyDataContainer scan_container) throws Exception {
 		int ncols = scan_container.getTableSpec().getNumColumns();
+	
 		for (int i=1; i<=m_p.getScanCount(); i++) {
 			ScanHeader sh = m_p.rapHeader(i);
+			DataCell[] cells = missing_cells(ncols);
 			
-			DataCell[] cells = new DataCell[ncols];
+			String scan_type = (sh.getScanType() != null) ? sh.getScanType() + " " : "";
+			String title = "RT="+sh.getRetentionTime()+", "+scan_type+", MS="+sh.getMsLevel()+", TIC="+sh.getTotIonCurrent();
 			
-			DataCell scan_type = (sh.getScanType() != null) ? 
-									new StringCell(sh.getScanType()) : DataType.getMissingCell();
-			
-			cells[0] = scan_type;
-			cells[1] = new StringCell(sh.getPolarity());
+			cells[0] = new StringCell(title);
+			cells[1] = new StringCell(scan_type + sh.getPolarity());
 			cells[2] = new StringCell(sh.getRetentionTime());
 			cells[3] = new DoubleCell(sh.getBasePeakIntensity());
 			cells[4] = new DoubleCell(sh.getBasePeakMz());
@@ -84,10 +83,8 @@ public class mzXMLDataProcessor extends AbstractDataProcessor {
 			cells[6] = new IntCell(sh.getDeisotoped());
 			cells[7] = new IntCell(sh.getChargeDeconvoluted());
 			cells[8] = new IntCell(sh.getMsLevel());
-			cells[9] = DataType.getMissingCell();
 			cells[10]= new IntCell(sh.getPrecursorCharge());
 			cells[11]= new IntCell(sh.getPrecursorScanNum());
-			cells[12]= DataType.getMissingCell();
 			cells[13]= new DoubleCell(sh.getPrecursorMz());
 			cells[14]= new DoubleCell(sh.getTotIonCurrent());
 			cells[15]= new DoubleCell(sh.getCollisionEnergy());
@@ -102,7 +99,7 @@ public class mzXMLDataProcessor extends AbstractDataProcessor {
 			// load spectra?
 			if (ncols > 23) {
 					Scan s = m_p.rap(sh.getNum());
-					cells[23] = SpectraUtilityFactory.createCell(s, scan_type.toString());
+					cells[23] = SpectraUtilityFactory.createCell(s, scan_type);
 			}
 			scan_container.addRow(cells);
 			

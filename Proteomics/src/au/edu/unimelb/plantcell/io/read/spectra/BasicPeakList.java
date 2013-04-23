@@ -91,8 +91,7 @@ public class BasicPeakList implements Serializable {
 	public BasicPeakList(SpectrumAdapter sa) {
 		assert(sa != null);
 	
-		String title = "TITLE=Scan:"+sa.getIndex()+", RT: "+sa.getRetentionTime()+", ID: "+ sa.getID();
-		addHeader("TITLE", title);
+		addHeader("TITLE", sa.getTitle());
 		addHeader("PEPMASS", ""+sa.getParentMZ()+" "+sa.getParentIntensity());
 		addHeader("CHARGE", String.valueOf(sa.getParentCharge()));
 		if (sa.getRetentionTime() > 0.0) {
