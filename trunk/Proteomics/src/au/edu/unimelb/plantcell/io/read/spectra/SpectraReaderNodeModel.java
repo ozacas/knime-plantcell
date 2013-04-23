@@ -8,6 +8,7 @@ import java.util.List;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
@@ -187,14 +188,14 @@ public class SpectraReaderNodeModel extends NodeModel {
         }
         
     	DataColumnSpec[] allColSpecs = new DataColumnSpec[NUM_SCAN_COLS+extra];
-        allColSpecs[0] = new DataColumnSpecCreator("Scan Type", StringCell.TYPE).createSpec();
-        allColSpecs[1] = new DataColumnSpecCreator("Polarity", StringCell.TYPE).createSpec();
+        allColSpecs[0] = new DataColumnSpecCreator("Scan Title", StringCell.TYPE).createSpec();
+        allColSpecs[1] = new DataColumnSpecCreator("Scan type & Polarity", StringCell.TYPE).createSpec();
         allColSpecs[2] = new DataColumnSpecCreator("Retention Time", StringCell.TYPE).createSpec();
         allColSpecs[3] = new DataColumnSpecCreator("Base Peak Intensity", DoubleCell.TYPE).createSpec();
         allColSpecs[4] = new DataColumnSpecCreator("Base Peak M/Z", DoubleCell.TYPE).createSpec();
-        allColSpecs[5] = new DataColumnSpecCreator("Centroided?", IntCell.TYPE).createSpec();
-        allColSpecs[6] = new DataColumnSpecCreator("Deisotoped?", IntCell.TYPE).createSpec();
-        allColSpecs[7] = new DataColumnSpecCreator("Charge Deconvoluted?", IntCell.TYPE).createSpec();
+        allColSpecs[5] = new DataColumnSpecCreator("Centroided?", BooleanCell.TYPE).createSpec();
+        allColSpecs[6] = new DataColumnSpecCreator("Deisotoped?", BooleanCell.TYPE).createSpec();
+        allColSpecs[7] = new DataColumnSpecCreator("Charge Deconvoluted?", BooleanCell.TYPE).createSpec();
         allColSpecs[8] = new DataColumnSpecCreator("MS Level (2=MS/MS)", IntCell.TYPE).createSpec();
         allColSpecs[9] = new DataColumnSpecCreator("Scan ID", StringCell.TYPE).createSpec();
         allColSpecs[10] = new DataColumnSpecCreator("Precursor Charge", IntCell.TYPE).createSpec();
