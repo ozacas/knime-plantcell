@@ -24,6 +24,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.ListModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -108,7 +109,7 @@ public class SequenceExtractorNodeDialog extends DefaultNodeSettingsPane {
         col_panel.add(accsn_panel);
         
         fasta_file_panel.add(col_panel, BorderLayout.NORTH);
-        fasta_file_panel.add(flist, BorderLayout.CENTER);
+        fasta_file_panel.add(new JScrollPane(flist), BorderLayout.CENTER);
         
         final JPanel button_panel = new JPanel();
         button_panel.setLayout(new GridLayout(2, 1));
