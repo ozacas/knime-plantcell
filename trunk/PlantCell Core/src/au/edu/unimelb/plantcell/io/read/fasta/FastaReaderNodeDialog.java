@@ -23,6 +23,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.ListModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -98,7 +99,7 @@ public class FastaReaderNodeDialog extends DefaultNodeSettingsPane {
         seqtype_panel.add(seqtype_list);
         proc_panel.add(seqtype_panel);
         fasta_file_panel.add(proc_panel, BorderLayout.NORTH);
-        fasta_file_panel.add(flist, BorderLayout.CENTER);
+        fasta_file_panel.add(new JScrollPane(flist), BorderLayout.CENTER);
         final JPanel button_panel = new JPanel();
         button_panel.setLayout(new GridLayout(2, 1));
         final JButton add_button = new JButton("Add FASTA files...");
