@@ -152,7 +152,7 @@ public class mzMLDataProcessor extends AbstractDataProcessor {
 		
 		if (analyzerCnt > 0) {
 			try {
-				MzMLObjectIterator<AnalyzerComponent> it2 = new MzMLUnmarshaller(f).unmarshalCollectionFromXpath(ANALYZER_XPATH, AnalyzerComponent.class);			
+				MzMLObjectIterator<AnalyzerComponent> it2 = rdr.unmarshalCollectionFromXpath(ANALYZER_XPATH, AnalyzerComponent.class);			
 				cells[4] = safe_cell(make_paramgroup_string(it2.next()));
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -162,7 +162,7 @@ public class mzMLDataProcessor extends AbstractDataProcessor {
 		
 		if (detectorCnt > 0) {
 			try {
-				MzMLObjectIterator<DetectorComponent> it3 = new MzMLUnmarshaller(f).unmarshalCollectionFromXpath(DETECTOR_XPATH, DetectorComponent.class);
+				MzMLObjectIterator<DetectorComponent> it3 = rdr.unmarshalCollectionFromXpath(DETECTOR_XPATH, DetectorComponent.class);
 				cells[6] = safe_cell(make_paramgroup_string(it3.next()));
 			} catch (Exception e) {
 				e.printStackTrace();
