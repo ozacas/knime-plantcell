@@ -181,7 +181,7 @@ public class ANOVA1WayNodeModel extends NodeModel {
     }
     
 	private DataTableSpec make_output_spec(DataTableSpec inSpec) {
-    	DataColumnSpec[] cols = new DataColumnSpec[8];
+    	DataColumnSpec[] cols = new DataColumnSpec[4];
     	
     	cols[0] = new DataColumnSpecCreator("ANOVA: Samples", ListCell.getCollectionType(StringCell.TYPE)).createSpec();
     	cols[1] = new DataColumnSpecCreator("ANOVA: F-Value", DoubleCell.TYPE).createSpec();
