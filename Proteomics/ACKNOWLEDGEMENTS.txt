@@ -1,12 +1,26 @@
 
-This KNIME node requires GLPK "GNU Linear Programming Kit" to compute the
-minimum set cover ILP formulation. GLPK v4.4 must be installed 
-on the computer where KNIME is installed for the node to operate.
+This plugin requires:
 
+1) GLPK "GNU Linear Programming Kit" to compute the
+minimum set cover problem used for minimum protein inferencing. GLPK v4.4 (or hopefully later works too)
+must be installed on the computer where KNIME is installed for the node to operate.
 Further details can be found at http://www.gnu.org/s/glpk/
 
-The author gratefully acknowledges this product, whose excellent work
-makes the node straightforward.
+2) JavaProtLib: http://javaprotlib.sourceforge.net/
+From the Swiss Institute of Bioinformatics. Excellent java proteomics library - also needs many supporting
+packages as described on http://javaprotlib.sourceforge.net/packages.html
+
+3) MascotDatFile: https://code.google.com/p/mascotdatfile/
+Makes processing of Proteomics results from Mascot (www.matrixscience.com) much easier. Good support for all
+results.
+
+4) jMZML: http://code.google.com/p/jmzml/
+Makes working with vendor data converted from proprietary formats much easier
+
+
+The author gratefully acknowledges the authors of these packages whose excellent work
+makes the nodes straightforward.
+
 
 Andrew Cassin
 acassin@unimelb.edu.au
