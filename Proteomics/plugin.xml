@@ -20,7 +20,18 @@
       		category-path="/Bioinformatics/Mass Spectrometry/Proteomics"
       		factory-class="au.edu.unimelb.plantcell.proteomics.peakextractor.SpectralPeakExtractorNodeFactory"
       		id="au.edu.unimelb.plantcell.proteomics.phosphorylation.PhosphorylationScorerNodeFactory" />
-      		
+      <node
+      		category-path="/Bioinformatics/Mass Spectrometry/Proteomics"
+      		factory-class="au.edu.unimelb.plantcell.proteomics.spectra.clustering.SpectraCorrelationNodeFactory"
+      		id="au.edu.unimelb.plantcell.proteomics.spectra.clustering.SpectraCorrelationNodeFactory" />
+      <node
+      		category-path="/Bioinformatics/Mass Spectrometry/Proteomics"
+      		factory-class="au.edu.unimelb.plantcell.proteomics.spectra.filtering.SpectraFilteringNodeFactory"
+      		id="au.edu.unimelb.plantcell.proteomics.spectra.filtering.SpectraFilteringNodeFactory" />
+      <node
+            category-path="/Bioinformatics/Under Development/Deprecated"
+            factory-class="au.edu.unimelb.plantcell.io.read.pepxml.PepXMLReaderNodeFactory"
+            id="au.edu.unimelb.plantcell.io.read.pepxml.PepXMLReaderNodeFactory"/>
    </extension>
    
    <extension
