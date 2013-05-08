@@ -215,6 +215,7 @@ public class MascotReaderNodeModel extends NodeModel {
 	        		save_parameters(c2, p, f);
         		} catch (Exception e) {
         			logger.warn("Cannot process "+f.getName()+" - file corrupt?");
+        			e.printStackTrace();
         			bad++;
         			continue;
         		}

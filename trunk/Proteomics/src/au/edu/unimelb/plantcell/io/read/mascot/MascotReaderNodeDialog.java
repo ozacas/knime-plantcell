@@ -7,11 +7,13 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.ListModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -62,13 +64,13 @@ public class MascotReaderNodeDialog extends DefaultNodeSettingsPane {
         
         set_controls();
        
-        final JList flist = new JList(file_list.getStringArrayValue());
+        final JList<String> flist = new JList<String>(file_list.getStringArrayValue());
         file_list.addChangeListener( new ChangeListener() {
 
 			@Override
 			public void stateChanged(ChangeEvent arg0) {
 				final String[] cur_files = file_list.getStringArrayValue();
-				flist.setModel(new ListModel() {
+				flist.setModel(new ListModel<String>() {
 					private ArrayList<ListDataListener> m_l = new ArrayList<ListDataListener>();
 					
 					@Override
@@ -77,7 +79,7 @@ public class MascotReaderNodeDialog extends DefaultNodeSettingsPane {
 					}
 
 					@Override
-					public Object getElementAt(int index) {
+					public String getElementAt(int index) {
 						return cur_files[index];
 					}
 
@@ -99,7 +101,7 @@ public class MascotReaderNodeDialog extends DefaultNodeSettingsPane {
         final JPanel file_panel = new JPanel();
         file_panel.setLayout(new BorderLayout());
        
-        file_panel.add(flist, BorderLayout.CENTER);
+        file_panel.add(new JScrollPane(flist), BorderLayout.CENTER);
         final JPanel button_panel = new JPanel();
         button_panel.setLayout(new GridLayout(2, 1));
         final JButton add_button = new JButton("Add Mascot DAT files...");
@@ -150,11 +152,11 @@ public class MascotReaderNodeDialog extends DefaultNodeSettingsPane {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				Object[]       sel_files = flist.getSelectedValues();
+				List<String>       sel_files = flist.getSelectedValuesList();
 				HashSet<String> sel_set = new HashSet<String>();
 				
-				for (Object f : sel_files) {
-					sel_set.add(f.toString());
+				for (String f : sel_files) {
+					sel_set.add(f);
 				}
 			
 				HashSet<String> new_files = new HashSet<String>();
