@@ -8,8 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
-import org.expasy.jpl.core.ms.spectrum.peak.Peak;
-import org.expasy.jpl.core.ms.spectrum.peak.PeakImpl;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -62,8 +60,7 @@ import com.compomics.mascotdatfile.util.mascot.factory.MascotDatfileFactory;
 public class MascotReaderNodeModel extends NodeModel {
     
     // the logger instance
-    private static final NodeLogger logger = NodeLogger
-            .getLogger(MascotReaderNodeModel.class);
+    private static final NodeLogger logger = NodeLogger.getLogger("Mascot Reader");
     private static int N_COLS = 15;		// number of output columns for the node
         
     /** the settings key which is used to retrieve and 
@@ -214,6 +211,8 @@ public class MascotReaderNodeModel extends NodeModel {
 	        		Parameters p = mascot_dat_file.getParametersSection();
 	        		save_parameters(c2, p, f);
         		} catch (Exception e) {
+        			if (e instanceof CanceledExecutionException)
+        				throw e;
         			logger.warn("Cannot process "+f.getName()+" - file corrupt?");
         			e.printStackTrace();
         			bad++;
@@ -478,13 +477,7 @@ public class MascotReaderNodeModel extends NodeModel {
     	
     	// HACK TODO: assumes MS/MS - 2 in the final parameter
     	BasicPeakList mgf = new BasicPeakList(String.valueOf(q.getPrecursorMZ()), q.getChargeString(), q.getTitle(), 2);
-    	
-    	// NB: careful! two different java packages have a class Peak, carefully work around this...
-    	ArrayList<Peak> peaks = new ArrayList<Peak>();
-    	for (com.compomics.mascotdatfile.util.mascot.Peak p : q.getPeakList()) {
-    		peaks.add(new PeakImpl.Builder(p.getMZ()).intensity(p.getIntensity()).build());
-    	}
-    	mgf.setPeakList(peaks);
+    	mgf.setPeakList(q.getMZArray(), q.getIntensityArray());
     	
     	return SpectraUtilityFactory.createCell(mgf);	
     }
