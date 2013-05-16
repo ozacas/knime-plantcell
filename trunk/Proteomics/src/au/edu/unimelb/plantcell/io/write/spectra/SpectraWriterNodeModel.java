@@ -4,24 +4,16 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.knime.core.data.DataCell;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.RowIterator;
-import org.knime.core.data.RowKey;
-import org.knime.core.data.def.DefaultRow;
-import org.knime.core.data.def.DoubleCell;
-import org.knime.core.data.def.IntCell;
-import org.knime.core.data.def.StringCell;
-import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
@@ -29,6 +21,8 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 import au.edu.unimelb.plantcell.io.read.spectra.MGFSpectraCell;
 import au.edu.unimelb.plantcell.io.read.spectra.SpectraValue;
@@ -43,16 +37,16 @@ import au.edu.unimelb.plantcell.io.read.spectra.SpectraValue;
 public class SpectraWriterNodeModel extends NodeModel {
     
     // the logger instance
-    private static final NodeLogger logger = NodeLogger
-            .getLogger(SpectraWriterNodeModel.class);
+    private static final NodeLogger logger = NodeLogger.getLogger("Write Peak List");
         
     /** the settings key which is used to retrieve and 
         store the settings (from the dialog or from a settings file)    
        (package visibility to be usable from the dialog). */
-	static final String CFGKEY_FILE = "output-file";
-	static final String CFGKEY_OVERWRITE = "overwrite";
-	static final String CFGKEY_FORMAT = "file-format";
-	static final String CFGKEY_COLUMN = "spectra";
+	static final String CFGKEY_FILE            = "output-file";
+	static final String CFGKEY_OVERWRITE       = "overwrite";
+	static final String CFGKEY_FORMAT          = "file-format";
+	static final String CFGKEY_COLUMN          = "spectra";
+	static final String CFGKEY_FILENAME_SUFFIX = "suffix";
 	
     private static final String DEFAULT_FILE = "c:/temp/spectra.mgf";
     private static final boolean DEFAULT_OVERWRITE = false;
@@ -62,11 +56,11 @@ public class SpectraWriterNodeModel extends NodeModel {
     // example value: the models count variable filled from the dialog 
     // and used in the models execution method. The default components of the
     // dialog work with "SettingsModels".
-    private final SettingsModelString m_file = new SettingsModelString(CFGKEY_FILE, DEFAULT_FILE);
+    private final SettingsModelString m_file       = new SettingsModelString(CFGKEY_FILE, DEFAULT_FILE);
     private final SettingsModelBoolean m_overwrite = new SettingsModelBoolean(CFGKEY_OVERWRITE, DEFAULT_OVERWRITE);
-    private final SettingsModelString m_format = new SettingsModelString(CFGKEY_FORMAT, DEFAULT_FORMAT);
-    private final SettingsModelString m_col = new SettingsModelString(CFGKEY_COLUMN, DEFAULT_COLUMN);
-    
+    private final SettingsModelString m_format     = new SettingsModelString(CFGKEY_FORMAT, DEFAULT_FORMAT);
+    private final SettingsModelString m_col        = new SettingsModelString(CFGKEY_COLUMN, DEFAULT_COLUMN);
+    private final SettingsModelString m_suffix     = new SettingsModelString(CFGKEY_FILENAME_SUFFIX, "");
 
     /**
      * Constructor for the node model.
@@ -90,7 +84,19 @@ public class SpectraWriterNodeModel extends NodeModel {
     	
     	int done = 0;
     	int todo = inData[0].getRowCount();
-    	PrintWriter pw = new PrintWriter(new FileWriter(new File(m_file.getStringValue())));
+    	
+    	HashMap<String,PrintWriter> file_map = new HashMap<String,PrintWriter>();
+    	
+    	boolean use_suffix = (m_suffix.getStringValue().length() > 0 && !m_suffix.getStringValue().equalsIgnoreCase("<none>"));
+    	File basename = new File(m_file.getStringValue());
+    	int suffix_idx = -1;
+    	if (!use_suffix) {
+    		file_map.put(basename.getName(), new PrintWriter(new FileWriter(basename)));
+    	} else {
+    		suffix_idx = inData[0].getSpec().findColumnIndex(m_suffix.getStringValue());
+    		if (suffix_idx < 0)
+    			throw new InvalidSettingsException("Cannot locate suffix column... aborting! "+m_suffix.getStringValue());
+    	}
     	
     	while (it.hasNext()) {
     		DataRow r = it.next();
@@ -98,17 +104,27 @@ public class SpectraWriterNodeModel extends NodeModel {
     		double[] mz = sdi.getMZ();
     		double[] intensity = sdi.getIntensity();
     		String title = sdi.getID();
-    		int tc  = sdi.getMSLevel();
     		
-    		// HACK TODO: get charge and pepmass via SpectraDataInterface?
+    		// never fails (unless exception thrown) and the writer is ready for use...
+    		PrintWriter pw = get_pw(use_suffix, suffix_idx, r, file_map, basename);
+    		
+    		// HACK TODO: get charge and pepmass via SpectraValue interface?
     		String charge = "";
     		String pepmass= null;
+    		String scan = null;
+    		String rt = null;
     		if (sdi instanceof MGFSpectraCell) {
     			MGFSpectraCell mgf = (MGFSpectraCell) sdi;
     			charge = mgf.getCharge();
     			pepmass= mgf.getPepmass();
     			if (pepmass != null && pepmass.trim().length() == 0)
     				pepmass = null;
+    			scan = mgf.getScan();
+    			if (scan.equals(""))
+    				scan = null;
+    			rt   = mgf.getRT();
+    			if (rt.equals(""))
+    				rt = null;
     		}
     		
     		if (done % 100 == 0) {
@@ -126,18 +142,32 @@ public class SpectraWriterNodeModel extends NodeModel {
     		if (charge.indexOf("+") < 0) 
     			term = "+";
     		pw.println("CHARGE="+charge+term);
-    		for (int i=0; i<mz.length; i++) {
-    			pw.print(mz[i]);
-    			pw.print(' ');
-    			pw.println(intensity[i]);
+    		if (scan != null) {
+    			pw.println("SCANS="+scan);
+    		}
+    		if (rt != null) {
+    			pw.println("RTINSECONDS="+rt);
+    		}
+    		// any peaks?
+    		if (mz != null && mz.length > 0) {
+	    		for (int i=0; i<mz.length; i++) {
+	    			pw.print(mz[i]);
+	    			pw.print(' ');
+	    			pw.println(intensity[i]);
+	    		}
+    		} else {
+    			logger.warn(title+ " has no peaks (but saved without peaks anyway)!");
     		}
     		pw.println("END IONS");
     		
     		done++;
     	}
     	
-    	// close the file
-    	pw.close();
+    	// close all files
+    	logger.info("Saved spectra to "+file_map.size()+" files.");
+    	for (String s : file_map.keySet()) {
+    		file_map.get(s).close();
+    	}
     	logger.info("Wrote "+done+" spectra.");
     	
     	// done!
@@ -145,6 +175,55 @@ public class SpectraWriterNodeModel extends NodeModel {
     }
 
     /**
+     * Create a print writer which is ready for use based on node configuration and the current row (containing the peak list to be saved).
+     * The map is updated to include the PrintWriter for further use if needed
+     * 
+     * @param use_suffix
+     * @param suffix_idx
+     * @param r
+     * @param file_map
+     * @return
+     * @throws IOException
+     * @throws InvalidSettingsException if an invalid suffix is encountered during execute() or if a file already exists and the node configuration does not permit overwrite
+     */
+    private PrintWriter get_pw(boolean use_suffix, int suffix_idx, DataRow r,
+			HashMap<String, PrintWriter> file_map, File basename) throws InvalidSettingsException, IOException {
+		if (!use_suffix) {
+			return file_map.get(basename.getName());
+		} else {
+			String bn = basename.getName();
+			Pattern p = Pattern.compile("^(.*)(\\.[a-zA-Z0-9]+)$");
+			Matcher m = p.matcher(bn);
+			DataCell suffix_cell =  r.getCell(suffix_idx);
+			if (suffix_cell == null || suffix_cell.isMissing())
+				throw new InvalidSettingsException("Suffix cannot be missing!");
+			String suffix_to_use = suffix_cell.toString();
+			if (suffix_to_use.indexOf(File.separatorChar) >= 0)
+				throw new InvalidSettingsException("Suffix cannot contain: "+File.separatorChar);
+			
+			File f = null;
+			if (m.matches()) {
+				String sans_ext = m.group(1);
+				f = new File(basename.getParent(), sans_ext+suffix_cell.toString()+m.group(2));
+			} else {
+				f = new File(basename.getParent(), bn+suffix_cell.toString());
+			}
+			
+			if (file_map.containsKey(f.getName())) {
+				return file_map.get(f.getName());
+			} else {
+				if (f.exists() && !m_overwrite.getBooleanValue())
+					throw new InvalidSettingsException("Will not overwrite existing: "+f.getAbsolutePath());
+				
+				logger.info("Saving spectra to "+f.getAbsolutePath());
+				PrintWriter pw = new PrintWriter(new FileWriter(f));
+				file_map.put(f.getName(), pw);
+				return pw;
+			}
+		}
+	}
+
+	/**
      * {@inheritDoc}
      */
     @Override
@@ -176,6 +255,7 @@ public class SpectraWriterNodeModel extends NodeModel {
     	m_file.saveSettingsTo(settings);
     	m_format.saveSettingsTo(settings);
     	m_overwrite.saveSettingsTo(settings);
+    	m_suffix.saveSettingsTo(settings);
     }
 
     /**
@@ -188,6 +268,13 @@ public class SpectraWriterNodeModel extends NodeModel {
     	m_file.loadSettingsFrom(settings);
     	m_format.loadSettingsFrom(settings);
     	m_overwrite.loadSettingsFrom(settings);
+    	
+    	// backwards compatibility
+    	if (settings.containsKey(CFGKEY_FILENAME_SUFFIX)) {
+    		m_suffix.loadSettingsFrom(settings);
+    	} else {
+    		m_suffix.setStringValue("");
+    	}
 
     }
 
@@ -201,6 +288,9 @@ public class SpectraWriterNodeModel extends NodeModel {
     	m_file.validateSettings(settings);
     	m_format.validateSettings(settings);
     	m_overwrite.validateSettings(settings);
+    	if (settings.containsKey(CFGKEY_FILENAME_SUFFIX)) {
+    		m_suffix.validateSettings(settings);
+    	}
     }
     
     /**
