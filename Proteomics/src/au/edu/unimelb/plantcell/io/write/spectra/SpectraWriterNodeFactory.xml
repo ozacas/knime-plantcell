@@ -15,17 +15,26 @@
         <p><b>WARNING:</b> this node does not guarantee to preserve all data present
         in the loaded files as the software is incomplete and imperfect. Use this node at own risk.
         In particular MGF does not preserve SCANS header lines, even if the input data has it. This can
-        be useful if you are using software which does not support these headers!</p>
+        be useful if you are using software which does not support these headers! It will also reorder the headers
+        to support most software packages correctly.</p>
         
+        <p>
+        This node can create multiple files based on the chosen column: the filename suffix will be chosen
+        based on a nominal column. Useful for saving multiple MS/MS fractions at once. The suffix can be
+        a column with values like 1, 2, 3, and so on (but it must be a column compatible with strings). It cannot
+        contain path separators (eg. \\ under Windows) </p>
         </intro>
         
-        
-        <option name="short name of first option (like in the dialog)">description of first option</option>
-        <option name="short name of second option (like in the dialog)">description of second option</option>
+        <option name="Output filename">The file to save to. If chosen, the suffix will be appended to each file</option>
+        <option name="Column to save">Spectra column to save eg. from Spectra Reader or Mascot Reader nodes</option>
+        <option name="Overwrite?">The node will abort if an attempt is made to overwrite a file unless this option is checked</option>
+        <option name="Output format">Only MGF is supported for now, other formats to come soon</option>
+        <option name="Suffix column">Choose none to save a single (combined spectra) file, or to create multiple files with. The column
+        must have no more than approx. 40 different values as this will create too many files to be practically useful.</option>
     </fullDescription>
     
     <ports>
-        <inPort index="0" name="In-Port name">Description of first input port...</inPort>
+        <inPort index="0" name="Input spectra">Input spectra to save</inPort>
         <!-- possibly more input ports here-->
     </ports>    
  
