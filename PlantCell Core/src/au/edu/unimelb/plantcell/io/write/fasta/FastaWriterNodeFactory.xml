@@ -18,9 +18,9 @@
     </fullDescription>
     
     <ports>
-        <inPort index="0" name="In-Port name">Input data</inPort>
+        <inPort index="0" name="Input table">Input table include sequence column to be saved in FASTA format.</inPort>
         <!-- possibly more input ports here-->
-        <outPort index="0" name="Out-Port name">Same as input data</outPort>
+        <outPort index="0" name="Input table unmodified">Same as input data</outPort>
         <!-- possibly more output ports here-->
     </ports>    
  
