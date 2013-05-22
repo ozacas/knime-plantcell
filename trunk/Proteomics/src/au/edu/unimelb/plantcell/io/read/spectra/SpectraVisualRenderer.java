@@ -47,7 +47,7 @@ public class SpectraVisualRenderer implements DataValueRenderer {
 	}
 
 	@Override
-	public Component getListCellRendererComponent(JList arg0, Object arg1,
+	public Component getListCellRendererComponent(@SuppressWarnings("rawtypes") JList arg0, Object arg1,
 			int arg2, boolean arg3, boolean arg4) {
 		// TODO Auto-generated method stub
 		return null;
