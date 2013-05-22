@@ -40,7 +40,7 @@
         	<tr>
         		<td>Track ...</td>
         		<td>Extract a track's data into separate columns, one row per feature. Extracting multiple
-        		tracks using one node is not recommended, as this causes a <b>large</b>, sparse, table as a result. Better to use
+        		tracks using one node is not recommended, as this causes a large, sparse, table. Better to use
         		multiple nodes (one per track).</td>
         	</tr>
         </table>
