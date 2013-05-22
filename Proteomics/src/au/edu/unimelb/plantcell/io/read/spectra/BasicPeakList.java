@@ -1,15 +1,21 @@
 package au.edu.unimelb.plantcell.io.read.spectra;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import org.expasy.jpl.core.ms.lc.RetentionTime;
+import org.expasy.jpl.core.ms.lc.RetentionTime.RTUnit;
 import org.expasy.jpl.core.ms.spectrum.PeakList;
 import org.expasy.jpl.core.ms.spectrum.PeakListImpl;
 import org.expasy.jpl.core.ms.spectrum.peak.Peak;
 import org.expasy.jpl.core.ms.spectrum.peak.PeakImpl;
 import org.expasy.jpl.io.ms.MSScan;
+import org.knime.core.data.DataCellDataInput;
+import org.knime.core.data.DataCellDataOutput;
 
 
 /**
@@ -41,10 +47,6 @@ public class BasicPeakList implements Serializable {
 		setPeakList(pl);
 	}
 	
-	public BasicPeakList(List<Peak> pl) {
-		setPeakList(pl);
-	}
-	
 	public BasicPeakList(MSScan ms) {
 		this(ms.getPeakList());
 		
@@ -55,16 +57,27 @@ public class BasicPeakList implements Serializable {
 				title = ms.getComment();
 			addHeader("TITLE",   title);
 			Peak precursor = ms.getPeakList().getPrecursor();
+			try {
+				RetentionTime rt = ms.getRetentionTime();
+				if (rt != null) {
+					rt.setUnit(RTUnit.second);
+					addHeader("RTINSECONDS", Double.toString(rt.getValue()));
+				}
+			} catch (Exception e) {
+				// be silent: retention time not available
+			}
 			if (precursor != null) {
 				addHeader("PEPMASS", String.valueOf(precursor.getMz()));
 				addHeader("CHARGE",  String.valueOf(precursor.getCharge()));
 			}
+			
+			addHeader("SCANS", Integer.toString(ms.getScanNum()));
 		}
 	}
 
 	@SuppressWarnings("unused")
-	public BasicPeakList(String pepmass, String charge, String title, int tc) {
-		assert(tc >= 1);
+	public BasicPeakList(String pepmass, String charge, String title, int msLevel) {
+		assert(msLevel >= 1);
 		
 		try {
 			double pm = Double.valueOf(pepmass);
@@ -75,7 +88,7 @@ public class BasicPeakList implements Serializable {
 				charge = charge.substring(1);
 			}
 			int z = Integer.valueOf(charge);
-			m_ms_level = tc;
+			m_ms_level = msLevel;
 		} catch (NumberFormatException nfe) {
 			// be silent for now...
 		}
@@ -84,10 +97,14 @@ public class BasicPeakList implements Serializable {
 		addHeader("CHARGE", charge);
 	}
 
-	/**
+	public BasicPeakList(double pepmass, int charge, String title, int msLevel, double[] mz, double[] intensity) {
+		this(String.valueOf(pepmass), String.valueOf(charge), title, msLevel);
+		setPeakList(mz, intensity);
+	}
 	
+	/**
 	 * @param next
-	 */
+	 *
 	public BasicPeakList(SpectrumAdapter sa) {
 		assert(sa != null);
 	
@@ -99,7 +116,7 @@ public class BasicPeakList implements Serializable {
 		}
 		addHeader("SCANS", String.valueOf(sa.getIndex()));
 		setPeakList(sa.getPeakList());
-	}
+	}*/
 	 
 	@Override
 	protected Object clone() throws CloneNotSupportedException {
@@ -116,8 +133,22 @@ public class BasicPeakList implements Serializable {
 		return m_pl.hashCode();
 	}
 
+	public void setPeakList(double[] mz, double[] intensity) {
+		if (mz == null || intensity == null || mz.length < 1 || mz.length != intensity.length)
+			setPeakList(PeakListImpl.newEmptyInstance());
+		else {
+			List<Peak> pl = new ArrayList<Peak>(mz.length);
+			for (int i=0; i<mz.length; i++) {
+				pl.add(new PeakImpl.Builder(mz[i]).intensity(intensity[i]).msLevel(m_ms_level).build());
+			}
+			Collections.sort(pl);
+			setPeakList(pl);
+		}
+	}
+	
 	/**
-	 * Convenience wrapper around <code>setPeakList(PeakList pl)</code>
+	 * Convenience wrapper around <code>setPeakList(PeakList pl)</code>. This constructor assumes the input list
+	 * has been sorted into increasing m/z
 	 * 
 	 * @param pl
 	 */
@@ -125,6 +156,12 @@ public class BasicPeakList implements Serializable {
 		// construct a new peak list
 		double[] mz = new double[pl.size()];
 		double[] intensities = new double[pl.size()];
+		int idx = 0;
+		for (Peak p : pl) {
+			mz[idx] = p.getMz();
+			intensities[idx] = p.getIntensity();
+			idx++;
+		}
 		PeakList new_list = new PeakListImpl.Builder(mz).
 									intensities(intensities).
 									msLevel(m_ms_level).
@@ -141,7 +178,7 @@ public class BasicPeakList implements Serializable {
 		m_mz_max = 0.0d;
 		
 		// need to recompute m_mz_min and max?
-		if (m_pl != null) {
+		if (m_pl != null && m_pl.size() > 0) {
 			double min = Double.MAX_VALUE;
 			double max = Double.MIN_VALUE;
 			for (Peak p : getPeaks()) {
@@ -210,6 +247,11 @@ public class BasicPeakList implements Serializable {
 		return (charge != null) ? charge : "";
 	}
 
+	public String getRT_safe() {
+		String rt = getHeader("RTINSECONDS");
+		return (rt != null) ? rt : "";
+	}
+	
 	public int getTandemCount() {
 		if (m_pl == null)
 			return -1;
@@ -269,6 +311,102 @@ public class BasicPeakList implements Serializable {
 		if (m_pl == null)
 			return null;
 		return m_pl.getPrecursor();
+	}
+
+	/**
+	 * Read the internal state for the peaklist from the specified input stream
+	 * @param input guaranteed non-NULL
+	 * @return the loaded peaklist
+	 */
+	public static BasicPeakList load(DataCellDataInput input) throws IOException {
+		// 1. load the peaklist
+		int n_peaks = input.readInt();
+		double[] mz = new double[n_peaks];
+		double[] intensity = new double[n_peaks];
+		for (int i=0; i<n_peaks; i++) {
+			mz[i]        = input.readDouble();
+			intensity[i] = input.readDouble();
+		}
+		
+		// 2. load precursor peak
+		double pre_mz = input.readDouble();
+		double pre_intensity = input.readDouble();
+		int pre_charge = input.readInt();
+		int pre_ms_level = input.readInt();
+		
+		// 3. load metadata (MS Level, number of header map <string,stirng> pairs, pairs)
+		int tc = input.readInt();
+		int n_headers = input.readInt();
+		HashMap<String,String> map = new HashMap<String,String>();
+		for (int i=0; i<n_headers; i++) {
+			String hdr = input.readUTF();
+			String val = input.readUTF();
+			map.put(hdr, val);
+		}
+	
+		BasicPeakList ret = new BasicPeakList(map.get("PEPMASS"), map.get("CHARGE"), map.get("TITLE"), tc);
+		Peak peak_precursor = new PeakImpl.Builder(pre_mz).intensity(pre_intensity).msLevel(pre_ms_level).charge(pre_charge).build();
+		PeakList pl = new PeakListImpl.Builder(mz).intensities(intensity).msLevel(tc).precursor(peak_precursor).build();
+		ret.setPeakList(pl);
+		ret.m_headers.clear();
+		ret.m_headers.putAll(map);
+		return ret;
+	}
+	
+	public static void save(BasicPeakList saveme, DataCellDataOutput output) throws IOException {
+		if (saveme == null) {
+			// no peaklist, but must still be compatible...
+			output.writeInt(0);
+			
+			// no precursor, but must still be compatible...
+			output.writeDouble(0.0d);
+			output.writeDouble(0.0d);
+			output.writeInt(-1);
+			output.writeInt(-1);
+			
+			// save minimal (and bogus) header
+			output.writeInt(-1);
+			output.writeInt(3);
+			
+			output.writeUTF("TITLE"); output.writeUTF("unknown");
+			output.writeUTF("PEPMASS"); output.writeUTF("0.0");
+			output.writeUTF("CHARGE"); output.writeUTF("1+");
+			return;
+		}
+		// else...
+		
+		// 1. write output peaks (NB: same length arrays)
+		int n_peaks = saveme.getNumPeaks();
+		output.writeInt(n_peaks);
+		double[] mz = saveme.getMZ();
+		double[] intensity = saveme.getIntensity();
+		assert(n_peaks == mz.length && n_peaks == intensity.length);
+		for (int i=0; i<n_peaks; i++) {
+			output.writeDouble(mz[i]);
+			output.writeDouble(intensity[i]);
+		}
+		
+		// 2. write precursor peak
+		Peak precursor = saveme.getPrecursor();
+		if (precursor != null) { 	// handle this exceptional case
+			output.writeDouble(precursor.getMz());
+			output.writeDouble(precursor.getIntensity());
+			output.writeInt(precursor.getCharge());
+			output.writeInt(precursor.getMSLevel());
+		} else {
+			output.writeDouble(0.0d);
+			output.writeDouble(0.0d);
+			output.writeInt(-1);
+			output.writeInt(-1);
+		}
+		
+		// 3. save metadata
+		output.writeInt(saveme.getTandemCount());
+		output.writeInt(saveme.m_headers.size());
+		for (String key : saveme.m_headers.keySet()) {
+			output.writeUTF(key);
+			output.writeUTF(saveme.m_headers.get(key));
+		}
 	}
 	
 }

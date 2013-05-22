@@ -2,7 +2,6 @@ package au.edu.unimelb.plantcell.io.read.spectra;
 
 import org.knime.core.data.renderer.BitVectorValuePixelRenderer;
 import org.knime.core.data.renderer.DataValueRenderer;
-import org.knime.core.data.vector.bitvector.BitVectorValue;
 import org.knime.core.data.vector.bitvector.DenseBitVectorCellFactory;
 
 public class SpectraBitVectorRenderer extends BitVectorValuePixelRenderer
@@ -49,9 +48,7 @@ public class SpectraBitVectorRenderer extends BitVectorValuePixelRenderer
 	/** {@inheritDoc} */
     @Override
     protected void setValue(final Object val) {
-    	if (val instanceof BitVectorValue) {
-    		super.setValue(val);
-    	} else if (val instanceof AbstractSpectraCell) {
+    	if (val instanceof AbstractSpectraCell) {
     		// compute the bit vector for the super class to render
     		AbstractSpectraCell spectra = (AbstractSpectraCell) val;
     		double[] mz = spectra.getMZ();
@@ -67,6 +64,8 @@ public class SpectraBitVectorRenderer extends BitVectorValuePixelRenderer
     			}
     		}
     		super.setValue(mybits.createDataCell());
+    	} else {
+    		super.setValue(val);
     	}
     }
 	

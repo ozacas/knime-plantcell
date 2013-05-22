@@ -7,6 +7,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -47,18 +48,16 @@ public class SpectraReaderNodeDialog extends DefaultNodeSettingsPane {
      * This is just a suggestion to demonstrate possible default dialog
      * components.
      */
-    @SuppressWarnings("unchecked")
 	protected SpectraReaderNodeDialog() {
         super();
         
-        final JList flist = new JList(file_list.getStringArrayValue());
+        final JList<String> flist = new JList<String>(file_list.getStringArrayValue());
         file_list.addChangeListener( new ChangeListener() {
 
-			@SuppressWarnings("unchecked")
 			@Override
 			public void stateChanged(ChangeEvent arg0) {
 				final String[] cur_files = file_list.getStringArrayValue();
-				flist.setModel(new ListModel() {
+				flist.setModel(new ListModel<String>() {
 					private ArrayList<ListDataListener> m_l = new ArrayList<ListDataListener>();
 					
 					@Override
@@ -67,7 +66,7 @@ public class SpectraReaderNodeDialog extends DefaultNodeSettingsPane {
 					}
 
 					@Override
-					public Object getElementAt(int index) {
+					public String getElementAt(int index) {
 						return cur_files[index];
 					}
 
@@ -143,10 +142,10 @@ public class SpectraReaderNodeDialog extends DefaultNodeSettingsPane {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				Object[]       sel_files = flist.getSelectedValues();
+				List<String> sel_files = flist.getSelectedValuesList();
 				HashSet<String> sel_set = new HashSet<String>();
 				
-				for (Object f : sel_files) {
+				for (String f : sel_files) {
 					sel_set.add(f.toString());
 				}
 			

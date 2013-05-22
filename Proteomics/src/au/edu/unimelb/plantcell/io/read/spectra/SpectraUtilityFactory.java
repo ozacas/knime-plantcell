@@ -28,8 +28,8 @@ public class SpectraUtilityFactory extends UtilityFactory {
      private static final Icon ICON =
              loadIcon(SpectraValue.class, "spectra-icon-16x16.png");
      
-     public static DataCell createCell(BasicPeakList mgf) {
-    	 return new MGFSpectraCell(mgf);
+     public static DataCell createCell(BasicPeakList bpl) {
+    	 return new MGFSpectraCell(bpl);
      }
      
      /**
@@ -41,6 +41,7 @@ public class SpectraUtilityFactory extends UtilityFactory {
  	 public static DataCell createCell(PeakList pl) {
  		return createCell(new BasicPeakList(pl));
  	 }
+ 	 
  	
      public static DataCell createCell(Scan scn, String id) {
     	 if (id == null) {

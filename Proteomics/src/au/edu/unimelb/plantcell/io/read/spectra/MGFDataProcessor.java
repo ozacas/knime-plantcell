@@ -2,6 +2,8 @@ package au.edu.unimelb.plantcell.io.read.spectra;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.util.Iterator;
 
 import org.expasy.jpl.core.ms.spectrum.peak.Peak;
@@ -40,11 +42,10 @@ import au.edu.unimelb.plantcell.core.MyDataContainer;
  *
  */
 public class MGFDataProcessor extends AbstractDataProcessor {
-	private BufferedReader m_is;
 	private File m_file;
 	
 	public MGFDataProcessor() {
-		m_is = null;
+		m_file = null;
 	}
 
 	@Override
@@ -59,8 +60,26 @@ public class MGFDataProcessor extends AbstractDataProcessor {
 			MyDataContainer scan_container, MyDataContainer file_container)
 			throws Exception {
 		
+		// examine first peaklist to determine what the internal state of the MGFReader should be for this file
+		// HACK BUG FIXME TODO: should we look harder?
+		boolean want_scan = false;
+		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(m_file)));
+		String line;
+		boolean got_scan = false;
+		while ((line = br.readLine()) != null) {
+			if (line.startsWith("END IONS"))
+				break;
+			if (line.startsWith("SCAN=")) {
+				got_scan = true;
+				break;
+			}
+		}
+		if (!got_scan)
+			want_scan = true;
+		
 		// load peaklists from input file
 		MGFReader rdr = MGFReader.newInstance();
+		rdr.enableAutoScanNum(want_scan);
 		rdr.parse(m_file);
 		
 		Iterator<MSScan> it = rdr.iterator();
@@ -70,10 +89,13 @@ public class MGFDataProcessor extends AbstractDataProcessor {
 		while (it.hasNext()) {
 			BasicPeakList mgf = new BasicPeakList(it.next());
 			Peak precursor = mgf.getPrecursor();
+			DataCell[] cells = missing_cells(ncols);
+			
 			if (precursor == null) {
 				no_precursor++;
-			}
-			DataCell[] cells = missing_cells(ncols);
+			} 
+			
+			cells[2]  = new StringCell(mgf.getRT_safe());
 			cells[21] = new StringCell(m_file.getAbsolutePath());
 			if (ncols > 23) {
 			         cells[23] = SpectraUtilityFactory.createCell(mgf);
@@ -100,10 +122,6 @@ public class MGFDataProcessor extends AbstractDataProcessor {
 		
 		if (no_precursor > 0)
 			NodeLogger.getLogger("MGF Data Reader").warn("Cannot find precursor peaks in "+no_precursor+" spectra, some processing will be disabled.");
-		
-		// file_container is mostly blank as MGF doesnt provide necessary data
-		DataCell[] file_cells = missing_cells(file_container.getTableSpec().getNumColumns());
-		file_container.addRow(file_cells);
 	}
 	
 	@Override

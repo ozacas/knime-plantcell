@@ -27,9 +27,9 @@ import au.edu.unimelb.plantcell.core.MyDataContainer;
  *
  */
 public class mzXMLDataProcessor extends AbstractDataProcessor {
-	private File m_file;
+	private File        m_file;
 	private MSXMLParser m_p;
-	private NodeLogger logger;
+	private NodeLogger  logger;
 	
 	public mzXMLDataProcessor(NodeLogger l) {
 		assert(l != null);
