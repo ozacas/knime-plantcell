@@ -2,10 +2,7 @@ package au.edu.unimelb.plantcell.io.read.spectra;
 
 import java.io.IOException;
 
-import org.expasy.jpl.core.ms.spectrum.PeakList;
-import org.expasy.jpl.core.ms.spectrum.PeakListImpl;
 import org.expasy.jpl.core.ms.spectrum.peak.Peak;
-import org.expasy.jpl.core.ms.spectrum.peak.PeakImpl;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataCellDataInput;
 import org.knime.core.data.DataCellDataOutput;
@@ -128,6 +125,15 @@ public class MGFSpectraCell extends AbstractSpectraCell {
 		return m_pl.getPepmass_safe();
 	}
 	
+	public String getScan() {
+		String ret = m_pl.getHeader("SCANS");
+		return (ret != null) ? ret : "";
+	}
+	
+	public String getRT() {
+		return m_pl.getRT_safe();
+	}
+	
 	/**
 	 * Implement our own mechanism to persist MGF spectra objects, typically this is faster
 	 * than using java.lang.Serializable but we do this not just for speed but for correct
@@ -140,37 +146,7 @@ public class MGFSpectraCell extends AbstractSpectraCell {
 
 		@Override
 		public MGFSpectraCell deserialize(final DataCellDataInput input) throws IOException {
-			
-			// 1. load the peaklist
-			int n_peaks = input.readInt();
-			double[] mz = new double[n_peaks];
-			double[] intensity = new double[n_peaks];
-			for (int i=0; i<n_peaks; i++) {
-				mz[i]        = input.readDouble();
-				intensity[i] = input.readDouble();
-			}
-			
-			// 2. load precursor peak
-			double pre_mz = input.readDouble();
-			double pre_intensity = input.readDouble();
-			int pre_charge = input.readInt();
-			int pre_ms_level = input.readInt();
-			
-			// 3. load metadata
-			String title   = input.readUTF();
-			String pepmass = input.readUTF();
-			String charge  = input.readUTF();
-			int         tc = input.readInt();
-		
-			BasicPeakList   mgf = new BasicPeakList(pepmass, charge, title, tc);
-			try {
-				Peak peak_precursor = new PeakImpl.Builder(pre_mz).intensity(pre_intensity).msLevel(pre_ms_level).charge(pre_charge).build();
-				PeakList pl = new PeakListImpl.Builder(mz).intensities(intensity).msLevel(tc).precursor(peak_precursor).build();
-				mgf.setPeakList(pl);
-			} catch (Exception be) {
-				be.printStackTrace();
-			}
-			
+			BasicPeakList mgf = BasicPeakList.load(input);
 			return new MGFSpectraCell(mgf);
 		}
 
@@ -180,44 +156,7 @@ public class MGFSpectraCell extends AbstractSpectraCell {
 			if (spectra == null || output == null) 
 				throw new IOException("Bad data given to MGFSpectraCellInitializer::serialize()");
 			
-			// 1. write output peaks (NB: same length arrays)
-			int n_peaks = spectra.getNumPeaks();
-			output.writeInt(n_peaks);
-			double[] mz = spectra.getMZ();
-			double[] intensity = spectra.getIntensity();
-			assert(n_peaks == mz.length && n_peaks == intensity.length);
-			for (int i=0; i<n_peaks; i++) {
-				output.writeDouble(mz[i]);
-				output.writeDouble(intensity[i]);
-			}
-			
-			// 2. write precursor peak
-			Peak precursor = spectra.getPrecursor();
-			if (precursor != null) { 	// handle this exceptional case
-				output.writeDouble(precursor.getMz());
-				output.writeDouble(precursor.getIntensity());
-				output.writeInt(precursor.getCharge());
-				output.writeInt(precursor.getMSLevel());
-			} else {
-				output.writeDouble(0.0d);
-				output.writeDouble(0.0d);
-				output.writeInt(-1);
-				output.writeInt(-1);
-			}
-			
-			// 3. save header
-			BasicPeakList pl = spectra.m_pl;
-			if (pl != null) {
-				output.writeUTF(pl.getTitle_safe());
-				output.writeUTF(pl.getPepmass_safe());
-				output.writeUTF(pl.getCharge_safe());
-				output.writeInt(pl.getTandemCount());
-			} else {
-				output.writeUTF("");
-				output.writeUTF("0.0");
-				output.writeUTF("");
-				output.writeInt(-1);
-			}
+			BasicPeakList.save(spectra.m_pl, output);
 		}
 	}
 

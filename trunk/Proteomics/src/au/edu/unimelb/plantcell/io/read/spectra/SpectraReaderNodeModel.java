@@ -58,7 +58,7 @@ public class SpectraReaderNodeModel extends NodeModel {
     // number of columns in scan output
     private final static int NUM_SCAN_COLS = 23;
     // number of columns in file summary output
-    private final static int NUM_FILE_COLS = 9;
+    private final static int NUM_FILE_COLS = 5;
 
     // example value: the models count variable filled from the dialog 
     // and used in the models execution method. The default components of the
@@ -216,15 +216,11 @@ public class SpectraReaderNodeModel extends NodeModel {
         }
         
         DataColumnSpec[] fileSpecs =  new DataColumnSpec[NUM_FILE_COLS];
-        fileSpecs[8] = new DataColumnSpecCreator("Filename", StringCell.TYPE).createSpec();
-        fileSpecs[0] = new DataColumnSpecCreator("Instrument Manufacturer", StringCell.TYPE).createSpec();
-        fileSpecs[1] = new DataColumnSpecCreator("Instrument Model", StringCell.TYPE).createSpec();
-        fileSpecs[2] = new DataColumnSpecCreator("Instrument Software", StringCell.TYPE).createSpec();
-        fileSpecs[3] = new DataColumnSpecCreator("Instrument Operator", StringCell.TYPE).createSpec();
-        fileSpecs[4] = new DataColumnSpecCreator("Mass Analyzer", StringCell.TYPE).createSpec();
-        fileSpecs[5] = new DataColumnSpecCreator("Ionization", StringCell.TYPE).createSpec();
-        fileSpecs[6] = new DataColumnSpecCreator("Detector", StringCell.TYPE).createSpec();
-        fileSpecs[7] = new DataColumnSpecCreator("Data Processing", StringCell.TYPE).createSpec();
+        fileSpecs[0] = new DataColumnSpecCreator("Filename", StringCell.TYPE).createSpec();
+        fileSpecs[1] = new DataColumnSpecCreator("Property", StringCell.TYPE).createSpec();
+        fileSpecs[2] = new DataColumnSpecCreator("Value", StringCell.TYPE).createSpec();
+        fileSpecs[3] = new DataColumnSpecCreator("Accession (controlled vocabulary ID specific to format)", StringCell.TYPE).createSpec();
+        fileSpecs[4] = new DataColumnSpecCreator("Index (order for a given property, from 1)", IntCell.TYPE).createSpec();
         
         return new DataTableSpec[] { new DataTableSpec(allColSpecs), new DataTableSpec(fileSpecs) };
 	}
