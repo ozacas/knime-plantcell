@@ -16,6 +16,7 @@ import org.knime.core.data.def.IntCell;
  */
 public class FirstDistanceReporter implements MatchReporter {
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public DataCell report(FindGlobalNodeModel m, DataCell input_cell)
 			throws Exception {
