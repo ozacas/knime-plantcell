@@ -6,7 +6,7 @@ import java.util.List;
 import javax.swing.ListModel;
 import javax.swing.event.ListDataListener;
 
-public class EBIDatabaseModel implements ListModel {
+public class EBIDatabaseModel implements ListModel<String> {
 	private String[]     m_array;
 	private List<String> m_list;
 	private final List<ListDataListener> m_l = new ArrayList<ListDataListener>();
@@ -28,7 +28,7 @@ public class EBIDatabaseModel implements ListModel {
 	}
 
 	@Override
-	public Object getElementAt(int idx) {
+	public String getElementAt(int idx) {
 		if (m_list != null) {
 			return m_list.get(idx);
 		}

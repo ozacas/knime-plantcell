@@ -66,10 +66,10 @@ public class WUBlastNodeDialog extends DefaultNodeSettingsPane {
 	
 	// swing widgets on the interface - the entire dialog uses no KNIME dialog code since that wont provide the required flexibility in this case
 	private ColumnSelectionPanel d_sequence;
-	private JComboBox d_programs, d_matrix, d_eval_cutoff, d_filters, d_sensitivity, d_sort, d_statistics;
+	private JComboBox<String> d_programs, d_matrix, d_eval_cutoff, d_filters, d_sensitivity, d_sort, d_statistics;
 	private JTextField d_email, d_db_filter;
-	private JList  d_db;
-	private JComboBox d_alignments, d_scores;
+	private JList<String>  d_db;
+	private JComboBox<String> d_alignments, d_scores;
 	private JSpinner d_batch_size;
 	private JPanel m_main_panel, m_adv_panel;	// each on separate tabs in the dialog
 	private JCheckBox d_image_summary;
@@ -124,13 +124,13 @@ public class WUBlastNodeDialog extends DefaultNodeSettingsPane {
         d_email = new JTextField();
         add_widget(m_main_panel, "Email Address (required by EBI)", d_email);
         
-        d_programs = new JComboBox(m_ebi_programs);
+        d_programs = new JComboBox<String>(m_ebi_programs);
         add_widget(m_main_panel, "BLAST Program to use", d_programs);
         
-        d_matrix = new JComboBox(m_ebi_matrices);
+        d_matrix = new JComboBox<String>(m_ebi_matrices);
         add_widget(m_main_panel, "Scoring matrix", d_matrix);
         
-        d_eval_cutoff = new JComboBox(new String[] {"1e-200", "1e-100", "1e-50", "1e-10", "1e-5", "1e-4", "1e-3", "1e-2", "1e-1", "1.0", "10", "100", "1000"});
+        d_eval_cutoff = new JComboBox<String>(new String[] {"1e-200", "1e-100", "1e-50", "1e-10", "1e-5", "1e-4", "1e-3", "1e-2", "1e-1", "1.0", "10", "100", "1000"});
         add_widget(m_main_panel, "E-value cutoff", d_eval_cutoff);
         
         JPanel db_panel = new JPanel();
@@ -141,7 +141,7 @@ public class WUBlastNodeDialog extends DefaultNodeSettingsPane {
         warning_label.setForeground(Color.RED);
         add_widget(db_panel, "Filter databases shown:", d_db_filter);
         db_panel.add(warning_label);
-        d_db = new JList(make_model(this));
+        d_db = new JList<String>(make_model(this));
         d_db.setVisibleRowCount(10);
         final WUBlastNodeDialog m_dlg = this;
         d_db_filter.addActionListener(new ActionListener() {
@@ -155,22 +155,22 @@ public class WUBlastNodeDialog extends DefaultNodeSettingsPane {
         add_widget(db_panel, "Available EBI databases", new JScrollPane(d_db));
         m_main_panel.add(db_panel);
        
-        d_filters = new JComboBox(m_ebi_filters);
+        d_filters = new JComboBox<String>(m_ebi_filters);
         add_widget(m_adv_panel, "Low complexity sequence filtering algorithm", d_filters);
         
-        d_sensitivity = new JComboBox(m_ebi_sensitivity);
+        d_sensitivity = new JComboBox<String>(m_ebi_sensitivity);
         add_widget(m_adv_panel, "Sensitivity", d_sensitivity);
         
-        d_sort = new JComboBox(m_ebi_sort);
+        d_sort = new JComboBox<String>(m_ebi_sort);
         add_widget(m_adv_panel, "Sort", d_sort);
         
-        d_statistics = new JComboBox(m_ebi_statistics);
+        d_statistics = new JComboBox<String>(m_ebi_statistics);
         add_widget(m_adv_panel, "Statistics", d_statistics);
         
-        d_alignments = new JComboBox(new String[] {"5", "10", "20", "50", "100", "150", "200", "500" });
+        d_alignments = new JComboBox<String>(new String[] {"5", "10", "20", "50", "100", "150", "200", "500" });
         add_widget(m_adv_panel, "Number of reported alignments (per BLAST)", d_alignments);
         
-        d_scores = new JComboBox(new String[] {"5", "10", "20", "50", "100", "150", "200", "500" });
+        d_scores = new JComboBox<String>(new String[] {"5", "10", "20", "50", "100", "150", "200", "500" });
         add_widget(m_adv_panel, "Number of reported scores (per BLAST)", d_scores );
         
         d_batch_size = new JSpinner(new SpinnerNumberModel(10, 1, 25, 5));
@@ -203,7 +203,7 @@ public class WUBlastNodeDialog extends DefaultNodeSettingsPane {
      * returns a {@link JList} compatible model to represent the list of available (and 
      * currently filtered) database models
      */
-    public static ListModel make_model(final WUBlastNodeDialog dlg) {
+    public static ListModel<String> make_model(final WUBlastNodeDialog dlg) {
     	String filter = dlg.d_db_filter.getText().toLowerCase().trim();
 		ArrayList<String> matches = new ArrayList<String>();
 
