@@ -29,6 +29,7 @@ import au.edu.unimelb.plantcell.core.biojava.tasks.BioJavaProcessorTask;
 import au.edu.unimelb.plantcell.core.biojava.tasks.CodonUsageTask;
 import au.edu.unimelb.plantcell.core.biojava.tasks.FrameTranslationTask;
 import au.edu.unimelb.plantcell.core.biojava.tasks.GCCalculatorTask;
+import au.edu.unimelb.plantcell.core.biojava.tasks.HRGPScreenTask;
 import au.edu.unimelb.plantcell.core.biojava.tasks.HydrophobicityTask;
 import au.edu.unimelb.plantcell.core.biojava.tasks.ProteinChargeSummaryTask;
 import au.edu.unimelb.plantcell.core.biojava.tasks.LongestFrameTask;
@@ -120,7 +121,8 @@ public class BioJavaProcessorNodeModel extends NodeModel {
 				new GCCalculatorTask(),
 				new ResidueAnalysisTask(),
 				new ReverseComplementTask(),
-				new HydrophobicityTask()
+				new HydrophobicityTask(),
+				new HRGPScreenTask()
     	};
     }
     
@@ -177,6 +179,8 @@ public class BioJavaProcessorNodeModel extends NodeModel {
     		return new HydrophobicityTask();
     	} else if (task.startsWith("Reverse Complement")) {
     		return new ReverseComplementTask();
+    	} else if (task.startsWith("Screen for Proline-rich HRGP")) {
+    		return new HRGPScreenTask();
     	} else if (task.trim().length() >= 1) {
         	throw new NotImplementedException("Unknown BioJava task to perform! Probably a bug...");
     	} else {
