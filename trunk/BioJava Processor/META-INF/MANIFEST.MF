@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: BioJava Processor
 Bundle-SymbolicName: au.edu.unimelb.plantcell.misc.biojava; singleton:=true
-Bundle-Version: 1.2.9
+Bundle-Version: 1.2.10
 Bundle-ClassPath: biojavaprocessor.jar,
  lib/antlr-3.4-complete.jar,
  lib/bytecode.jar,
