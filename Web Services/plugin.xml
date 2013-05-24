@@ -34,7 +34,10 @@
             category-path="/Bioinformatics/Web Services/Nectar Cloud"
             factory-class="au.edu.unimelb.plantcell.io.ws.netsurfp.NetSurfPAccessorNodeFactory"
             id="au.edu.unimelb.plantcell.io.ws.netsurfp"/>
-            
+      <node
+            category-path="/Bioinformatics/Web Services/Nectar Cloud"
+            factory-class="au.edu.unimelb.plantcell.io.ws.bigpi.BIGPIAccessorNodeFactory"
+            id="au.edu.unimelb.plantcell.io.ws.bigpi"/>      
             
       <node
             category-path="/Bioinformatics/Web Services/Nectar Cloud"
