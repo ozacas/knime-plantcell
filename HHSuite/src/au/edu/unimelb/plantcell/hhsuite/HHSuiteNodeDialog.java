@@ -1,10 +1,17 @@
 package au.edu.unimelb.plantcell.hhsuite;
 
+import javax.swing.JFileChooser;
+
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
+import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
+import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
+import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+
+import au.edu.unimelb.plantcell.io.ws.multialign.AlignmentValue;
 
 /**
  * <code>NodeDialog</code> for the "HHSuite" Node.
@@ -24,15 +31,25 @@ public class HHSuiteNodeDialog extends DefaultNodeSettingsPane {
      * This is just a suggestion to demonstrate possible default dialog
      * components.
      */
-    protected HHSuiteNodeDialog() {
+    @SuppressWarnings("unchecked")
+	protected HHSuiteNodeDialog() {
         super();
         
-        addDialogComponent(new DialogComponentString(
-        		new SettingsModelString(HHSuiteNodeModel.CFGKEY_ALIGNMENT, ""), "Alignment column to search"));
-        addDialogComponent(new DialogComponentString(
-        		new SettingsModelString(HHSuiteNodeModel.CFGKEY_SEARCH_DATABASE, ""), "Search database (HHM file format)"));   
+        addDialogComponent(new DialogComponentColumnNameSelection(
+        		new SettingsModelString(HHSuiteNodeModel.CFGKEY_ALIGNMENT, ""), "Alignment column to search", 0, true, AlignmentValue.class));
+        
         addDialogComponent(new DialogComponentNumber(
         		new SettingsModelIntegerBounded(HHSuiteNodeModel.CFGKEY_CPU_CORES, 2, 1, 16), "Number of CPU cores to use", 1));
+        
+        final SettingsModelString db_type = new SettingsModelString(HHSuiteNodeModel.CFGKEY_DB_TYPE, HHSuiteNodeModel.DATABASE_ITEMS[0]);
+        addDialogComponent(new DialogComponentButtonGroup(db_type, "Select the database", true, HHSuiteNodeModel.DATABASE_ITEMS, HHSuiteNodeModel.DATABASE_ITEMS));
+        
+        addDialogComponent(new DialogComponentFileChooser(new SettingsModelString(HHSuiteNodeModel.CFGKEY_DB_NEW, ""), 
+        		"hhsearch-database-new", JFileChooser.OPEN_DIALOG, true));
+        
+        addDialogComponent(new DialogComponentString(
+        		new SettingsModelString(HHSuiteNodeModel.CFGKEY_DB_EXISTING, ""), "Existing search database (HHM file format)"));
+     
     }
 }
 
