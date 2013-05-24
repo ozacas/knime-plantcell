@@ -2,7 +2,7 @@
 <feature
       id="au.edu.unimelb.plantcell.www"
       label="PlantCell KNIME nodes"
-      version="1.2.18"
+      version="1.2.19"
       provider-name="http://www.plantcell.unimelb.edu.au/"
       exclusive="true">
 
@@ -83,18 +83,6 @@ Each is subject to the license terms of the respective software package.
          version="0.0.0"/>
 
    <plugin
-         id="au.edu.unimelb.plantcell.io.read.pepxml"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"/>
-
-   <plugin
-         id="au.edu.unimelb.plantcell.io.read.spectra"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"/>
-
-   <plugin
          id="au.edu.unimelb.plantcell.io.read.xml"
          download-size="0"
          install-size="0"
@@ -102,12 +90,6 @@ Each is subject to the license terms of the respective software package.
 
    <plugin
          id="au.edu.unimelb.plantcell.io.write.png"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"/>
-
-   <plugin
-         id="au.edu.unimelb.plantcell.io.write.spectra"
          download-size="0"
          install-size="0"
          version="0.0.0"/>
@@ -126,30 +108,6 @@ Each is subject to the license terms of the respective software package.
 
    <plugin
          id="au.edu.unimelb.plantcell.misc.biojava"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"/>
-
-   <plugin
-         id="au.edu.unimelb.plantcell.proteomics.peakextractor"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"/>
-
-   <plugin
-         id="au.edu.unimelb.plantcell.proteomics.phosphorylation"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"/>
-
-   <plugin
-         id="au.edu.unimelb.plantcell.proteomics.proteinselector"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"/>
-
-   <plugin
-         id="au.edu.unimelb.plantcell.proteomics.spectra.quality"
          download-size="0"
          install-size="0"
          version="0.0.0"/>
