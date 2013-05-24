@@ -45,11 +45,18 @@
    				  level-id="Nectar Cloud"
    				  name="Nectar Cloud"
    				  path="/Bioinformatics/Web Services" />
+   				  
    		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
    				  icon="icons/read.png"
    				  level-id="Read"
    				  name="Read"
    				  path="/Bioinformatics" />
+   		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
+   				  icon="icons/read.png"
+   				  level-id="Convert (remote)"
+   				  name="Convert (remote)"
+   				  path="/Bioinformatics/Read" />
+   				  
    		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
    				  icon="icons/write.png"
    				  level-id="Write"
@@ -91,6 +98,11 @@
    				  name="Convert &amp; Replace"
    				  path="/Bioinformatics/Sequence Analysis" />
    		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
+   					icon="icons/default.png"
+   					level-id="HHSuite v2"
+   					name="HHSuite v2"
+   					path="/Bioinformatics/Sequence Analysis" />
+   		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
    				  icon="icons/default.png"
    				  level-id="Phylogenetics"
    				  name="Phylogenetics"
@@ -105,6 +117,11 @@
    				  level-id="Proteomics"
    				  name="Proteomics"
    				  path="/Bioinformatics/Mass Spectrometry" />
+   		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
+   				  icon="icons/default.png"
+   				  level-id="mzML"
+   				  name="mzML"
+   				  path="/Bioinformatics/Mass Spectrometry/Proteomics" />
    		<category description="Nodes written to support JavaProtLib http://javaprotlib.sourceforge.net/"
    				  icon="icons/javaprotlib.png"
    				  level-id="JavaProtLib"

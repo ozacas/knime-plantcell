@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: PlantCell Core
 Bundle-SymbolicName: au.edu.unimelb.plantcell.core;singleton:=true
-Bundle-Version: 1.2.20
+Bundle-Version: 1.2.22
 Bundle-ClassPath: plantcellcore.jar,
  lib/axis-1.4.jar,
  lib/commons-cli-1.1.jar,
@@ -24,7 +24,8 @@ Bundle-ClassPath: plantcellcore.jar,
  lib/commons-exec-1.1.jar,
  lib/jaxrpc.jar,
  lib/javamail-1.4.jar,
- lib/commons-collections-3.2.1.jar
+ lib/commons-collections-3.2.1.jar,
+ lib/commons-primitives-1.0.jar
 Bundle-Vendor: http://www.plantcell.unimelb.edu.au/bioinformatics
 Bundle-Localization: plugin
 Require-Bundle: org.eclipse.core.runtime,
@@ -114,6 +115,8 @@ Export-Package: au.edu.unimelb.plantcell.core,
  org.apache.axis.wsdl.gen,
  org.apache.axis.wsdl.symbolTable,
  org.apache.axis.wsdl.toJava,
+ org.apache.commons.collections.buffer,
+ org.apache.commons.collections.primitives,
  org.apache.commons.exec,
  org.apache.commons.exec.environment,
  org.apache.commons.exec.launcher,
