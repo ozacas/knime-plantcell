@@ -1,23 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry exported="true" kind="lib" path="lib/jmzml-1.6.7.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jpl-commons-collection.graph-1.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/itext-2.0.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jpl-commons-app-1.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jpl-io-hdp-1.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jpl-msmatch-1.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/mascot_datfile-2.2.3.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/collections-generic-4.01.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jpl-commons-base-1.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jpl-commons-collection-1.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/jpl-core-1.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/jpl-io-1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jpl-core-1.0.jar" sourcepath="C:/jars/jpl-libs/jpl-core-1.0-src.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jpl-io-1.0.jar" sourcepath="C:/jars/javaprotlib/jpl-io-1.0-src.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/com.springsource.antlr-2.7.7.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/com.springsource.org.apache.commons.io-1.4.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/com.springsource.org.apache.commons.logging-1.1.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/com.springsource.org.apache.log4j-1.2.15.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/cpdetector-1.0.7.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jargs-1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/looks-2.2.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/mascotdatfile-3.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/omssa-parser-1.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/servlet-api-2.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/slf4j-api-1.6.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/slf4j-log4j12-1.6.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/swing-layout-1.0.3.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/utilities-3.0.16.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/xpp3-1.1.3.4-RC3.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/xtandem-parser-1.2.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/xxindex-0.11.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/fastutil-6.5.4.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
-	<classpathentry kind="lib" path="lib/utilities-2.8.jar"/>
-	<classpathentry kind="lib" path="lib/jaxb-api.jar"/>
-	<classpathentry kind="lib" path="lib/jaxb-impl.jar"/>
-	<classpathentry kind="lib" path="lib/jrap-stax.jar"/>
-	<classpathentry kind="lib" path="lib/ProteomeCommons.org-IO.jar"/>
-	<classpathentry kind="lib" path="lib/ProteomeCommons.org-JAF.jar"/>
+	<classpathentry kind="lib" path="lib/collections-generic-4.01.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

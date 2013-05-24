@@ -47,32 +47,19 @@ public class BasicPeakList implements Serializable {
 		setPeakList(pl);
 	}
 	
-	public BasicPeakList(MSScan ms) {
-		this(ms.getPeakList());
-		
-		// populate key headers from ms instance
-		if (ms != null) {
-			String title = ms.getTitle();
-			if (title == null)				// should do better than this if title is missing
-				title = ms.getComment();
-			addHeader("TITLE",   title);
-			Peak precursor = ms.getPeakList().getPrecursor();
-			try {
-				RetentionTime rt = ms.getRetentionTime();
-				if (rt != null) {
-					rt.setUnit(RTUnit.second);
-					addHeader("RTINSECONDS", Double.toString(rt.getValue()));
-				}
-			} catch (Exception e) {
-				// be silent: retention time not available
-			}
-			if (precursor != null) {
-				addHeader("PEPMASS", String.valueOf(precursor.getMz()));
-				addHeader("CHARGE",  String.valueOf(precursor.getCharge()));
-			}
-			
-			addHeader("SCANS", Integer.toString(ms.getScanNum()));
-		}
+	/**
+	 * Typical usage:<code>
+	 * MSScan ms = ...;
+	 * new BasicPeakList(ms, ms.getPrecursor().getMZ(), ms.getPrecursor().getCharge());
+	 * </code>
+	 * 
+	 * @param ms
+	 * @param charge
+	 * @param precursor_mz
+	 */
+	public BasicPeakList(MSScan ms, double precursor_mz, int charge) {
+		// calls the recommended constructor
+		this(precursor_mz, charge, ms.getTitle(), ms.getMSLevel(), ms.getMzs(new double[0]), ms.getIntensities(new double[0]));
 	}
 
 	@SuppressWarnings("unused")
@@ -97,8 +84,18 @@ public class BasicPeakList implements Serializable {
 		addHeader("CHARGE", charge);
 	}
 
+	/**
+	 * This is the recommended constructor to use as it ensures that the m/z peaks are ordered (ascending)
+	 * @param pepmass   should be greater than zero
+	 * @param charge    should be greater or equal to zero
+	 * @param title
+	 * @param msLevel
+	 * @param mz		must not be null. Must be the same length as intensity array
+	 * @param intensity must not be null. Must be the same length as mz array
+	 */
 	public BasicPeakList(double pepmass, int charge, String title, int msLevel, double[] mz, double[] intensity) {
 		this(String.valueOf(pepmass), String.valueOf(charge), title, msLevel);
+		assert(mz != null && intensity != null);
 		setPeakList(mz, intensity);
 	}
 	

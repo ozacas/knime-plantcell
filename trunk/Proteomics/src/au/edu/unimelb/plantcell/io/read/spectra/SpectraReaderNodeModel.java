@@ -108,7 +108,7 @@ public class SpectraReaderNodeModel extends NodeModel {
         if (m_mzml.getBooleanValue())
         	dp_list.add(new mzMLDataProcessor(logger));
         if (m_mgf.getBooleanValue())
-        	dp_list.add(new MGFDataProcessor());
+        	dp_list.add(new MGFDataProcessor(logger));
         if (m_mzxml.getBooleanValue())
         	dp_list.add(new mzXMLDataProcessor(logger));
         if (m_dta.getBooleanValue()) 
