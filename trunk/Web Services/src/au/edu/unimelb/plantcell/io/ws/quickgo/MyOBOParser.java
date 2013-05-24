@@ -424,8 +424,9 @@ public class MyOBOParser extends OboFileParser {
 	class NestedValue {
 
 		/**
-		 *
+		 * not persisted, just to keep code warning free
 		 */
+		@SuppressWarnings("unused")
 		private static final long serialVersionUID = -7529450225162773796L;
 		protected Properties propertyValues = new Properties();
 		protected String name;
