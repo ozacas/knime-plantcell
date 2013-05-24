@@ -28,6 +28,17 @@
       		category-path="/Bioinformatics/Mass Spectrometry/Proteomics"
       		factory-class="au.edu.unimelb.plantcell.proteomics.spectra.filtering.SpectraFilteringNodeFactory"
       		id="au.edu.unimelb.plantcell.proteomics.spectra.filtering.SpectraFilteringNodeFactory" />
+      		
+      <node 
+      		category-path="/Bioinformatics/Read/Convert (remote)/"
+      		factory-class="au.edu.unimelb.plantcell.io.convert.AnalystWIFFNodeFactory"
+      		id="au.edu.unimelb.plantcell.proteomics.io.convert.AnalystWIFFNodeFactory" />
+      
+      <node 
+      		category-path="/Bioinformatics/Read/Convert (remote)/"
+      		factory-class="au.edu.unimelb.plantcell.io.convert.XCaliburRAWNodeFactory"
+      		id="au.edu.unimelb.plantcell.proteomics.io.convert.XCaliburRAWNodeFactory" />
+      		
       <node
             category-path="/Bioinformatics/Under Development/Deprecated"
             factory-class="au.edu.unimelb.plantcell.io.read.pepxml.PepXMLReaderNodeFactory"

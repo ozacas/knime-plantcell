@@ -87,7 +87,8 @@ public class SpectraWriterNodeModel extends NodeModel {
     	
     	HashMap<String,PrintWriter> file_map = new HashMap<String,PrintWriter>();
     	
-    	boolean use_suffix = (m_suffix.getStringValue().length() > 0 && !m_suffix.getStringValue().equalsIgnoreCase("<none>"));
+    	String val = m_suffix.getStringValue();
+    	boolean use_suffix = (val != null && val.length() > 0 && !val.equalsIgnoreCase("<none>"));
     	File basename = new File(m_file.getStringValue());
     	int suffix_idx = -1;
     	if (!use_suffix) {
@@ -236,14 +237,7 @@ public class SpectraWriterNodeModel extends NodeModel {
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
             throws InvalidSettingsException {
-        
-        // TODO: check if user settings are available, fit to the incoming
-        // table structure, and the incoming types are feasible for the node
-        // to execute. If the node can execute in its current state return
-        // the spec of its output data table(s) (if you can, otherwise an array
-        // with null elements), or throw an exception with a useful user message
-
-        return new DataTableSpec[]{};
+         return new DataTableSpec[]{};
     }
 
     /**
