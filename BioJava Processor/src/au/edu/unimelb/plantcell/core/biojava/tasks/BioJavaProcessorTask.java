@@ -69,7 +69,6 @@ public abstract class BioJavaProcessorTask extends AbstractCellFactory {
 		m_wanted_col = input_column_index;
 	}
 	
-
 	/**
 	 * Returns the human-readable names for the task as it should appear in the configure dialog.
 	 * Every subclass is expected to override this method. Most tasks will only provide
