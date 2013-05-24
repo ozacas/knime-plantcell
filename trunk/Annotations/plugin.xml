@@ -48,8 +48,12 @@
             category-path="/Bioinformatics/Sequence Analysis/Annotations"
             factory-class="au.edu.unimelb.plantcell.annotations.Sequence2StringsNodeFactory"
             id="au.edu.unimelb.plantcell.annotations.Sequence2StringsNodeFactory" />
+      <node
+            category-path="/Bioinformatics/Sequence Analysis/Annotations"
+            factory-class="au.edu.unimelb.plantcell.annotations.SequenceWindow2ColumnsNodeFactory"
+            id="au.edu.unimelb.plantcell.annotations.SequenceWindow2ColumnsNodeFactory" />
    </extension>
-   
+  
    <extension
          point="org.knime.workbench.repository.nodes">
       <node
