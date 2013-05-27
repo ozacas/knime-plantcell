@@ -1,6 +1,7 @@
 package au.edu.unimelb.plantcell.io.ws.bigpi;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -128,7 +129,7 @@ public class BIGPIAccessorNodeModel extends AbstractWebServiceNodeModel {
 		int done = 0;
 
 		BatchSequenceRowIterator bsi = new BatchSequenceRowIterator(inData[0].iterator(), 
-				m_seq_idx, 100, 1024 * 1024, new SequenceProcessor() {
+				m_seq_idx, 100, 200 * 1024, new SequenceProcessor() {
 
 					@Override
 					public SequenceValue process(SequenceValue sv) {
@@ -151,28 +152,33 @@ public class BIGPIAccessorNodeModel extends AbstractWebServiceNodeModel {
 			List<DataRow> batch_rows = bsi.lastBatchRows();
 			Map<UniqueID,DataRow> uid2row = make_uid2row_map(batch_map, batch_rows);
 			
+			int n_out_cols = outputSpecs[0].getNumColumns() - inData[0].getSpec().getNumColumns();
 			for (int i=0; i<MAX_RETRIES; i++) {
 				exec.checkCanceled();
 				try {
 					logger.info("Predicting batch of "+batch_map.size()+" sequences.");
-					String jobid = proxy.submit(toFasta(batch_map), m_model.getStringValue());
+					String fasta = toFasta(batch_map);
+					logger.info("Made "+fasta.length()+" bytes of FASTA file for submission to BigPI");
+					String jobid = proxy.submit(fasta, m_model.getStringValue());
 					logger.info("Got job id "+jobid+ ", now waiting for batch to complete.");
 					
 					wait_for_completion(logger, exec, jobid);
 					String result = proxy.getResult(jobid);
 					//logger.info(result);
 				
+					HashSet<UniqueID> got_hits = new HashSet<UniqueID>();
 					for (String line : result.split("\\n")) {
 						if (line.startsWith("WARNING")) {
 							logger.warn(line);
 							continue;
 						} else if (line.trim().length() > 0) {
 							String[] fields = line.trim().split("\\s+");
-							DataCell[] out = missing_cells(outputSpecs[0].getNumColumns() - inData[0].getSpec().getNumColumns());
+							DataCell[] out = missing_cells(n_out_cols);
 							
 							UniqueID uid = new UniqueID(fields[1]);
 							String pos   = fields[7];
 							String has_no_gpi  = fields[12];
+							got_hits.add(uid);
 							
 							// primary site cells
 							out[0] = has_no_gpi.equals("NO_GPI_SITE") ? BooleanCell.FALSE : BooleanCell.TRUE;
@@ -205,6 +211,17 @@ public class BIGPIAccessorNodeModel extends AbstractWebServiceNodeModel {
 							DataRow input_row = uid2row.get(uid);
 							assert(input_row != null);
 							c1.addRow(new JoinedRow(input_row, new DefaultRow(input_row.getKey(), out)));
+						}
+					}
+					
+					if (got_hits.size() < batch_map.size()) {
+						logger.warn("Expected hits for "+batch_map.size()+" sequences, but got hits for only "+got_hits.size()+" - missing values added. Too short for GPI prediction?");
+						for (UniqueID uid : uid2row.keySet()) {
+							if (!got_hits.contains(uid)) {
+								DataRow input_row = uid2row.get(uid);
+							
+								c1.addRow(new JoinedRow(input_row, new DefaultRow(input_row.getKey(), missing_cells(n_out_cols))));
+							}
 						}
 					}
 					done += batch_map.size();
