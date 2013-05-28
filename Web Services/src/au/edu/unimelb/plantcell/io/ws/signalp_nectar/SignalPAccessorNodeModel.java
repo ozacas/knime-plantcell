@@ -24,6 +24,7 @@ import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
@@ -151,7 +152,7 @@ public class SignalPAccessorNodeModel extends AbstractWebServiceNodeModel {
     		throw new InvalidSettingsException("Cannot find column: "+m_seq_col.getStringValue()+": reconfigure?");
     	
 		BatchSequenceRowIterator bsi = new BatchSequenceRowIterator(inData[0].iterator(), m_seq_idx, 
-				50, 1024 * 1024, new SequenceProcessor() 
+				50, 200 * 1024, new SequenceProcessor() 
 		{
 
 			@Override
@@ -183,13 +184,28 @@ public class SignalPAccessorNodeModel extends AbstractWebServiceNodeModel {
 			else if (m_organism.getStringValue().startsWith("gram-")) 
 				type = "neg";
 			
-			String jobId = proxy.submit(sb.toString(), m_tm_cutoff.getDoubleValue(), m_notm_cutoff.getDoubleValue(), 
-					m_method.getStringValue().equals("best"), m_length.getIntValue(), type);
-			logger.info("Got job id: "+jobId+" for batch of "+batch.size()+" sequences.");
+			String jobId = null;
+			for (int i=0; i<MAX_RETRIES; i++) {
+				try {
+					jobId = proxy.submit(sb.toString(), m_tm_cutoff.getDoubleValue(), m_notm_cutoff.getDoubleValue(), 
+							m_method.getStringValue().equals("best"), m_length.getIntValue(), type);
+					if (jobId != null) {
+						logger.info("Got job id: "+jobId+" for batch of "+batch.size()+" sequences.");
+						break;
+					}
+				} catch (Exception e) {
+					if (e instanceof CanceledExecutionException) 
+						throw e;
+					if (i == MAX_RETRIES-1)
+						throw e;
+					int delay = i * 120 + 120;
+					logger.warn("Job submission failed: "+e.getMessage()+", retrying in "+delay+" seconds.");
+					Thread.sleep(delay * 1000);
+				}
+			}
 			
 			wait_for_completion(logger, exec, jobId);
 			String result = proxy.getResult(jobId);
-			
 			BufferedReader rdr = new BufferedReader(new StringReader(result));
 			String line = null;
 			boolean in_gff = false;
@@ -238,6 +254,8 @@ public class SignalPAccessorNodeModel extends AbstractWebServiceNodeModel {
 				c2.addRow(new DataCell[] { sc });
 			}
 			
+		
+		
 			done += batch.size();
 			exec.checkCanceled();
 			exec.setProgress(((double)done) / inData[0].getRowCount());
