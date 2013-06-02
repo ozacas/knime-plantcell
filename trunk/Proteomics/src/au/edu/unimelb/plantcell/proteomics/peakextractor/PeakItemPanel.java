@@ -28,7 +28,12 @@ import au.edu.unimelb.plantcell.proteomics.peakextractor.PeakPanel;
  * Creates a new panel holding one interval.
  */
 final class PeakItemPanel extends JPanel {
-    private final PeakPanel m_parent;
+    /**
+	 * not used
+	 */
+	private static final long serialVersionUID = -7900237270328568534L;
+	
+	private final PeakPanel m_parent;
     private final JSpinner m_left;
     private final JSpinner m_right;
     private final JTextField m_mz, m_name;

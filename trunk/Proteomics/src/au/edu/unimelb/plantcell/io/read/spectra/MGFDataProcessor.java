@@ -12,7 +12,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import org.expasy.jpl.core.ms.spectrum.peak.Peak;
 import org.expasy.jpl.io.ms.MSScan;
 import org.expasy.jpl.io.ms.reader.MGFReader;
 import org.knime.core.data.DataCell;
@@ -20,13 +19,12 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 
 import au.edu.unimelb.plantcell.core.MyDataContainer;
-
-
 
 /**
  * Implements support for .mgf and .mgf.gz files using JavaProtLib. The
@@ -69,10 +67,7 @@ public class MGFDataProcessor extends AbstractDataProcessor {
 			MyDataContainer scan_container, MyDataContainer file_container)
 			throws Exception {
 		
-		// examine first peaklist to determine what the internal state of the MGFReader should be for this file
-		// HACK BUG FIXME TODO: should we look harder?
-		
-		// MGFReader assumes m/z are sorted in increasing m/z so we do that here
+		// MGFReader assumes m/z are sorted in increasing m/z so we MUST do that here
 		MGFReader rdr = MGFReader.newInstance();
 		File tmp_file = copy_and_sort_peak_list(m_file, rdr);
 		
@@ -83,18 +78,15 @@ public class MGFDataProcessor extends AbstractDataProcessor {
 		int ncols = scan_container.getTableSpec().getNumColumns();
 		int no_precursor = 0;
 		
+		int done = 0;
 		try {
 			while (it.hasNext()) {
 				MSScan ms = it.next();
 				
-				Peak precursor = ms.getPrecursor();
-				BasicPeakList bpl;
-				if (precursor == null) {
+				BasicPeakList bpl = new BasicPeakList(ms);
+				if (ms.getPrecursor() == null) {
 					no_precursor++;
-					bpl = new BasicPeakList(ms, 0.0d, 1);
-				} else {
-					bpl = new BasicPeakList(ms, precursor.getMz(), precursor.getCharge());
-				}
+				} 
 				
 				DataCell[] cells = missing_cells(ncols);
 				cells[2]  = new StringCell(bpl.getRT_safe());
@@ -120,7 +112,12 @@ public class MGFDataProcessor extends AbstractDataProcessor {
 				cells[0]  = new StringCell(bpl.getTitle_safe());
 				
 				scan_container.addRow(cells);
+				
+				if (done++ % 100 == 0)
+					exec.checkCanceled();
 			}
+		} catch (CanceledExecutionException ce) {
+			throw ce;
 		} finally {
 			// TODO BUG FIXME: anyone know how to get file closed by javaprotlib? 
 			if (!tmp_file.delete()) {

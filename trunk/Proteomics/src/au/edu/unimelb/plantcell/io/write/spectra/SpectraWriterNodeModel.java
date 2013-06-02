@@ -24,7 +24,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
-import au.edu.unimelb.plantcell.io.read.spectra.MGFSpectraCell;
+import au.edu.unimelb.plantcell.io.read.spectra.BasicSpectraCell;
 import au.edu.unimelb.plantcell.io.read.spectra.SpectraValue;
 
 
@@ -114,8 +114,8 @@ public class SpectraWriterNodeModel extends NodeModel {
     		String pepmass= null;
     		String scan = null;
     		String rt = null;
-    		if (sdi instanceof MGFSpectraCell) {
-    			MGFSpectraCell mgf = (MGFSpectraCell) sdi;
+    		if (sdi instanceof BasicSpectraCell) {
+    			BasicSpectraCell mgf = (BasicSpectraCell) sdi;
     			charge = mgf.getCharge();
     			pepmass= mgf.getPepmass();
     			if (pepmass != null && pepmass.trim().length() == 0)

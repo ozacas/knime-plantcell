@@ -17,7 +17,7 @@ import org.knime.core.data.DataValue;
  * @author andrew.cassin
  *
  */
-public class MGFSpectraCell extends AbstractSpectraCell {
+public class BasicSpectraCell extends AbstractSpectraCell {
 	/**
 	 *  for serialisation
 	 */
@@ -25,9 +25,9 @@ public class MGFSpectraCell extends AbstractSpectraCell {
 
 	private BasicPeakList m_pl;
 	
-	private static final DataCellSerializer<MGFSpectraCell> SERIALIZER = new MGFSpectraCellSerializer();
+	private static final DataCellSerializer<BasicSpectraCell> SERIALIZER = new BasicSpectraCellSerializer();
 	
-	public MGFSpectraCell(BasicPeakList pl) {
+	public BasicSpectraCell(BasicPeakList pl) {
 		assert(pl != null);
 		m_pl = pl;
 	}
@@ -36,7 +36,7 @@ public class MGFSpectraCell extends AbstractSpectraCell {
         return SpectraValue.class;
     }
 	
-	public static final DataCellSerializer<MGFSpectraCell> getCellSerializer() {
+	public static final DataCellSerializer<BasicSpectraCell> getCellSerializer() {
 		return SERIALIZER;
     }
 
@@ -79,7 +79,7 @@ public class MGFSpectraCell extends AbstractSpectraCell {
 	}
 
 	@Override
-	public MGFSpectraCell getMyValue() {
+	public BasicSpectraCell getMyValue() {
 		return this;
 	}
 
@@ -93,6 +93,11 @@ public class MGFSpectraCell extends AbstractSpectraCell {
 		return m_pl.hashCode();
 	}
 
+	public void initHeaders(BasicSpectraCell sv) {
+		assert(sv != null && m_pl != null);
+		m_pl.initHeaders(sv.m_pl);
+	}
+	
 	@Override
 	public String asString(boolean round) {
 		StringBuilder sb = new StringBuilder();
@@ -134,34 +139,36 @@ public class MGFSpectraCell extends AbstractSpectraCell {
 		return m_pl.getRT_safe();
 	}
 	
+
+	@Override
+	public Peak getPrecursor() {
+		return m_pl.getPrecursor();
+	}
+	
 	/**
-	 * Implement our own mechanism to persist MGF spectra objects, typically this is faster
+	 * Implement our own mechanism to persist <code>BasicSpectraCell</code> instances, typically this is faster
 	 * than using java.lang.Serializable but we do this not just for speed but for correct
 	 * instantiation of the objects
 	 * 
 	 * @author andrew.cassin
 	 *
 	 */
-	private static class MGFSpectraCellSerializer implements DataCellSerializer<MGFSpectraCell> {
+	private static class BasicSpectraCellSerializer implements DataCellSerializer<BasicSpectraCell> {
 
 		@Override
-		public MGFSpectraCell deserialize(final DataCellDataInput input) throws IOException {
+		public BasicSpectraCell deserialize(final DataCellDataInput input) throws IOException {
 			BasicPeakList mgf = BasicPeakList.load(input);
-			return new MGFSpectraCell(mgf);
+			return new BasicSpectraCell(mgf);
 		}
 
 		@Override
-		public void serialize(final MGFSpectraCell spectra, final DataCellDataOutput output)
+		public void serialize(final BasicSpectraCell spectra, final DataCellDataOutput output)
 				throws IOException {
 			if (spectra == null || output == null) 
-				throw new IOException("Bad data given to MGFSpectraCellInitializer::serialize()");
+				throw new IOException("Bad data given to BasicSpectraCellInitializer::serialize()");
 			
 			BasicPeakList.save(spectra.m_pl, output);
 		}
 	}
 
-	@Override
-	public Peak getPrecursor() {
-		return m_pl.getPrecursor();
-	}
 }

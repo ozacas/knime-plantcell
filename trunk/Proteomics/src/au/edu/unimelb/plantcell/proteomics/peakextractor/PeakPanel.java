@@ -3,22 +3,17 @@ package au.edu.unimelb.plantcell.proteomics.peakextractor;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -30,13 +25,19 @@ import org.knime.core.data.DataType;
  * Creates new panel holding one peak column. 
  */
 class PeakPanel extends JPanel {
-    /** List of peaks. */
-    private final JList m_peakList;
+    /**
+	 * not used
+	 */
+	private static final long serialVersionUID = -7997560973798403104L;
+
+	/** List of peaks. */
+    private final JList<PeakItemPanel> m_peakList;
 
     /** The intervals' model. */
-    private final DefaultListModel m_peakMdl;
+    private final DefaultListModel<PeakItemPanel> m_peakMdl;
 
-    private Component m_parent, m_peak_panel;
+    @SuppressWarnings("unused")
+	private Component m_parent, m_peak_panel;
     
     /**
      * Create new interval panel.
@@ -52,8 +53,8 @@ class PeakPanel extends JPanel {
     PeakPanel(final String column, final Component parent, final Component peak_parent, final DataType type) {
         super(new BorderLayout());
         setBorder(BorderFactory.createTitledBorder(" Peaks to be extracted "));
-        m_peakMdl = new DefaultListModel();
-        m_peakList = new JList(m_peakMdl);
+        m_peakMdl = new DefaultListModel<PeakItemPanel>();
+        m_peakList = new JList<PeakItemPanel>(m_peakMdl);
         m_parent = parent;
         m_peak_panel = peak_parent;
         Font font = new Font("Monospaced", Font.PLAIN, 12);

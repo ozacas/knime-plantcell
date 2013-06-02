@@ -9,7 +9,6 @@ import org.expasy.jpl.io.ms.jrap.MSXMLParser;
 import org.expasy.jpl.io.ms.jrap.MZXMLFileInfo;
 import org.expasy.jpl.io.ms.jrap.Scan;
 import org.expasy.jpl.io.ms.jrap.ScanHeader;
-import org.expasy.jpl.io.ms.jrap.SoftwareInfo;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
@@ -20,8 +19,7 @@ import org.knime.core.node.NodeLogger;
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 
 /**
- * mzXML support from the JRAP library, we dont use the same library for mzML as it doesnt
- * have as good a feature set as other mzML libraries for java.
+ * mzXML support from the JRAP library, for now. 
  * 
  * @author andrew.cassin
  *
@@ -57,11 +55,15 @@ public class mzXMLDataProcessor extends AbstractDataProcessor {
 			MyDataContainer scan_container, MyDataContainer file_container)
 			throws Exception {
 
+		m_p = new MSXMLParser(m_file.getAbsolutePath());
+		
 		// first output the file port
 		process_file(exec, file_container, m_p.getHeaderInfo());
 		
 		// now output the scan port
 		process_scans(exec, scan_container);
+		
+		m_p = null;
 	}
 
 	protected void process_scans(ExecutionContext exec, MyDataContainer scan_container) throws Exception {
@@ -107,6 +109,8 @@ public class mzXMLDataProcessor extends AbstractDataProcessor {
 				exec.checkCanceled();
 			}
 		}
+		
+		logger.info("Processed "+m_p.getScanCount()+" spectra in "+m_file.getName());
 	}
 	
 	/**
@@ -121,10 +125,43 @@ public class mzXMLDataProcessor extends AbstractDataProcessor {
     	MSInstrumentInfo   ii= fh.getInstrumentInfo();
 	    DataProcessingInfo dp=fh.getDataProcessing();
 	    int ncols = fc.getTableSpec().getNumColumns();
-	    DataCell[] cells = new DataCell[ncols];
-	    assert(ncols == 9);
-	    	
-	    cells[0] = safe_cell(ii.getManufacturer());
+	    DataCell[] cells = missing_cells(ncols);
+	   
+	    cells[0] = new StringCell(m_file.getAbsolutePath());
+	    cells[1] = new StringCell("Data Processing Method");
+	    cells[2] = safe_cell(dp.toString());
+	    fc.addRow(cells);
+	    
+	    cells[1] = new StringCell("Instrument Manufacturer");
+	    cells[2] = safe_cell(ii.getManufacturer());
+	    fc.addRow(cells);
+	    
+	    cells[1] = new StringCell("Instrument Model");
+	    cells[2] = safe_cell(ii.getModel());
+	    fc.addRow(cells);
+	    
+	    cells[1] = new StringCell("Acquisition Software");
+	    cells[2] = safe_cell(ii.getSoftwareInfo() != null ? ii.getSoftwareInfo().toString() : null);
+	    fc.addRow(cells);
+	    
+	    cells[1] = new StringCell("Operator");
+	    MSOperator mso = ii.getOperator();
+	    cells[2] = safe_cell(mso != null ? mso.toString() : null);
+	    fc.addRow(cells);
+	    
+	    cells[1] = new StringCell("Mass Analyzer");
+	    cells[2] = safe_cell(ii.getMassAnalyzer());
+	    fc.addRow(cells);
+	    
+	    cells[1] = new StringCell("Ionization");
+	    cells[2] = safe_cell(ii.getIonization());
+	    fc.addRow(cells);
+	    
+	    cells[1] = new StringCell("Detector");
+	    cells[2] = safe_cell(ii.getDetector());
+	    fc.addRow(cells);
+	    
+	   /* cells[0] = safe_cell(ii.getManufacturer());
 	    cells[1] = safe_cell(ii.getModel());
 	    SoftwareInfo si = ii.getSoftwareInfo();
 	    cells[2] = safe_cell(si != null ? si.toString() : null);
@@ -136,9 +173,9 @@ public class mzXMLDataProcessor extends AbstractDataProcessor {
 	    cells[5] = safe_cell(ii.getIonization());
 	    cells[6] = safe_cell(ii.getDetector());
 	    cells[7] = safe_cell(dp.toString());
-	    cells[8] = safe_cell(m_file.getAbsolutePath());
+	    cells[8] = safe_cell(m_file.getAbsolutePath()); 
 	    
-	    fc.addRow(cells);
+	    fc.addRow(cells);*/
     }
 
 }

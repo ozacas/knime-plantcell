@@ -50,11 +50,13 @@ public class PeptideScore {
 	/**
 	 * This algorithm matches only ions with m/z <= 2000.0 (as described in the paper)
 	 */
+	@SuppressWarnings("unused")
 	private static final double MAX_MZ_UNDER_CONSIDERATION = 2000.0;
 	
 	// members
 	private String m_peptide;
 	private AbstractSpectraCell m_spectra;
+	@SuppressWarnings("unused")
 	private int m_min, m_max;
 	private double[] m_scores;			// max - min + 1 elements
 	private int m_site;

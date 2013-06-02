@@ -34,7 +34,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
 import au.edu.unimelb.plantcell.io.read.spectra.AbstractSpectraCell;
-import au.edu.unimelb.plantcell.io.read.spectra.MGFSpectraCell;
+import au.edu.unimelb.plantcell.io.read.spectra.BasicSpectraCell;
 
 
 /**
@@ -134,8 +134,8 @@ try {
         		throw new Exception("Internal error - perhaps a bug or bad spectra data: mz != intensity!");
         	}
         	double precursor_mass = 0.0;			// NB: always calculated for z=1
-        	if (spectra_cell instanceof MGFSpectraCell) {
-        		MGFSpectraCell mgf = (MGFSpectraCell) spectra_cell;
+        	if (spectra_cell instanceof BasicSpectraCell) {
+        		BasicSpectraCell mgf = (BasicSpectraCell) spectra_cell;
         		String pepmass = mgf.getPepmass().trim();
         		try {
         			z = mgf.getProbableZ();		// looks at CHARGE header in MGF peak list

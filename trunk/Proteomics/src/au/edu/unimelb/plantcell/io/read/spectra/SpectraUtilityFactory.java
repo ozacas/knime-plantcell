@@ -5,6 +5,7 @@ import javax.swing.Icon;
 import au.edu.unimelb.plantcell.io.read.spectra.SpectraValue;
 
 import org.expasy.jpl.core.ms.spectrum.PeakList;
+import org.expasy.jpl.core.ms.spectrum.peak.Peak;
 import org.expasy.jpl.io.ms.jrap.Scan;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -29,17 +30,49 @@ public class SpectraUtilityFactory extends UtilityFactory {
              loadIcon(SpectraValue.class, "spectra-icon-16x16.png");
      
      public static DataCell createCell(BasicPeakList bpl) {
-    	 return new MGFSpectraCell(bpl);
+    	 return new BasicSpectraCell(bpl);
      }
      
      /**
-      * Convenience wrapper around <code>createCell(MyMGFPeakList)</code>
+      * Preferred constructor if you have a valid <code>PeakList</code> instance. This method copies the headers
+      * (title, pepmass, charge etc.) from the input <code>sv</code> instance, to ensure that the newly
+      * created spectra cell has similar fields. Copy constructor.
+      * @param pl
+      * @param sv
+      * @return
+      */
+     public static DataCell createCell(PeakList pl, SpectraValue sv) {
+    	 DataCell dc = createCell(pl);
+    	 if (dc instanceof BasicSpectraCell && sv instanceof BasicSpectraCell) {
+    		 ((BasicSpectraCell)dc).initHeaders((BasicSpectraCell)sv);
+    	 }
+    	 return dc;
+     }
+     
+     /**
+      * Use of this factory method is discouraged: it creates an "annotation free" spectra cell, which generally
+      * is not what the user will want. It is provided for completeness.
       * 
       * @param pl
       * @return
       */
  	 public static DataCell createCell(PeakList pl) {
- 		return createCell(new BasicPeakList(pl));
+ 		BasicPeakList bpl = new BasicPeakList(pl);
+ 		Peak precursor = pl.getPrecursor();
+ 		if (precursor != null) {
+ 			int charge = precursor.getCharge();
+ 			if (charge > 0)
+ 				bpl.setCharge(String.valueOf(precursor)+"+");
+ 			double mz = precursor.getMz();
+ 			if (mz > 0.0)
+ 				bpl.setPepMass(String.valueOf(mz));
+ 			String title = "";
+ 			if (precursor.getRT() != null)
+ 				title += "RT="+precursor.getRT()+" ";
+ 			bpl.setTitle(title);
+ 		}
+ 		
+ 		return createCell(bpl);
  	 }
  	 
  	

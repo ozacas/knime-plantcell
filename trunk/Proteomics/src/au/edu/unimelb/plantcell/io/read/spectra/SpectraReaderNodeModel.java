@@ -112,7 +112,7 @@ public class SpectraReaderNodeModel extends NodeModel {
         if (m_mzxml.getBooleanValue())
         	dp_list.add(new mzXMLDataProcessor(logger));
         if (m_dta.getBooleanValue()) 
-        	dp_list.add(new DTADataProcessor());
+        	dp_list.add(new DTADataProcessor(logger));
         if (dp_list.size() == 0) {
         	throw new InvalidSettingsException("No filetypes enabled! Re-configure...");
         }

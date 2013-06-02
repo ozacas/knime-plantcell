@@ -7,8 +7,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
-import org.expasy.jpl.core.ms.lc.RetentionTime;
-import org.expasy.jpl.core.ms.lc.RetentionTime.RTUnit;
 import org.expasy.jpl.core.ms.spectrum.PeakList;
 import org.expasy.jpl.core.ms.spectrum.PeakListImpl;
 import org.expasy.jpl.core.ms.spectrum.peak.Peak;
@@ -50,40 +48,64 @@ public class BasicPeakList implements Serializable {
 	/**
 	 * Typical usage:<code>
 	 * MSScan ms = ...;
-	 * new BasicPeakList(ms, ms.getPrecursor().getMZ(), ms.getPrecursor().getCharge());
+	 * new BasicPeakList(ms);
 	 * </code>
 	 * 
-	 * @param ms
-	 * @param charge
-	 * @param precursor_mz
+	 * @param ms: used to populate the entire internal state based on javaprotlib's internals
 	 */
-	public BasicPeakList(MSScan ms, double precursor_mz, int charge) {
-		// calls the recommended constructor
-		this(precursor_mz, charge, ms.getTitle(), ms.getMSLevel(), ms.getMzs(new double[0]), ms.getIntensities(new double[0]));
+	public BasicPeakList(MSScan ms) {
+		Peak precursor = ms.getPrecursor();
+		
+		// try to determine if MS/MS or ...
+		int ms_level = -1;
+		if (ms.getMSLevel() > 0)
+			ms_level = ms.getMSLevel();
+		
+		// determine a title from internal state from ms...
+		String title = "";
+		if (ms.getId() != null && ms.getId().length() > 0)
+			title += ms.getId() + " ";
+		if (ms.getComment() != null && ms.getComment().length() > 0)
+			title += ms.getComment();
+		
+		// ensure peaklist and internal state is set...
+		if (precursor != null) {
+			init(String.valueOf(precursor.getMz()), String.valueOf(precursor.getCharge()), title, ms_level);
+		} else {
+			init("", "", title, ms_level);
+		}
+		
+		setPeakList(ms.getPeakList());
+	}
+
+	public BasicPeakList(String pepmass, String charge, String title, int msLevel) {
+		assert(msLevel >= 1);
+		init(pepmass, charge, title, msLevel);
 	}
 
 	@SuppressWarnings("unused")
-	public BasicPeakList(String pepmass, String charge, String title, int msLevel) {
-		assert(msLevel >= 1);
-		
+	protected void init(String pepmass, String charge, String title, int msLevel) {
 		try {
 			double pm = Double.valueOf(pepmass);
-			if (charge.endsWith("+")) {
-				charge = charge.substring(0, charge.length()-1);
+			if (charge != null && charge.length() > 0 && !charge.equals("NA") && !charge.equals("-1")) {
+				if (charge.endsWith("+")) {
+					charge = charge.substring(0, charge.length()-1);
+				}
+				if (charge.startsWith("+")) {
+					charge = charge.substring(1);
+				}
+				int z = Integer.valueOf(charge);
+				if (z > 0)
+					addHeader("CHARGE", charge);
 			}
-			if (charge.startsWith("+")) {
-				charge = charge.substring(1);
-			}
-			int z = Integer.valueOf(charge);
 			m_ms_level = msLevel;
 		} catch (NumberFormatException nfe) {
 			// be silent for now...
 		}
 		addHeader("TITLE", title);
 		addHeader("PEPMASS", pepmass);
-		addHeader("CHARGE", charge);
 	}
-
+	
 	/**
 	 * This is the recommended constructor to use as it ensures that the m/z peaks are ordered (ascending)
 	 * @param pepmass   should be greater than zero
@@ -311,6 +333,18 @@ public class BasicPeakList implements Serializable {
 	}
 
 	/**
+	 * Copy key header information about the peaklist from <code>in</code>
+	 * @param in
+	 */
+	public void initHeaders(final BasicPeakList in) {
+		for (String hdr : in.m_headers.keySet()) {
+			addHeader(hdr, in.m_headers.get(hdr));
+		}
+		this.setTitle(in.getTitle_safe());
+	}
+	
+	
+	/**
 	 * Read the internal state for the peaklist from the specified input stream
 	 * @param input guaranteed non-NULL
 	 * @return the loaded peaklist
@@ -405,5 +439,5 @@ public class BasicPeakList implements Serializable {
 			output.writeUTF(saveme.m_headers.get(key));
 		}
 	}
-	
+
 }

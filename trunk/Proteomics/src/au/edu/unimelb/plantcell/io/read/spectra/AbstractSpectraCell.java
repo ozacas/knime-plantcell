@@ -3,6 +3,7 @@ package au.edu.unimelb.plantcell.io.read.spectra;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.expasy.jpl.core.ms.spectrum.peak.Peak;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
 
@@ -29,7 +30,12 @@ public abstract class AbstractSpectraCell extends DataCell implements SpectraVal
 	}
 
 	public String asString() {
-		return getID() + "\n"+"Peaks: "+getNumPeaks()+"\nMS Level: "+getMSLevel();
+		Peak p = getPrecursor();
+		String mz = "";
+		if (p != null)
+			mz += p.getMz();
+		return getID() + "\n"+"Peaks: "+getNumPeaks()+"\nMS Level: "+getMSLevel()+
+				"\nCharge: "+getCharge()+"\nPrecursor mass: "+mz;
 		
 	}
 	public abstract String getID();
