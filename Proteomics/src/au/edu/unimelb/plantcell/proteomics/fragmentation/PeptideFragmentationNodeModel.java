@@ -106,7 +106,8 @@ public class PeptideFragmentationNodeModel extends NodeModel {
     /**
      * {@inheritDoc}
      */
-    @Override
+    @SuppressWarnings("unused")
+	@Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
 

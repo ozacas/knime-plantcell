@@ -10,7 +10,6 @@ import java.util.Set;
 
 import org.expasy.jpl.core.mol.chem.MassCalculator;
 import org.expasy.jpl.core.mol.modif.Modification;
-import org.expasy.jpl.core.mol.polymer.modif.ModifContainerManager;
 import org.expasy.jpl.core.mol.polymer.modif.unimod.UnimodManager;
 import org.expasy.jpl.core.mol.polymer.modif.unimod.UnimodSpecificity;
 import org.expasy.jpl.core.mol.polymer.pept.Peptide;
@@ -144,7 +143,8 @@ public class InsilicoDigestorNodeModel extends NodeModel {
         	if (m != null) {
         		Set<UnimodSpecificity> specs = unimod.getSpecificitiesFromModif(m);
         		for (UnimodSpecificity us : specs) {
-        			Iterator it = us.getMatcher().iterator();
+        			@SuppressWarnings("rawtypes")
+					Iterator it = us.getMatcher().iterator();
         			while (it.hasNext()) {
         				logger.info(it.next());
         			}

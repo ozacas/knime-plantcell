@@ -20,8 +20,8 @@ import au.edu.unimelb.plantcell.core.MyDataContainer;
 
 
 /**
- * Implements support for mzML spectra and scan/file statistics, based on the 
- * jMZML library: http://code.google.com/p/jmzml/
+ * Implements support for reading of mzML files using the controlled vocabulary. Only partial support
+ * for the standard. But it should be adequate for most needs.
  * 
  * @author andrew.cassin
  *

@@ -1,6 +1,5 @@
 package au.edu.unimelb.plantcell.proteomics.phosphorylation;
 
-import java.util.logging.Logger;
 
 /**
  * An <code>IonFilterInterface</code> which only accepts ions that are "site determining"

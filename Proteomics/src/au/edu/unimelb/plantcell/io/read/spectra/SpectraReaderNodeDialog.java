@@ -13,6 +13,7 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.ListModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -88,7 +89,7 @@ public class SpectraReaderNodeDialog extends DefaultNodeSettingsPane {
         final JPanel spectra_file_panel = new JPanel();
         spectra_file_panel.setLayout(new BorderLayout());
        
-        spectra_file_panel.add(flist, BorderLayout.CENTER);
+        spectra_file_panel.add(new JScrollPane(flist), BorderLayout.CENTER);
         final JPanel button_panel = new JPanel();
         button_panel.setLayout(new GridLayout(2, 1));
         final JButton add_button = new JButton("Add Spectra files...");

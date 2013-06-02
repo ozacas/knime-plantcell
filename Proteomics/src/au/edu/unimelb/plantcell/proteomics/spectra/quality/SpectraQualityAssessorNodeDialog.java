@@ -7,7 +7,6 @@ import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
-import au.edu.unimelb.plantcell.io.read.spectra.AbstractSpectraCell;
 import au.edu.unimelb.plantcell.io.read.spectra.SpectraValue;
 
 /**
@@ -28,7 +27,8 @@ public class SpectraQualityAssessorNodeDialog extends DefaultNodeSettingsPane {
      * This is just a suggestion to demonstrate possible default dialog
      * components.
      */
-    protected SpectraQualityAssessorNodeDialog() {
+    @SuppressWarnings("unchecked")
+	protected SpectraQualityAssessorNodeDialog() {
         super();
         
         addDialogComponent(new DialogComponentColumnNameSelection(new SettingsModelString(SpectraQualityAssessorNodeModel.CFGKEY_SPECTRA, ""), "Spectra Column", 0, true, false, SpectraValue.class));

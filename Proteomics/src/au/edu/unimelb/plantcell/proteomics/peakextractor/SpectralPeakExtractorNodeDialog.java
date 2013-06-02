@@ -46,14 +46,13 @@ import au.edu.unimelb.plantcell.io.read.spectra.SpectraValue;
 public class SpectralPeakExtractorNodeDialog extends NodeDialogPane {
 
 	    /** The node logger for this class. */
-	    private static final NodeLogger LOGGER = NodeLogger
-	            .getLogger(SpectralPeakExtractorNodeDialog.class);
+	    private static final NodeLogger LOGGER = NodeLogger.getLogger("Peak Extractor Dialog");
 
 	    /** List of numeric columns. */
-	    private final JList m_spectraList;
+	    private final JList<Object> m_spectraList;
 
 	    /** The spectra columns' model. */
-	    private final DefaultListModel m_spectraMdl;
+	    private final DefaultListModel<Object> m_spectraMdl;
 
 	    /** Keeps shows the currently selected peaks */
 	    private final JPanel m_peaks_panel;
@@ -72,19 +71,24 @@ public class SpectralPeakExtractorNodeDialog extends NodeDialogPane {
 	        final JPanel peakPanel = new JPanel(new GridLayout(1, 1));
 
 	        // spectral column list
-	        m_spectraMdl = new DefaultListModel();
+	        m_spectraMdl = new DefaultListModel<Object>();
 	        m_spectraMdl.addElement("<empty>");
-	        m_spectraList = new JList(m_spectraMdl);
+	        m_spectraList = new JList<Object>(m_spectraMdl);
 	        
 	        /**
 	         * Override renderer to plot number of defined bins.
 	         */
 	        class SpectraListCellRenderer extends DataColumnSpecListCellRenderer {
 	            /**
+				 * not used
+				 */
+				private static final long serialVersionUID = 6341301650784838835L;
+
+				/**
 	             * {@inheritDoc}
 	             */
 	            @Override
-	            public Component getListCellRendererComponent(final JList list,
+	            public Component getListCellRendererComponent(@SuppressWarnings("rawtypes") final JList list,
 	                    final Object value, final int index,
 	                    final boolean isSelected, final boolean cellHasFocus) {
 	                Component c = super.getListCellRendererComponent(list, value,
@@ -94,7 +98,8 @@ public class SpectralPeakExtractorNodeDialog extends NodeDialogPane {
 	                if (p != null) {
 	                    int bins = p.getNumPeaks();
 	                    if (bins > 0) {
-	                        String text = getText() + " (";
+	                        @SuppressWarnings("unused")
+							String text = getText() + " (";
 	                        if (bins == 1) {
 	                            text += bins + " peaks defined)";
 	                        } else {

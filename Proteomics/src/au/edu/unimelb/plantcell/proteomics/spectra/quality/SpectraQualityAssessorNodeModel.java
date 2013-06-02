@@ -271,6 +271,7 @@ public class SpectraQualityAssessorNodeModel extends NodeModel {
 
     	ColumnRearranger c = createColumnRearranger(inData[0].getDataTableSpec());
     	BufferedDataTable out = exec.createColumnRearrangeTable(inData[0], c, exec);
+    	logger.info("Processed "+inData[0].getRowCount()+" rows.");
     	return new BufferedDataTable[] {out};
     }
 

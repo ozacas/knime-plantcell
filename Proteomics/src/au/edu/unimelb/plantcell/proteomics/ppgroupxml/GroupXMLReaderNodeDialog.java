@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
@@ -48,13 +49,13 @@ public class GroupXMLReaderNodeDialog extends DefaultNodeSettingsPane {
      */
     protected GroupXMLReaderNodeDialog() {
         super();
-        final JList flist = new JList(file_list.getStringArrayValue());
+        final JList<String> flist = new JList<String>(file_list.getStringArrayValue());
         file_list.addChangeListener( new ChangeListener() {
 
 			@Override
 			public void stateChanged(ChangeEvent arg0) {
 				final String[] cur_files = file_list.getStringArrayValue();
-				flist.setModel(new ListModel() {
+				flist.setModel(new ListModel<String>() {
 					private ArrayList<ListDataListener> m_l = new ArrayList<ListDataListener>();
 					
 					@Override
@@ -63,7 +64,7 @@ public class GroupXMLReaderNodeDialog extends DefaultNodeSettingsPane {
 					}
 
 					@Override
-					public Object getElementAt(int index) {
+					public String getElementAt(int index) {
 						return cur_files[index];
 					}
 
@@ -136,13 +137,10 @@ public class GroupXMLReaderNodeDialog extends DefaultNodeSettingsPane {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				Object[]       sel_files = flist.getSelectedValues();
+				List<String>       sel_files = flist.getSelectedValuesList();
 				HashSet<String> sel_set = new HashSet<String>();
-				
-				for (Object f : sel_files) {
-					sel_set.add(f.toString());
-				}
-			
+				sel_set.addAll(sel_files);
+							
 				HashSet<String> new_files = new HashSet<String>();
 				for (String o : file_list.getStringArrayValue()) {
 					if (!sel_set.contains(o)) {

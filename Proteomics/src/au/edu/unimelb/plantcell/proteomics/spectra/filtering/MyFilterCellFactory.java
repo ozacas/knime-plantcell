@@ -57,7 +57,7 @@ public class MyFilterCellFactory extends AbstractCellFactory {
 				int before = pl.size();
 				pl = m_filter.transform(pl);
 				int after = pl.size();
-				return new DataCell[] { new IntCell(before - after), new IntCell(after), SpectraUtilityFactory.createCell(pl) };
+				return new DataCell[] { new IntCell(before - after), new IntCell(after), SpectraUtilityFactory.createCell(pl, sv) };
 			} catch (Exception e) {
 				e.printStackTrace();
 				m_failed++;
