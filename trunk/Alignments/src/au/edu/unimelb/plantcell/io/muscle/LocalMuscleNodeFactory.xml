@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>MUSCLE Aligner (local)</name>
+    
+    <shortDescription>
+        Supports running a local muscle executable and integration into the KNIME-PlantCell platform
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>Supports running a local muscle executable and integration into the KNIME-PlantCell platform. This is a very fast multiple sequence
+        aligner for both protein and nucleotide sequences. The node provides three performance levels are large series of alignments:
+        <ul>
+        <li>Maximum accuracy: strongly recommended and the default</li>
+        <li>Very fast: without refinement</li>
+        <li>Fastest possible: uses the authors recommended settings for the fastest possible alignments. Useful for really large
+        alignments with thousands of sequences, but not recommended.</li>
+        </ul>
+        </intro>
+        
+        
+        <option name="Path to MUSCLE executable">To use this node you must download the MUSCLE program from: <a href="http://www.drive5.com/muscle/downloads.htm">http://www.drive5.com/muscle/downloads.htm</a>
+        and then configure this node to the installed program.</option>
+        <option name="Sequences Column">List or set of sequence cells to perform alignment on. A separate alignment is performed for each row.</option>
+        <option name="Tradeoff">Select the desired performance and accuracy tradeoff. The default is the best quality.</option>
+        <option name="Report log messages to KNIME console">Report MUSCLE log/debug messages to the KNIME console (default is off)?</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input data">Must include a set or list of sequences in a single column (see group by node)</inPort>
+        <!-- possibly more input ports here-->
+        <outPort index="0" name="Aligned sequences">Input data including alignment results. If alignment fails a missing value will be output.</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+  
+</knimeNode>
