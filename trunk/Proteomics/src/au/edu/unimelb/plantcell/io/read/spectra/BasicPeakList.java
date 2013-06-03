@@ -62,18 +62,22 @@ public class BasicPeakList implements Serializable {
 			ms_level = ms.getMSLevel();
 		
 		// determine a title from internal state from ms...
-		String title = "";
-		if (ms.getId() != null && ms.getId().length() > 0)
-			title += ms.getId() + " ";
-		if (ms.getComment() != null && ms.getComment().length() > 0)
-			title += ms.getComment();
-		
+		String id      = ms.getId();
+		String comment = ms.getComment();
+		String title   = ms.getTitle();
+		if (title == null)
+			title = "";
+	
 		// ensure peaklist and internal state is set...
 		if (precursor != null) {
 			init(String.valueOf(precursor.getMz()), String.valueOf(precursor.getCharge()), title, ms_level);
 		} else {
 			init("", "", title, ms_level);
 		}
+		if (id != null && id.length() > 0)
+			addHeader("SCANS", id);
+		if (comment != null && comment.length() > 0)
+			addHeader("COMMENT", comment);
 		
 		setPeakList(ms.getPeakList());
 	}
