@@ -11,7 +11,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.regex.Pattern;
 
+import org.expasy.jpl.core.ms.spectrum.peak.Peak;
+import org.expasy.jpl.core.ms.spectrum.peak.PeakImpl;
 import org.expasy.jpl.io.ms.MSScan;
 import org.expasy.jpl.io.ms.reader.MGFReader;
 import org.knime.core.data.DataCell;
@@ -69,6 +72,8 @@ public class MGFDataProcessor extends AbstractDataProcessor {
 		
 		// MGFReader assumes m/z are sorted in increasing m/z so we MUST do that here
 		MGFReader rdr = MGFReader.newInstance();
+		
+		// this call to copy_and_sort_peak_list() will modify rdr state to suit the file being matched...
 		File tmp_file = copy_and_sort_peak_list(m_file, rdr);
 		
 		// load peaklists from input file
@@ -77,6 +82,7 @@ public class MGFDataProcessor extends AbstractDataProcessor {
 		Iterator<MSScan> it = rdr.iterator();
 		int ncols = scan_container.getTableSpec().getNumColumns();
 		int no_precursor = 0;
+		int no_charge = 0;
 		
 		int done = 0;
 		try {
@@ -84,9 +90,13 @@ public class MGFDataProcessor extends AbstractDataProcessor {
 				MSScan ms = it.next();
 				
 				BasicPeakList bpl = new BasicPeakList(ms);
-				if (ms.getPrecursor() == null) {
+				
+				Peak precursor = ms.getPrecursor();
+				if (precursor == null) {
 					no_precursor++;
-				} 
+				} else if (precursor.getCharge() == PeakImpl.UNKNOWN_CHARGE_STATE) {
+					no_charge++;
+				}
 				
 				DataCell[] cells = missing_cells(ncols);
 				cells[2]  = new StringCell(bpl.getRT_safe());
@@ -127,7 +137,9 @@ public class MGFDataProcessor extends AbstractDataProcessor {
 		}
 		
 		if (no_precursor > 0)
-			NodeLogger.getLogger("MGF Data Reader").warn("Cannot find precursor peaks in "+no_precursor+" spectra, some data will be missing.");
+			logger.warn("Cannot find precursor peaks in "+no_precursor+" spectra, some data will be missing.");
+		if (no_charge > 0)
+			logger.warn("No charge state (prediction) in "+no_charge+" spectra, perhaps a problem with the data?");
 	}
 	
 	/**
@@ -214,8 +226,11 @@ public class MGFDataProcessor extends AbstractDataProcessor {
 			logger.warn("Automatically numbering peak lists in "+in.getName()+" as MGF data did not provide scan numbers (for every peak list)");
 			rdr.enableAutoScanNum(true);
 		} else {
+			rdr.setTitleScanPattern(Pattern.compile("TITLE=\\s*(.*)\\s*$"));
+			// technically un-necessary, but we make sure of it by being explicit rather than relying on the previous method call
 			rdr.enableAutoScanNum(false);
 		}
+		
 		return tmp;
 	}
 
