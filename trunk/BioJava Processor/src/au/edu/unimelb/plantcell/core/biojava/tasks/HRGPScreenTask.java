@@ -40,12 +40,13 @@ public class HRGPScreenTask extends BioJavaProcessorTask {
 	
 	@Override
 	public DataColumnSpec[] getColumnSpecs() {
-		DataColumnSpec[] cols = new DataColumnSpec[5];
+		DataColumnSpec[] cols = new DataColumnSpec[6];
 		cols[0] = new DataColumnSpecCreator("Region of interest (HTML)", StringCell.TYPE).createSpec();
 		cols[1] = new DataColumnSpecCreator("Window lengths satisfying threshold", ListCell.getCollectionType(DoubleCell.TYPE)).createSpec();
 		cols[2] = new DataColumnSpecCreator("RoI Coverage (%) of predicted protein", DoubleCell.TYPE).createSpec();
 		cols[3] = new DataColumnSpecCreator("Number of distinct regions satisfying threshold", IntCell.TYPE).createSpec();
 		cols[4] = new DataColumnSpecCreator("Window size (AA)", IntCell.TYPE).createSpec();
+		cols[5] = new DataColumnSpecCreator("Windows satisfying threshold (list)", ListCell.getCollectionType(StringCell.TYPE)).createSpec();
 		return cols;
 	}
 	
@@ -54,7 +55,10 @@ public class HRGPScreenTask extends BioJavaProcessorTask {
 		return "<html>Adds metrics to aid in identification of proteins related to HRGP's (incl. Extensins, AGPs etc.). Requires protein sequence.";
 	}
 	
-	
+	/**
+	 * Responsible for computing the results for the given row. Changes to this must be compatible with the KNIME platform ie. must match
+	 * the column specification as given by <code>getColumnSpecs()</code>. Performance is important for working with 1kp...
+	 */
 	@Override
 	public DataCell[] getCells(DataRow r) {
 		SequenceValue sv = getSequenceForRow(r);
@@ -100,35 +104,43 @@ public class HRGPScreenTask extends BioJavaProcessorTask {
 		}
 
 		// to save disk space and speed calculation we just output results only if at least one window found
-		if (n_windows > 0) {
+		// Update 20130603: following advice from Carolyn, reject all %RoI < 10% to avoid false positives
+		double percent_roi = ((double)bv.cardinality()) / len * 100.0d;
+		if (n_windows > 0 && percent_roi >= 10.0) {
 			cells[0] = getHTMLCell(seq, bv);
-			cells[1] = getCollectionCell(bv);		// side effects m_n_windows
-			cells[2] = new DoubleCell(((double)bv.cardinality()) / len * 100.0d);
+			getWindows(seq, bv, cells);		// side effects: m_n_windows and cells[1] and cells[5]
+			cells[2] = new DoubleCell(percent_roi);
 			cells[3] = new IntCell(m_n_regions);
 			cells[4] = new IntCell(window_size);
 		} 
 		return cells;
 	}
 	
-	private DataCell getCollectionCell(DenseBitVector bv) {
-		ArrayList<IntCell> col = new ArrayList<IntCell>();
+	private void getWindows(final String seq, final DenseBitVector bv, DataCell[] cells) {
+		ArrayList<IntCell>    col = new ArrayList<IntCell>();
+		ArrayList<StringCell> ret = new ArrayList<StringCell>();
 		long start = 0;
 		while ((start = bv.nextSetBit(start)) >= 0) {
 			long end = bv.nextClearBit(start+1);
 	
 			if (end < 0) {
 				col.add(new IntCell((int)(bv.length()-start)));
-		
-				break;
+				ret.add(new StringCell(seq.substring((int) start)));
+				break;	// last region in input so thats it...
 			} else {
 				col.add(new IntCell((int)(end-start)));
+				ret.add(new StringCell(seq.substring((int) start, (int) end)));
 				start = end;
 			}
 		}
+		
+		// no windows? cells already contains missing values so just return
 		if (col.size() < 1)
-			return DataType.getMissingCell();
+			return;
+		// else...
 		m_n_regions = col.size();
-		return CollectionCellFactory.createListCell(col);
+		cells[1] = CollectionCellFactory.createListCell(col);
+		cells[5] = CollectionCellFactory.createListCell(ret);
 	}
 
 	private DataCell getHTMLCell(String seq, DenseBitVector bv) {
