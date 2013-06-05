@@ -21,6 +21,11 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
  * the %PAST, %P, %PSYK and %PVK within windows and identification of rich "regions" of these metrics.
  * the task provides highlighted regions and numeric metrics for subsequent use.
  * 
+ * The key concept is that windows increase (from 8aa) as justified by %proline and the biased composition dictates.
+ * But for a window to be accepted as a starting window it must contain at least 20% proline ie. 2 out of 8. And only then if
+ * it satisfies one of %PAST, %PSYK or %PVK.
+ * 
+ * Acknowledgment: Carolyn Schultz from University of Adelaide, South Australia
  * @author andrew.cassin
  *
  */
@@ -116,6 +121,14 @@ public class HRGPScreenTask extends BioJavaProcessorTask {
 		return cells;
 	}
 	
+	/**
+	 * Process the set of "rich regions" denoted by set bits in <code>bv</code> and extract the
+	 * length and polypeptide sequence from each into the output cells for the plugin.
+	 * 
+	 * @param seq
+	 * @param bv     one bits in this vector denote the proline rich regions. Must have at least <code>seq.length()</code> bits in the vector
+	 * @param cells  some elements (which must have a size of at least <code>getColumnSpecs().length/code>) are side-effected by this call
+	 */
 	private void getWindows(final String seq, final DenseBitVector bv, DataCell[] cells) {
 		ArrayList<IntCell>    col = new ArrayList<IntCell>();
 		ArrayList<StringCell> ret = new ArrayList<StringCell>();
@@ -137,6 +150,7 @@ public class HRGPScreenTask extends BioJavaProcessorTask {
 		// no windows? cells already contains missing values so just return
 		if (col.size() < 1)
 			return;
+		
 		// else...
 		m_n_regions = col.size();
 		cells[1] = CollectionCellFactory.createListCell(col);
@@ -162,6 +176,16 @@ public class HRGPScreenTask extends BioJavaProcessorTask {
 		return new StringCell(sb.toString());
 	}
 
+	/**
+	 * The current window will be accepted for exactly one of three reasons:
+	 * 1) based on <code>window_size</code> the %PAST is >= 70 with %P at least 20%
+	 * 2) based on <code>window_size</code> the %PSYK is >= 70 with %P at least 20%
+	 * 3) based on <code>window_size</code> the %PVK is >= 70 with %P at least 20%
+	 * Otherwise false is returned which will cause a search for later windows meeting the above criteria.
+	 * 
+	 * @param window_size the size of the current window in number of AA - used for % calculations
+	 * @return
+	 */
 	private boolean accept_window(int window_size) {
 		double percent_p = ((double)m_p)/window_size * 100;
 		if (percent_p < 20.0d)
@@ -181,6 +205,12 @@ public class HRGPScreenTask extends BioJavaProcessorTask {
 		return false;
 	}
 
+	/**
+	 * Dumb implementation as it keeps recalculating the same residues... but for now...
+	 * WARNING: this method alters m_{past,p,pvk,psyk} so be careful when you call this.
+	 * 
+	 * @param window
+	 */
 	private void compute_window(String window) {
 		assert(window != null && window.length() > 0);
 		m_past = 0;
