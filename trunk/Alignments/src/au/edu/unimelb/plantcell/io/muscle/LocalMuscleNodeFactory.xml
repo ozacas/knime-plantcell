@@ -23,7 +23,7 @@
         and then configure this node to the installed program.</option>
         <option name="Sequences Column">List or set of sequence cells to perform alignment on. A separate alignment is performed for each row.</option>
         <option name="Tradeoff">Select the desired performance and accuracy tradeoff. The default is the best quality.</option>
-        <option name="Report log messages to KNIME console">Report MUSCLE log/debug messages to the KNIME console (default is off)?</option>
+        <option name="Report log messages to KNIME console">Report MUSCLE log/debug messages to the KNIME console? Default is off as it can lead to large amount of output and slow performance.</option>
     </fullDescription>
     
     <ports>
