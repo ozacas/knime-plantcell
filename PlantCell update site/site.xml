@@ -12,7 +12,7 @@
       release would not be possible. Please read the LICENSE and ACKNOWLEDGEMENTS files with
       this release for more information.
    </description>
-   <feature url="features/au.edu.unimelb.plantcell.www_1.2.19.jar" id="au.edu.unimelb.plantcell.www" version="1.2.19">
+   <feature url="features/au.edu.unimelb.plantcell.www_1.2.20.jar" id="au.edu.unimelb.plantcell.www" version="1.2.20">
       <category name="Cell Biology"/>
    </feature>
    <category-def name="Cell Biology" label="PlantCell KNIME nodes">
