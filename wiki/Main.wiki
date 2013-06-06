@@ -24,11 +24,11 @@ Licensed under the LGPL license, but uses many third-party libraries. See the re
 == Binary ==
 
 To add the extension to your platform, simply start KNIME and then:
-1) choose Help -> Install New Software...
-2) in the 'Work With' box, type http://115.146.93.120
-3) press Enter
-4) Select 'PlantCell KNIME nodes'
-5) click 'Next' and follow the prompts. The software is not currently
+ * choose Help -> Install New Software...
+ * in the 'Work With' box, type http://115.146.93.120
+ * press Enter
+ * Select 'PlantCell KNIME nodes'
+ * click 'Next' and follow the prompts. The software is not currently
 signed, so you'll need to trust it.
 
 == Source ==
