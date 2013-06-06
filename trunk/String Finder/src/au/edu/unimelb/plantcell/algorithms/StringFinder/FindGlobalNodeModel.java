@@ -77,7 +77,7 @@ public class FindGlobalNodeModel extends NodeModel {
    private final SettingsModelStringArray m_outformat   = new SettingsModelStringArray(CFG_OUTPUT_FORMAT, new String[] { "Matches (collection)" } );
    
     // internal state during execute()
-    private Pattern[] m_matchers;
+    private Pattern[] m_matchers;					// order of patterns: IN ORDER AS SUPPLIED BY USER
     private int m_match_col_idx, m_cnt;
     private DenseBitVector m_bv;
     private ArrayList<String> m_matches;

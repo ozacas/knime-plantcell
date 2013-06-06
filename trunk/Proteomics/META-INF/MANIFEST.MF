@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Proteomics
 Bundle-SymbolicName: au.edu.unimelb.plantcell.proteomics; singleton:=true
-Bundle-Version: 1.2.10
+Bundle-Version: 1.2.11
 Bundle-ClassPath: insilicodigestor.jar,
  lib/jpl-commons-collection-1.0.jar,
  lib/jpl-core-1.0.jar,
