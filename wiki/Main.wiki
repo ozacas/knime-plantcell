@@ -27,7 +27,7 @@ To add the extension to your platform, simply start KNIME and then:
  * choose Help -> Install New Software...
  * in the 'Work With' box, type http://115.146.93.120
  * press Enter
- * Select 'PlantCell KNIME nodes'
+ * Select "PlantCell KNIME nodes"
  * click 'Next' and follow the prompts, you'll need to restart KNIME
 
 After KNIME restarts, you should have the bioinformatics nodes. Note that not all nodes are usable unless you are located at the University of Melbourne.
