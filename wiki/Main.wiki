@@ -25,7 +25,7 @@ Licensed under the LGPL license, but uses many third-party libraries. See the re
 
 To add the extension to your platform, simply start KNIME and then:
  * choose Help -> Install New Software...
- * in the 'Work With' box, type http://115.146.93.120
+ * in the 'Work With' box, type http://knime.plantcell.unimelb.edu.au
  * press Enter
  * Select "PlantCell KNIME nodes"
  * click 'Next' and follow the prompts, you'll need to restart KNIME
