@@ -1,0 +1,19 @@
+Manifest-Version: 1.0
+Implementation-Title: GlueGen Run-Time
+Implementation-Version: 2.0-b49-20120726
+Specification-Vendor: JogAmp Community
+Created-By: 1.6.0_31-b04 (Sun Microsystems Inc.)
+Implementation-URL: http://jogamp.org/
+Ant-Version: Apache Ant 1.8.2
+Implementation-Commit: 23ec994d65329f239f17322ad23510a77e709534
+Implementation-Vendor: JogAmp Community
+Trusted-Library: true
+Implementation-Vendor-Id: com.jogamp
+Specification-Title: GlueGen Java Bindings Generator
+Implementation-Branch: rc
+Specification-Version: 2.0
+Extension-Name: com.jogamp.common
+
+Name: libgluegen-rt.so
+SHA1-Digest: fFdNLlBLUdI/Ia+Vy/Pg+t0v92o=
+

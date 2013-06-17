@@ -1,0 +1,31 @@
+Manifest-Version: 1.0
+Implementation-Title: Java Bindings for OpenGL Runtime Environment
+Implementation-Version: 2.0-b62-20120803
+Specification-Vendor: JogAmp Community
+Created-By: 1.6.0_33-b03-424-11M3720 (Apple Inc.)
+Implementation-URL: http://jogamp.org/
+Ant-Version: Apache Ant 1.8.2
+Implementation-Commit: 9e87acd921bcb357f1ec88d166bde672b54b02c8
+Implementation-Vendor: JogAmp Community
+Trusted-Library: true
+Implementation-Vendor-Id: com.jogamp
+Specification-Title: Java Bindings for OpenGL API Specification
+Implementation-Branch: rc
+Specification-Version: 2.0
+Extension-Name: javax.media.opengl
+
+Name: libjogl_mobile.jnilib
+SHA1-Digest: xL12HO53jrTCfm7fW9wI3KCIXz8=
+
+Name: libnativewindow_awt.jnilib
+SHA1-Digest: mnIAHektM0M0mY4xoyxyMQSFQok=
+
+Name: libnativewindow_macosx.jnilib
+SHA1-Digest: wuMn07gtMGgsielR3jA9ooKpTko=
+
+Name: libjogl_desktop.jnilib
+SHA1-Digest: upj6MNtgfhs8n0Dl8LkZIVZMpd4=
+
+Name: libnewt.jnilib
+SHA1-Digest: 3wARYhNww4m8axieUKatuIq/yxE=
+
