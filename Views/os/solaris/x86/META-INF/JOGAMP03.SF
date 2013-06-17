@@ -1,0 +1,20 @@
+Signature-Version: 1.0
+SHA1-Digest-Manifest-Main-Attributes: 82J8jpv8bxjfhcZ66lFrynp3CEs=
+Created-By: 1.6.0_30 (Sun Microsystems Inc.)
+SHA1-Digest-Manifest: BkLk7gxECBjcqxH+ZK5w9+T1LMI=
+
+Name: libjogl_desktop.so
+SHA1-Digest: flKdO0pUNHNYaaz9iGxBAFAxz6Y=
+
+Name: libjogl_mobile.so
+SHA1-Digest: EtJeDps2mmunJUX8FE0q6HcnroY=
+
+Name: libnativewindow_x11.so
+SHA1-Digest: QkGROEXpLLHON0ls2TZf2soH2vY=
+
+Name: libnativewindow_awt.so
+SHA1-Digest: iJQDe5CdNool8/Ofnp6b05uC+XM=
+
+Name: libnewt.so
+SHA1-Digest: CoSMjlz4Y7pHx1RkI4NeA0opgsY=
+
