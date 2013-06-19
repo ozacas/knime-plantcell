@@ -37,11 +37,16 @@ public class Plot3DBarNodeModel extends NodeModel {
     static final String CFGKEY_Y = "y";
     static final String CFGKEY_Z = "z";
     static final String CFGKEY_QUALITY = "plot-quality";
+	static final String CFGKEY_OVERLAY_AXIS = "overlay-axis";
+	static final String CFGKEY_OVERLAY_DATA = "overlay-data-column";
     
     private final SettingsModelString m_x = new SettingsModelString(CFGKEY_X, "");
     private final SettingsModelString m_y = new SettingsModelString(CFGKEY_Y, "");
     private final SettingsModelString m_z = new SettingsModelString(CFGKEY_Z, "");
     private final SettingsModelString m_quality = new SettingsModelString(CFGKEY_QUALITY, "Nicest");
+    private final SettingsModelString m_overlay_axis = new SettingsModelString(CFGKEY_OVERLAY_AXIS, "");
+    private final SettingsModelString m_overlay_column = new SettingsModelString(CFGKEY_OVERLAY_DATA, "");
+    
     
     // these are all parallel vectors ie. must be the same size
     private double[] m_xvec = null;
@@ -49,6 +54,7 @@ public class Plot3DBarNodeModel extends NodeModel {
     private double[] m_zvec = null;
     private String[] m_rows = null;		// row ID's used for highlighting
     private Color[] m_colours = null;	// row colours used for the graph
+    private double[] m_overlay= null;	// used for an axis-aligned overlay plot (optional)
     
     /**
      * Constructor for the node model.
@@ -64,12 +70,21 @@ public class Plot3DBarNodeModel extends NodeModel {
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
 
-    	logger.info(m_x.getStringValue());
+    	logger.info("Processing input data for 3D Plot");
+    	boolean has_overlay = false;
+    	if (hasOverlay()) {
+    		logger.info("Providing an overlay plot on the "+getOverlayAxis()+" axis.");
+    		has_overlay = true;
+    	}
     	int x_idx = inData[0].getSpec().findColumnIndex(m_x.getStringValue());
     	int y_idx = inData[0].getSpec().findColumnIndex(m_y.getStringValue());
     	int z_idx = inData[0].getSpec().findColumnIndex(m_z.getStringValue());
     	if (x_idx < 0 || y_idx < 0 || z_idx < 0)
     		throw new InvalidSettingsException("Cannot find input columns - re-configure?");
+    	int overlay_idx = -1;
+    	if (has_overlay) {
+    		overlay_idx = inData[0].getSpec().findColumnIndex(m_overlay_column.getStringValue());
+    	}
     	
     	logger.info("Loading "+inData[0].getRowCount()+" data points.");
     	int missing = 0;
@@ -80,6 +95,7 @@ public class Plot3DBarNodeModel extends NodeModel {
     	ArrayList<Double> zvec = new ArrayList<Double>(n_rows);
     	ArrayList<String> rowids = new ArrayList<String>(n_rows);
     	ArrayList<Color> colours = new ArrayList<Color>(n_rows);
+    	ArrayList<Double> overlay= new ArrayList<Double>(n_rows);
     	for (DataRow r : inData[0]) {
     		DataCell x_cell = r.getCell(x_idx);
     		DataCell y_cell = r.getCell(y_idx);
@@ -94,6 +110,20 @@ public class Plot3DBarNodeModel extends NodeModel {
     			yvec.add(Double.valueOf(y_cell.toString()));
     			zvec.add(Double.valueOf(z_cell.toString()));
     			rowids.add(r.getKey().getString());
+    			// overlay vector MUST be the same length as the axis chosen for the overlay, otherwise it wont work. Missing
+    			// values are not plotted (Double.NaN is used to mark this)
+    			if (has_overlay) {
+	    			DataCell overlay_cell = r.getCell(overlay_idx);
+	    			if (overlay_cell == null || overlay_cell.isMissing()) {
+	    				overlay.add(Double.NaN);
+	    			} else {
+	    				try {
+	    					overlay.add(Double.valueOf(overlay_cell.toString()));
+	    				} catch (NumberFormatException nfe) {
+	    					nfe.printStackTrace();
+	    				}
+	    			}
+    			}
     			java.awt.Color c_awt = inData[0].getSpec().getRowColor(r).getColor();
     			colours.add(c_awt != null ? new Color(c_awt.getRed(), c_awt.getGreen(), c_awt.getBlue()) : Color.BLACK);
     		} catch (NumberFormatException nfe) {
@@ -105,6 +135,10 @@ public class Plot3DBarNodeModel extends NodeModel {
     	m_zvec = ArrayUtils.toPrimitive(zvec.toArray(new Double[0]));
     	m_rows = rowids.toArray(new String[0]);
     	m_colours = colours.toArray(new Color[0]);
+    	m_overlay = null;
+    	if (has_overlay) {
+    		m_overlay = ArrayUtils.toPrimitive(overlay.toArray(new Double[0]));
+    	}
     	
     	double min = Statistics.min(m_xvec);
     	double max = Statistics.max(m_xvec);
@@ -152,6 +186,8 @@ public class Plot3DBarNodeModel extends NodeModel {
     	m_y.saveSettingsTo(settings);
     	m_z.saveSettingsTo(settings);
     	m_quality.saveSettingsTo(settings);
+    	m_overlay_axis.saveSettingsTo(settings);
+    	m_overlay_column.saveSettingsTo(settings);
     }
 
     /**
@@ -163,7 +199,9 @@ public class Plot3DBarNodeModel extends NodeModel {
     	m_x.loadSettingsFrom(settings);
     	m_y.loadSettingsFrom(settings);
     	m_z.loadSettingsFrom(settings);
-    	m_quality.loadSettingsFrom(settings);
+    	m_quality.loadSettingsFrom(settings);	
+    	m_overlay_axis.loadSettingsFrom(settings);
+    	m_overlay_column.loadSettingsFrom(settings);
     }
 
     /**
@@ -176,6 +214,8 @@ public class Plot3DBarNodeModel extends NodeModel {
         m_y.validateSettings(settings);
         m_z.validateSettings(settings);
         m_quality.validateSettings(settings);
+        m_overlay_axis.validateSettings(settings);
+    	m_overlay_column.validateSettings(settings);
     }
     
     /**
@@ -210,19 +250,41 @@ public class Plot3DBarNodeModel extends NodeModel {
 	}
 
 	/**
+	 * User want to overlay data on one of the axes?
+	 */
+	public boolean hasOverlay() {
+		String ocol = m_overlay_column.getStringValue();
+		return (ocol != null && ocol.length() > 0 && !ocol.equalsIgnoreCase("<none>"));
+	}
+	
+	/**
+	 * Return the axis to overlay data on: one of X, Y or Z. Only call this if <code>hasOverlay()</code> returns true.
+	 */
+	public String getOverlayAxis() {
+		String colName = m_overlay_axis.getStringValue();
+		return colName;
+	}
+	
+	/**
+	 * Return the data for the overlay. Will return null if <code>!hasOverlay()</code>
+	 */
+	public double[] getOverlay1DVector() {
+		return m_overlay;
+	}
+	
+	/**
 	 * Return the set of 3d points (which must be pre-sized to at least countDataPoints() in length)
 	 * @param x
 	 * @param y
 	 * @param z
 	 */
-	public void getDataPoints(double[] x, double[] y, double[] z, String[] rowids, Color[] colours) {
+	public void getDataPoints(double[] x, double[] y, double[] z, Color[] colours) {
 		assert(x != null && y != null && z != null);
 		
 		for (int i=0; i<x.length; i++) {
 			x[i] = m_xvec[i];
 			y[i] = m_yvec[i];
 			z[i] = m_zvec[i];
-			rowids[i] = m_rows[i];
 			colours[i]= m_colours[i];
 		}
 	}
@@ -233,6 +295,23 @@ public class Plot3DBarNodeModel extends NodeModel {
 
 	public String getQuality() {
 		return m_quality.getStringValue();
+	}
+
+	/**
+	 * Returns the printable form of the column name as specified in the node configuration...
+	 * @param x_y_or_z
+	 * @return
+	 */
+	public String getAxis(final String x_y_or_z) {
+		assert(x_y_or_z != null && x_y_or_z.length() == 1);
+		
+		if (x_y_or_z.toLowerCase().equals("x")) {
+			return m_x.getStringValue();
+		} else if (x_y_or_z.toLowerCase().equals("y")) {
+			return m_y.getStringValue();
+		} else {
+			return m_z.getStringValue();
+		}
 	}
 
 }

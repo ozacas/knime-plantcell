@@ -47,6 +47,16 @@ public class Plot3DBarNodeDialog extends DefaultNodeSettingsPane {
         		new SettingsModelString(Plot3DBarNodeModel.CFGKEY_Z, ""), "Z Data", 0, cf));
         addDialogComponent(new DialogComponentStringSelection(new SettingsModelString(Plot3DBarNodeModel.CFGKEY_QUALITY, ""), 
         		"Quality of plot", new String[] { "Nicest", "Intermediate", "Fastest" }));
+        
+    
+        createNewTab("Plot for axis (optional)");
+        addDialogComponent(new DialogComponentStringSelection(
+        		new SettingsModelString(Plot3DBarNodeModel.CFGKEY_OVERLAY_AXIS, "X"),
+        		"Axis for overlay", new String[] { "X", "Y", "Z" }
+        		));
+        addDialogComponent(new DialogComponentColumnNameSelection(
+        		new SettingsModelString(Plot3DBarNodeModel.CFGKEY_OVERLAY_DATA, "<None>"), "Column to use for overlay data", 0, false, true, cf
+        		));
     }
 }
 
