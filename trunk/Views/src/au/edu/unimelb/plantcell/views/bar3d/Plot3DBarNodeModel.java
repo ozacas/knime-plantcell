@@ -43,7 +43,6 @@ public class Plot3DBarNodeModel extends NodeModel {
     private final SettingsModelString m_x = new SettingsModelString(CFGKEY_X, "");
     private final SettingsModelString m_y = new SettingsModelString(CFGKEY_Y, "");
     private final SettingsModelString m_z = new SettingsModelString(CFGKEY_Z, "");
-    private final SettingsModelString m_quality = new SettingsModelString(CFGKEY_QUALITY, "Nicest");
     private final SettingsModelString m_overlay_axis = new SettingsModelString(CFGKEY_OVERLAY_AXIS, "");
     private final SettingsModelString m_overlay_column = new SettingsModelString(CFGKEY_OVERLAY_DATA, "");
     
@@ -185,7 +184,6 @@ public class Plot3DBarNodeModel extends NodeModel {
     	m_x.saveSettingsTo(settings);
     	m_y.saveSettingsTo(settings);
     	m_z.saveSettingsTo(settings);
-    	m_quality.saveSettingsTo(settings);
     	m_overlay_axis.saveSettingsTo(settings);
     	m_overlay_column.saveSettingsTo(settings);
     }
@@ -199,7 +197,6 @@ public class Plot3DBarNodeModel extends NodeModel {
     	m_x.loadSettingsFrom(settings);
     	m_y.loadSettingsFrom(settings);
     	m_z.loadSettingsFrom(settings);
-    	m_quality.loadSettingsFrom(settings);	
     	m_overlay_axis.loadSettingsFrom(settings);
     	m_overlay_column.loadSettingsFrom(settings);
     }
@@ -213,7 +210,6 @@ public class Plot3DBarNodeModel extends NodeModel {
         m_x.validateSettings(settings);
         m_y.validateSettings(settings);
         m_z.validateSettings(settings);
-        m_quality.validateSettings(settings);
         m_overlay_axis.validateSettings(settings);
     	m_overlay_column.validateSettings(settings);
     }
@@ -291,10 +287,6 @@ public class Plot3DBarNodeModel extends NodeModel {
 	
 	public int countDataPoints() {
 		return m_xvec.length;
-	}
-
-	public String getQuality() {
-		return m_quality.getStringValue();
 	}
 
 	/**
