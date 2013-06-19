@@ -7,6 +7,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.logging.Logger;
 
+import javax.media.opengl.GLCapabilities;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -31,13 +32,10 @@ import org.jzy3d.global.Settings;
 import org.jzy3d.maths.BoundingBox3d;
 import org.jzy3d.maths.Coord3d;
 import org.jzy3d.maths.Statistics;
-import org.jzy3d.plot3d.primitives.AbstractDrawable;
 import org.jzy3d.plot3d.primitives.CompositeParallelepiped;
 import org.jzy3d.plot3d.primitives.HistogramBar;
 import org.jzy3d.plot3d.primitives.Point;
-import org.jzy3d.plot3d.primitives.Polygon;
 import org.jzy3d.plot3d.primitives.Sphere;
-import org.jzy3d.plot3d.primitives.selectable.SelectableSphere;
 import org.jzy3d.plot3d.primitives.textured.TranslucentQuad;
 import org.jzy3d.plot3d.rendering.canvas.Quality;
 import org.jzy3d.plot3d.rendering.scene.Graph;
@@ -60,6 +58,8 @@ public class Plot3DBarNodeView extends ExternalApplicationNodeView<Plot3DBarNode
 	private float transparency = 1.0f;		// by default: no transparency
 	private final JLabel status = new JLabel();
 	private final JComboBox<String> bar_type = new JComboBox<String>(new String[] { "Cylinder", "Square Box", "Sphere" });
+	private final Logger logger = Logger.getLogger("Plot 3D View");
+	private boolean supports_transparency = false;
 	
     /**
      * Creates a new view.
@@ -68,18 +68,38 @@ public class Plot3DBarNodeView extends ExternalApplicationNodeView<Plot3DBarNode
      */
     protected Plot3DBarNodeView(final Plot3DBarNodeModel nodeModel) {
         super(nodeModel);
-
-        String model_quality = nodeModel.getQuality();
-        Quality q = Quality.Nicest;
-        if (model_quality.startsWith("Nice"))
-        	;
-        else if (model_quality.startsWith("Inter"))
-        	q = Quality.Intermediate;
-        else
-        	q = Quality.Fastest;
-      
+    
+        // always use hardware if possible
+        GLCapabilities glc = null;
+        try {
+        	Settings s = Settings.getInstance();
+        	if (s != null) {
+        		s.setHardwareAccelerated(true);
+        		glc = s.getGLCapabilities();
+        	}
+        } catch (Exception e) {
+        	e.printStackTrace();
+        }
+        Quality q = Quality.Intermediate;
+        boolean no_depth_if_transparency = q.isDisableDepthBufferWhenAlpha();
+        if (!no_depth_if_transparency) {
+        	supports_transparency = true;
+        	q.setAlphaActivated(true);
+        	q.setDepthActivated(true);
+        	logger.info("View has "+glc.getAlphaBits()+" bits per pixel for transparency.");
+        } else {
+        	logger.warning("Disabling transparency as your computer doesnt support both depth and transparency at the same time.");
+        	supports_transparency = false;
+        	q.setDepthActivated(true);
+        	q.setAlphaActivated(false);
+        }
         c = new Chart(q, "swing");
         c.addController(new MyCameraMouseController());
+        if (glc != null) {
+        	logger.info("View has "+glc.getDepthBits()+" bits per pixel for depth buffer.");
+        	if (glc.getHardwareAccelerated())
+        		logger.info("View is hardware accelerated.");
+        }
         
         JComponent chart = (JComponent) c.getCanvas();
         chart.setMinimumSize(new Dimension(300,300));
@@ -141,7 +161,7 @@ public class Plot3DBarNodeView extends ExternalApplicationNodeView<Plot3DBarNode
 						image_panel.removeAll();
 						image_panel.setLayout(new BorderLayout());
 						image_panel.add(ip, BorderLayout.CENTER);
-						image_panel.invalidate();
+						image_panel.repaint();
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -181,7 +201,7 @@ public class Plot3DBarNodeView extends ExternalApplicationNodeView<Plot3DBarNode
         	
         });
         button_panel.add(show_box);
-        button_panel.add(perspective_view);
+        //button_panel.add(perspective_view);
         button_panel.add(show_wireframe);
         button_panel.add(Box.createRigidArea(new Dimension(5,5)));
         
@@ -218,6 +238,7 @@ public class Plot3DBarNodeView extends ExternalApplicationNodeView<Plot3DBarNode
         button_panel.add(bar_thickness);
         button_panel.add(Box.createRigidArea(new Dimension(5,5)));
         final JSlider bar_transparency = new JSlider(1,100,100);
+        bar_transparency.setEnabled(supports_transparency);
         bar_transparency.setBorder(BorderFactory.createTitledBorder("Transparency (default: opaque)"));
         bar_transparency.addChangeListener(new ChangeListener() {
 
@@ -393,14 +414,6 @@ public class Plot3DBarNodeView extends ExternalApplicationNodeView<Plot3DBarNode
 		if (c != null) {
 			status.setText("Please wait... now loading data");
 			modelChanged(); 		// compute the graph
-			try {
-				Settings s = Settings.getInstance();
-				s.setHardwareAccelerated(true);
-				Logger.getLogger("Plot3D View").info("OpenGL 3D supports "+s.getGLCapabilities().getDepthBits()+"-bit depth buffer.");
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			
 			c.render();
 			f.pack();
 			f.setVisible(true);
