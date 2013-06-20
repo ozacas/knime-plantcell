@@ -20,14 +20,12 @@ public class ChromatogramMatcher extends SpectrumMatcher {		// MUST be derived f
 	private double[] m_rt;
 	private double[] m_intensity;
 	private String m_title;
-	private String m_rt_unit;
 	
 	public ChromatogramMatcher(SpectrumListener sl) {
 		m_sl = sl;
 		m_rt = null;
 		m_intensity = null;
 		m_title = null;
-		m_rt_unit = null;
 	}
 	
 	@Override 
@@ -43,10 +41,10 @@ public class ChromatogramMatcher extends SpectrumMatcher {		// MUST be derived f
 	}
 	
 	@Override
-	public void setBinaryData(final BinaryDataType bdt, final double[] vec) {
+	public void setBinaryData(final BinaryDataType bdt, final double[] vec, final String unit) {
 		if (bdt.isTime()) {
 			m_rt = vec;
-			if ("minute".equals(m_rt_unit)) {
+			if ("minute".equals(unit)) {
 				for (int i=0; i<m_rt.length; i++) {
 					m_rt[i] *= 60.0;
 				}
@@ -61,9 +59,7 @@ public class ChromatogramMatcher extends SpectrumMatcher {		// MUST be derived f
 		super.addCVParam(value, name, accession, cvRef, unitAccsn, unitName);
 		if (name.toLowerCase().indexOf("chromatogram") >= 0) {
 			m_title = name;
-		} else if (unitName != null && unitName.length() >= 0) {
-			m_rt_unit = unitName;
-		}
+		} 
 	}
 	
 	@Override

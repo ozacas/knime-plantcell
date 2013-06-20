@@ -77,7 +77,7 @@ public class SpectrumMatcher extends  AbstractXMLMatcher {
 		precursors.add(p);
 	}
 	
-	public void setBinaryData(final BinaryDataType bdt, final double[] val) {
+	public void setBinaryData(final BinaryDataType bdt, final double[] val, final String unit) {
 		if (bdt.isMZ()) {
 			mz = val;
 		} else if (bdt.isIntensity()) {

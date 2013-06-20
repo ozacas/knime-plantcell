@@ -28,6 +28,8 @@ import au.edu.unimelb.plantcell.core.MyDataContainer;
 public class BinaryDataArrayMatcher extends AbstractXMLMatcher {
 	private final HashMap<String,String> m_accsn2name = new HashMap<String,String>();
 	private final HashMap<String,String> m_name2value = new HashMap<String,String>();
+	private final HashMap<String,String> m_unit2name  = new HashMap<String,String>();
+	
 	private AbstractXMLMatcher parent;
 	private double[] values;
 	private String m_encoded_length;
@@ -128,7 +130,8 @@ public class BinaryDataArrayMatcher extends AbstractXMLMatcher {
 	public void save(NodeLogger logger, MyDataContainer file_container,
 			MyDataContainer scan_container, File xml_file) {
 		if (hasMinimalMatchData()) {
-			((SpectrumMatcher)parent).setBinaryData(getDataType(), values);
+			String unit = m_unit2name.get("UO:0000031");
+			((SpectrumMatcher)parent).setBinaryData(getDataType(), values, unit);
 		}
 	}
 	
@@ -138,5 +141,9 @@ public class BinaryDataArrayMatcher extends AbstractXMLMatcher {
 			throw new Exception("Duplicate accession: "+accession);
 		m_accsn2name.put(accession, name);
 		m_name2value.put(name, value);
+		
+		if (unitName != null && unitAccsn != null) {
+			m_unit2name.put(unitAccsn, unitName);
+		}
 	}
 }

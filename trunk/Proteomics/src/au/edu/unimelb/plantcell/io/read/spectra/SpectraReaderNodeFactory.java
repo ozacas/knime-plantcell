@@ -34,7 +34,7 @@ public class SpectraReaderNodeFactory
      */
     @Override
     public AbstractNodeView<SpectraReaderNodeModel> createAbstractNodeView(final int viewIndex, final SpectraReaderNodeModel mdl) {
-    	return new PeakDistributionHeatmapNodeView(mdl);
+    	return new PeakHeatmapNodeView(mdl);
     }
     
     /**
