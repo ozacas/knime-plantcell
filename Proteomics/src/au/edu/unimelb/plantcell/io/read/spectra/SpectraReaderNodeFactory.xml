@@ -9,9 +9,7 @@
     
     <fullDescription>
         <intro>
-        This node provides the ability to load spectra using the capability
-        provided by JRAP-Stax and ProteomeCommons IO frameworks: this provides
-        support for many formats, beginning with open-formats eg. mzXML, mzML and MGF.
+        This node provides the ability to load spectra in open-formats eg. mzXML, mzML and MGF.
         
        This node provides two output ports: one for spectra data and summary statistics
        about each spectra eg. number of peaks the other for file-level information eg. 
@@ -40,5 +38,9 @@
         
         <outPort index="1" name="Spectra file summary">Summary data from files</outPort>
     </ports>    
-   
+  
+    <views>
+    	<view index="0" name="MS1 Base peak view by file">Displays the base peak distribution over the files. A heatmap
+    	presents MS2 (or higher) spectra as well so that peak picking problems can be readily identified. Only available for mzML files.</view>
+    </views>
 </knimeNode>

@@ -10,6 +10,7 @@ import java.util.Stack;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
+import org.expasy.jpl.core.ms.lc.RetentionTime;
 import org.expasy.jpl.core.ms.spectrum.peak.Peak;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
@@ -39,6 +40,7 @@ public class SpectrumMatcher extends  AbstractXMLMatcher {
 	private double[] intensity;
 	private boolean load_ms1;
 	private List<Peak> precursors = new ArrayList<Peak>();
+	private SpectrumListener m_sl;
 	
 	public SpectrumMatcher() {
 		this(false);
@@ -46,8 +48,15 @@ public class SpectrumMatcher extends  AbstractXMLMatcher {
 	
 	public SpectrumMatcher(boolean load_ms1) {
 		this.load_ms1 = load_ms1;
+		this.m_sl = null;
 	}
 	
+	public SpectrumMatcher(SpectrumListener sl) {
+		this(false);
+		assert(sl != null);
+		m_sl = sl;
+	}
+
 	@Override
 	public void processElement(NodeLogger l, XMLStreamReader parser,
 			Stack<AbstractXMLMatcher> scope_stack) throws IOException,
@@ -68,10 +77,10 @@ public class SpectrumMatcher extends  AbstractXMLMatcher {
 		precursors.add(p);
 	}
 	
-	public void setBinaryData(boolean set_mz, double[] val) {
-		if (set_mz) {
+	public void setBinaryData(final BinaryDataType bdt, final double[] val) {
+		if (bdt.isMZ()) {
 			mz = val;
-		} else {
+		} else if (bdt.isIntensity()) {
 			intensity = val;
 		}
 	}
@@ -233,6 +242,7 @@ public class SpectrumMatcher extends  AbstractXMLMatcher {
 	@Override
 	public void save(NodeLogger logger, MyDataContainer file_container,
 			MyDataContainer scan_container, File xml_file) {
+		BasicPeakList bpl = null;
 		if (hasMinimalMatchData()) {
 			DataCell[] cells = missing(scan_container.getTableSpec());
 			cells[0] = getTitle();
@@ -270,10 +280,10 @@ public class SpectrumMatcher extends  AbstractXMLMatcher {
 						// be silent
 					}
 				}
-				if (load_ms1 || msLevel > 1) {
+				if ((load_ms1 || msLevel > 1) && mz != null && intensity != null) {
 					// must use the right constructor to ensure the peaks are sorted by increasing m/z which may not be the case
 					// from the input data: public BasicPeakList(double pepmass, int charge, String title, int msLevel, double[] mz, double[] intensity)
-					BasicPeakList bpl = new BasicPeakList(pepmass, precursors.get(0).getCharge(), cells[0].toString(), msLevel, mz, intensity);
+					bpl = new BasicPeakList(pepmass, precursors.get(0).getCharge(), cells[0].toString(), msLevel, mz, intensity);
 					if (mz.length != intensity.length) 
 						logger.warn("MZ list length not same as intensity length for "+cells[0].toString());
 					cells[22] = new IntCell(mz.length);
@@ -281,11 +291,55 @@ public class SpectrumMatcher extends  AbstractXMLMatcher {
 				}
 			}
 			scan_container.addRow(cells);
+			
+			// invoke the listener methods to provide the various data?
+			if (m_sl != null) {
+				m_sl.spectra(asInteger(cells[8]), asDouble(cells[2]), asDouble(cells[4]), 
+						asDouble(cells[3]), cells[9].toString(), cells[0].toString(), cells[1].toString());
+				
+				for (Peak p : precursors) {
+					// TODO BUG FIXME... reported unit for RT must be in seconds
+					RetentionTime rt = p.getRT();
+					double rt_val = Double.NaN;
+					if (rt != null) {
+						rt_val = rt.getValue();
+						if (rt.getUnit().equals(RetentionTime.RTUnit.minute))
+							rt_val *= 60.0d;
+					}
+					m_sl.precursor(p.getCharge(), p.getMSLevel(), p.getMz(), p.getIntensity(), rt_val);
+				}
+				if (bpl != null)
+					m_sl.peakList(bpl);
+			}
 		}
 	}
 	
+	/**
+	 * Extracts the <code>int</code> value from the specified KNIME cell: -1 if missing.
+	 * @param dc
+	 * @return
+	 */
+	private int asInteger(DataCell dc) {
+		if (dc == null || dc.isMissing() || !(dc instanceof IntCell)) {
+			return -1;
+		}
+		return ((IntCell)dc).getIntValue();
+	}
+	
+	/**
+	 * Extracts the <code>double</code> value from the specified KNIME cell: 
+	 * @param dc
+	 * @return returns <code>Double.NaN</code> on unsuitable cell (eg. missing)
+	 */
+	private double asDouble(DataCell dc) {
+		if (dc == null || dc.isMissing() || !(dc instanceof DoubleCell)) {
+			return Double.NaN;
+		}
+		return ((DoubleCell)dc).getDoubleValue();
+	}
+	
 	@Override
-	public void addCVParam(String value, String name, String accession, String cvRef) throws Exception {
+	public void addCVParam(String value, String name, String accession, String cvRef, String unitAccession, String unitName) throws Exception {
 		if (m_accsn2name.containsKey(accession))
 			throw new Exception("Duplicate key for "+accession);
 		m_accsn2name.put(accession, name);

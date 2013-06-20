@@ -29,10 +29,21 @@ import au.edu.unimelb.plantcell.core.MyDataContainer;
 public class mzMLDataProcessor extends AbstractDataProcessor {
 	private File m_file;
 	private NodeLogger m_logger;
+	private SpectrumListener m_sl;
+	private boolean m_load_chromatogram;
 	
 	public mzMLDataProcessor(NodeLogger l) {
 		assert(l != null);
 		m_logger = l;
+		m_sl = null;
+		m_load_chromatogram = false;
+	}
+	
+	public mzMLDataProcessor(NodeLogger l, SpectrumListener sl, boolean load_chromatogram) {
+		this(l);
+		assert(sl != null);
+		m_sl = sl;
+		m_load_chromatogram = load_chromatogram;
 	}
 	
 	@Override
@@ -62,7 +73,9 @@ public class mzMLDataProcessor extends AbstractDataProcessor {
 	 */
 	public void process_xml(ExecutionContext exec, MyDataContainer o_f, MyDataContainer o_s, File input_file) throws Exception {
 		Map<String,AbstractXMLMatcher> start_map = new HashMap<String,AbstractXMLMatcher>();
-		start_map.put("spectrum", new SpectrumMatcher());
+		start_map.put("spectrum", new SpectrumMatcher(m_sl));
+		if (m_load_chromatogram)
+			start_map.put("chromatogram", new ChromatogramMatcher(m_sl));
 		BinaryMatcher bm = new BinaryMatcher();
 		start_map.put("binary", bm);
 		start_map.put("precursor", new PrecursorMatcher());
@@ -80,6 +93,8 @@ public class mzMLDataProcessor extends AbstractDataProcessor {
 		end_map.putAll(start_map);
 		
 		FileInputStream in = new FileInputStream(input_file);
+		if (m_sl != null)
+			m_sl.newFile(input_file);
         XMLInputFactory factory = XMLInputFactory.newInstance();
         factory.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.FALSE);
         XMLStreamReader parser = factory.createXMLStreamReader(in);
@@ -113,8 +128,9 @@ public class mzMLDataProcessor extends AbstractDataProcessor {
         	    	String accession = parser.getAttributeValue(null, "accession");
         	    	String name = parser.getAttributeValue(null, "name");
         	    	String value= parser.getAttributeValue(null, "value");
-        	   
-        	    	xm.addCVParam(value, name, accession, cvRef);
+        	    	String unitAccsn = parser.getAttributeValue(null, "unitAccession");
+        	    	String unitName = parser.getAttributeValue(null, "unitName");
+        	    	xm.addCVParam(value, name, accession, cvRef, unitAccsn, unitName);
         	    }
           } else if (event == XMLStreamConstants.END_ELEMENT && end_map.containsKey(localName)) {
         		XMLMatcher xm = object_stack.pop();

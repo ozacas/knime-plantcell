@@ -108,23 +108,32 @@ public class BinaryDataArrayMatcher extends AbstractXMLMatcher {
 	}
 	
 	/**
+	 * For now, this method only supports m/z, intensity and time (ie. retention time) vectors
 	 * 
 	 * @return true if array of m/z values, otherwise intensity values
 	 */
-	private boolean isMZ() {
-		return (find(new String[] { "MS:1000514", "m/z array" }) != null);
+	private BinaryDataType getDataType() {
+		if (find(new String[] { "MS:1000514", "m/z array" }) != null)
+			return BinaryDataType.MZ_TYPE;
+		else if (find(new String[] { "MS:1000515", "intensity array" }) != null) {
+			return BinaryDataType.INTENSITY_TYPE;
+		} else if (find(new String[] { "MS:1000595", "time array" }) != null) {
+			return BinaryDataType.TIME_TYPE;
+		} else {
+			return BinaryDataType.UNKNOWN_TYPE;
+		}
 	}
 	
 	@Override
 	public void save(NodeLogger logger, MyDataContainer file_container,
 			MyDataContainer scan_container, File xml_file) {
 		if (hasMinimalMatchData()) {
-			((SpectrumMatcher)parent).setBinaryData(isMZ(), values);
+			((SpectrumMatcher)parent).setBinaryData(getDataType(), values);
 		}
 	}
 	
 	@Override
-	public void addCVParam(String value, String name, String accession, String cvRef) throws Exception {
+	public void addCVParam(final String value, final String name, final String accession, final String cvRef, final String unitAccsn, final String unitName) throws Exception {
 		if (m_accsn2name.containsKey(accession))
 			throw new Exception("Duplicate accession: "+accession);
 		m_accsn2name.put(accession, name);

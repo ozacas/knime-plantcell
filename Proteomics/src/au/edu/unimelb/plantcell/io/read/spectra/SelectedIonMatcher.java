@@ -62,7 +62,7 @@ public class SelectedIonMatcher extends AbstractXMLMatcher {
 	}
 	
 	@Override
-	public void addCVParam(String value, String name, String accession, String cvRef) throws Exception {
+	public void addCVParam(final String value, final String name, final String accession, final String cvRef, final String unitAccsn, final String unitName) throws Exception {
 		if (accession.equals("MS:1000744")) 
 			mz = value;
 		else if (accession.equals("MS:1000041"))
