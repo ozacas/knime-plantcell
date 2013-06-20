@@ -22,13 +22,19 @@ import org.knime.core.node.ExternalApplicationNodeView;
 
 import au.edu.unimelb.plantcell.views.bar3d.MyCameraMouseController;
 
-public class PeakDistributionHeatmapNodeView extends ExternalApplicationNodeView<SpectraReaderNodeModel> {
-	private final Logger logger = Logger.getLogger("MS1 3D View");
+
+/**
+ * Plots a surface of chromatogram points on the 3D plot
+ * @author andrew.cassin
+ *
+ */
+public class PeakHeatmapNodeView extends ExternalApplicationNodeView<SpectraReaderNodeModel> {
+	private final Logger logger = Logger.getLogger("Chromatogram 3D View");
 	private final Chart c;
 	private final JFrame f;
 	
 	@SuppressWarnings("restriction")
-	protected PeakDistributionHeatmapNodeView(SpectraReaderNodeModel model) {
+	protected PeakHeatmapNodeView(SpectraReaderNodeModel model) {
 		super(model);
 
 		// always use hardware if possible
@@ -70,8 +76,6 @@ public class PeakDistributionHeatmapNodeView extends ExternalApplicationNodeView
         f.setMinimumSize(new Dimension(300,300));
         f.setPreferredSize(new Dimension(800,800));
         f.add(chart, BorderLayout.CENTER);
-		
-        
 	}
 
 	@Override
@@ -102,7 +106,7 @@ public class PeakDistributionHeatmapNodeView extends ExternalApplicationNodeView
 			
 			List<Coord3d> points = mdl.getChromatogramSurface(fractions);
 			Graph g = new Graph(new Scene());
-			Scatter surface = new Scatter(points.toArray(new Coord3d[0]), Color.GRAY);
+			Scatter surface = new Scatter(points.toArray(new Coord3d[0]), Color.BLUE);
 			
 			g.add(surface);
 			c.getScene().setGraph(g);
