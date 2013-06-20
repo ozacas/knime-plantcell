@@ -74,7 +74,7 @@ public class PrecursorMatcher extends AbstractXMLMatcher {
 	}
 	
 	@Override
-	public void addCVParam(String value, String name, String accession, String cvRef) throws Exception {
+	public void addCVParam(final String value, final String name, final String accession, final String cvRef, final String unitAccsn, final String unitName) throws Exception {
 		if (ok_methods.contains(accession))
 			dissociation_methods.add(name);
 	}

@@ -54,7 +54,8 @@ public class SoftwareMatcher extends AbstractXMLMatcher {
 	}
 	
 	@Override
-	public void addCVParam(String value, String name, String accession, String cvRef) {
+	public void addCVParam(final String value, final String name, final String accession, 
+							final String cvRef, final String unitAccsn, final String unitName) {
 		m_accsn = accession;
 		m_ref   = cvRef;
 		m_software_name = name;

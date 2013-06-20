@@ -168,7 +168,8 @@ public class SpectraReaderNodeDialog extends DefaultNodeSettingsPane {
         
         this.addTab("Spectra files", spectra_file_panel);
         addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(SpectraReaderNodeModel.CFGKEY_LOAD_SPECTRA, false), "Load spectra into output (NB: slower)?"));
-    
+        addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(SpectraReaderNodeModel.CFGKEY_LOAD_CHROMATOGRAM, false), "View chromatograms (slow, mzML only)?"));
+        
         createNewGroup("File Formats to load");
         setHorizontalPlacement(true);
         addDialogComponent(new DialogComponentBoolean(

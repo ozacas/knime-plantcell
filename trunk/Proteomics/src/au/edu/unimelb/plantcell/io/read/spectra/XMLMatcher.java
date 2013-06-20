@@ -51,7 +51,10 @@ public interface XMLMatcher {
 	
 	/**
 	 * Add a cvParam to the internal state of this matcher as it is encountered "within" the scope of its parent
+	 * @param unitAccession may be null if not relevant to the cvParam
+	 * @param unitName may be null if not relevant to the cvParam
 	 * @throws Exception should the state fail internal checking something may be thrown (will cause parse to abort)
 	 */
-	public void addCVParam(String value, String name, String accession, String cvRef) throws Exception;
+	public void addCVParam(final String value, final String name, final String accession, final String cvRef, 
+			final String unitAccession, final String unitName) throws Exception;
 }

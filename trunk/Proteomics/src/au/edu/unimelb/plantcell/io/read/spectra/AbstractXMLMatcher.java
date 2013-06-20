@@ -42,7 +42,8 @@ public abstract class AbstractXMLMatcher implements XMLMatcher {
 	}
 
 	@Override
-	public void addCVParam(String value, String name, String accession, String cvRef) throws Exception {
+	public void addCVParam(final String value, final String name, final String accession, 
+			final String cvRef, final String unitAccession, final String unitName) throws Exception {
 		// NO-OP in base class, subclasses to override
 	}
 	
