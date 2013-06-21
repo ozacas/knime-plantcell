@@ -40,7 +40,6 @@
     </ports>    
   
     <views>
-    	<view index="0" name="MS1 Base peak view by file">Displays the base peak distribution over the files. A heatmap
-    	presents MS2 (or higher) spectra as well so that peak picking problems can be readily identified. Only available for mzML files.</view>
+    	<view index="0" name="TIC by file">Displays the TIC's found in each file. mzML only. </view>
     </views>
 </knimeNode>
