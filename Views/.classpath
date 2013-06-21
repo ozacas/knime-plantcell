@@ -3,10 +3,14 @@
 	<classpathentry exported="true" kind="lib" path="lib/applet-launcher.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gluegen-rt.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gluegen.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/jogl-all.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jogl-all.jar">
+		<accessrules>
+			<accessrule kind="accessible" pattern="**"/>
+		</accessrules>
+	</classpathentry>
 	<classpathentry exported="true" kind="lib" path="lib/opencsv-2.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/org.convexhull.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/org.jzy3d-0.9.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/org.jzy3d-0.9.jar" sourcepath="C:/jars/org.jzy3d-0.9-src.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/swt-debug.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/swt.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
