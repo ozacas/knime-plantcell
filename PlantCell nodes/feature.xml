@@ -2,7 +2,7 @@
 <feature
       id="au.edu.unimelb.plantcell.www"
       label="PlantCell KNIME nodes"
-      version="1.2.20"
+      version="1.2.21"
       provider-name="http://www.plantcell.unimelb.edu.au/"
       exclusive="true">
 
@@ -168,6 +168,12 @@ Each is subject to the license terms of the respective software package.
 
    <plugin
          id="au.edu.unimelb.plantcell.ensembl"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.views"
          download-size="0"
          install-size="0"
          version="0.0.0"/>
