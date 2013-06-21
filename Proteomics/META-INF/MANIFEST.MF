@@ -49,7 +49,8 @@ Require-Bundle: org.eclipse.core.runtime,
  org.apache.commons.math;bundle-version="2.1.0",
  org.knime.workbench.ui;bundle-version="2.4.0",
  org.apache.xerces;bundle-version="2.9.0",
- org.apache.log4j;bundle-version="1.2.15"
+ org.apache.log4j;bundle-version="1.2.15",
+ au.edu.unimelb.plantcell.views;bundle-version="1.0.0"
 Bundle-ActivationPolicy: lazy
 Export-Package: au.edu.unimelb.plantcell.io.read.mascot,
  au.edu.unimelb.plantcell.io.read.pepxml,

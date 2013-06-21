@@ -35,7 +35,7 @@ public class MascotReaderNodeFactory
     @Override
     public NodeView<MascotReaderNodeModel> createNodeView(final int viewIndex,
             final MascotReaderNodeModel nodeModel) {
-        return new MascotReaderNodeView(nodeModel);
+        return null;
     }
 
     /**
