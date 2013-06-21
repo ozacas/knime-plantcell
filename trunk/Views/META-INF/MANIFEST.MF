@@ -23,6 +23,7 @@ Require-Bundle: org.eclipse.core.runtime,
  org.apache.commons.lang;bundle-version="2.4.0"
 Bundle-ActivationPolicy: lazy
 Export-Package: au.edu.unimelb.plantcell.views.bar3d,
+ javax.media.opengl,
  org.jzy3d.bridge,
  org.jzy3d.bridge.awt,
  org.jzy3d.bridge.swing,
