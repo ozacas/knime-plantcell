@@ -44,7 +44,7 @@ import javax.swing.filechooser.FileFilter;
 public class FastaReaderNodeDialog extends DefaultNodeSettingsPane {
 
 	private final SettingsModelStringArray file_list = new SettingsModelStringArray(FastaReaderNodeModel.CFGKEY_FASTA, new String[] { "c:/temp/crap.fasta" });
-    private final JComboBox seqtype_list = new JComboBox(au.edu.unimelb.plantcell.core.cells.SequenceType.getSeqTypes());
+    private final JComboBox<String> seqtype_list = new JComboBox<String>(au.edu.unimelb.plantcell.core.cells.SequenceType.getSeqTypes());
 
     /**
      * Establish the configurable parameters associated with reading the FASTA file. Note how we can
@@ -53,13 +53,13 @@ public class FastaReaderNodeDialog extends DefaultNodeSettingsPane {
      */
     protected FastaReaderNodeDialog() {
         super();
-        final JList flist = new JList(file_list.getStringArrayValue());
+        final JList<String> flist = new JList<String>(file_list.getStringArrayValue());
         file_list.addChangeListener( new ChangeListener() {
 
 			@Override
 			public void stateChanged(ChangeEvent arg0) {
 				final String[] cur_files = file_list.getStringArrayValue();
-				flist.setModel(new ListModel() {
+				flist.setModel(new ListModel<String>() {
 					private ArrayList<ListDataListener> m_l = new ArrayList<ListDataListener>();
 					
 					@Override
@@ -68,7 +68,7 @@ public class FastaReaderNodeDialog extends DefaultNodeSettingsPane {
 					}
 
 					@Override
-					public Object getElementAt(int index) {
+					public String getElementAt(int index) {
 						return cur_files[index];
 					}
 
