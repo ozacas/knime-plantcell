@@ -35,7 +35,7 @@ public class PepXMLReaderNodeFactory
     @Override
     public NodeView<PepXMLReaderNodeModel> createNodeView(final int viewIndex,
             final PepXMLReaderNodeModel nodeModel) {
-        return new PepXMLReaderNodeView(nodeModel);
+        return null;
     }
 
     /**

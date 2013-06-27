@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Source">
+    <name>XCalibur Raw Converter (remote)</name>
+    
+    <shortDescription>
+        Converts XCalibur(tm) Raw files to open formats: mzML, mzXML or MGF using msconvert invoked via a SOAP webservice
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>Converts Thermo-Finnigan Raw files (made by XCalibur(tm)) to an open format and loads MS/MS spectra
+        into the output table. Supports multiple files, but they are converted one at time, using a remote web service
+        with the necessary software. The conversion does not take place on your computer: so you don't need to install anything.
+        This service currently uses ProteoWizard's msconvert utility to perform the conversion.</intro>
+        
+        
+        <option name="XCalibur Raw Files">Select the files to be converted</option>
+        <option name="Output folder">Where the converted files are saved</option>
+        <option name="Overwrite existing?">If checked, this node will overwrite existing files otherwise it will abort.</option>
+        <option name="Output format">Choose one of mzML (recommended), mzXML or Mascot Generic Format (MGF)</option>
+      
+    </fullDescription>
+    
+    <ports>
+        <outPort index="0" name="Output spectra">MS/MS spectra from each file are automatically loaded into the output table,
+        similar to the Spectra Reader node.</outPort>
+        
+		<outPort index="1" name="File summary">Contains descriptive metadata about each file loaded.</outPort>
+    </ports>    
+  
+</knimeNode>
