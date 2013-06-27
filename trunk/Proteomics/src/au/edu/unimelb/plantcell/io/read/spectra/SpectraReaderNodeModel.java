@@ -105,7 +105,7 @@ public class SpectraReaderNodeModel extends NodeModel implements SpectrumListene
         reset();
         
         // make output specs and output containers
-        DataTableSpec[] outSpecs = make_output_spec();
+        DataTableSpec[] outSpecs = make_output_spec(m_spectra.getBooleanValue());
         MyDataContainer container = new MyDataContainer(exec.createDataContainer(outSpecs[0]), "Scan");
         MyDataContainer file_container = new MyDataContainer(exec.createDataContainer(outSpecs[1]), "File");
        
@@ -188,12 +188,18 @@ public class SpectraReaderNodeModel extends NodeModel implements SpectrumListene
     }
 
    
-    
-    private DataTableSpec[] make_output_spec() {
+    /**
+     * HACK TODO FIXME: This must be public static so that the raw file converters can access this code. Really
+     * should do an design pattern...
+     * 
+     * @param want_spectra
+     * @return
+     */
+    public static DataTableSpec[] make_output_spec(boolean want_spectra) {
 
         // if user requests it we will add columns for spectra/chromatograms
         int extra = 0;
-        if (m_spectra.getBooleanValue()) {
+        if (want_spectra) {
         	extra++;
         }
         
@@ -252,7 +258,7 @@ public class SpectraReaderNodeModel extends NodeModel implements SpectrumListene
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
             throws InvalidSettingsException {
-        return make_output_spec();
+        return make_output_spec(m_spectra.getBooleanValue());
     }
 
     /**
