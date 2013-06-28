@@ -28,6 +28,7 @@ public class SpectraPeakIntensityHistogramRenderer implements DataValueRenderer 
 	/**
 	 * serial UID
 	 */
+	@SuppressWarnings("unused")
 	private static final long serialVersionUID = 8312187077797140178L;
 
 	@Override
@@ -37,7 +38,7 @@ public class SpectraPeakIntensityHistogramRenderer implements DataValueRenderer 
 	}
 
 	@Override
-	public Component getListCellRendererComponent(JList arg0, Object arg1,
+	public Component getListCellRendererComponent(@SuppressWarnings("rawtypes") JList arg0, Object arg1,
 			int arg2, boolean arg3, boolean arg4) {
 		return getRendererComponent(arg1);
 	}
@@ -100,6 +101,11 @@ public class SpectraPeakIntensityHistogramRenderer implements DataValueRenderer 
 		
 		Canvas c = new Canvas() {
 			
+			/**
+			 * not used
+			 */
+			private static final long serialVersionUID = 5349146405315184041L;
+
 			@Override
 			public void paint(Graphics g) {
 				for (int i=1; i<=100; i++) {
@@ -111,7 +117,7 @@ public class SpectraPeakIntensityHistogramRenderer implements DataValueRenderer 
 				g.drawString(""+min, 1, 96);
 				g.drawString(""+max, 100, 96);
 				g.drawString("Number of peaks <= Q1: "+q1_final, 110, 20);
-				g.drawString("Number of peaks <= median intensity (Q2): "+q2_final, 110, 40);
+				g.drawString("Number of peaks <= median(Q2) intensity: "+q2_final, 110, 40);
 				g.drawString("Number of peaks at <= Q3 intensity: "+q3_final, 110, 60);
 				g.drawString("Intensity range per bin (width): "+(range/freq.length), 110, 80);
 			}
