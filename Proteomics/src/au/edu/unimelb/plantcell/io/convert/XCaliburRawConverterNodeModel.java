@@ -87,6 +87,7 @@ public class XCaliburRawConverterNodeModel extends NodeModel {
     	boolean has_mzml = false;
     	boolean has_mzxml= false;
     	boolean has_mgf  = false;
+    	int done = 0;
     	for (String s : m_files.getStringArrayValue()) {
     		File input_file = new File(s);
     		if (!input_file.exists() || !input_file.canRead()) 
@@ -110,6 +111,9 @@ public class XCaliburRawConverterNodeModel extends NodeModel {
     	        			has_mgf = true;
     	        	}
     	    }
+    		exec.checkCanceled();
+    		exec.setProgress((0.5d * ++done) / m_files.getStringArrayValue().length);
+    	
     	}
     	
     	// 2. now process the files and load the spectra for the user
@@ -123,7 +127,7 @@ public class XCaliburRawConverterNodeModel extends NodeModel {
        
         // NB: here we dont check with the readers for each filename (maybe take too long with a large number of readers...)
         //     instead, we just hardcode what is supported
-        int done = 0;
+        done = 0;
         
         // instantiate the data processor's for each desired filetype
         ArrayList<AbstractDataProcessor> dp_list = new ArrayList<AbstractDataProcessor>();
@@ -191,7 +195,7 @@ public class XCaliburRawConverterNodeModel extends NodeModel {
     		}
 	        
 	        done++;
-	    	exec.setProgress(((double)done)/cnt, "Completed processing file "+f.getName());
+	    	exec.setProgress(0.5d+(0.5d * done)/cnt, "Completed processing file "+f.getName());
         }
         
     	// 3. and return the results...
@@ -260,7 +264,12 @@ public class XCaliburRawConverterNodeModel extends NodeModel {
         	  logger.info("Submitting wiff file: "+input_file.getName());
         	  if (wiff_scan != null)
         		  logger.info("Submitting "+wiff_scan.getName()+" for conversion too.");
-        	  id = msc.convertWIFF(new RawFile(input_file), wiff_scan, out_format);
+        	  RawFile wiff_file = new RawFile(input_file);
+        	  // we use the single method when there is only one file to avoid WebService passing null interop problems...
+        	  if (wiff_scan == null)
+        		  id = msc.convertWIFFsingle(wiff_file, out_format);
+        	  else 
+        		  id = msc.convertWIFF(wiff_file, wiff_scan, out_format);
           } else {
         	  logger.info("Submitting raw file: "+input_file.getName());
         	  id = msc.convertThermo(new RawFile(input_file), out_format);
@@ -292,6 +301,11 @@ public class XCaliburRawConverterNodeModel extends NodeModel {
                                   logger.info("Saved "+tmp_file.length()+" bytes into "+tmp_file.getAbsolutePath());
                                   outfiles.add(tmp_file);
                           }
+                          
+                          // if we get this far without throwing, we know that we have downloaded all the result files, so we
+                          // can hint to the server we know no longer need the results for this job
+                          msc.purgeJobFiles(id);
+                          // NB: we only purge for successful jobs to aid in debugging...
                           break;
                   }
                   if (status.startsWith("FAIL") || status.startsWith("NO")) {

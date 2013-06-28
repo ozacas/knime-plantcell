@@ -99,7 +99,7 @@ public class SpectraUtilityFactory extends UtilityFactory {
                  new SpectraStringRenderer(),
                  new SpectraTop10Renderer(),
                  new SpectraVisualRenderer(),
-                 
+                 new SpectraPeakIntensityHistogramRenderer(),
                  new SpectraBitVectorRenderer("Spectra M/Z map (iTRAQ 8-plex region, no thres., 0.05u)", 113.0, 121.2, 0.0, 0.05),
                  new SpectraBitVectorRenderer("Spectra M/Z map (iTRAQ 8-plex region, thres. > 20, 0.05u)", 113.0, 121.2, 20.0, 0.05),
                  new SpectraBitVectorRenderer("Spectra M/Z map (low region, no thres., 0.1u)", 100.0, 600.0, 0.0, 0.1),

@@ -23,7 +23,7 @@ public class SpectraTop10Renderer extends DefaultDataValueRenderer {
 
 	@Override
 	public boolean accepts(DataColumnSpec spec) {
-		return (spec != null && spec.getType() == AbstractSpectraCell.TYPE);
+		return (spec != null && spec.getType().isCompatible(SpectraValue.class));
 	}
 	
 	@Override 
