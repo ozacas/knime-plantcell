@@ -24,6 +24,12 @@ public interface MSConvert {
 	@WebMethod public String convertThermo(RawFile raw_file, String format);
 	
 	/**
+	 * Similar to convertThermo(), but for a single WIFF file conversion (ie. no .scan file is present). Better
+	 * to use this method than call <code>convertWiff(wiff, null, ...);</code>
+	 */
+	@WebMethod public String convertWIFFsingle(RawFile wiff, String format);
+	
+	/**
 	 * Submit and convert the supplied Applied Biosystems WIFF format (incl. .wiff.scan if appropriate) to the desired format
 	 * 
 	 * @param wiff .wiff file supplied by user
@@ -59,4 +65,12 @@ public interface MSConvert {
 	 * @param file_index which file (if more than one during the conversion process) to retrieve
 	 */
 	@WebMethod public DataHandler getResultFile(String jobID, int file_index);
+	
+	/**
+	 * Purge all result files for the specified job ID from the server. No results for the specified
+	 * job will be available after this call is executed. The server may carry out this directive immediately or
+	 * it may not obey it at all. The server purges results entirely at its discretion: this call is a hint that the data
+	 * will not be required anymore. Consider it a friendly notification ;-)
+	 */
+	@WebMethod public void purgeJobFiles(String jobID);
 }

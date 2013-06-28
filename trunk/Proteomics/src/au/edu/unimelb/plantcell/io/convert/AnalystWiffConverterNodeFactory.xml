@@ -8,7 +8,9 @@
     </shortDescription>
     
     <fullDescription>
-        <intro>Using ProteoWizard msconvert, via a JAX-WS web service, this node converts an Analyst(tm) wiff file (optionally a .wiff.scan file too) to an open-format and then loads it as per Spectra Reader.</intro>
+        <intro>Using ProteoWizard msconvert, via a JAX-WS web service, this node converts an Analyst(tm) wiff file (optionally a .wiff.scan file too) to an open-format and then 
+        loads it as per Spectra Reader. As this node accesses a server behind the PCBRC firewall, it is only usable from on-site.
+        Only MS/MS (and higher) spectra are loaded into the output table.</intro>
         
         
         <option name="Analyst WIFF(tm) Files">Select the files to be converted</option>
