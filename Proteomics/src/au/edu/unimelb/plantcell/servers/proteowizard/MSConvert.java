@@ -3,6 +3,7 @@ package au.edu.unimelb.plantcell.servers.proteowizard;
 import javax.activation.DataHandler;
 import javax.jws.WebMethod;
 import javax.jws.WebService;
+import javax.xml.bind.annotation.XmlMimeType;
 
 
 /**
@@ -21,13 +22,15 @@ public interface MSConvert {
 	 * 
 	 * @param format one of mzML, mzXML or MGF
 	 */
-	@WebMethod public String convertThermo(RawFile raw_file, String format);
+	@WebMethod public String convertThermo(@XmlMimeType("application/octet-stream") DataHandler raw_file, 
+			long raw_length, String format);
 	
 	/**
 	 * Similar to convertThermo(), but for a single WIFF file conversion (ie. no .scan file is present). Better
 	 * to use this method than call <code>convertWiff(wiff, null, ...);</code>
 	 */
-	@WebMethod public String convertWIFFsingle(RawFile wiff, String format);
+	@WebMethod public String convertWIFFsingle(@XmlMimeType("application/octet-stream") DataHandler wiff, 
+			long wiff_length, String format);
 	
 	/**
 	 * Submit and convert the supplied Applied Biosystems WIFF format (incl. .wiff.scan if appropriate) to the desired format
@@ -36,7 +39,10 @@ public interface MSConvert {
 	 * @Param wiff_scan .wiff.scan file (if null indicates not available)
 	 * @param format one of mzML, mzXML or MGF
 	 */
-	@WebMethod public String convertWIFF(RawFile wiff, RawFile wiff_scan, String format);
+	@WebMethod public String convertWIFF(@XmlMimeType("application/octet-stream") DataHandler wiff, 
+			@XmlMimeType("application/octet-stream") DataHandler wiff_scan, 
+			long wiff_length, long wiff_scan_length,
+			String format);
 	
 	/**
 	 * Get job status - one of [QUEUED, RUNNING, FAILED, COMPLETED, NO QUEUE]
@@ -64,7 +70,7 @@ public interface MSConvert {
 	 * @param jobID the job to retrieve results for
 	 * @param file_index which file (if more than one during the conversion process) to retrieve
 	 */
-	@WebMethod public DataHandler getResultFile(String jobID, int file_index);
+	@WebMethod public @XmlMimeType("application/octet-stream") DataHandler getResultFile(String jobID, int file_index);
 	
 	/**
 	 * Purge all result files for the specified job ID from the server. No results for the specified

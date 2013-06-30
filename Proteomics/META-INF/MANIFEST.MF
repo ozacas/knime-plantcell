@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Proteomics
 Bundle-SymbolicName: au.edu.unimelb.plantcell.proteomics; singleton:=true
-Bundle-Version: 1.2.11
+Bundle-Version: 1.2.12
 Bundle-ClassPath: insilicodigestor.jar,
  lib/jpl-commons-collection-1.0.jar,
  lib/jpl-core-1.0.jar,
@@ -20,9 +20,6 @@ Bundle-ClassPath: insilicodigestor.jar,
  lib/com.springsource.org.apache.log4j-1.2.15.jar,
  lib/cpdetector-1.0.7.jar,
  lib/jargs-1.0.jar,
- lib/jaxb-api-2.1.jar,
- lib/jaxb-impl-2.1.7.jar,
- lib/jaxb-xjc-2.1.7.jar,
  lib/looks-2.2.2.jar,
  lib/mascotdatfile-3.2.jar,
  lib/omssa-parser-1.4.jar,
@@ -38,7 +35,31 @@ Bundle-ClassPath: insilicodigestor.jar,
  lib/xxindex-0.11.jar,
  lib/jpl-commons-collection.graph-1.0.jar,
  lib/fastutil-6.5.4.jar,
- lib/jmzml-1.6.7.jar
+ lib/jmzml-1.6.7.jar,
+ lib/FastInfoset.jar,
+ lib/gmbal-api-only.jar,
+ lib/ha-api.jar,
+ lib/http.jar,
+ lib/jaxws-api.jar,
+ lib/jaxws-rt.jar,
+ lib/jaxws-tools.jar,
+ lib/jrap-stax.jar,
+ lib/jsr173_api.jar,
+ lib/jsr181-api.jar,
+ lib/jsr250-api.jar,
+ lib/management-api.jar,
+ lib/mimepull.jar,
+ lib/policy.jar,
+ lib/resolver.jar,
+ lib/saaj-api.jar,
+ lib/saaj-impl.jar,
+ lib/stax-api-1.0-2.jar,
+ lib/stax-ex.jar,
+ lib/streambuffer.jar,
+ lib/woodstox.jar,
+ lib/jaxb-api.jar,
+ lib/jaxb-impl.jar,
+ lib/jaxb-xjc.jar
 Bundle-Vendor: http://www.plantcell.unimelb.edu.au/bioinformatics
 Require-Bundle: org.eclipse.core.runtime,
  org.knime.workbench.core,
@@ -48,9 +69,9 @@ Require-Bundle: org.eclipse.core.runtime,
  au.edu.unimelb.plantcell.core;bundle-version="1.2.21",
  org.apache.commons.math;bundle-version="2.1.0",
  org.knime.workbench.ui;bundle-version="2.4.0",
- org.apache.xerces;bundle-version="2.9.0",
  org.apache.log4j;bundle-version="1.2.15",
- au.edu.unimelb.plantcell.views;bundle-version="1.0.0"
+ au.edu.unimelb.plantcell.views;bundle-version="1.0.0",
+ au.edu.unimelb.plantcell.statistics;bundle-version="1.2.23"
 Bundle-ActivationPolicy: lazy
 Export-Package: au.edu.unimelb.plantcell.io.read.mascot,
  au.edu.unimelb.plantcell.io.read.pepxml,
@@ -60,7 +81,17 @@ Export-Package: au.edu.unimelb.plantcell.io.read.mascot,
  au.edu.unimelb.plantcell.proteomics.inference,
  au.edu.unimelb.plantcell.proteomics.phosphorylation,
  au.edu.unimelb.plantcell.proteomics.spectra.quality
-Import-Package: com.sun.xml.txw2.output,
+Import-Package: javax.activation,
+ javax.mail,
+ javax.xml.rpc,
+ javax.xml.ws,
+ javax.xml.ws.handler,
+ javax.xml.ws.handler.soap,
+ javax.xml.ws.http,
+ javax.xml.ws.soap,
+ javax.xml.ws.spi,
+ javax.xml.ws.wsaddressing,
  org.apache.commons.collections.primitives,
  org.apache.commons.logging
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 

@@ -12,6 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.activation.DataHandler;
+import javax.activation.FileDataSource;
 import javax.xml.namespace.QName;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.Service;
@@ -38,7 +39,7 @@ import au.edu.unimelb.plantcell.io.read.spectra.SpectraReaderNodeModel;
 import au.edu.unimelb.plantcell.io.read.spectra.mzMLDataProcessor;
 import au.edu.unimelb.plantcell.io.read.spectra.mzXMLDataProcessor;
 import au.edu.unimelb.plantcell.servers.proteowizard.MSConvert;
-import au.edu.unimelb.plantcell.servers.proteowizard.RawFile;
+
 
 
 /**
@@ -238,7 +239,7 @@ public class XCaliburRawConverterNodeModel extends NodeModel {
           
           if (msc == null) 
         	  throw new IOException("Cannot create proxy to MSConvert service!");
-          
+                    
           // enable MTOM in client
           BindingProvider bp = (BindingProvider) msc;
           Map<String,Object> ctx = bp.getRequestContext();
@@ -256,23 +257,24 @@ public class XCaliburRawConverterNodeModel extends NodeModel {
           
           String id = null;
           if (is_wiff) {
-        	  RawFile wiff_scan = null;
+        	  FileDataSource wiff_scan = null;
         	  File tmp = new File(input_file.getParentFile(), input_file.getName()+".scan");
         	  if (tmp.exists() && tmp.isFile() && tmp.canRead()) {
-        		  wiff_scan = new RawFile(tmp);
+        		  wiff_scan = new FileDataSource(tmp);
         	  }
         	  logger.info("Submitting wiff file: "+input_file.getName());
         	  if (wiff_scan != null)
         		  logger.info("Submitting "+wiff_scan.getName()+" for conversion too.");
-        	  RawFile wiff_file = new RawFile(input_file);
+        	  FileDataSource wiff_file = new FileDataSource(input_file);
         	  // we use the single method when there is only one file to avoid WebService passing null interop problems...
         	  if (wiff_scan == null)
-        		  id = msc.convertWIFFsingle(wiff_file, out_format);
+        		  id = msc.convertWIFFsingle(new DataHandler(wiff_file), input_file.length(), out_format);
         	  else 
-        		  id = msc.convertWIFF(wiff_file, wiff_scan, out_format);
+        		  id = msc.convertWIFF(new DataHandler(wiff_file), new DataHandler(wiff_scan), 
+        				  				input_file.length(), tmp.length(), out_format);
           } else {
         	  logger.info("Submitting raw file: "+input_file.getName());
-        	  id = msc.convertThermo(new RawFile(input_file), out_format);
+        	  id = msc.convertThermo(new DataHandler(new FileDataSource(input_file)), input_file.length(), out_format);
           }
           if (id == null)
         	  throw new IOException("Unable to convert raw file - server gave no job ID!");
