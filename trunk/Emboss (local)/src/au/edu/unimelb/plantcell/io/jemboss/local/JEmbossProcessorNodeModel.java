@@ -33,7 +33,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 import au.edu.unimelb.plantcell.core.CorePlugin;
-import au.edu.unimelb.plantcell.core.PreferenceConstants;
+import au.edu.unimelb.plantcell.core.Preferences;
 import au.edu.unimelb.plantcell.io.jemboss.FastaUnmarshaller;
 import au.edu.unimelb.plantcell.io.jemboss.GFFUnmarshaller;
 import au.edu.unimelb.plantcell.io.jemboss.GraphUnmarshaller;
@@ -352,7 +352,7 @@ public class JEmbossProcessorNodeModel extends NodeModel implements ProgramSetti
      */
     public static String getEmbossRoot() {
     	IPreferenceStore prefs = CorePlugin.getDefault().getPreferenceStore();
-    	return prefs.getString(PreferenceConstants.PREFS_JEMBOSS_FOLDER);
+    	return prefs.getString(Preferences.PREFS_JEMBOSS_FOLDER);
     }
     
     /**

@@ -13,7 +13,7 @@ import java.util.List;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import au.edu.unimelb.plantcell.core.CorePlugin;
-import au.edu.unimelb.plantcell.core.PreferenceConstants;
+import au.edu.unimelb.plantcell.core.Preferences;
 
 
 
@@ -92,9 +92,9 @@ public class ACDApplication {
 
 	public static String getEmbossDir() {
     	IPreferenceStore prefs = CorePlugin.getDefault().getPreferenceStore();
-    	String emboss_dir = prefs.getString(PreferenceConstants.PREFS_JEMBOSS_FOLDER);
+    	String emboss_dir = prefs.getString(Preferences.PREFS_JEMBOSS_FOLDER);
     	if (emboss_dir == null || emboss_dir.length() < 1) {
-    		emboss_dir = prefs.getDefaultString(PreferenceConstants.PREFS_JEMBOSS_FOLDER);
+    		emboss_dir = prefs.getDefaultString(Preferences.PREFS_JEMBOSS_FOLDER);
     	}
     	return emboss_dir;
     }
