@@ -36,7 +36,7 @@ import au.edu.unimelb.plantcell.core.CorePlugin;
 import au.edu.unimelb.plantcell.core.ErrorLogger;
 import au.edu.unimelb.plantcell.core.ExternalProgram;
 import au.edu.unimelb.plantcell.core.MyDataContainer;
-import au.edu.unimelb.plantcell.core.PreferenceConstants;
+import au.edu.unimelb.plantcell.core.Preferences;
 import au.edu.unimelb.plantcell.core.SequenceProcessor;
 import au.edu.unimelb.plantcell.core.UniqueID;
 import au.edu.unimelb.plantcell.core.cells.CoordinateSystem;
@@ -94,7 +94,7 @@ public class AugustusNodeModel extends NodeModel {
     		return m_gene_models;
     	}
     	IPreferenceStore prefs = CorePlugin.getDefault().getPreferenceStore();
-		String install_dir = prefs.getString(PreferenceConstants.PREFS_AUGUSTUS_FOLDER);
+		String install_dir = prefs.getString(Preferences.PREFS_AUGUSTUS_FOLDER);
 		
     	try {
     		File config_dir = new File(install_dir, "config");
@@ -132,7 +132,7 @@ public class AugustusNodeModel extends NodeModel {
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
     	IPreferenceStore prefs = CorePlugin.getDefault().getPreferenceStore();
-		String install_dir = prefs.getString(PreferenceConstants.PREFS_AUGUSTUS_FOLDER);
+		String install_dir = prefs.getString(Preferences.PREFS_AUGUSTUS_FOLDER);
     	File augustus = ExternalProgram.find(install_dir, "augustus");
     	if (augustus == null) 
     		throw new InvalidSettingsException("Unable to locate augustus: please check the PlantCell preferences (File->Preferences)");
