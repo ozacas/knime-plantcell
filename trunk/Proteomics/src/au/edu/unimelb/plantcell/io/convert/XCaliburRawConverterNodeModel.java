@@ -32,6 +32,8 @@ import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
+import com.sun.xml.ws.developer.StreamingDataHandler;
+
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.io.read.spectra.AbstractDataProcessor;
 import au.edu.unimelb.plantcell.io.read.spectra.MGFDataProcessor;
@@ -50,7 +52,7 @@ import au.edu.unimelb.plantcell.servers.proteowizard.MSConvert;
  */
 public class XCaliburRawConverterNodeModel extends NodeModel {
 	 // the logger instance
-    private static final NodeLogger logger = NodeLogger.getLogger("XCalibur RAW Converter");
+    private static final NodeLogger logger = NodeLogger.getLogger("RAW Converter");
     
     // rather than import an entire 1.2MB jar... its really a JAXWSProperties key...
     private final static String HTTP_CLIENT_STREAMING_CHUNK_SIZE = "com.sun.xml.ws.transport.http.client.streaming.chunk.size";
@@ -291,17 +293,32 @@ public class XCaliburRawConverterNodeModel extends NodeModel {
                           logger.info("Found "+n_files+" results files for download, after conversion for "+id);
 
                           for (int i=0; i<n_files; i++) {
-                                  logger.info("Downloading result file #"+(i+1)+ " of "+n_files+".");
-                                  DataHandler dh = msc.getResultFile(id, i);
-                                  
-                                  File tmp_file = new File(output_folder, "result_"+part+"_"+(i+1)+"of"+n_files+"."+out_format);
-                                  if (tmp_file.exists() && !overwrite_existing_files)
-                                	  throw new IOException("Will not overwrite existing file: "+tmp_file.getAbsolutePath());
-                                  
-                                  dh.writeTo(new FileOutputStream(tmp_file));
-
-                                  logger.info("Saved "+tmp_file.length()+" bytes into "+tmp_file.getAbsolutePath());
-                                  outfiles.add(tmp_file);
+                        	  logger.info("Downloading result file #"+(i+1)+ " of "+n_files+".");
+                    	  	  long expected = msc.getResultFilesize(id, i);
+                    	  	  logger.info("Expecting to receive "+expected+" bytes of data.");
+                             
+                    	  	  DataHandler dh = null;
+                    	  	  try {
+	                              dh = msc.getResultFile(id, i);
+	                             
+	                              File tmp_file = new File(output_folder, "result_"+part+"_"+(i+1)+"of"+n_files+"."+out_format);
+	                              if (tmp_file.exists() && !overwrite_existing_files)
+	                            	  throw new IOException("Will not overwrite existing file: "+tmp_file.getAbsolutePath());
+	                              
+	                              FileOutputStream fos = new FileOutputStream(tmp_file);
+	                              dh.writeTo(fos);
+	                              fos.close();
+	                              
+	                              logger.info("Saved "+tmp_file.length()+" bytes into "+tmp_file.getAbsolutePath());
+	                              if (tmp_file.length() != expected)
+	                            	  throw new IOException("Did not get expected number of bytes - server problem?");
+	                              outfiles.add(tmp_file);
+                    	  	  } finally {
+                    	  		  // HACK BUG TODO FIXME: need better code than this to cleanup the download attachment temp file!
+	                              if (dh != null && dh instanceof StreamingDataHandler) {
+	                            	  ((StreamingDataHandler) dh).close();
+	                              }
+                    	  	  }
                           }
                           
                           // if we get this far without throwing, we know that we have downloaded all the result files, so we
