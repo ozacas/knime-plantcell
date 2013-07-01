@@ -2,6 +2,7 @@ package au.edu.unimelb.plantcell.io.read.spectra;
 
 import javax.swing.Icon;
 
+import au.edu.unimelb.plantcell.core.CorePlugin;
 import au.edu.unimelb.plantcell.io.read.spectra.SpectraValue;
 
 import org.expasy.jpl.core.ms.spectrum.PeakList;
@@ -95,17 +96,19 @@ public class SpectraUtilityFactory extends UtilityFactory {
      @Override
      protected DataValueRendererFamily getRendererFamily(
              final DataColumnSpec spec) {
+    	 
+    	 SpectraBitVectorRenderer sbvr = new SpectraBitVectorRenderer("Spectra M/Z peak density map (1D)");
+    	 // add this to the preference listener list, since it needs to know when it should draw a new window
+    	 // in response to the user changing preferences
+    	 CorePlugin.getDefault().addPreferenceListener(sbvr);
+    	 
+    	 // and construct the list of renderers for Spectra columns for KNIME framework to use
          return new DefaultDataValueRendererFamily(
                  new SpectraStringRenderer(),
                  new SpectraTop10Renderer(),
                  new SpectraVisualRenderer(),
                  new SpectraPeakIntensityHistogramRenderer(),
-                 new SpectraBitVectorRenderer("Spectra M/Z map (iTRAQ 8-plex region, no thres., 0.05u)", 113.0, 121.2, 0.0, 0.05),
-                 new SpectraBitVectorRenderer("Spectra M/Z map (iTRAQ 8-plex region, thres. > 20, 0.05u)", 113.0, 121.2, 20.0, 0.05),
-                 new SpectraBitVectorRenderer("Spectra M/Z map (low region, no thres., 0.1u)", 100.0, 600.0, 0.0, 0.1),
-                 new SpectraBitVectorRenderer("Spectra M/Z map (low region, thres. > 20, 0.1u)", 100.0, 600.0, 20.0, 0.1),
-                 new SpectraBitVectorRenderer("Spectra M/Z map (entire spectrum, no thres., 1u)", 0.0, 2000.0, 0.0, 1.0),
-                 new SpectraBitVectorRenderer("Spectra M/Z map (entire spectrum, thres. > 20, 1u)", 0.0, 2000.0, 20.0, 1.0)
+                 sbvr
          );
                  
      }

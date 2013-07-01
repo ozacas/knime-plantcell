@@ -46,7 +46,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 import au.edu.unimelb.plantcell.core.CorePlugin;
 import au.edu.unimelb.plantcell.core.ExternalProgram;
-import au.edu.unimelb.plantcell.core.PreferenceConstants;
+import au.edu.unimelb.plantcell.core.Preferences;
 
 
 /**
@@ -242,7 +242,7 @@ public class MinProteinListNodeModel extends NodeModel {
     	
     	// run cplex to compute a solution... (hopefully!)
     	IPreferenceStore prefs = CorePlugin.getDefault().getPreferenceStore();
-		String install_dir = prefs.getString(PreferenceConstants.PREFS_GLPK_FOLDER);
+		String install_dir = prefs.getString(Preferences.PREFS_GLPK_FOLDER);
 		logger.info("Got "+install_dir+" as GNU GLPK software location");
     	CommandLine cmdLine = new CommandLine(find_solver(install_dir));
     	final Map<String, File> map = new HashMap<String,File>();
