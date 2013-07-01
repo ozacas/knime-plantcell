@@ -61,8 +61,8 @@ public class EdgeFilterDialog extends JDialog {
 		props.add("<Is directly connected to>");
 		String[] vec = props.toArray(new String[0]);
 		Arrays.sort(vec);
-		final JComboBox cb_prop = new JComboBox(vec);
-		final JComboBox cb_op   = new JComboBox(new String[] { "<", ">", "!=", "=", ">=", "<=", " contains ", " does not contain", "has annotation", "is not annotated"});
+		final JComboBox<String> cb_prop = new JComboBox<String>(vec);
+		final JComboBox<String> cb_op   = new JComboBox<String>(new String[] { "<", ">", "!=", "=", ">=", "<=", " contains ", " does not contain", "has annotation", "is not annotated"});
 		final JTextField t_val  = new JTextField("0");
 		t_val.setColumns(25);
 
@@ -90,6 +90,7 @@ public class EdgeFilterDialog extends JDialog {
 		});
 		ok_button.addActionListener(new ActionListener() {
 
+			@SuppressWarnings("unchecked")
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// user wants the rule added so do that here...

@@ -71,8 +71,8 @@ public class NodeFilterDialog extends JDialog {
 		props.add("<multi connected to>");
 		String[] vec = props.toArray(new String[0]);
 		Arrays.sort(vec);
-		final JComboBox cb_prop = new JComboBox(vec);
-		final JComboBox cb_op   = new JComboBox(new String[] { "<", ">", "!=", "=", ">=", "<=", " contains ", " does not contain ", "has annotation", "is not annotated" });
+		final JComboBox<String> cb_prop = new JComboBox<String>(vec);
+		final JComboBox<String> cb_op   = new JComboBox<String>(new String[] { "<", ">", "!=", "=", ">=", "<=", " contains ", " does not contain ", "has annotation", "is not annotated" });
 		final JTextField t_val  = new JTextField("0");
 		t_val.setColumns(25);
 		sub_panel.add(cb_prop);
