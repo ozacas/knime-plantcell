@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Gene Prediction
 Bundle-SymbolicName: au.edu.unimelb.plantcell.gene.prediction; singleton:=true
-Bundle-Version: 1.2.5
+Bundle-Version: 1.2.6
 Bundle-ClassPath: augustusnodemodel.jar
 Bundle-Vendor: http://www.plantcell.unimelb.edu.au/bioinformatics
 Require-Bundle: org.eclipse.core.runtime,
