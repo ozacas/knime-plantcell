@@ -28,7 +28,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.knime.core.node.InvalidSettingsException;
 
 import au.edu.unimelb.plantcell.core.CorePlugin;
-import au.edu.unimelb.plantcell.core.PreferenceConstants;
+import au.edu.unimelb.plantcell.core.Preferences;
 
 /**
  * Implements a widget usable from the simple dialog for advanced settings for the user
@@ -83,7 +83,7 @@ public class UserField extends ACDField implements ActionListener {
 				@Override
 				public void actionPerformed(ActionEvent arg0) {
 					IPreferenceStore ps = CorePlugin.getDefault().getPreferenceStore();
-					String emboss_dir = ps.getString(PreferenceConstants.PREFS_JEMBOSS_FOLDER);
+					String emboss_dir = ps.getString(Preferences.PREFS_JEMBOSS_FOLDER);
 					File data_dir = new File(emboss_dir, "data");
 					if (isCodonFileWidget()) {
 						data_dir = new File(data_dir, "CODONS");
