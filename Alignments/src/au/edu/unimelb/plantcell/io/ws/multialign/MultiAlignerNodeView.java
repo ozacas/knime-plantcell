@@ -29,7 +29,7 @@ import org.knime.core.node.ExternalApplicationNodeView;
 
 import au.edu.unimelb.plantcell.core.CorePlugin;
 import au.edu.unimelb.plantcell.core.ExternalProgram;
-import au.edu.unimelb.plantcell.core.PreferenceConstants;
+import au.edu.unimelb.plantcell.core.Preferences;
 
 /**
  * <code>NodeView</code> for the "MultiAligner" Node.
@@ -74,11 +74,11 @@ public class MultiAlignerNodeView extends ExternalApplicationNodeView<MultiAlign
 			Logger.getAnonymousLogger().warning("No rows to display!");
 			return;
 		}
-		final JList    my_list = new JList(rows);
+		final JList<String>    my_list = new JList<String>(rows);
 		final JButton b_start  = new JButton("Start JalView...");
 		IPreferenceStore prefs = CorePlugin.getDefault().getPreferenceStore();
-		String jalview_dir     = prefs.getString(PreferenceConstants.PREFS_JALVIEW_FOLDER); 
-		final String jre_dir   = prefs.getString(PreferenceConstants.PREFS_JRE_FOLDER);
+		String jalview_dir     = prefs.getString(Preferences.PREFS_JALVIEW_FOLDER); 
+		final String jre_dir   = prefs.getString(Preferences.PREFS_JRE_FOLDER);
 		final Logger l = Logger.getLogger("Alignment View");
 		if (!new File(jre_dir).isDirectory()) {
 			l.warning("Cannot find Java in: "+jre_dir+" - see KNIME PlantCell preferences!");
