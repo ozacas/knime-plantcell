@@ -313,6 +313,10 @@ public class Plot3DBarNodeView extends ExternalApplicationNodeView<Plot3DBarNode
         		z[i] = (z[i] - z_min) / z_range;
         	}
         	
+        	c.getAxeLayout().setXTickRenderer(new MyAxisRenderer(x_min, x_max));
+        	c.getAxeLayout().setYTickRenderer(new MyAxisRenderer(y_min, y_max));
+        	c.getAxeLayout().setZTickRenderer(new MyAxisRenderer(z_min, z_max));
+        	
         	if (transparency < 1.0f) {
         		for (int i=0; i<colours.length; i++) {
         			colours[i] = colours[i].alphaSelf(transparency);
