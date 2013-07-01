@@ -40,7 +40,7 @@ import au.edu.unimelb.plantcell.core.CorePlugin;
 import au.edu.unimelb.plantcell.core.ErrorLogger;
 import au.edu.unimelb.plantcell.core.ExternalProgram;
 import au.edu.unimelb.plantcell.core.MyDataContainer;
-import au.edu.unimelb.plantcell.core.PreferenceConstants;
+import au.edu.unimelb.plantcell.core.Preferences;
 import au.edu.unimelb.plantcell.core.SequenceProcessor;
 import au.edu.unimelb.plantcell.core.UniqueID;
 import au.edu.unimelb.plantcell.core.cells.CoordinateSystem;
@@ -656,7 +656,7 @@ public class BLASTPlusNodeModel extends NodeModel {
 	
 	protected File find_blast_program(String program_to_find) {
 		IPreferenceStore prefs = CorePlugin.getDefault().getPreferenceStore();
-		String install_dir = prefs.getString(PreferenceConstants.PREFS_BLAST_FOLDER);
+		String install_dir = prefs.getString(Preferences.PREFS_BLAST_FOLDER);
 		logger.info("Got "+install_dir+" as NCBI BLAST+ software location");
 		if (!new File(install_dir).isDirectory()) {
 			logger.warn("Cannot locate NCBI BLAST+ software!");
