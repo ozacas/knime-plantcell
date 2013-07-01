@@ -62,6 +62,12 @@ public interface MSConvert {
 	@WebMethod public String getResultFilename(String jobID, int file_index);
 	
 	/**
+	 * Returns the size of the converted file (in bytes) for the caller to check that all bytes have been transferred (checksum maybe?).
+	 * Returns -1 on error or if the specified file does not exist.
+	 */
+	@WebMethod public long getResultFilesize(String jobID, int file_index);
+	
+	/**
 	 * Download the converted file, this will be deleted upon successful download. Results are only
 	 * available for jobs in the COMPLETED state and will be deleted automatically. It is highly recommended
 	 * to download the result for each conversion before beginning the next conversion (in case a new submission causes
