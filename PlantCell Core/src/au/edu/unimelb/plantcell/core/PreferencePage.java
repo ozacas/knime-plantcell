@@ -1,6 +1,7 @@
 package au.edu.unimelb.plantcell.core;
 
 import org.eclipse.jface.preference.*;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.IWorkbench;
 
@@ -24,9 +25,10 @@ public class PreferencePage
 
 	public PreferencePage() {
 		super(GRID);
-		setTitle("PlantCell");
-		setDescription("PlantCell extension: http://www.plantcell.unimelb.edu.au");
+		
 		setPreferenceStore(CorePlugin.getDefault().getPreferenceStore());
+		setTitle("PlantCell Preferences");
+		setDescription("PlantCell extension: http://www.plantcell.unimelb.edu.au");
 	}
 	
 	/**
@@ -36,33 +38,38 @@ public class PreferencePage
 	 * restore itself.
 	 */
 	public void createFieldEditors() {
-		 addField(new MyDirectoryFieldEditor(PreferenceConstants.PREF_KEY_FOLDER, 
-				 "Directory to cache WWW data", getFieldEditorParent()));
+		 Composite parent = getFieldEditorParent();
+		 addField(new MyDirectoryFieldEditor(Preferences.PREF_KEY_FOLDER, 
+				 "Directory to cache WWW data", parent));
 
 	     addField(new IntegerFieldEditor(
-	    		 PreferenceConstants.PREF_KEY_FRESHNESS,
-	                "Ignore data older than... (days)", getFieldEditorParent()));
+	    		 Preferences.PREF_KEY_FRESHNESS,
+	                "Ignore data older than... (days)", parent));
 	     
-	     addField(new MyDirectoryFieldEditor(PreferenceConstants.PREFS_BLAST_FOLDER, 
-	    		 	"NCBI BLAST+ folder", getFieldEditorParent()));
-	     addField(new MyDirectoryFieldEditor(PreferenceConstants.PREFS_GLPK_FOLDER, 
-	    		 	"GNU GLPK 4.x folder", getFieldEditorParent()));
-	     addField(new MyDirectoryFieldEditor(PreferenceConstants.PREFS_JEMBOSS_FOLDER, 
-	    		 	"mEMBOSS folder", getFieldEditorParent()));
-	     addField(new MyDirectoryFieldEditor(PreferenceConstants.PREFS_JRE_FOLDER,
-	    		 	"Java (JRE 1.5 or later) folder", getFieldEditorParent()));
+	     addField(new MyDirectoryFieldEditor(Preferences.PREFS_BLAST_FOLDER, 
+	    		 	"NCBI BLAST+ folder", parent));
+	     addField(new MyDirectoryFieldEditor(Preferences.PREFS_GLPK_FOLDER, 
+	    		 	"GNU GLPK 4.x folder", parent));
+	     addField(new MyDirectoryFieldEditor(Preferences.PREFS_JEMBOSS_FOLDER, 
+	    		 	"mEMBOSS folder", parent));
+	     addField(new MyDirectoryFieldEditor(Preferences.PREFS_JRE_FOLDER,
+	    		 	"Java (JRE 1.5 or later) folder", parent));
 	    	
-	     addField(new MyDirectoryFieldEditor(PreferenceConstants.PREFS_JALVIEW_FOLDER,
-	    		 	"JalView folder", getFieldEditorParent()));
-	     addField(new MyDirectoryFieldEditor(PreferenceConstants.PREFS_AUGUSTUS_FOLDER,
-	    		    "Augustus folder", getFieldEditorParent()));
+	     addField(new MyDirectoryFieldEditor(Preferences.PREFS_JALVIEW_FOLDER,
+	    		 	"JalView folder", parent));
+	     addField(new MyDirectoryFieldEditor(Preferences.PREFS_AUGUSTUS_FOLDER,
+	    		    "Augustus folder", parent));
+	     
+	     addField(new DoubleFieldEditor(Preferences.PREFS_SPECTRA_MIN_MZ, "Minimum spectra m/z for 1D peak density", parent));
+	     addField(new DoubleFieldEditor(Preferences.PREFS_SPECTRA_MAX_MZ, "Maximum spectra m/z for 1D peak density", parent));
+	     addField(new DoubleFieldEditor(Preferences.PREFS_SPECTRA_BIN_SIZE, "Bin width for 1D peak density", parent));
+	     addField(new DoubleFieldEditor(Preferences.PREFS_SPECTRA_THRESHOLD, "Minimum threshold to display in 1D peak density plot", parent));
 	 }
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.IWorkbenchPreferencePage#init(org.eclipse.ui.IWorkbench)
 	 */
 	public void init(IWorkbench workbench) {
-		 // NO-OP
 	}
 	
 }

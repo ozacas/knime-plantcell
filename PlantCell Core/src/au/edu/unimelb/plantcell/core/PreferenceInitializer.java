@@ -19,25 +19,18 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 		 IPreferenceStore prefs = CorePlugin.getDefault().getPreferenceStore();
 		 
 		 // establish defaults
-		 prefs.setDefault(PreferenceConstants.PREF_KEY_FOLDER, "");
-		 prefs.setDefault(PreferenceConstants.PREF_KEY_FRESHNESS, 180);
-		 prefs.setDefault(PreferenceConstants.PREFS_BLAST_FOLDER, "c:/blast");
-		 prefs.setDefault(PreferenceConstants.PREFS_GLPK_FOLDER, "c:/cygwin/bin");
-		 prefs.setDefault(PreferenceConstants.PREFS_JEMBOSS_FOLDER, "c:/mEMBOSS");
-		 prefs.setDefault(PreferenceConstants.PREFS_JRE_FOLDER, "c:/Program Files/Java/jdk6");
-		 prefs.setDefault(PreferenceConstants.PREFS_JALVIEW_FOLDER, "c:/Program Files/JalView");
-		 prefs.setDefault(PreferenceConstants.PREFS_AUGUSTUS_FOLDER, "c:/augustus.2.5.5");
-		 
-		 // and set the current values to the corresponding default...
-		 /*prefs.setToDefault(PreferenceConstants.PREF_KEY_FOLDER);
-		 prefs.setToDefault(PreferenceConstants.PREF_KEY_FRESHNESS);
-		 prefs.setToDefault(PreferenceConstants.PREFS_BLAST_FOLDER);
-		 prefs.setToDefault(PreferenceConstants.PREFS_GLPK_FOLDER);
-		 prefs.setToDefault(PreferenceConstants.PREFS_JEMBOSS_FOLDER);
-		 prefs.setToDefault(PreferenceConstants.PREFS_JRE_FOLDER);
-		 prefs.setToDefault(PreferenceConstants.PREFS_JALVIEW_FOLDER);
-		 prefs.setToDefault(PreferenceConstants.PREFS_AUGUSTUS_FOLDER);*/
-
+		 prefs.setDefault(Preferences.PREF_KEY_FOLDER, "");
+		 prefs.setDefault(Preferences.PREF_KEY_FRESHNESS, 180);
+		 prefs.setDefault(Preferences.PREFS_BLAST_FOLDER, "c:/blast");
+		 prefs.setDefault(Preferences.PREFS_GLPK_FOLDER, "c:/cygwin/bin");
+		 prefs.setDefault(Preferences.PREFS_JEMBOSS_FOLDER, "c:/mEMBOSS");
+		 prefs.setDefault(Preferences.PREFS_JRE_FOLDER, "c:/Program Files/Java/jdk6");
+		 prefs.setDefault(Preferences.PREFS_JALVIEW_FOLDER, "c:/Program Files/JalView");
+		 prefs.setDefault(Preferences.PREFS_AUGUSTUS_FOLDER, "c:/augustus.2.5.5");
+		 prefs.setDefault(Preferences.PREFS_SPECTRA_BIN_SIZE, 0.05);
+		 prefs.setDefault(Preferences.PREFS_SPECTRA_MIN_MZ, 100.0);
+		 prefs.setDefault(Preferences.PREFS_SPECTRA_MAX_MZ, 2000.0);
+		 prefs.setDefault(Preferences.PREFS_SPECTRA_THRESHOLD, 0.0);
 	}
 
 }
