@@ -1,12 +1,17 @@
 package au.edu.unimelb.plantcell.views.bar3d;
 
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
+
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.math.stat.descriptive.SummaryStatistics;
 import org.jzy3d.colors.Color;
-import org.jzy3d.maths.Statistics;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
@@ -17,6 +22,7 @@ import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
+import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
@@ -48,9 +54,13 @@ public class Plot3DBarNodeModel extends NodeModel {
     
     
     // these are all parallel vectors ie. must be the same size
-    private double[] m_xvec = null;
-    private double[] m_yvec = null;
-    private double[] m_zvec = null;
+    private FloatArrayList x_fal = new FloatArrayList();		// internal model state -- persisted
+    private FloatArrayList y_fal = new FloatArrayList();		// internal model state -- persisted		
+    private FloatArrayList z_fal = new FloatArrayList();		// internal model state -- persisted
+    private SummaryStatistics x_stats = null;					// re-computed during loadInternals
+    private SummaryStatistics y_stats = null;					// re-computed during loadInternals
+    private SummaryStatistics z_stats = null;					// re-computed during loadInternals
+    
     private String[] m_rows = null;		// row ID's used for highlighting
     private Color[] m_colours = null;	// row colours used for the graph
     private double[] m_overlay= null;	// used for an axis-aligned overlay plot (optional)
@@ -89,9 +99,12 @@ public class Plot3DBarNodeModel extends NodeModel {
     	int missing = 0;
     	int bad = 0;
     	int n_rows = inData[0].getRowCount();
-    	ArrayList<Double> xvec = new ArrayList<Double>(n_rows);
-    	ArrayList<Double> yvec = new ArrayList<Double>(n_rows);
-    	ArrayList<Double> zvec = new ArrayList<Double>(n_rows);
+    	
+    	reset();
+    	x_fal.ensureCapacity(n_rows);
+    	y_fal.ensureCapacity(n_rows);
+    	z_fal.ensureCapacity(n_rows);
+    	
     	ArrayList<String> rowids = new ArrayList<String>(n_rows);
     	ArrayList<Color> colours = new ArrayList<Color>(n_rows);
     	ArrayList<Double> overlay= new ArrayList<Double>(n_rows);
@@ -105,9 +118,9 @@ public class Plot3DBarNodeModel extends NodeModel {
     		}
     		
     		try {
-    			xvec.add(Double.valueOf(x_cell.toString()));
-    			yvec.add(Double.valueOf(y_cell.toString()));
-    			zvec.add(Double.valueOf(z_cell.toString()));
+    			x_fal.add(Float.valueOf(x_cell.toString()));
+    			y_fal.add(Float.valueOf(y_cell.toString()));
+    			z_fal.add(Float.valueOf(z_cell.toString()));
     			rowids.add(r.getKey().getString());
     			// overlay vector MUST be the same length as the axis chosen for the overlay, otherwise it wont work. Missing
     			// values are not plotted (Double.NaN is used to mark this)
@@ -129,9 +142,7 @@ public class Plot3DBarNodeModel extends NodeModel {
     			bad++;
     		}
     	}
-    	m_xvec = ArrayUtils.toPrimitive(xvec.toArray(new Double[0]));
-    	m_yvec = ArrayUtils.toPrimitive(yvec.toArray(new Double[0]));
-    	m_zvec = ArrayUtils.toPrimitive(zvec.toArray(new Double[0]));
+    	
     	m_rows = rowids.toArray(new String[0]);
     	m_colours = colours.toArray(new Color[0]);
     	m_overlay = null;
@@ -139,15 +150,9 @@ public class Plot3DBarNodeModel extends NodeModel {
     		m_overlay = ArrayUtils.toPrimitive(overlay.toArray(new Double[0]));
     	}
     	
-    	double min = Statistics.min(m_xvec);
-    	double max = Statistics.max(m_xvec);
-    	logger.info("X min="+min+" max="+max);
-    	min = Statistics.min(m_yvec);
-    	max = Statistics.max(m_yvec);
-    	logger.info("Y min="+min+" max="+max);
-    	min = Statistics.min(m_zvec);
-    	max = Statistics.max(m_zvec);
-    	logger.info("Z min="+min+" max="+max);
+    	x_stats = make_stats(x_fal.toFloatArray(), "X");
+    	y_stats = make_stats(y_fal.toFloatArray(), "Y");
+    	z_stats = make_stats(z_fal.toFloatArray(), "Z");
     	
     	if (missing > 0) 
     		logger.warn("Some "+missing+" datapoints (rows) contain missing values, they will not be considered.");
@@ -156,15 +161,31 @@ public class Plot3DBarNodeModel extends NodeModel {
         return null;
     }
 
+    private SummaryStatistics make_stats(float[] vals, String axis) {
+    	SummaryStatistics ret = new SummaryStatistics();
+    	for (float val : vals) {
+    		// TODO BUG FIXME: handling of missing values???
+    		ret.addValue(val);
+    	}
+    	logger.info(axis+" min="+ret.getMin()+" max="+ret.getMax()+" mean="+ret.getMean());
+    	return ret;
+    }
+    
     /**
      * {@inheritDoc}
      */
     @Override
     protected void reset() {
         m_rows = null;
-        m_xvec = null;
-        m_yvec = null;
-        m_zvec = null;
+        x_fal.clear();
+        y_fal.clear();
+        z_fal.clear();
+        x_fal.trim();
+        y_fal.trim();
+        z_fal.trim();
+        x_stats = null;
+        y_stats = null;
+        z_stats = null;
     }
 
     /**
@@ -221,7 +242,42 @@ public class Plot3DBarNodeModel extends NodeModel {
     protected void loadInternals(final File internDir,
             final ExecutionMonitor exec) throws IOException,
             CanceledExecutionException {
-  
+    	reset();
+    	File f = new File(internDir, "plot3d.internals");
+    	
+    	try {
+    		NodeSettingsRO settings = NodeSettings.loadFromXML(new FileInputStream(f));
+	    	x_fal.addElements(0, settings.getFloatArray("x"));
+	    	y_fal.addElements(0, settings.getFloatArray("y"));
+	    	z_fal.addElements(0, settings.getFloatArray("z"));
+	    	
+	    	x_stats = make_stats(x_fal.elements(), "x");
+	    	y_stats = make_stats(y_fal.elements(), "y");
+	    	z_stats = make_stats(z_fal.elements(), "z");
+	
+	    	m_rows = settings.getStringArray("rowids");
+	    	String[] colors = settings.getStringArray("colours");
+	    	m_colours = new Color[m_rows.length];
+	    	HashMap<String,Color> unique_colours = new HashMap<String,Color>();
+	    	for (int i=0; i<m_rows.length; i++) {
+	    		if (!unique_colours.containsKey(colors[i])) {
+	    			try {
+	    				String[] rgb = colors[i].split(",");
+	    			
+	    				unique_colours.put(colors[i], new Color(Float.valueOf(rgb[0]), 
+	    														Float.valueOf(rgb[1]), 
+	    														Float.valueOf(rgb[2])));
+	    			} catch (NumberFormatException nfe) {
+	    				nfe.printStackTrace();
+	    				unique_colours.put(colors[i], Color.BLACK);
+	    			}
+	    		}
+	    		m_colours[i] = unique_colours.get(colors[i]);
+	    	}
+    	} catch (InvalidSettingsException ise) {
+    		ise.printStackTrace();
+    		throw new IOException(ise.getMessage());
+    	}
     }
     
     /**
@@ -231,7 +287,18 @@ public class Plot3DBarNodeModel extends NodeModel {
     protected void saveInternals(final File internDir,
             final ExecutionMonitor exec) throws IOException,
             CanceledExecutionException {
-
+    	File f = new File(internDir, "plot3d.internals");
+    	NodeSettings settings = new NodeSettings("internals");
+    	settings.addFloatArray("x", x_fal.elements());
+    	settings.addFloatArray("y", y_fal.elements());
+    	settings.addFloatArray("z", z_fal.elements());
+    	settings.addStringArray("rowids", m_rows);
+    	String[] colors = new String[m_colours.length];
+    	for (int i=0; i<m_colours.length; i++) {
+    		colors[i] = ""+m_colours[i].r+","+m_colours[i].g+","+m_colours[i].b;		// TODO: save alpha too?
+    	}
+    	settings.addStringArray("colours", colors);
+    	settings.saveToXML(new FileOutputStream(f));
     }
 
     /**
@@ -239,10 +306,7 @@ public class Plot3DBarNodeModel extends NodeModel {
      * @return
      */
 	public boolean hasDataPoints() {
-		if (m_xvec == null)
-			return false;
-		return (m_xvec.length > 0 && m_xvec.length == m_yvec.length && 
-				m_xvec.length == m_zvec.length && m_xvec.length == m_rows.length);
+		return x_fal.size() > 0;
 	}
 
 	/**
@@ -274,19 +338,19 @@ public class Plot3DBarNodeModel extends NodeModel {
 	 * @param y
 	 * @param z
 	 */
-	public void getDataPoints(double[] x, double[] y, double[] z, Color[] colours) {
+	public void getDataPoints(FloatArrayList x, FloatArrayList y, FloatArrayList z, Color[] colours) {
 		assert(x != null && y != null && z != null);
 		
-		for (int i=0; i<x.length; i++) {
-			x[i] = m_xvec[i];
-			y[i] = m_yvec[i];
-			z[i] = m_zvec[i];
+		x.addAll(x_fal);
+		y.addAll(y_fal);
+		z.addAll(z_fal);
+		for (int i=0; i<countDataPoints(); i++) {
 			colours[i]= m_colours[i];
 		}
 	}
 	
 	public int countDataPoints() {
-		return m_xvec.length;
+		return x_fal.size();
 	}
 
 	/**
@@ -304,6 +368,14 @@ public class Plot3DBarNodeModel extends NodeModel {
 		} else {
 			return m_z.getStringValue();
 		}
+	}
+
+	public void getStatistics(SummaryStatistics x_stats,
+			SummaryStatistics y_stats, SummaryStatistics z_stats) {
+		// dont compute it again, just copy the internal state
+		SummaryStatistics.copy(this.x_stats, x_stats);
+		SummaryStatistics.copy(this.y_stats, y_stats);
+		SummaryStatistics.copy(this.z_stats, z_stats);
 	}
 
 }
