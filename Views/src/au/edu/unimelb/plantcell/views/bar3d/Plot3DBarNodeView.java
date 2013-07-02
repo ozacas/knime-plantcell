@@ -1,5 +1,7 @@
 package au.edu.unimelb.plantcell.views.bar3d;
 
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -26,6 +28,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 
+import org.apache.commons.math.stat.descriptive.SummaryStatistics;
 import org.jzy3d.chart.Chart;
 import org.jzy3d.colors.Color;
 import org.jzy3d.global.Settings;
@@ -35,12 +38,13 @@ import org.jzy3d.maths.Statistics;
 import org.jzy3d.plot3d.primitives.CompositeParallelepiped;
 import org.jzy3d.plot3d.primitives.HistogramBar;
 import org.jzy3d.plot3d.primitives.Point;
+import org.jzy3d.plot3d.primitives.Scatter;
 import org.jzy3d.plot3d.primitives.Sphere;
+import org.jzy3d.plot3d.primitives.selectable.SelectableScatter;
 import org.jzy3d.plot3d.primitives.textured.TranslucentQuad;
 import org.jzy3d.plot3d.rendering.canvas.Quality;
 import org.jzy3d.plot3d.rendering.scene.Graph;
 import org.jzy3d.plot3d.rendering.scene.Scene;
-import org.jzy3d.plot3d.rendering.view.modes.CameraMode;
 import org.jzy3d.ui.views.ImagePanel;
 import org.knime.core.node.ExternalApplicationNodeView;
 
@@ -54,12 +58,13 @@ public class Plot3DBarNodeView extends ExternalApplicationNodeView<Plot3DBarNode
 	private Chart c;
 	private JFrame f;
 	private boolean wireframe = false;		// must match default for show wireframe checkbox
-	private float bar_radius = 0.0125f;
+	private float bar_radius = 0.0225f;
 	private float transparency = 1.0f;		// by default: no transparency
 	private final JLabel status = new JLabel();
-	private final JComboBox<String> bar_type = new JComboBox<String>(new String[] { "Cylinder", "Square Box", "Sphere" });
+	private final JComboBox<String> bar_type = new JComboBox<String>(new String[] { "Scatter (fastest)", "Cylinder", "Box", "Sphere"  });
 	private final Logger logger = Logger.getLogger("Plot 3D View");
 	private boolean supports_transparency = false;
+	private String m_z_transform = "Linear";
 	
     /**
      * Creates a new view.
@@ -128,6 +133,25 @@ public class Plot3DBarNodeView extends ExternalApplicationNodeView<Plot3DBarNode
         JButton legend = new JButton("Legend...");
         button_panel.add(Box.createRigidArea(new Dimension(5,5)));
         button_panel.add(legend);
+        JPanel transform_panel = new JPanel();
+        transform_panel.setLayout(new BoxLayout(transform_panel, BoxLayout.X_AXIS));
+        transform_panel.add(new JLabel("Z Transform"));
+       
+        final JComboBox<String> z_transform = new JComboBox<String>(new String[] {
+        		"Linear", "Log10", "Square-root", "Reciprocal"
+        });
+        transform_panel.add(z_transform);
+       
+        z_transform.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				m_z_transform = z_transform.getSelectedItem().toString();
+				modelChanged();
+				c.render();
+			}
+        	
+        });
         final JPanel image_panel = new JPanel();
         legend.addActionListener(new ActionListener() {
 
@@ -190,18 +214,9 @@ public class Plot3DBarNodeView extends ExternalApplicationNodeView<Plot3DBarNode
 			}
         	
         });
-        final JCheckBox perspective_view = new JCheckBox("Perspective projection?");
-        perspective_view.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				c.getView().setCameraMode(perspective_view.isSelected() ? CameraMode.PERSPECTIVE : CameraMode.ORTHOGONAL);
-				c.render();
-			}
-        	
-        });
+       
         button_panel.add(show_box);
-        //button_panel.add(perspective_view);
+        
         button_panel.add(show_wireframe);
         button_panel.add(Box.createRigidArea(new Dimension(5,5)));
         
@@ -214,7 +229,12 @@ public class Plot3DBarNodeView extends ExternalApplicationNodeView<Plot3DBarNode
 			}
         	
         });
-        button_panel.add(bar_type);
+        JPanel drawing_panel = new JPanel();
+        drawing_panel.setLayout(new BoxLayout(drawing_panel, BoxLayout.X_AXIS));
+        drawing_panel.add(new JLabel("Show as "));
+        drawing_panel.add(bar_type);
+        button_panel.add(drawing_panel);
+        button_panel.add(transform_panel);
         button_panel.add(Box.createRigidArea(new Dimension(5,5)));
         
         final JSlider bar_thickness = new JSlider(1, 100, 50);
@@ -275,13 +295,13 @@ public class Plot3DBarNodeView extends ExternalApplicationNodeView<Plot3DBarNode
         Plot3DBarNodeModel nodeModel = (Plot3DBarNodeModel)getNodeModel();
         assert nodeModel != null;
         
-        boolean is_sphere = ((String)bar_type.getSelectedItem()).equals("Sphere");
-        boolean is_parallelepiped = ((String)bar_type.getSelectedItem()).equals("Square Box");
+       // long start = System.currentTimeMillis();
+        String drawing_type = ((String)bar_type.getSelectedItem());
+        boolean is_sphere = drawing_type.equals("Sphere");
+        boolean is_parallelepiped = drawing_type.equals("Box");
+        boolean is_scatter = drawing_type.startsWith("Scatter");
         boolean has_overlay = nodeModel.hasOverlay();
         if (nodeModel != null && nodeModel.hasDataPoints()) {
-        	double[] x = new double[nodeModel.countDataPoints()];
-        	double[] y = new double[nodeModel.countDataPoints()];
-        	double[] z = new double[nodeModel.countDataPoints()];
         	double[] overlay = null;
         	double overlay_min = 0.0;
         	double overlay_range = 0.0;
@@ -294,28 +314,36 @@ public class Plot3DBarNodeView extends ExternalApplicationNodeView<Plot3DBarNode
         		Logger.getLogger("Plot 3D View").info("Overlay min: "+overlay_min+" max="+overlay_max+" range="+overlay_range);
         	}
         	Color[] colours = new Color[nodeModel.countDataPoints()];
+        	
+        	FloatArrayList x = new FloatArrayList(nodeModel.countDataPoints());
+        	FloatArrayList y = new FloatArrayList(nodeModel.countDataPoints());
+        	FloatArrayList z = new FloatArrayList(nodeModel.countDataPoints());
         	nodeModel.getDataPoints(x, y, z, colours);
         	
-        	double x_min = Statistics.min(x);
-        	double x_max = Statistics.max(x);
-        	double y_min = Statistics.min(y);
-        	double y_max = Statistics.max(y);
-        	double z_min = Statistics.min(z);
-        	double z_max = Statistics.max(z);
+        	SummaryStatistics x_stats = new SummaryStatistics();
+        	SummaryStatistics y_stats = new SummaryStatistics();
+        	SummaryStatistics z_stats = new SummaryStatistics();
+        	nodeModel.getStatistics(x_stats, y_stats, z_stats);
         	
-        	double x_range = range(x_min, x_max);
-        	double y_range = range(y_min, y_max);
-        	double z_range = range(z_min, z_max);
+        	SummaryStatistics transformed_stats = transform(z, z_stats, m_z_transform);
+        	if (transformed_stats != null)
+        		z_stats = transformed_stats;
         	
-        	for (int i=0; i<x.length; i++) {
-        		x[i] = (x[i] - x_min) / x_range;
-        		y[i] = (y[i] - y_min) / y_range;
-        		z[i] = (z[i] - z_min) / z_range;
+        	double x_range = range(x_stats.getMin(), x_stats.getMax());
+        	double y_range = range(y_stats.getMin(), y_stats.getMax());
+        	double z_range = range(z_stats.getMin(), z_stats.getMax());
+        	
+        	// convert each data point to [0,1] for the view
+        	long n = x_stats.getN();
+        	for (int i=0; i<n; i++) {
+        		x.set(i, (float) ((x.get(i) - x_stats.getMin()) / x_range));
+        		y.set(i, (float) ((y.get(i) - y_stats.getMin()) / y_range));
+        		z.set(i, (float) ((z.get(i) - z_stats.getMin()) / z_range));
         	}
         	
-        	c.getAxeLayout().setXTickRenderer(new MyAxisRenderer(x_min, x_max));
-        	c.getAxeLayout().setYTickRenderer(new MyAxisRenderer(y_min, y_max));
-        	c.getAxeLayout().setZTickRenderer(new MyAxisRenderer(z_min, z_max));
+        	c.getAxeLayout().setXTickRenderer(new MyAxisRenderer(x_stats.getMin(), x_stats.getMax()));
+        	c.getAxeLayout().setYTickRenderer(new MyAxisRenderer(y_stats.getMin(), y_stats.getMax()));
+        	c.getAxeLayout().setZTickRenderer(new MyAxisRenderer(z_stats.getMin(), z_stats.getMax()));
         	
         	if (transparency < 1.0f) {
         		for (int i=0; i<colours.length; i++) {
@@ -335,26 +363,41 @@ public class Plot3DBarNodeView extends ExternalApplicationNodeView<Plot3DBarNode
         	
         	if (!Double.isNaN(x_range)) {
         		// first the main plots
-	        	for (int i=0; i<x.length; i++) {
-	        		if (!is_sphere && !is_parallelepiped) {
-	        			HistogramBar hb = new MyHistogramBar((float)x[i], (float) y[i], (float) z[i], bar_radius, colours[i], wireframe, i);
-	        		
-	        			g.add(hb);
-	        		} else if (is_parallelepiped) { 
-	        			bb = new BoundingBox3d((float) x[i] - bar_radius, (float) x[i] + bar_radius,
-	        									(float) y[i] - bar_radius, (float) y[i] + bar_radius,
-	        									0, (float) z[i]);
-	        			CompositeParallelepiped box = new CompositeParallelepiped(bb);
-	        			box.setColor(colours[i]);
-	        			box.setWireframeDisplayed(wireframe);
-	        			g.add(box);
-	        		} else {
-	        			Sphere s = new MySelectableSphere(new Coord3d(x[i], y[i], z[i]), bar_radius, 10, colours[i]);
-	        			s.setWireframeDisplayed(wireframe);
-	        			g.add(s);
-	        		}
-	        	}
-	        	
+        		if (is_scatter) {
+        			Coord3d[] points = new Coord3d[(int) n];
+        			for (int i=0; i<n; i++) {
+        				points[i] = new Coord3d(x.get(i), y.get(i), z.get(i));
+        			}
+        			
+        			// jzy3d v0.9: selectablescatter doesn't provide a constructor with width parameter so...
+        			Scatter s = new SelectableScatter(points, colours);
+        			s.setWidth(200.0f * bar_radius);
+        			g.add(s);
+        		} else {
+		        	for (int i=0; i<n; i++) {
+		        		float xi = x.get(i);
+		        		float yi = y.get(i);
+		        		float zi = z.get(i);
+		        		if (!is_sphere && !is_parallelepiped) {
+		        			HistogramBar hb = new MyHistogramBar(xi, yi, zi, bar_radius, colours[i], wireframe, i);
+		        		
+		        			g.add(hb);
+		        		} else if (is_parallelepiped) { 
+		        			bb = new BoundingBox3d(xi - bar_radius, xi + bar_radius,
+		        									yi - bar_radius, yi + bar_radius,
+		        									0, (float) zi);
+		        			CompositeParallelepiped box = new CompositeParallelepiped(bb);
+		        			box.setColor(colours[i]);
+		        			box.setWireframeDisplayed(wireframe);
+		        			g.add(box);
+		        		} else {
+		        			Sphere s = new MySelectableSphere(new Coord3d(xi, yi, zi), bar_radius, 10, colours[i]);
+		        			s.setWireframeDisplayed(wireframe);
+		        			g.add(s);
+		        		}
+		        	}
+        		}
+        		
 	        	// render the overlay (if any)
 	        	if (overlay != null) {
 	        		String axis = nodeModel.getOverlayAxis().toLowerCase();
@@ -367,28 +410,78 @@ public class Plot3DBarNodeView extends ExternalApplicationNodeView<Plot3DBarNode
         	c.getScene().setGraph(g);
         }
         
+       // long end = System.currentTimeMillis();
+       // logger.info("Took "+(end-start)+" milliseconds in modelChanged()");
     }
 
-
-	private void addBars(Graph g, double[] overlay_vec, float bar_radius2, double[] vec, double max, double d, Color gray, String axis) {
+    /**
+     * Perform a log10 transform
+     * @param values requires only positive values
+     * @param untransformed_stats
+     * @param method one of Log10, Linear, Square-root or reciprocal
+     * @return null if any unsuitable values are present in <code>values</code> for the chosen method
+     */
+    private SummaryStatistics transform(final FloatArrayList values, final SummaryStatistics untransformed_stats, final String method) {
+    	SummaryStatistics ret = new SummaryStatistics();
+    	
+    	if (method.startsWith("Linear"))
+    		return untransformed_stats;
+    	
+    	if (method.equals("Log10")) {
+    		if (untransformed_stats.getMin() < 0.0) 
+        		return null;
+	    	for (int i=0; i<values.size(); i++) {
+	    		double val = Math.log10(values.get(i));
+	    		ret.addValue(val);
+	    		values.set(i, (float) val);
+	    	}
+    	} else if (method.startsWith("Square")) {
+    		if (untransformed_stats.getMin() < 0.0)
+    			return null;
+    		for (int i=0; i<values.size(); i++) {
+    			double val = Math.sqrt(values.get(i));
+    			ret.addValue(val);
+    			values.set(i, (float) val);
+    		}
+    	} else if (method.startsWith("Recip")) {
+    		for (int i=0; i<values.size(); i++) {
+    			double val = values.get(i);
+    			if (val == 0.0) {
+    				return null;
+    			}
+    			double recip = 1.0d/val;
+    			ret.addValue(recip);
+    			values.set(i, (float) recip);
+    		}
+    	} else {
+    		Logger.getLogger("Plot3D Bar").warning("Unknown transformation: "+method+" ignored.");
+    		return null;
+    	}
+    	
+    	return ret;
+    }
+    
+	private void addBars(Graph g, double[] overlay_vec, float bar_radius2, FloatArrayList vec, double max, double d, Color gray, String axis) {
 		for (int i=0; i<overlay_vec.length; i++) {
 			if (!Double.isNaN(overlay_vec[i])) {
+				double ovi = overlay_vec[i];
+				double vi = vec.get(i);
 				TranslucentQuad p = new TranslucentQuad();
 				if (axis.equals("y")) {
-					p.add(new Point(new Coord3d(vec[i] - bar_radius, 0.0, 0.0), gray));
-					p.add(new Point(new Coord3d(vec[i] + bar_radius, 0.0, 0.0), gray));
-					p.add(new Point(new Coord3d(vec[i] + bar_radius, (overlay_vec[i] / max), 0.0), gray));
-					p.add(new Point(new Coord3d(vec[i] - bar_radius, (overlay_vec[i] / max), 0.0), gray));
+					p.add(new Point(new Coord3d(vi - bar_radius, 0.0, 0.0), gray));
+					p.add(new Point(new Coord3d(vi + bar_radius, 0.0, 0.0), gray));
+					p.add(new Point(new Coord3d(vi + bar_radius, (ovi / max), 0.0), gray));
+					p.add(new Point(new Coord3d(vi - bar_radius, (ovi / max), 0.0), gray));
 				} else if (axis.equals("x")) {
-					p.add(new Point(new Coord3d(0.0, vec[i] - bar_radius, 0.0), gray));
-					p.add(new Point(new Coord3d(0.0, vec[i] + bar_radius, 0.0), gray));
-					p.add(new Point(new Coord3d((overlay_vec[i] / max), vec[i] + bar_radius, 0.0), gray));
-					p.add(new Point(new Coord3d((overlay_vec[i] / max), vec[i] - bar_radius, 0.0), gray));
+					p.add(new Point(new Coord3d(0.0, vi - bar_radius, 0.0), gray));
+					p.add(new Point(new Coord3d(0.0, vi + bar_radius, 0.0), gray));
+					p.add(new Point(new Coord3d((ovi / max), vi + bar_radius, 0.0), gray));
+					p.add(new Point(new Coord3d((ovi / max), vi - bar_radius, 0.0), gray));
 				} else if (axis.equals("z")) {
-					p.add(new Point(new Coord3d(vec[i] - bar_radius, 0.0, 0.0), gray));
-					p.add(new Point(new Coord3d(vec[i] + bar_radius, 0.0, 0.0), gray));
-					p.add(new Point(new Coord3d(vec[i] + bar_radius, 0.0, (overlay_vec[i] / max)), gray));
-					p.add(new Point(new Coord3d(vec[i] - bar_radius, 0.0, (overlay_vec[i] / max)), gray));
+					p.add(new Point(new Coord3d(vi - bar_radius, 0.0, 0.0), gray));
+					p.add(new Point(new Coord3d(vi + bar_radius, 0.0, 0.0), gray));
+					p.add(new Point(new Coord3d(vi + bar_radius, 0.0, (ovi / max)), gray));
+					p.add(new Point(new Coord3d(vi - bar_radius, 0.0, (ovi / max)), gray));
 				}
 				p.setAlphaFactor(0.5f * transparency);
 				g.add(p);
