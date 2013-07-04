@@ -42,6 +42,7 @@ public class SpectrumMatcher extends  AbstractXMLMatcher {
 	private boolean load_ms1;
 	private List<Peak> precursors = new ArrayList<Peak>();
 	private SpectrumListener m_sl;
+	private String m_parent_spectrum_id;
 	
 	public SpectrumMatcher() {
 		this(false);
@@ -50,6 +51,7 @@ public class SpectrumMatcher extends  AbstractXMLMatcher {
 	public SpectrumMatcher(boolean load_ms1) {
 		this.load_ms1 = load_ms1;
 		this.m_sl = null;
+		m_parent_spectrum_id = null;
 	}
 	
 	public SpectrumMatcher(SpectrumListener sl) {
@@ -118,7 +120,7 @@ public class SpectrumMatcher extends  AbstractXMLMatcher {
 		String str = findString(items);
 		if (str == null)
 			return DataType.getMissingCell();
-		return null;
+		return new StringCell(str);
 	}
 	
 	protected DataCell getTitle() {
@@ -286,6 +288,7 @@ public class SpectrumMatcher extends  AbstractXMLMatcher {
 			cells[8] = new IntCell(ms_level);
 			cells[9] = getIndex();
 			cells[10] = getPrecursorCharge();
+			cells[11] = getParentSpectrumID();
 			cells[12] = getPrecursorIntensity();
 			cells[13] = getPrecursorMZ();
 			cells[14] = getTIC();
@@ -326,6 +329,12 @@ public class SpectrumMatcher extends  AbstractXMLMatcher {
 		}
 	}
 	
+	private DataCell getParentSpectrumID() {
+		if (m_parent_spectrum_id == null || m_parent_spectrum_id.length() < 1)
+			return DataType.getMissingCell();
+		return new StringCell(m_parent_spectrum_id);
+	}
+
 	protected BasicPeakList makePeakList() {
 		double precmz = asDouble(getPrecursorMZ());
 		
@@ -368,5 +377,13 @@ public class SpectrumMatcher extends  AbstractXMLMatcher {
 			throw new Exception("Duplicate key for "+accession);
 		m_accsn2name.put(accession, name);
 		m_name2value.put(name, value);
+	}
+
+	/**
+	 * records the parent spectrum ID for this spectrum (typically set by the precursor element in mzML)
+	 * @param parentSpectrumID may be null if not found
+	 */
+	public void setParentSpectrumID(String parentSpectrumID) {
+		m_parent_spectrum_id = parentSpectrumID;
 	}
 }

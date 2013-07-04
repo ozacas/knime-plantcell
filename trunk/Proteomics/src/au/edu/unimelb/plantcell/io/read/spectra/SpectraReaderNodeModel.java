@@ -215,7 +215,7 @@ public class SpectraReaderNodeModel extends NodeModel implements SpectrumListene
         allColSpecs[8] = new DataColumnSpecCreator("MS Level (2=MS/MS)", IntCell.TYPE).createSpec();
         allColSpecs[9] = new DataColumnSpecCreator("Scan ID", StringCell.TYPE).createSpec();
         allColSpecs[10] = new DataColumnSpecCreator("Precursor Charge", IntCell.TYPE).createSpec();
-        allColSpecs[11] = new DataColumnSpecCreator("Precursor Scan Number", IntCell.TYPE).createSpec();
+        allColSpecs[11] = new DataColumnSpecCreator("Precursor Scan Number", StringCell.TYPE).createSpec();
         allColSpecs[12] = new DataColumnSpecCreator("Precursor Intensity", DoubleCell.TYPE).createSpec();
         allColSpecs[13] = new DataColumnSpecCreator("Precursor M/Z", DoubleCell.TYPE).createSpec();
         allColSpecs[14] = new DataColumnSpecCreator("Total Ion Current", DoubleCell.TYPE).createSpec();
