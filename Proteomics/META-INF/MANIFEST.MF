@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Proteomics
 Bundle-SymbolicName: au.edu.unimelb.plantcell.proteomics; singleton:=true
-Bundle-Version: 1.2.16
+Bundle-Version: 1.2.17
 Bundle-ClassPath: insilicodigestor.jar,
  lib/collections-generic-4.01.jar,
  lib/com.springsource.antlr-2.7.7.jar,
@@ -11,7 +11,6 @@ Bundle-ClassPath: insilicodigestor.jar,
  lib/com.springsource.org.apache.log4j-1.2.15.jar,
  lib/cpdetector-1.0.7.jar,
  lib/FastInfoset.jar,
- lib/fastutil-6.5.4.jar,
  lib/gmbal-api-only.jar,
  lib/ha-api.jar,
  lib/http.jar,
@@ -66,8 +65,9 @@ Require-Bundle: org.eclipse.core.runtime,
  org.apache.commons.math;bundle-version="2.1.0",
  org.knime.workbench.ui;bundle-version="2.4.0",
  org.apache.log4j;bundle-version="1.2.15",
- au.edu.unimelb.plantcell.views;bundle-version="1.0.0",
- au.edu.unimelb.plantcell.statistics;bundle-version="1.2.23"
+ au.edu.unimelb.plantcell.statistics;bundle-version="1.2.23",
+ org.apache.commons.collections;bundle-version="3.2.0",
+ au.edu.unimelb.plantcell.views;bundle-version="1.0.2"
 Bundle-ActivationPolicy: lazy
 Export-Package: au.edu.unimelb.plantcell.io.read.mascot,
  au.edu.unimelb.plantcell.io.read.pepxml,
@@ -76,8 +76,10 @@ Export-Package: au.edu.unimelb.plantcell.io.read.mascot,
  au.edu.unimelb.plantcell.proteomics.digestion,
  au.edu.unimelb.plantcell.proteomics.inference,
  au.edu.unimelb.plantcell.proteomics.phosphorylation,
- au.edu.unimelb.plantcell.proteomics.spectra.quality
-Import-Package: javax.activation,
- org.apache.commons.collections.primitives
+ au.edu.unimelb.plantcell.proteomics.spectra.quality,
+ org.expasy.jpl.core.ms.spectrum.peak
+Import-Package: it.unimi.dsi.fastutil,
+ it.unimi.dsi.fastutil.floats,
+ javax.activation
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 

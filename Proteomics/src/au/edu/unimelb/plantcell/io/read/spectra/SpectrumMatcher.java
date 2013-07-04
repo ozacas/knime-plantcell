@@ -10,6 +10,7 @@ import java.util.Stack;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
+import org.apache.log4j.Logger;
 import org.expasy.jpl.core.ms.lc.RetentionTime;
 import org.expasy.jpl.core.ms.spectrum.peak.Peak;
 import org.knime.core.data.DataCell;
@@ -85,6 +86,14 @@ public class SpectrumMatcher extends  AbstractXMLMatcher {
 		}
 	}
 	
+	protected boolean hasPeaks() {
+		return (mz != null && intensity != null && mz.length == intensity.length);
+	}
+	
+	protected boolean hasPrecursors() {
+		return (precursors != null && precursors.size() > 0);
+	}
+	
 	@Override
 	public boolean hasMinimalMatchData() {
 		if (m_id == null || m_index == null || m_id.length() < 1 || m_index.length() < 1)
@@ -94,14 +103,21 @@ public class SpectrumMatcher extends  AbstractXMLMatcher {
 		return (m_accsn2name.size() > 0 && m_name2value.size() > 0);
 	}
 	
-	protected DataCell find(String[] items) {
+	protected String findString(String[] items) {
 		for (String s : items) {
 			if (m_accsn2name.containsKey(s) && m_name2value.containsKey(m_accsn2name.get(s))) {
-				return new StringCell(m_name2value.get(m_accsn2name.get(s)));
+				return m_name2value.get(m_accsn2name.get(s));
 			} else if (m_name2value.containsKey(s)) {
-				return new StringCell(m_name2value.get(s));
+				return m_name2value.get(s);
 			}
 		}
+		return null;
+	}
+	
+	protected DataCell find(String[] items) {
+		String str = findString(items);
+		if (str == null)
+			return DataType.getMissingCell();
 		return null;
 	}
 	
@@ -150,8 +166,22 @@ public class SpectrumMatcher extends  AbstractXMLMatcher {
 		return find(new String[] { "MS:1000016", "scan start time"});
 	}
 	
-	protected DataCell getMSLevel() {
-		return asIntCell(find(new String[] { "ms level", "MS:1000511" }));
+	protected int getMSLevel() {
+		String ms_level = findString(new String[] { "ms level", "MS:1000511" });
+		if (ms_level == null) {
+			// try to find an ms1 spectrum CV param?
+			String ms1 = findString(new String[] { "MS:1000579", "MS1 Spectrum" });
+			if (ms1 != null)
+				return 1;
+			// else
+			return -1;
+		}
+		try {
+			return Integer.valueOf(ms_level);
+		} catch (NumberFormatException nfe) {
+			nfe.printStackTrace();
+			return -1;
+		}
 	}
 	
 	protected DataCell getIndex() {
@@ -252,7 +282,8 @@ public class SpectrumMatcher extends  AbstractXMLMatcher {
 			cells[4] = getBasePeakMZ();
 			cells[5] = getCentroided();
 			cells[6] = getDeisotoped();
-			cells[8] = getMSLevel();
+			int ms_level = getMSLevel();
+			cells[8] = new IntCell(ms_level);
 			cells[9] = getIndex();
 			cells[10] = getPrecursorCharge();
 			cells[12] = getPrecursorIntensity();
@@ -264,28 +295,9 @@ public class SpectrumMatcher extends  AbstractXMLMatcher {
 			cells[20] = getHighMZ();
 			cells[21] = new StringCell(xml_file.getAbsolutePath());
 			if (cells.length >= 24) {
-				int msLevel = -1;
-				if (!cells[8].isMissing()) {
-					try {
-						msLevel = Integer.valueOf(cells[8].toString());
-					} catch (NumberFormatException nfe) {
-						// be silent
-					}
-				}
-				double pepmass = -1.0d;
-				if (!cells[13].isMissing()) {
-					try {
-						pepmass = Double.valueOf(cells[13].toString());
-					} catch (NumberFormatException nfe) {
-						// be silent
-					}
-				}
-				if ((load_ms1 || msLevel > 1) && mz != null && intensity != null) {
-					// must use the right constructor to ensure the peaks are sorted by increasing m/z which may not be the case
-					// from the input data: public BasicPeakList(double pepmass, int charge, String title, int msLevel, double[] mz, double[] intensity)
-					bpl = new BasicPeakList(pepmass, precursors.get(0).getCharge(), cells[0].toString(), msLevel, mz, intensity);
-					if (mz.length != intensity.length) 
-						logger.warn("MZ list length not same as intensity length for "+cells[0].toString());
+				if ((load_ms1 || ms_level > 1) && mz != null && intensity != null) {
+					bpl = makePeakList();
+					
 					cells[22] = new IntCell(mz.length);
 					cells[23] = SpectraUtilityFactory.createCell(bpl);
 				}
@@ -314,6 +326,18 @@ public class SpectrumMatcher extends  AbstractXMLMatcher {
 		}
 	}
 	
+	protected BasicPeakList makePeakList() {
+		double precmz = asDouble(getPrecursorMZ());
+		
+		// must use the right constructor to ensure the peaks are sorted by increasing m/z which may not be the case
+		// from the input data: public BasicPeakList(double pepmass, int charge, String title, int msLevel, double[] mz, double[] intensity)
+		int charge = (!hasPrecursors()) ? -1 : precursors.get(0).getCharge();
+		BasicPeakList bpl = new BasicPeakList(precmz, charge, getTitle().toString(), getMSLevel(), mz, intensity);
+		if (mz.length != intensity.length) 
+			Logger.getLogger("Spectrum Matcher").warn("MZ list length not same as intensity length for "+getTitle().toString());
+		return bpl;
+	}
+
 	/**
 	 * Extracts the <code>int</code> value from the specified KNIME cell: -1 if missing.
 	 * @param dc

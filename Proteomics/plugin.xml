@@ -29,6 +29,8 @@
    
    	  <node category-path="/Bioinformatics/Read" factory-class="au.edu.unimelb.plantcell.io.read.mascot.MascotReaderNodeFactory" id="au.edu.unimelb.plantcell.io.read.mascot.MascotReaderNodeFactory"/>
    
+   	  <node category-path="/Bioinformatics/Views" factory-class="au.edu.unimelb.plantcell.views.ms.MassSpecSurfaceNodeFactory" id="au.edu.unimelb.plantcell.views.ms.MassSpecSurfaceNodeFactory"/>
+   
    </extension>
    	
 </plugin>
