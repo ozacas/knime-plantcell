@@ -1,13 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?eclipse version="3.0"?>
-
-<plugin>
+<?eclipse version="3.0"?><plugin>
    
    <extension point="org.knime.workbench.repository.nodes">
-   		<node category-path="/Bioinformatics/Views" 
-   			factory-class="au.edu.unimelb.plantcell.views.bar3d.Plot3DBarNodeFactory" 
-   			id="au.edu.unimelb.plantcell.views.bar3d.Plot3DBarNodeFactory" />
+   		<node category-path="/Bioinformatics/Views" factory-class="au.edu.unimelb.plantcell.views.bar3d.Plot3DBarNodeFactory" id="au.edu.unimelb.plantcell.views.bar3d.Plot3DBarNodeFactory"/>
    		
-	</extension>
+</extension>
    
 </plugin>

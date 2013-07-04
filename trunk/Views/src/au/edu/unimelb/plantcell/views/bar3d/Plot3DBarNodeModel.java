@@ -9,8 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.math.stat.descriptive.SummaryStatistics;
+import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.jzy3d.colors.Color;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
@@ -63,7 +62,7 @@ public class Plot3DBarNodeModel extends NodeModel {
     
     private String[] m_rows = null;		// row ID's used for highlighting
     private Color[] m_colours = null;	// row colours used for the graph
-    private double[] m_overlay= null;	// used for an axis-aligned overlay plot (optional)
+    private FloatArrayList m_overlay= null;	// used for an axis-aligned overlay plot (optional)
     
     /**
      * Constructor for the node model.
@@ -107,7 +106,7 @@ public class Plot3DBarNodeModel extends NodeModel {
     	
     	ArrayList<String> rowids = new ArrayList<String>(n_rows);
     	ArrayList<Color> colours = new ArrayList<Color>(n_rows);
-    	ArrayList<Double> overlay= new ArrayList<Double>(n_rows);
+    	ArrayList<Float> overlay= new ArrayList<Float>(n_rows);
     	for (DataRow r : inData[0]) {
     		DataCell x_cell = r.getCell(x_idx);
     		DataCell y_cell = r.getCell(y_idx);
@@ -127,10 +126,10 @@ public class Plot3DBarNodeModel extends NodeModel {
     			if (has_overlay) {
 	    			DataCell overlay_cell = r.getCell(overlay_idx);
 	    			if (overlay_cell == null || overlay_cell.isMissing()) {
-	    				overlay.add(Double.NaN);
+	    				overlay.add(Float.NaN);
 	    			} else {
 	    				try {
-	    					overlay.add(Double.valueOf(overlay_cell.toString()));
+	    					overlay.add(Float.valueOf(overlay_cell.toString()));
 	    				} catch (NumberFormatException nfe) {
 	    					nfe.printStackTrace();
 	    				}
@@ -147,7 +146,7 @@ public class Plot3DBarNodeModel extends NodeModel {
     	m_colours = colours.toArray(new Color[0]);
     	m_overlay = null;
     	if (has_overlay) {
-    		m_overlay = ArrayUtils.toPrimitive(overlay.toArray(new Double[0]));
+    		m_overlay = new FloatArrayList(overlay);
     	}
     	
     	x_stats = make_stats(x_fal.toFloatArray(), "X");
@@ -258,6 +257,8 @@ public class Plot3DBarNodeModel extends NodeModel {
 	    	m_rows = settings.getStringArray("rowids");
 	    	String[] colors = settings.getStringArray("colours");
 	    	m_colours = new Color[m_rows.length];
+	    	
+	    	// HACK: this only works if the floating point -> string conversion is identical: 0 will be treated differently to 0.0 etc....
 	    	HashMap<String,Color> unique_colours = new HashMap<String,Color>();
 	    	for (int i=0; i<m_rows.length; i++) {
 	    		if (!unique_colours.containsKey(colors[i])) {
@@ -328,8 +329,10 @@ public class Plot3DBarNodeModel extends NodeModel {
 	/**
 	 * Return the data for the overlay. Will return null if <code>!hasOverlay()</code>
 	 */
-	public double[] getOverlay1DVector() {
-		return m_overlay;
+	public float[] getOverlay1DVector() {
+		if (m_overlay == null)
+			return null;
+		return m_overlay.elements();
 	}
 	
 	/**

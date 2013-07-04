@@ -1,24 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry exported="true" kind="lib" path="lib/applet-launcher.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gluegen-rt.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gluegen.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/jogl-all.jar">
-		<accessrules>
-			<accessrule kind="accessible" pattern="**"/>
-		</accessrules>
-	</classpathentry>
-	<classpathentry exported="true" kind="lib" path="lib/opencsv-2.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/org.convexhull.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/org.jzy3d-0.9.jar" sourcepath="C:/jars/org.jzy3d-0.9-src.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/swt-debug.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/swt.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7">
 		<attributes>
 			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="Views/lib"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry exported="true" kind="lib" path="lib/applet-launcher.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gluegen-rt.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gluegen.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jogl-all.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/opencsv-2.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/org.convexhull.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/org.jzy3d-0.9.jar" sourcepath="C:/jars/org.jzy3d-0.9-src.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/swt-debug.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/swt.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
