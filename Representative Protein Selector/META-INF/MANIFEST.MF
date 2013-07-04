@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: RepresentativeProteinSelector
 Bundle-SymbolicName: au.edu.unimelb.plantcell.proteomics.proteinselector;singleton:=true
-Bundle-Version: 1.2.0
+Bundle-Version: 1.2.1
 Bundle-ClassPath: representativeproteinselector.jar
 Bundle-Vendor: http://www.plantcell.unimelb.edu.au/bioinformatics
 Bundle-Localization: plugin
