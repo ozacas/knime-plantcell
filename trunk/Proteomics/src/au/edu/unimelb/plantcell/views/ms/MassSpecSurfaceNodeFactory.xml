@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Visualizer">
+    <name>mzML Surface</name>
+    
+    <shortDescription>
+        Presents a surface representing RT, m/z and heatmap (eg. identified MS2 spectra) using the sexy jzy3d library. Useful for QA and assessment of mzML-format datasets.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>Presents a surface representing RT, m/z and heatmap (eg. identified MS2 spectra) using the sexy jzy3d library. 
+        Useful for QA and assessment of mzML-format datasets as typically acquired from a LC-MS Mass Spectrometer.
+        mzML datasets can be produced for many vendor's Mass Spectrometers - see the ProteoWizard website for
+        more details. The surface denotes peaks, passing the chosen threshold, identified by their m/z and RT. Beneath
+        the (possibly transparent) surface, on the bottom of the unit cube, is the heatmap constructed from the input to the node.
+        
+        <p><b>WARNING:</b> this node is experimental. Use at own risk.</p>
+        
+        </intro>
+        
+       
+        
+        <option name="mzML files">Select one or more mzML to display as the surface. The surface consists of the
+        sum of all MS1 scans in each file organised by peaks in each scan and the scan start time (ie. retention time).</option>
+        
+        <option name="Peak intensity filter">Select the method (% of TIC, absolute or accept all) and enter
+        the value in the box below. The % of TIC method sums all the intensities in a given spectrum and only
+        permits those with at least X% of the sum to comprise the surface. The absolute method requires
+        an intensity at least the chosen threshold. Accept all admits all peaks.</option>
+        
+       <option name="Retention time window">Only peaks which fall within this window will comprise the surface (if they
+       also meet the other thresholds). In seconds.</option>
+       
+       <option name="m/z window">Similar to RT window, but this constrains the surface to only the chosen range of M/Z</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input data">Description of first input port...</inPort>
+        <!-- possibly more input ports here-->
+      
+    </ports>    
+    <views>
+        <view index="0" name="MS Surface">Displays retention time versus MS1 peaks versus sum of intensity across MS1 runs in input files</view>
+        <!--view index="1" name="name of second view">Description of second view...</view-->
+    </views>
+</knimeNode>

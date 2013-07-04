@@ -140,6 +140,8 @@ public class mzMLDataProcessor extends AbstractDataProcessor {
         		}
           }
         }
+        
+        parser.close();
 	}
 	
 	@Override
