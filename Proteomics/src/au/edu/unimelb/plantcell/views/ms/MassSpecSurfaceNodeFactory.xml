@@ -8,13 +8,15 @@
     </shortDescription>
     
     <fullDescription>
-        <intro>Presents a surface representing RT, m/z and heatmap (eg. identified MS2 spectra) using the sexy jzy3d library. 
+        <intro>Presents a surface representing RT, m/z and heatmap (eg. identified MS2 spectra) using the sexy <a href="http://www.jzy3d.org/gallery.php">jzy3d library</a>. 
         Useful for QA and assessment of mzML-format datasets as typically acquired from a LC-MS Mass Spectrometer.
         mzML datasets can be produced for many vendor's Mass Spectrometers - see the ProteoWizard website for
         more details. The surface denotes peaks, passing the chosen threshold, identified by their m/z and RT. Beneath
         the (possibly transparent) surface, on the bottom of the unit cube, is the heatmap constructed from the input to the node.
         
-        <p><b>WARNING:</b> this node is experimental. Use at own risk.</p>
+        <p><b>WARNING:</b> this node is experimental. Use at own risk. It uses large amounts of memory for the surface,
+        the more you have the better. It may crash, but hopefully it wont crash KNIME. Although hardware-based solutions
+        like this can cause system crashes if drivers are buggy. You have been warned.</p>
         
         </intro>
         
