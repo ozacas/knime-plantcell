@@ -86,7 +86,7 @@ public class mzXMLDataProcessor extends AbstractDataProcessor {
 			cells[7] = new IntCell(sh.getChargeDeconvoluted());
 			cells[8] = new IntCell(sh.getMsLevel());
 			cells[10]= new IntCell(sh.getPrecursorCharge());
-			cells[11]= new IntCell(sh.getPrecursorScanNum());
+			cells[11]= new StringCell(String.valueOf(sh.getPrecursorScanNum()));
 			cells[13]= new DoubleCell(sh.getPrecursorMz());
 			cells[14]= new DoubleCell(sh.getTotIonCurrent());
 			cells[15]= new DoubleCell(sh.getCollisionEnergy());

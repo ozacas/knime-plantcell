@@ -39,8 +39,11 @@ public class PrecursorMatcher extends AbstractXMLMatcher {
 	private final List<String> dissociation_methods = new ArrayList<String>();
 	private final List<Peak> selected_ions = new ArrayList<Peak>();
 	private AbstractXMLMatcher parent;
+	private String parentSpectrumID;
 	
 	public PrecursorMatcher() {
+		parent = null;
+		parentSpectrumID = null;
 	}
 	
 	@Override
@@ -48,7 +51,9 @@ public class PrecursorMatcher extends AbstractXMLMatcher {
 			Stack<AbstractXMLMatcher> scope_stack) throws IOException,
 			XMLStreamException, InvalidSettingsException {
 		dissociation_methods.clear();
+		selected_ions.clear();
 		parent = getParent(scope_stack);
+		parentSpectrumID = parser.getAttributeValue(null, "spectrumRef");
 	}
 	
 	public void addSelectedIon(Peak p) {
@@ -70,6 +75,8 @@ public class PrecursorMatcher extends AbstractXMLMatcher {
 			for (Peak p : selected_ions) {
 				sm.addPrecursor(p);
 			}
+			
+			sm.setParentSpectrumID(parentSpectrumID);
 		}
 	}
 	
