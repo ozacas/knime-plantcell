@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.views.bar3d;
+package au.edu.unimelb.plantcell.views.plot3d;
 
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 
@@ -70,7 +70,7 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
 	private float transparency = 1.0f;		// by default: no transparency
 	private final JLabel status = new JLabel();
 	private final JComboBox<String> bar_type = new JComboBox<String>();
-	private final Logger logger = Logger.getLogger("Plot 3D View");
+	private final Logger logger = Logger.getLogger("3D Plot");
 	private boolean supports_transparency = false;
 	private File m_last_folder = null;		// user convenience: last folder for screenshot save is remembered and re-used...
 	private final JComboBox<String> z_transform= new JComboBox<String>(new String[] {
@@ -85,7 +85,7 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
     protected Plot3DBarNodeView(final T nodeModel) {
         super(nodeModel);
         
-        f = setup("3D Plot");
+        f = setupOpenGL("3D Plot");
        
         addStatus(f);
       
@@ -271,6 +271,8 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
 
   			@Override
   			public void stateChanged(ChangeEvent arg0) {
+  				if (bar_transparency.getValueIsAdjusting())
+  					return;
   				int      val = bar_transparency.getValue();
   				setAlpha(((float)val) / 100.0f);
   				modelChanged();
@@ -374,13 +376,14 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
     }
     
     /**
-     * initialise the OpenGL/JZY3d canvas with the specified title and z-buffer/transparency settings
-     * depending on available hardware. This should be customised to the requirements of the plot.
+     * initialise the OpenGL/JZY3d canvas and hardware/drivers with the specified title and z-buffer/transparency settings
+     * depending on available hardware. This should be customised to the requirements of the plot. Overriding this is not
+     * recommended, better to override eg. getOpenGLQuality()
      * 
      * @param title
      * @return
      */
-    protected JFrame setup(String title) {
+    protected JFrame setupOpenGL(String title) {
     	// always use hardware if possible
         GLCapabilities glc = null;
         try {
@@ -392,20 +395,9 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
         } catch (Exception e) {
         	e.printStackTrace();
         }
-        Quality q = Quality.Intermediate;
-        boolean no_depth_if_transparency = q.isDisableDepthBufferWhenAlpha();
-        if (!no_depth_if_transparency) {
-        	supports_transparency = true;
-        	q.setAlphaActivated(true);
-        	q.setDepthActivated(true);
-        	logger.info("View has "+glc.getAlphaBits()+" bits per pixel for transparency.");
-        } else {
-        	logger.warning("Disabling transparency as your computer doesnt support both depth and transparency at the same time.");
-        	supports_transparency = false;
-        	q.setDepthActivated(true);
-        	q.setAlphaActivated(false);
-        }
-        Chart c = new Chart(q, "swing");
+        Quality q = getOpenGLQuality(logger, glc);
+        Chart   c = new Chart(q, "swing");
+        supports_transparency = q.isAlphaActivated();
         c.addController(new MyCameraMouseController());
         if (glc != null) {
         	logger.info("View has "+glc.getDepthBits()+" bits per pixel for depth buffer.");
@@ -429,6 +421,29 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
     }
     
     /**
+     * Return the Quality instance which the canvas must use
+     * @param logger  the logger instance to use for hardware capabilities or null if no logging desired.
+     * @param the OpenGL capabilities for the KNIME instance
+     * @return must not be null
+     */
+    protected Quality getOpenGLQuality(final Logger logger, final GLCapabilities glc) {
+    	Quality q = Quality.Intermediate;
+    	boolean no_depth_if_transparency = q.isDisableDepthBufferWhenAlpha();
+        if (!no_depth_if_transparency) {
+        	q.setAlphaActivated(true);
+        	q.setDepthActivated(true);
+        	if (logger != null)
+        		logger.info("View has "+glc.getAlphaBits()+" bits per pixel for transparency.");
+        } else {
+        	if (logger != null)
+        		logger.warning("Disabling transparency as your computer doesnt support both depth and transparency at the same time.");
+        	q.setDepthActivated(true);
+        	q.setAlphaActivated(false);
+        }
+        return q;
+	}
+
+	/**
      * Subclasses are expected to override this with whatever drawing is required.
      */
     @Override
@@ -611,7 +626,7 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
 		for (int i=0; i<overlay_vec.length; i++) {
 			if (!Double.isNaN(overlay_vec[i])) {
 				double ovi = overlay_vec[i];
-				double vi = vec.get(i);
+				double vi = vec.getFloat(i);
 				TranslucentQuad p = new TranslucentQuad();
 				if (axis.equals("y")) {
 					p.add(new Point(new Coord3d(vi - bar_radius, 0.0, 0.0), gray));
