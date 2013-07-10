@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.views.bar3d;
+package au.edu.unimelb.plantcell.views.plot3d;
 
 import org.jzy3d.plot3d.primitives.axes.layout.renderers.ITickRenderer;
 

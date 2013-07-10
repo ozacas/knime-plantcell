@@ -1,13 +1,14 @@
-package au.edu.unimelb.plantcell.views.bar3d;
+package au.edu.unimelb.plantcell.views.plot3d;
 
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.jzy3d.colors.Color;
@@ -21,7 +22,6 @@ import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
@@ -60,7 +60,8 @@ public class Plot3DBarNodeModel extends NodeModel {
     private SummaryStatistics y_stats = null;					// re-computed during loadInternals
     private SummaryStatistics z_stats = null;					// re-computed during loadInternals
     
-    private String[] m_rows = null;		// row ID's used for highlighting
+    @SuppressWarnings("unused")
+	private String[] m_rows = null;		// row ID's used for highlighting (NOT YET implemented)
     private Color[] m_colours = null;	// row colours used for the graph
     private FloatArrayList m_overlay= null;	// used for an axis-aligned overlay plot (optional)
     
@@ -176,6 +177,8 @@ public class Plot3DBarNodeModel extends NodeModel {
     @Override
     protected void reset() {
         m_rows = null;
+        m_colours = null;
+        m_overlay = null;
         x_fal.clear();
         y_fal.clear();
         z_fal.clear();
@@ -245,40 +248,49 @@ public class Plot3DBarNodeModel extends NodeModel {
     	File f = new File(internDir, "plot3d.internals");
     	
     	try {
-    		NodeSettingsRO settings = NodeSettings.loadFromXML(new FileInputStream(f));
-	    	x_fal.addElements(0, settings.getFloatArray("x"));
-	    	y_fal.addElements(0, settings.getFloatArray("y"));
-	    	z_fal.addElements(0, settings.getFloatArray("z"));
-	    	
-	    	x_stats = make_stats(x_fal.elements(), "x");
-	    	y_stats = make_stats(y_fal.elements(), "y");
-	    	z_stats = make_stats(z_fal.elements(), "z");
-	
-	    	m_rows = settings.getStringArray("rowids");
-	    	String[] colors = settings.getStringArray("colours");
-	    	m_colours = new Color[m_rows.length];
-	    	
-	    	// HACK: this only works if the floating point -> string conversion is identical: 0 will be treated differently to 0.0 etc....
-	    	HashMap<String,Color> unique_colours = new HashMap<String,Color>();
-	    	for (int i=0; i<m_rows.length; i++) {
-	    		if (!unique_colours.containsKey(colors[i])) {
-	    			try {
-	    				String[] rgb = colors[i].split(",");
-	    			
-	    				unique_colours.put(colors[i], new Color(Float.valueOf(rgb[0]), 
-	    														Float.valueOf(rgb[1]), 
-	    														Float.valueOf(rgb[2])));
-	    			} catch (NumberFormatException nfe) {
-	    				nfe.printStackTrace();
-	    				unique_colours.put(colors[i], Color.BLACK);
-	    			}
-	    		}
-	    		m_colours[i] = unique_colours.get(colors[i]);
+	    	BufferedReader rdr = new BufferedReader(new FileReader(f));
+	    	// 1. datapoints
+	    	int n = Integer.valueOf(rdr.readLine());
+	    	//System.out.println("Loading internals: "+n+" datapoints.");
+	    	for (int i=0; i<n; i++) {
+	    		String[] xyz = rdr.readLine().split("\\s+");
+	    		x_fal.add(Float.valueOf(xyz[0]));
+	    		y_fal.add(Float.valueOf(xyz[1]));
+	    		z_fal.add(Float.valueOf(xyz[2]));
 	    	}
-    	} catch (InvalidSettingsException ise) {
-    		ise.printStackTrace();
-    		throw new IOException(ise.getMessage());
+	    	//System.out.println("Loaded "+x_fal.size()+" datapoints.");
+	    	
+	    	// 2. overlay data (if any)
+	    	n = Integer.valueOf(rdr.readLine());
+	    	//System.out.println("Loading internals: "+n+" overlay datapoints.");
+	    	if (n > 0) {
+	    		m_overlay = new FloatArrayList();
+	    		for (int i=0; i<n; i++) {
+	    			m_overlay.add(Float.valueOf(rdr.readLine()));
+	    		}
+	    	}
+	    	//System.out.println("Loaded "+x_fal.size()+" overlay datapoints.");
+	    	
+	    	// 3. colours (if any)
+	    	n = Integer.valueOf(rdr.readLine());
+	    	//System.out.println("Loading internals: "+n+" colours.");
+
+	    	if (n > 0) {
+	    		m_colours = new Color[n];
+	    		for (int i=0; i<n; i++) {
+	    			String[] rgb = rdr.readLine().split(",");
+	    			m_colours[i] = new Color(Float.valueOf(rgb[0]), Float.valueOf(rgb[1]), Float.valueOf(rgb[2]));
+	    		}
+	    	}
+	    	rdr.close();
+    	} catch (Exception ex) {
+    		ex.printStackTrace();
+    		throw new IOException(ex.getMessage());
     	}
+    	
+    	x_stats = make_stats(x_fal.toFloatArray(), "X");
+    	y_stats = make_stats(y_fal.toFloatArray(), "Y");
+    	z_stats = make_stats(z_fal.toFloatArray(), "Z");
     }
     
     /**
@@ -289,17 +301,32 @@ public class Plot3DBarNodeModel extends NodeModel {
             final ExecutionMonitor exec) throws IOException,
             CanceledExecutionException {
     	File f = new File(internDir, "plot3d.internals");
-    	NodeSettings settings = new NodeSettings("internals");
-    	settings.addFloatArray("x", x_fal.elements());
-    	settings.addFloatArray("y", y_fal.elements());
-    	settings.addFloatArray("z", z_fal.elements());
-    	settings.addStringArray("rowids", m_rows);
-    	String[] colors = new String[m_colours.length];
-    	for (int i=0; i<m_colours.length; i++) {
-    		colors[i] = ""+m_colours[i].r+","+m_colours[i].g+","+m_colours[i].b;		// TODO: save alpha too?
+    	PrintWriter pw = new PrintWriter(new FileWriter(f));
+    	
+    	// 1. datapoints
+    	pw.println(x_fal.size());
+    	for (int i=0; i<x_fal.size(); i++) {
+    		pw.println(""+x_fal.getFloat(i)+" "+y_fal.getFloat(i)+" "+z_fal.getFloat(i));
     	}
-    	settings.addStringArray("colours", colors);
-    	settings.saveToXML(new FileOutputStream(f));
+    	// 2. overlay data (if any)
+    	if (m_overlay != null) {
+	    	pw.println(m_overlay.size());
+	    	for (int i=0; i<m_overlay.size(); i++) {
+	    		pw.println(m_overlay.getFloat(i));
+	    	}
+    	} else {
+    		pw.println("0");
+    	}
+    	// 3. colours (if any)
+    	if (m_colours != null) {
+    		pw.println(m_colours.length);
+	    	for (int i=0; i<m_colours.length; i++) {
+	    		pw.println(""+m_colours[i].r+","+m_colours[i].g+","+m_colours[i].b);
+	    	}
+    	} else {
+    		pw.println("0");
+    	}
+    	pw.close();
     }
 
     /**
@@ -332,7 +359,7 @@ public class Plot3DBarNodeModel extends NodeModel {
 	public float[] getOverlay1DVector() {
 		if (m_overlay == null)
 			return null;
-		return m_overlay.elements();
+		return m_overlay.toArray(new float[0]);
 	}
 	
 	/**
@@ -347,7 +374,8 @@ public class Plot3DBarNodeModel extends NodeModel {
 		x.addAll(x_fal);
 		y.addAll(y_fal);
 		z.addAll(z_fal);
-		for (int i=0; i<countDataPoints(); i++) {
+		int n = countDataPoints();
+		for (int i=0; i<n; i++) {
 			colours[i]= m_colours[i];
 		}
 	}

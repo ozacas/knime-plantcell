@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.views.bar3d;
+package au.edu.unimelb.plantcell.views.plot3d;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DoubleValue;

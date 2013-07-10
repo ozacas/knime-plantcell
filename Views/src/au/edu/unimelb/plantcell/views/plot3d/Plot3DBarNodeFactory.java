@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.views.bar3d;
+package au.edu.unimelb.plantcell.views.plot3d;
 
 import org.knime.core.node.AbstractNodeView;
 import org.knime.core.node.NodeDialogPane;
@@ -35,7 +35,7 @@ public class Plot3DBarNodeFactory
      */
     @Override
     public AbstractNodeView<Plot3DBarNodeModel> createAbstractNodeView(final int viewIndex, final Plot3DBarNodeModel mdl) {
-    	return new Plot3DBarNodeView(mdl);
+    	return new Plot3DBarNodeView<Plot3DBarNodeModel>(mdl);
     }
     
     /**

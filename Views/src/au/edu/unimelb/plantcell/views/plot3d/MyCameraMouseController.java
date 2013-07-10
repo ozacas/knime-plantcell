@@ -1,12 +1,16 @@
-package au.edu.unimelb.plantcell.views.bar3d;
+package au.edu.unimelb.plantcell.views.plot3d;
 
 import java.awt.event.MouseWheelEvent;
-import java.util.logging.Logger;
 
 import org.jzy3d.chart.controllers.mouse.camera.CameraMouseController;
 import org.jzy3d.maths.Coord3d;
 
 
+/**
+ * Hook for future development but not really useful at the moment ;-)
+ * @author andrew.cassin
+ *
+ */
 public class MyCameraMouseController extends CameraMouseController {
 	@SuppressWarnings("unused")
 	private float cumulative = 0.0f;
