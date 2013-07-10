@@ -26,7 +26,8 @@ import au.edu.unimelb.plantcell.core.MyDataContainer;
 
 /**
  * Parse a spectrum entry and outputs a spectra cell as well as summary data to both output ports once
- * parsing of an entry is complete.
+ * parsing of an entry is complete. WARNING: be sure to reset all members each <code>processElement()</code>
+ * or you'll get values "leaking" from one spectrum to the next.
  * 
  * @author andrew.cassin
  *
@@ -51,7 +52,6 @@ public class SpectrumMatcher extends  AbstractXMLMatcher {
 	public SpectrumMatcher(boolean load_ms1) {
 		this.load_ms1 = load_ms1;
 		this.m_sl = null;
-		m_parent_spectrum_id = null;
 	}
 	
 	public SpectrumMatcher(SpectrumListener sl) {
@@ -68,6 +68,7 @@ public class SpectrumMatcher extends  AbstractXMLMatcher {
 		m_name2value.clear();
 		precursors.clear();
 		
+		m_parent_spectrum_id = null;
 		mz = null;
 		intensity = null;
 		m_id    = parser.getAttributeValue(null, "id");
@@ -128,7 +129,7 @@ public class SpectrumMatcher extends  AbstractXMLMatcher {
 		if (c != null) {
 			return c;
 		} else if (m_id != null) {
-			return new StringCell(m_id);
+			return new StringCell(getID());
 		} else {
 			return DataType.getMissingCell();
 		}
@@ -186,8 +187,16 @@ public class SpectrumMatcher extends  AbstractXMLMatcher {
 		}
 	}
 	
+	/**
+	 * Override this method if you want to control ID's to suit
+	 * @return
+	 */
+	public String getID() {
+		return m_id;
+	}
+	
 	protected DataCell getIndex() {
-		return new StringCell(m_id);
+		return new StringCell(getID());
 	}
 	
 	protected DataCell asIntCell(DataCell c) {
@@ -288,7 +297,7 @@ public class SpectrumMatcher extends  AbstractXMLMatcher {
 			cells[8] = new IntCell(ms_level);
 			cells[9] = getIndex();
 			cells[10] = getPrecursorCharge();
-			cells[11] = getParentSpectrumID();
+			cells[11] = getParentSpectrumCell();
 			cells[12] = getPrecursorIntensity();
 			cells[13] = getPrecursorMZ();
 			cells[14] = getTIC();
@@ -329,10 +338,19 @@ public class SpectrumMatcher extends  AbstractXMLMatcher {
 		}
 	}
 	
-	private DataCell getParentSpectrumID() {
-		if (m_parent_spectrum_id == null || m_parent_spectrum_id.length() < 1)
+	/**
+	 * Override this method if you want to control the parent scan ID
+	 * @return
+	 */
+	public String getParentSpectrumID() {
+		return m_parent_spectrum_id;
+	}
+	
+	private DataCell getParentSpectrumCell() {
+		String parent_id = getParentSpectrumID();
+		if (parent_id == null || parent_id.length() < 1)
 			return DataType.getMissingCell();
-		return new StringCell(m_parent_spectrum_id);
+		return new StringCell(parent_id);
 	}
 
 	protected BasicPeakList makePeakList() {
@@ -375,6 +393,13 @@ public class SpectrumMatcher extends  AbstractXMLMatcher {
 	public void addCVParam(String value, String name, String accession, String cvRef, String unitAccession, String unitName) throws Exception {
 		if (m_accsn2name.containsKey(accession))
 			throw new Exception("Duplicate key for "+accession);
+		// convert retention time into seconds (always)
+		
+		if (accession.equals("MS:1000016")) {
+			if (unitName.equals("minute") || unitAccession.equals("UO:0000031")) {
+				value = String.valueOf(Double.valueOf(value) * 60.0d);
+			}
+		}
 		m_accsn2name.put(accession, name);
 		m_name2value.put(name, value);
 	}

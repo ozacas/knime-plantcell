@@ -20,7 +20,7 @@ import org.jzy3d.plot3d.rendering.scene.Graph;
 import org.jzy3d.plot3d.rendering.scene.Scene;
 import org.knime.core.node.ExternalApplicationNodeView;
 
-import au.edu.unimelb.plantcell.views.bar3d.MyCameraMouseController;
+import au.edu.unimelb.plantcell.views.plot3d.MyCameraMouseController;
 
 
 /**
