@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Visualizer">
+    <name>Multi-Surface 3D Plot</name>
+    
+    <shortDescription>
+        Represents multiple surfaces each with different properties, surface datapoints are taken from the input data table.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>Represents multiple surfaces each with different properties, all datapoints are taken from the input data table.
+        The node assumes that two columns defined (X,Y) plane for the surface and that each additional column(s) describe
+        the Z-axis value for each corresponding surface. Each independent Z-column completes each surface but X&amp;Y are always shared.</intro>
+        
+        
+        <option name="X">Column to use as the X-axis for all the surfaces (numeric columns only)</option>
+        <option name="Y">Column to use as the Y-axis for all the surfaces (numeric columns only)</option>
+      
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input data table">Provides one or more (x,y,z) datasets to use for a surface</inPort>
+        <!-- possibly more input ports here-->
+    </ports>    
+    <views>
+        <view index="0" name="Surface view">Displays the chosen surface(s) with interaction for the user</view>
+    </views>
+</knimeNode>

@@ -166,13 +166,13 @@ public class MassSpecSurfaceNodeDialog extends DefaultNodeSettingsPane {
          
          this.addTab("mzML files", spectra_file_panel);
          
-         createNewGroup("Retention time window");
+         createNewGroup("Retention time (seconds)");
          addDialogComponent(new DialogComponentNumber(
         		 new SettingsModelDouble(MassSpecSurfaceNodeModel.CFGKEY_RT_MIN, 300.0), 
-        		 "Minimum (sec.)", 60.0));
+        		 "Minimum", 60.0));
          addDialogComponent(new DialogComponentNumber(
         		 new SettingsModelDouble(MassSpecSurfaceNodeModel.CFGKEY_RT_MAX, 3000.0), 
-        		 "Maximum (sec.)", 60.0));
+        		 "Maximum", 60.0));
          
          createNewGroup("M/Z window");
          addDialogComponent(new DialogComponentNumber(
@@ -182,7 +182,7 @@ public class MassSpecSurfaceNodeDialog extends DefaultNodeSettingsPane {
         		 new SettingsModelDouble(MassSpecSurfaceNodeModel.CFGKEY_MZ_MAX, 2000.0), 
         		 "Maximum", 100.0));
          
-         createNewGroup("Minimum intensity peak filter");
+         createNewGroup("Peak filter");
          addDialogComponent(new DialogComponentButtonGroup(
         		 new SettingsModelString(MassSpecSurfaceNodeModel.CFGKEY_THRESHOLD_METHOD, MassSpecSurfaceNodeModel.THRESHOLD_METHODS[0]), 
         		 false, "Filter peaks which are not...", MassSpecSurfaceNodeModel.THRESHOLD_METHODS));

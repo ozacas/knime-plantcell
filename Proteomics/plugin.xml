@@ -31,6 +31,8 @@
    
    	  <node category-path="/Bioinformatics/Views" factory-class="au.edu.unimelb.plantcell.views.ms.MassSpecSurfaceNodeFactory" id="au.edu.unimelb.plantcell.views.ms.MassSpecSurfaceNodeFactory"/>
    
+      <node category-path="/Bioinformatics/Views" factory-class="au.edu.unimelb.plantcell.views.surface.multi.MultiSurfaceNodeFactory" id="au.edu.unimelb.plantcell.views.surface.multi.MultiSurfaceNodeFactory"/>
+   
    </extension>
    	
 </plugin>
