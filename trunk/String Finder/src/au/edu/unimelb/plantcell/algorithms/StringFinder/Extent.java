@@ -64,4 +64,12 @@ public class Extent implements Comparable {
 	public int getEnd() {
 		return m_end;
 	}
+	
+	@Override
+	public boolean equals(Object oe) {
+		if (oe == null || !(oe instanceof Extent))
+			return false;
+		Extent e = (Extent) oe;
+		return (this.getStart() == e.getStart() && this.getEnd() == e.getEnd());
+	}
 }
