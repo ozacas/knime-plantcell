@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: StringFinder
 Bundle-SymbolicName: au.edu.unimelb.plantcell.algorithms.StringFinder;singleton:=true
-Bundle-Version: 1.2.3
+Bundle-Version: 1.2.4
 Bundle-ClassPath: stringmatcher.jar
 Bundle-Vendor: http://www.plantcell.unimelb.edu.au/bioinformatics
 Bundle-Localization: plugin

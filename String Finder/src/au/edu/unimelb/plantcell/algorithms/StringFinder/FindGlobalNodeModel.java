@@ -378,6 +378,9 @@ public class FindGlobalNodeModel extends NodeModel {
 			} else if (want.startsWith("Distance: from last match to end")) {
 				cols.add(new DataColumnSpecCreator("Distance: from last match to end", IntCell.TYPE).createSpec());
 				m_reporters.add(new LastDistanceReporter());
+			} else if (want.startsWith("Matrix of match distance")) {
+				cols.add(new DataColumnSpecCreator("Matrix of match distances (list)", ListCell.getCollectionType(StringCell.TYPE)).createSpec());
+				m_reporters.add(new DistanceMatrixReporter(want));
 			} else if (want.startsWith("Annotate sequences")) {
 				if (m_match_col_idx >= 0) {		
 					DataColumnSpec seq_col = inSpec.getColumnSpec(m_match_col_idx);
