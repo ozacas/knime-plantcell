@@ -1,14 +1,21 @@
 package au.edu.unimelb.plantcell.views.surface.multi;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.util.ArrayList;
 
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.ComboBoxModel;
+import javax.swing.DefaultCellEditor;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
+import javax.swing.JTable;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.TableColumn;
 
 import org.jzy3d.chart.Chart;
 import org.jzy3d.colors.Color;
@@ -30,9 +37,8 @@ import au.edu.unimelb.plantcell.views.plot3d.MyAxisRenderer;
  *
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
-public class MultiSurfaceNodeView<T extends MultiSurfaceNodeModel> extends MassSpecSurfaceNodeView<T> {
-	private final static Color[] m_colors = new Color[] { Color.BLACK, Color.BLUE, Color.RED, Color.YELLOW, Color.GREEN };
-	private int m_surface_idx;
+public class MultiSurfaceNodeView<T extends MultiSurfaceNodeModel> extends MassSpecSurfaceNodeView<T> implements TableModelListener {
+	private SurfaceTableModel m_surface_settings = null;
 	
     /**
      * Creates a new view.
@@ -42,19 +48,41 @@ public class MultiSurfaceNodeView<T extends MultiSurfaceNodeModel> extends MassS
     protected MultiSurfaceNodeView(final T nodeModel) {
         super(nodeModel);
 
-        JFrame f = setupOpenGL("Multi-surface 3D plot");
-
-        addStatus(f);
-      
+        JFrame f = setupOpenGL("Multi-Surface 3D Plot");
         final JPanel image_panel = new JPanel();
-        final JPanel button_panel= addButtons(image_panel, true, false);
-     
-        JSplitPane split_pane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true);
-        split_pane.setBottomComponent(new JScrollPane(image_panel));
-        split_pane.setTopComponent(button_panel);
-        f.add(split_pane, BorderLayout.EAST);
+        JPanel button_panel = addButtons(image_panel, false, false);
+        f.getContentPane().add(button_panel, BorderLayout.EAST);
     }
-
+    
+    /**
+     * Adds a table to the status bar for the user to configure each surface
+     */
+    @Override
+    protected JPanel getStatusPanel() {
+    	JPanel sp = new JPanel();
+    	JPanel kid = new JPanel();
+    	kid.setLayout(new BoxLayout(kid, BoxLayout.Y_AXIS));
+    	kid.add(super.getStatusPanel());
+    	kid.add(Box.createRigidArea(new Dimension(5,5)));
+    	m_surface_settings = new SurfaceTableModel(getNodeModel());
+    	m_surface_settings.addTableModelListener(this);
+    	JTable t = new JTable(m_surface_settings);
+    	TableColumn display_as_column = t.getColumnModel().getColumn(1);
+    	JComboBox<String> show_as = new JComboBox<String>(new String[] {"Scatter", "Surface"});
+    	display_as_column.setCellEditor(new DefaultCellEditor(show_as));
+    	t.setDefaultEditor(Color.class, new MyColourEditor());
+    	t.setDefaultEditor(Integer.class, new MySliderEditor());
+    	t.setCellSelectionEnabled(false);
+    	t.setDefaultRenderer(Color.class, new MyColorRenderer());
+    	t.setDefaultRenderer(Integer.class, new MySliderRenderer());
+    	kid.add(t.getTableHeader());
+    	sp.setLayout(new BorderLayout());
+    	sp.add(kid, BorderLayout.NORTH);
+    	sp.add(t, BorderLayout.CENTER);
+    
+    	return sp;
+    }
+    
     /**
      * {@inheritDoc}
      */
@@ -70,7 +98,6 @@ public class MultiSurfaceNodeView<T extends MultiSurfaceNodeModel> extends MassS
         Chart c = getChart();
         Graph g = new Graph(new Scene(), true);
         
-        m_surface_idx=0;
         double z_min = Double.POSITIVE_INFINITY;
         double z_max = Double.NEGATIVE_INFINITY;
         for (String surface_name : nodeModel.getZNames()) {
@@ -96,9 +123,9 @@ public class MultiSurfaceNodeView<T extends MultiSurfaceNodeModel> extends MassS
 	    	c.getAxeLayout().setXAxeLabel(nodeModel.getXLabel());
 	    	c.getAxeLayout().setZAxeLabel(surface_name);
 	    	
-	    
-		    AbstractDrawable surface = getOpenGLSurface(matrix);
-		    g.add(surface);
+		    AbstractDrawable surface = getOpenGLSurface(matrix, surface_name);
+		    if (surface != null)
+		    	g.add(surface);
         }
         c.getAxeLayout().setXTickRenderer(new MyAxisRenderer(nodeModel.getXMin(), nodeModel.getXMax()));
     	c.getAxeLayout().setYTickRenderer(new MyAxisRenderer(nodeModel.getYMin(), nodeModel.getYMax()));
@@ -115,28 +142,36 @@ public class MultiSurfaceNodeView<T extends MultiSurfaceNodeModel> extends MassS
     	return new DefaultComboBoxModel<String>(new String[] { "Scatter (fastest)", "Surface"  });
 	}
     
-	private AbstractDrawable getOpenGLSurface(final Matrix matrix) {
-		String type = getShowAs();
+	private AbstractDrawable getOpenGLSurface(final Matrix matrix, final String surface_name) {
+		String type = m_surface_settings.getShowAs(surface_name);
+		final double z_offset = (-50.0d + (Integer) m_surface_settings.getZOffset(surface_name)) / 100.0;
 		if (type.startsWith("Scatter")) {
 			final ArrayList<Coord3d> points = new ArrayList<Coord3d>();
 			final double z_min = getMinimum(matrix);
 			final double z_max = getMaximum(matrix);
 			final double z_range= range(z_min, z_max);
+			
 			matrix.each(new MatrixProcedure() {
 	
 				@Override
 				public void apply(int r, int c, double val) {
 					if (val > 0.0)
-						points.add(new Coord3d(((float)r)/matrix.rows(), ((float)c)/matrix.columns(), (val - z_min) / z_range));
+						points.add(new Coord3d(((float)r)/matrix.rows(), ((float)c)/matrix.columns(), (val - z_min) / z_range + z_offset));
 				}
 				
 			});
 			Scatter s = new Scatter(points.toArray(new Coord3d[0]));
-			s.setColor(m_colors[m_surface_idx++ % m_colors.length]);
+			s.setColor(m_surface_settings.getColour(surface_name));
 			return s;
 		} else  { // must be surface
 			return null;
 		}
+	}
+
+	@Override
+	public void tableChanged(TableModelEvent e) {
+		modelChanged();
+		getChart().render();
 	}
 
 }

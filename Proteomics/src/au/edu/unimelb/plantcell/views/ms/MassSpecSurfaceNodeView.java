@@ -9,8 +9,6 @@ import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
 
 import org.jzy3d.chart.Chart;
 import org.jzy3d.colors.Color;
@@ -45,17 +43,11 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 
 	protected MassSpecSurfaceNodeView(T nodeModel) {
 		super(nodeModel);
-		JFrame f = setupOpenGL("MS1 versus RT versus intensity surface");
-
-        addStatus(f);
-      
-        final JPanel image_panel = new JPanel();
-        final JPanel button_panel= addButtons(image_panel, true, false);
-     
-        JSplitPane split_pane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true);
-        split_pane.setBottomComponent(new JScrollPane(image_panel));
-        split_pane.setTopComponent(button_panel);
-        f.add(split_pane, BorderLayout.EAST);
+		
+		JFrame f = setupOpenGL("Mass Spec. mzML Surface View");
+	    final JPanel image_panel = new JPanel();
+	    JPanel button_panel = addButtons(image_panel, true, true);
+	    f.getContentPane().add(button_panel, BorderLayout.EAST);
 	}
 	
 	@Override
@@ -217,6 +209,7 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 			return matrix;
 	}
 
+	@SuppressWarnings("restriction")
 	@Override
 	protected Quality getOpenGLQuality(final Logger logger, final GLCapabilities glc) {
     	Quality q = Quality.Advanced;

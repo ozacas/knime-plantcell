@@ -1,7 +1,13 @@
 package au.edu.unimelb.plantcell.views.surface.multi;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.HashMap;
 
@@ -21,6 +27,8 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelFilterString;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.la4j.factory.CRSFactory;
+import org.la4j.io.MatrixMarketStream;
+import org.la4j.io.MatrixStream;
 import org.la4j.matrix.Matrix;
 
 
@@ -86,7 +94,6 @@ public class MultiSurfaceNodeModel extends NodeModel {
         		throw new InvalidSettingsException("Cannot find column: "+z_col+" - reconfigure?");
         	double z_min = ((DoubleValue)inData[0].getSpec().getColumnSpec(z_idx).getDomain().getLowerBound()).getDoubleValue();
         	double z_max = ((DoubleValue)inData[0].getSpec().getColumnSpec(z_idx).getDomain().getUpperBound()).getDoubleValue();
-        	double z_range = range(z_min, z_max);
         	logger.info("Loading surface {"+m_x.getStringValue()+", "+m_y.getStringValue()+", "+z_col+"}");
         	logger.info("Bounds: X ["+x_min+".."+x_max+"] Y["+y_min+".."+y_max+"] Z["+z_min+".."+z_max+"]");
         	
@@ -190,7 +197,34 @@ public class MultiSurfaceNodeModel extends NodeModel {
     protected void loadInternals(final File internDir,
             final ExecutionMonitor exec) throws IOException,
             CanceledExecutionException {
-        
+    	reset();
+    	
+    	File f = new File(internDir, "multi.surface.internals");
+    	BufferedReader rdr = new BufferedReader(new FileReader(f));
+    	
+    	HashMap<String,File> matrix_files = new HashMap<String,File>();
+    	int n = Integer.valueOf(rdr.readLine());
+    	x_min = Double.valueOf(rdr.readLine());
+    	x_max = Double.valueOf(rdr.readLine());
+    	y_min = Double.valueOf(rdr.readLine());
+    	y_max = Double.valueOf(rdr.readLine());
+    	
+    	for (int i=0; i<n; i++) {
+    		String line = rdr.readLine();
+    		int idx = line.indexOf('=');
+    		
+    		String fname = line.substring(0, idx);
+    		String surface = line.substring(idx+1);
+    		matrix_files.put(surface, new File(internDir, fname));
+    	}
+    	rdr.close();
+    	
+    	for (String surface : matrix_files.keySet()) {
+    		File matrixf = matrix_files.get(surface);
+    		MatrixStream ms = new MatrixMarketStream(new FileInputStream(matrixf));
+        	Matrix m = ms.readMatrix();
+        	m_surfaces.put(surface, m);
+    	}
     }
     
     /**
@@ -200,7 +234,29 @@ public class MultiSurfaceNodeModel extends NodeModel {
     protected void saveInternals(final File internDir,
             final ExecutionMonitor exec) throws IOException,
             CanceledExecutionException {
-
+    	File f = new File(internDir, "multi.surface.internals");
+    	PrintWriter pw = new PrintWriter(new FileWriter(f));
+    	HashMap<String,File> matrix_files = new HashMap<String,File>();
+    	pw.println(m_surfaces.size());
+    	pw.println(x_min);
+    	pw.println(x_max);
+    	pw.println(y_min);
+    	pw.println(y_max);
+    	
+    	int idx = 1;
+    	for (String surface : m_surfaces.keySet()) {
+    		String fname = "matrix."+idx++;
+    		matrix_files.put(surface, new File(internDir, fname));
+    		pw.println(fname+"="+surface);
+    	}
+    	pw.close();
+    	
+    	for (String surface : matrix_files.keySet()) {
+    		Matrix m = getMatrix(surface);
+    		File matrixf = matrix_files.get(surface);
+    		MatrixStream ms = new MatrixMarketStream(new FileOutputStream(matrixf));
+        	ms.writeMatrix(m);
+    	}
     }
 
     public double getXMin() {
@@ -220,7 +276,10 @@ public class MultiSurfaceNodeModel extends NodeModel {
     }
     
     public Matrix getMatrix(String surface_name) {
-    	return m_surfaces.get(surface_name).copy();
+    	Matrix m = m_surfaces.get(surface_name);
+    	if (m == null)
+    		return null;
+    	return m.copy();
     }
     
     public String getXLabel() {
