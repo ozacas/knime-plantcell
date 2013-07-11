@@ -25,9 +25,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JSlider;
-import javax.swing.JSplitPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
@@ -76,6 +74,7 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
 	private final JComboBox<String> z_transform= new JComboBox<String>(new String[] {
       		"Linear", "Log10", "Square-root", "Reciprocal"
     });
+	private final JPanel status_panel = new JPanel();
 	
     /**
      * Creates a new view.
@@ -85,17 +84,10 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
     protected Plot3DBarNodeView(final T nodeModel) {
         super(nodeModel);
         
-        f = setupOpenGL("3D Plot");
-       
-        addStatus(f);
-      
+        JFrame f = setupOpenGL("3D Plot");
         final JPanel image_panel = new JPanel();
         JPanel button_panel = addButtons(image_panel, true, true);
-     
-        JSplitPane split_pane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true);
-        split_pane.setBottomComponent(new JScrollPane(image_panel));
-        split_pane.setTopComponent(button_panel);
-        f.add(split_pane, BorderLayout.EAST);
+        f.getContentPane().add(button_panel, BorderLayout.EAST);
     }
 
     /**
@@ -305,15 +297,18 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
     }
     
     /**
-     * reponsible for adding the status bar (typically to the bottom) of the specified frame
-     * @param f
+     * reponsible for adding the status bar (typically to the bottom) of the specified panel. Called during construction,
+     * so must not rely on too much state being initialised yet.
+     * 
+     * @param data_panel the panel to add the widget(s) to
      */
-	protected void addStatus(JFrame f) {
-    	 JPanel data_panel = new JPanel();
+	protected JPanel getStatusPanel() {
+         JPanel data_panel = new JPanel();
          data_panel.setLayout(new BoxLayout(data_panel, BoxLayout.Y_AXIS));
          data_panel.add(status);
-         
-         f.add(data_panel, BorderLayout.SOUTH);
+         data_panel.setMinimumSize(new Dimension(200, 20));
+         data_panel.setPreferredSize(new Dimension(200, 20));
+         return data_panel;
 	}
 
 	/**
@@ -384,6 +379,8 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
      * @return
      */
     protected JFrame setupOpenGL(String title) {
+    	assert(title != null && status_panel != null);
+    	
     	// always use hardware if possible
         GLCapabilities glc = null;
         try {
@@ -408,14 +405,15 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
         
         JComponent canvas = (JComponent) getChart().getCanvas();
         canvas.setMinimumSize(new Dimension(300,300));
-        canvas.setPreferredSize(new Dimension(600,600));
+        canvas.setPreferredSize(new Dimension(Short.MAX_VALUE,Short.MAX_VALUE));
         
         JFrame f = new JFrame(title);
-        f.setLayout(new BorderLayout());
+        f.getContentPane().setLayout(new BorderLayout());
         f.setMinimumSize(new Dimension(300,300));
         f.setPreferredSize(new Dimension(800,800));
-        f.add(canvas, BorderLayout.CENTER);
-        
+  
+        f.getContentPane().add(canvas, BorderLayout.CENTER);
+        f.getContentPane().add(getStatusPanel(), BorderLayout.SOUTH);
         setFrame(f);
         return f;
     }
