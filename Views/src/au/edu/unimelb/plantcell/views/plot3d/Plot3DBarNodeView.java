@@ -68,11 +68,11 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
 	private float transparency = 1.0f;		// by default: no transparency
 	private final JLabel status = new JLabel();
 	private final JComboBox<String> bar_type = new JComboBox<String>();
-	private final Logger logger = Logger.getLogger("3D Plot");
+	protected final Logger logger = Logger.getLogger("3D Plot");
 	private boolean supports_transparency = false;
 	private File m_last_folder = null;		// user convenience: last folder for screenshot save is remembered and re-used...
 	private final JComboBox<String> z_transform= new JComboBox<String>(new String[] {
-      		"Linear", "Log10", "Square-root", "Reciprocal"
+      		"None", "Log10", "Square-root", "Reciprocal"
     });
 	private final JPanel status_panel = new JPanel();
 	
@@ -86,7 +86,7 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
         
         JFrame f = setupOpenGL("3D Plot");
         final JPanel image_panel = new JPanel();
-        JPanel button_panel = addButtons(image_panel, true, true);
+        JPanel button_panel = addButtons(image_panel, true, true, true, true);
         f.getContentPane().add(button_panel, BorderLayout.EAST);
     }
 
@@ -97,7 +97,8 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
      * @param has_choice_of_symbol
      * @return
      */
-    protected JPanel addButtons(final JPanel image_panel, boolean has_choice_of_symbol, boolean show_scale_slider) {
+    protected JPanel addButtons(final JPanel image_panel, boolean has_choice_of_symbol, boolean show_scale_slider, 
+    		boolean show_wireframe, boolean show_transparency) {
     	  JPanel button_panel = new JPanel();
           button_panel.setLayout(new BoxLayout(button_panel, BoxLayout.Y_AXIS));
           JButton ss = new JButton("Screenshot...");
@@ -186,13 +187,13 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
   			}
           	
           });
-          final JCheckBox show_wireframe = new JCheckBox("Show wireframe?");
+          final JCheckBox show_wf = new JCheckBox("Show wireframe?");
           final JCheckBox show_box       = new JCheckBox("Show axis box?", true);
-          show_wireframe.addActionListener(new ActionListener() {
+          show_wf.addActionListener(new ActionListener() {
 
   			@Override
   			public void actionPerformed(ActionEvent arg0) {
-  				wireframe = show_wireframe.isSelected();
+  				wireframe = show_wf.isSelected();
   				modelChanged();
   				getChart().render();
   			}
@@ -209,8 +210,8 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
           });
          
           button_panel.add(show_box);
-          
-          button_panel.add(show_wireframe);
+          if (show_wireframe)
+        	  button_panel.add(show_wf);
           button_panel.add(Box.createRigidArea(new Dimension(5,5)));
           
           bar_type.addActionListener(new ActionListener() {
@@ -272,7 +273,8 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
   			}
           	
           });
-          button_panel.add(bar_transparency);
+          if (show_transparency)
+        	  button_panel.add(bar_transparency);
           button_panel.add(Box.createVerticalGlue());
           return button_panel;
 	}
@@ -583,7 +585,7 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
     protected SummaryStatistics transform(final FloatArrayList values, final SummaryStatistics untransformed_stats, final String method) {
     	SummaryStatistics ret = new SummaryStatistics();
     	
-    	if (method.startsWith("Linear"))
+    	if (method.startsWith("None"))
     		return untransformed_stats;
     	
     	if (method.equals("Log10")) {
@@ -662,12 +664,16 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
 	 */
 	protected void setStatus(String new_status) {
 		if (new_status == null) {
-			status.setText("Ready. Please click on a datapoint to see its data, below.");
+			status.setText(getDefaultStatusMessage());
 			return;
 		}
 		status.setText(new_status);
 	}
 	
+	public String getDefaultStatusMessage() {
+		return "Ready. Please click on a datapoint to see its data, below.";
+	}
+
 	/**
      * {@inheritDoc}
      */
