@@ -6,9 +6,7 @@ import java.util.ArrayList;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ComboBoxModel;
 import javax.swing.DefaultCellEditor;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -33,12 +31,13 @@ import au.edu.unimelb.plantcell.views.plot3d.MyAxisRenderer;
 
 /**
  * <code>NodeView</code> for the "MultiSurface" Node.
- * Represents multiple surfaces each with different properties, surface datapoints are taken from the input data table.
+ * Renders multiple surfaces each with different properties, datapoints are taken from the input data table.
  *
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
 public class MultiSurfaceNodeView<T extends MultiSurfaceNodeModel> extends MassSpecSurfaceNodeView<T> implements TableModelListener {
 	private SurfaceTableModel m_surface_settings = null;
+	private JTable t;
 	
     /**
      * Creates a new view.
@@ -50,7 +49,8 @@ public class MultiSurfaceNodeView<T extends MultiSurfaceNodeModel> extends MassS
 
         JFrame f = setupOpenGL("Multi-Surface 3D Plot");
         final JPanel image_panel = new JPanel();
-        JPanel button_panel = addButtons(image_panel, false, false);
+        // no 'show as' checkbox (on the right) for this view as each surface has its own
+        JPanel button_panel = addButtons(image_panel, false, false, false, false);
         f.getContentPane().add(button_panel, BorderLayout.EAST);
     }
     
@@ -66,7 +66,7 @@ public class MultiSurfaceNodeView<T extends MultiSurfaceNodeModel> extends MassS
     	kid.add(Box.createRigidArea(new Dimension(5,5)));
     	m_surface_settings = new SurfaceTableModel(getNodeModel());
     	m_surface_settings.addTableModelListener(this);
-    	JTable t = new JTable(m_surface_settings);
+    	t = new JTable(m_surface_settings);
     	TableColumn display_as_column = t.getColumnModel().getColumn(1);
     	JComboBox<String> show_as = new JComboBox<String>(new String[] {"Scatter", "Surface"});
     	display_as_column.setCellEditor(new DefaultCellEditor(show_as));
@@ -91,6 +91,7 @@ public class MultiSurfaceNodeView<T extends MultiSurfaceNodeModel> extends MassS
         MultiSurfaceNodeModel nodeModel = (MultiSurfaceNodeModel)getNodeModel();
         assert nodeModel != null;
         
+        m_surface_settings.modelChanged(nodeModel);
         if (nodeModel == null || nodeModel.getSurfaceCount() < 1) {
         	getChart().clear();
         	return;
@@ -101,16 +102,15 @@ public class MultiSurfaceNodeView<T extends MultiSurfaceNodeModel> extends MassS
         double z_min = Double.POSITIVE_INFINITY;
         double z_max = Double.NEGATIVE_INFINITY;
         for (String surface_name : nodeModel.getZNames()) {
-        	final Matrix in = nodeModel.getMatrix(surface_name);
+        	final Matrix in = nodeModel.getMatrix(surface_name, getZTransform());
         	if (in == null)
         		continue;
-        	double min = getMinimum(in);
+        	double min = nodeModel.getMinimum(surface_name);		// NB: NO transform!
         	if (min < z_min)
         		z_min = min;
-        	double max = getMaximum(in);
+        	double max = nodeModel.getMaximum(surface_name);		// NB: NO transform!
         	if (max > z_max)
         		z_max = max;
-        	final Matrix matrix  = transform(in, this.getZTransform());
         	
 	        BoundingBox3d bb = g.getBounds();
 	    	bb.setZmax(1.0f);
@@ -119,33 +119,46 @@ public class MultiSurfaceNodeView<T extends MultiSurfaceNodeModel> extends MassS
 	    	bb.setXmax(1.0f);
 	    	bb.setYmin(0.0f);
 	    	bb.setYmax(1.0f);
-	    	c.getAxeLayout().setYAxeLabel(nodeModel.getYLabel());
-	    	c.getAxeLayout().setXAxeLabel(nodeModel.getXLabel());
-	    	c.getAxeLayout().setZAxeLabel(surface_name);
 	    	
-		    AbstractDrawable surface = getOpenGLSurface(matrix, surface_name);
+		    AbstractDrawable surface = getOpenGLSurface(in, surface_name);
 		    if (surface != null)
 		    	g.add(surface);
         }
         c.getAxeLayout().setXTickRenderer(new MyAxisRenderer(nodeModel.getXMin(), nodeModel.getXMax()));
     	c.getAxeLayout().setYTickRenderer(new MyAxisRenderer(nodeModel.getYMin(), nodeModel.getYMax()));
     	c.getAxeLayout().setZTickRenderer(new MyAxisRenderer(z_min, z_max));
+    	c.getAxeLayout().setYAxeLabel(nodeModel.getYLabel());
+    	c.getAxeLayout().setXAxeLabel(nodeModel.getXLabel());
+    	c.getAxeLayout().setZAxeLabel("Z ("+nodeModel.getSurfaceCount()+" surfaces)");
         c.getScene().setGraph(g);
     }
-
-    /**
-     * You must pass true to the "show choice" during construction or this wont get called
-     * @return a {@link ComboBoxModel} ready for the user to use
-     */
-    @Override
-    protected ComboBoxModel<String> getShowAsOptions() {
-    	return new DefaultComboBoxModel<String>(new String[] { "Scatter (fastest)", "Surface"  });
-	}
     
+    @Override
+    public String getDefaultStatusMessage() {
+    	return "To alter the appearance of a surface, edit the table below.";
+    }
+    
+    /**
+     * For now we only support scatter plots... we really should map this to a surface, but it requires too much
+     * memory to be practical???
+     * 
+     * @param matrix
+     * @param surface_name
+     * @return
+     */
 	private AbstractDrawable getOpenGLSurface(final Matrix matrix, final String surface_name) {
 		String type = m_surface_settings.getShowAs(surface_name);
+		logger.info("Displaying surface "+surface_name+" as "+type.toLowerCase());
+		double alpha = m_surface_settings.getAlpha(surface_name);
+    	logger.info("Transparency for "+surface_name+" is "+alpha);
+    	int size = m_surface_settings.getSize(surface_name);
+    	logger.info("Relative size for objects in "+surface_name+" is "+size);
+    	Color surface_colour = m_surface_settings.getColour(surface_name);
+    	logger.info("Color for object in "+surface_name+" is RGB: "+surface_colour.r+" "+surface_colour.g+" "+surface_colour.b);
+    	
+    	
 		final double z_offset = (-50.0d + (Integer) m_surface_settings.getZOffset(surface_name)) / 100.0;
-		if (type.startsWith("Scatter")) {
+		//if (type.startsWith("Scatter")) {
 			final ArrayList<Coord3d> points = new ArrayList<Coord3d>();
 			final double z_min = getMinimum(matrix);
 			final double z_max = getMaximum(matrix);
@@ -155,21 +168,21 @@ public class MultiSurfaceNodeView<T extends MultiSurfaceNodeModel> extends MassS
 	
 				@Override
 				public void apply(int r, int c, double val) {
-					if (val > 0.0)
-						points.add(new Coord3d(((float)r)/matrix.rows(), ((float)c)/matrix.columns(), (val - z_min) / z_range + z_offset));
+					points.add(new Coord3d(((float)r)/matrix.rows(), ((float)c)/matrix.columns(), (val - z_min) / z_range + z_offset));
 				}
 				
 			});
-			Scatter s = new Scatter(points.toArray(new Coord3d[0]));
-			s.setColor(m_surface_settings.getColour(surface_name));
-			return s;
-		} else  { // must be surface
-			return null;
-		}
+			
+			surface_colour.alphaSelf((float)alpha);
+			return new Scatter(points.toArray(new Coord3d[0]), surface_colour, (float) (getRadius() * 10.0f * size));
+		//} else  { // must be surface
+		//	return null;
+		//}
 	}
 
 	@Override
 	public void tableChanged(TableModelEvent e) {
+		//System.err.println("Changed user settings: redrawing...");
 		modelChanged();
 		getChart().render();
 	}

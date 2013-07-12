@@ -46,7 +46,7 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 		
 		JFrame f = setupOpenGL("Mass Spec. mzML Surface View");
 	    final JPanel image_panel = new JPanel();
-	    JPanel button_panel = addButtons(image_panel, true, true);
+	    JPanel button_panel = addButtons(image_panel, true, true, true, true);
 	    f.getContentPane().add(button_panel, BorderLayout.EAST);
 	}
 	
@@ -228,24 +228,5 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 	protected ComboBoxModel<String> getShowAsOptions() {
 	    	return new DefaultComboBoxModel<String>(new String[] { "Scatter (fastest)", "Surface" });
 	}
-	
-	private class MinimumMatrixProcedure implements MatrixProcedure {
-		public double min = Double.POSITIVE_INFINITY;
-		@Override
-		public void apply(int arg0, int arg1, double arg2) {
-			if (arg2 < min)
-				min = arg2;
-		}
-		
-	};
-	
-	private class MaximumMatrixProcedure implements MatrixProcedure {
-		public double max = Double.NEGATIVE_INFINITY;
-		@Override
-		public void apply(int arg0, int arg1, double arg2) {
-			if (arg2 > max)
-				max = arg2;
-		}
-		
-	};
+
 }

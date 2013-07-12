@@ -3,6 +3,7 @@ package au.edu.unimelb.plantcell.views.surface.multi;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.EventObject;
 
 import javax.swing.AbstractCellEditor;
 import javax.swing.JButton;
@@ -27,8 +28,8 @@ public class MyColourEditor extends AbstractCellEditor implements
 	private JDialog dialog;
 	protected static final String EDIT = "edit";
 	private Color currentColor;
-
-	public MyColourEditor() {
+	
+	public MyColourEditor() {		
 		button = new JButton();
 		button.setActionCommand(EDIT);
 		button.addActionListener(this);
@@ -49,7 +50,7 @@ public class MyColourEditor extends AbstractCellEditor implements
 			//The user has clicked the cell, so
 			//bring up the dialog.
 			
-			java.awt.Color awt = new java.awt.Color(currentColor.a/255, currentColor.g/255, currentColor.b/255);
+			java.awt.Color awt = new java.awt.Color(currentColor.r/255, currentColor.g/255, currentColor.b/255);
 			button.setBackground(awt);
 			button.setForeground(awt);
 			colorChooser.setColor(awt);
@@ -62,6 +63,10 @@ public class MyColourEditor extends AbstractCellEditor implements
 		}
 	}
 
+	public boolean isCellEditable(EventObject eo) {
+		return true;
+	}
+	
 	//Implement the one CellEditor method that AbstractCellEditor doesn't.
 	public Object getCellEditorValue() {
 		return currentColor;

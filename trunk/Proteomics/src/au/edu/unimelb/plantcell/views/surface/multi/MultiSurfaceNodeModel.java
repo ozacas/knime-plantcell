@@ -8,10 +8,12 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnDomain;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
@@ -30,6 +32,10 @@ import org.la4j.factory.CRSFactory;
 import org.la4j.io.MatrixMarketStream;
 import org.la4j.io.MatrixStream;
 import org.la4j.matrix.Matrix;
+import org.la4j.matrix.functor.MatrixFunction;
+
+import au.edu.unimelb.plantcell.views.ms.MaximumMatrixProcedure;
+import au.edu.unimelb.plantcell.views.ms.MinimumMatrixProcedure;
 
 
 /**
@@ -52,9 +58,11 @@ public class MultiSurfaceNodeModel extends NodeModel {
     private final SettingsModelFilterString m_z = new SettingsModelFilterString(CFGKEY_Z);
     
 
-    // private state
+    // private state (persisted)
     private final HashMap<String,Matrix> m_surfaces = new HashMap<String,Matrix>();
     private double x_min, x_max, y_min, y_max;		// NB: each Z column may have its own bounds, so we dont cache that here
+    // private state (not persisted)
+    private final HashMap<String,Matrix> m_matrix_cache = new HashMap<String,Matrix>();
     
     /**
      * Constructor for the node model.
@@ -80,12 +88,34 @@ public class MultiSurfaceNodeModel extends NodeModel {
     	if (y_idx < 0)
     		throw new InvalidSettingsException("Cannot find column: "+m_y.getStringValue()+" - reconfigure?");
     	
-    	// TODO: check that bounds are present?
-    	double x_min = ((DoubleValue)inData[0].getSpec().getColumnSpec(x_idx).getDomain().getLowerBound()).getDoubleValue();
-    	double x_max = ((DoubleValue)inData[0].getSpec().getColumnSpec(x_idx).getDomain().getUpperBound()).getDoubleValue();
-    	double y_min = ((DoubleValue)inData[0].getSpec().getColumnSpec(y_idx).getDomain().getLowerBound()).getDoubleValue();
-    	double y_max = ((DoubleValue)inData[0].getSpec().getColumnSpec(y_idx).getDomain().getUpperBound()).getDoubleValue();
-    	
+    	DataColumnDomain x_domain = inData[0].getSpec().getColumnSpec(x_idx).getDomain();
+    	DataColumnDomain y_domain = inData[0].getSpec().getColumnSpec(y_idx).getDomain();
+    	if (!x_domain.hasBounds() || !y_domain.hasBounds()) {
+    		logger.warn("Missing lower or upper bounds on X/Y columns - recomputing from row data... please be patient.");
+    		x_min = Double.POSITIVE_INFINITY;
+    		x_max = Double.NEGATIVE_INFINITY;
+    		y_min = Double.POSITIVE_INFINITY;
+    		y_max = Double.NEGATIVE_INFINITY;
+    		for (DataRow r : inData[0]) {
+    			DataCell x_cell = r.getCell(x_idx);
+        		DataCell y_cell = r.getCell(y_idx);
+        		double x = ((DoubleValue)x_cell).getDoubleValue();
+        		double y = ((DoubleValue)y_cell).getDoubleValue();
+        		if (x <= x_min)
+        			x_min = x;
+        		if (x >= x_max)
+        			x_max = x;
+        		if (y <= y_min)
+        			y_min = y;
+        		if (y >= y_max)
+        			y_max = y;
+    		}
+    	} else {
+	    	x_min = ((DoubleValue)x_domain.getLowerBound()).getDoubleValue();
+	    	x_max = ((DoubleValue)x_domain.getUpperBound()).getDoubleValue();
+	    	y_min = ((DoubleValue)y_domain.getLowerBound()).getDoubleValue();
+	    	y_max = ((DoubleValue)y_domain.getUpperBound()).getDoubleValue();
+    	}
     	
         for (String z_col : m_z.getIncludeList()) {
         	Matrix m = new CRSFactory().createMatrix(10000, 10000);	// sparse so dont panic (yet!) ;-)
@@ -144,7 +174,8 @@ public class MultiSurfaceNodeModel extends NodeModel {
      */
     @Override
     protected void reset() {
-      m_surfaces.clear();
+    	m_surfaces.clear();
+    	m_matrix_cache.clear();
     }
 
     /**
@@ -252,7 +283,7 @@ public class MultiSurfaceNodeModel extends NodeModel {
     	pw.close();
     	
     	for (String surface : matrix_files.keySet()) {
-    		Matrix m = getMatrix(surface);
+    		Matrix m = getMatrix(surface, "Linear");
     		File matrixf = matrix_files.get(surface);
     		MatrixStream ms = new MatrixMarketStream(new FileOutputStream(matrixf));
         	ms.writeMatrix(m);
@@ -275,14 +306,117 @@ public class MultiSurfaceNodeModel extends NodeModel {
     	return y_max;
     }
     
-    public Matrix getMatrix(String surface_name) {
+    private boolean isCachedMatrix(final String surface, final String transform) {
+    	if (m_matrix_cache.containsKey(transform+ " "+surface)) {
+    		return true;
+    	}
+    	// if transform is linear then the original matrix can be returned...
+    	if (transform.startsWith("None")) {
+    		return true;
+    	}
+    	return false;
+    }
+    
+    public Matrix getCachedMatrix(final String surface, final String transform) {
+    	Matrix m = m_matrix_cache.get(transform + " " + surface);
+    	if (m != null)
+    		return m;
+    	if (transform.startsWith("None")) {
+    		return m_surfaces.get(surface);
+    	}
+    	return null;
+    }
+    
+    public void deleteExistingCachedMatrix(final String surface) {
+    	ArrayList<String> candidates = new ArrayList<String>();
+    	for (String s : m_matrix_cache.keySet()) {
+    		if (s.endsWith(surface)) {
+    			candidates.add(s);
+    		}
+    	}
+    	
+    	for (String s : candidates) {
+    		Matrix m = m_matrix_cache.remove(s);
+    		m = null;
+    	}
+    }
+    
+    public Matrix getMatrix(final String surface_name, final String transform) {
     	Matrix m = m_surfaces.get(surface_name);
     	if (m == null)
     		return null;
+    	Matrix t = null;
+    	
+    	// apply transform (nothing is done iff None or something unsupported)
+    	if (isCachedMatrix(surface_name, transform)) 
+    		t = getCachedMatrix(surface_name, transform);
+    	else {
+    		deleteExistingCachedMatrix(surface_name);		// free up memory before we start building new matrices
+    	
+	    	if (transform.startsWith("Log10")) {
+				t = m.copy().transform(new MatrixFunction() {
+	
+					@Override
+					public double evaluate(int r, int c, double val) {
+						return (val > 0.0) ? Math.log(val) : 0.0;
+					}
+					
+				});
+			} else if (transform.startsWith("Recip")) {
+				t = m.copy().transform(new MatrixFunction() {
+	
+					@Override
+					public double evaluate(int r, int c, double val) {
+						return (val > 0.0) ? 1/val : 0.0;
+					}
+					
+				});
+			} else if (transform.startsWith("Square")) {
+				t = m.copy().transform(new MatrixFunction() {
+	
+					@Override
+					public double evaluate(int r, int c, double val) {
+						return (val > 0.0) ? Math.sqrt(val) : 0.0;
+					}
+					
+				});
+			}
+	    	
+	    	
+    	}
+    	
+    	// return transformed ***copy*** computed above?
+    	if (t != null) {
+    		m_matrix_cache.put(transform+" "+surface_name, t);
+    		return t;
+    	}
+    	// else ***copy*** of the original matrix
     	return m.copy();
     }
     
-    public String getXLabel() {
+    public double getMinimum(final String surface_name) {
+    	return getMinimum(surface_name, "None");
+    }
+    
+    public double getMinimum(final String surface_name, final String transform) {
+    	Matrix m = getMatrix(surface_name, transform);
+    	MinimumMatrixProcedure mp = new MinimumMatrixProcedure();
+    	m.each(mp);
+    	return mp.min;
+    }
+    
+    public double getMaximum(final String surface_name) {
+    	return getMaximum(surface_name, "None");
+    }
+    
+    private double getMaximum(final String surface_name, final String transform) {
+		Matrix m = getMatrix(surface_name, transform);
+		MaximumMatrixProcedure mp = new MaximumMatrixProcedure();
+		m.each(mp);
+		return mp.max;
+	}
+
+	public String getXLabel() {
     	return m_x.getStringValue();
     }
     
