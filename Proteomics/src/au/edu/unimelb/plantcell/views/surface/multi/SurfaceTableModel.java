@@ -17,7 +17,7 @@ import org.jzy3d.colors.Color;
  */
 public class SurfaceTableModel implements TableModel {
 	private final List<TableModelListener> m_listeners = new ArrayList<TableModelListener>();
-	private final static String[] cols = new String[] { "Name", "Display as ... ?", "Transparency", "Colour", "Size", "Z Offset" };
+	private final static String[] cols = new String[] { "Surface", "Display as ... ?", "Opacity (%)", "Colour", "Size of points (relative)", "Z Offset (%)" };
 	private MultiSurfaceNodeModel m_mdl= null;
 	private final HashMap<String,Color> m_colours = new HashMap<String,Color>();
 	private final HashMap<String,String> m_showas = new HashMap<String,String>();
@@ -107,7 +107,7 @@ public class SurfaceTableModel implements TableModel {
 		return alpha;
 	}
 	
-	private Integer getSize(String surface_name) {
+	public Integer getSize(String surface_name) {
 		Integer size = m_size.get(surface_name);
 		if (size == null)
 			return new Integer(1);
@@ -127,7 +127,9 @@ public class SurfaceTableModel implements TableModel {
 			return;
 		
 		if (c == 3) {
-			m_colours.put(surface_name, (Color) o);
+			Color col = (Color) o;
+			//System.err.println("Changing colour for "+surface_name+" to RGB: "+col.r+" "+col.g+" "+col.b);
+			m_colours.put(surface_name, col);
 		} else if (c == 1) {
 			m_showas.put(surface_name, (String) o);
 		} else if (c == 2) {
@@ -138,6 +140,10 @@ public class SurfaceTableModel implements TableModel {
 			m_zoffset.put(surface_name, (Integer) o);
 		}
 		
+		fireListeners();
+	}
+	
+	private void fireListeners() {
 		TableModelEvent ev = new TableModelEvent(this);
 		for (TableModelListener l : m_listeners) {
 			l.tableChanged(ev);
@@ -157,6 +163,19 @@ public class SurfaceTableModel implements TableModel {
 		if (s == null) 
 			return "Scatter";
 		return s;
+	}
+
+	public double getAlpha(String surface_name) {
+		int i = getTransparency(surface_name);
+		return ((double)i) / 100.0d; 
+	}
+
+	/**
+	 * Called when the view is notified of a change to the model, this code must adjust the table model accordingly
+	 * @param nodeModel
+	 */
+	public void modelChanged(MultiSurfaceNodeModel nodeModel) {
+		m_mdl = nodeModel;
 	}
 
 }
