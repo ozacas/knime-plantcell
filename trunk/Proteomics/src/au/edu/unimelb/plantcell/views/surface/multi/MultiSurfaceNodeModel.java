@@ -118,7 +118,9 @@ public class MultiSurfaceNodeModel extends NodeModel {
     	}
     	
         for (String z_col : m_z.getIncludeList()) {
-        	Matrix m = new CRSFactory().createMatrix(10000, 10000);	// sparse so dont panic (yet!) ;-)
+        	int n_rows = 10000;
+        	int n_cols = 10000;
+        	Matrix m = new CRSFactory().createMatrix(n_rows, n_cols);	// sparse so dont panic (yet!) ;-)
         	int z_idx = inData[0].getSpec().findColumnIndex(z_col);
         	if (z_idx < 0)
         		throw new InvalidSettingsException("Cannot find column: "+z_col+" - reconfigure?");
@@ -127,19 +129,32 @@ public class MultiSurfaceNodeModel extends NodeModel {
         	logger.info("Loading surface {"+m_x.getStringValue()+", "+m_y.getStringValue()+", "+z_col+"}");
         	logger.info("Bounds: X ["+x_min+".."+x_max+"] Y["+y_min+".."+y_max+"] Z["+z_min+".."+z_max+"]");
         	
+        	int min_x_bin = Integer.MAX_VALUE;
+        	int max_x_bin = Integer.MIN_VALUE;
+        	int min_y_bin = Integer.MAX_VALUE;
+        	int max_y_bin = Integer.MIN_VALUE;
         	for (DataRow r : inData[0]) {
         		DataCell x_cell = r.getCell(x_idx);
         		DataCell y_cell = r.getCell(y_idx);
         		DataCell z_cell = r.getCell(z_idx);
         	
-        		int x_bin = getBin(x_cell, x_min, x_max, m.rows());
-        		int y_bin = getBin(y_cell, y_min, y_max, m.columns());
+        		int x_bin = getBin(x_cell, x_min, x_max, n_rows);
+        		int y_bin = getBin(y_cell, y_min, y_max, n_cols);
         		
         		if (x_bin < 0 || y_bin < 0 || z_cell == null || z_cell.isMissing())
         			continue;
         		double z = ((DoubleValue)z_cell).getDoubleValue();
+        		if (x_bin < min_x_bin)
+        			min_x_bin = x_bin;
+        		if (x_bin > max_x_bin)
+        			max_x_bin = x_bin;
+        		if (y_bin < min_y_bin) 
+        			min_y_bin = y_bin;
+        		if (y_bin > max_y_bin)
+        			max_y_bin = y_bin;
         		m.set(x_bin, y_bin, z);
         	}
+        	logger.info("Set bin ranges: X ["+min_x_bin+", "+max_x_bin+"] Y["+min_y_bin+", "+max_y_bin+"]");
         	m_surfaces.put(z_col, m);
         }
        
@@ -155,9 +170,10 @@ public class MultiSurfaceNodeModel extends NodeModel {
 		double range = range(min, max);
 		if (range <= 0.0)
 			return -1;
-		int bin = (int) (val - min / range);
-		if (bin >= max_bin-1)
-			bin = max_bin-1;
+		float range_per_bin = ((float)range) / max_bin;
+		int bin = (int) ((val - min) / range_per_bin);
+		if (bin >= max_bin)
+			bin = max_bin - 1;
 		return bin;
 	}
 
@@ -290,18 +306,34 @@ public class MultiSurfaceNodeModel extends NodeModel {
     	}
     }
 
+    /**
+     * As computed during execute() - minimal X value encountered on all surfaces
+     * @return
+     */
     public double getXMin() {
     	return x_min;
     }
     
+    /**
+     * As computed during execute() - maximum X value encountered on all surfaces
+     * @return
+     */
     public double getXMax() {
     	return x_max;
     }
     
+    /**
+     * As computed during execute() - minimal Y value encountered on all surfaces
+     * @return
+     */
     public double getYMin() {
     	return y_min;
     }
     
+    /**
+     * As computed during execute() - maximal Y value encountered on all surfaces
+     * @return
+     */
     public double getYMax() {
     	return y_max;
     }
@@ -336,8 +368,7 @@ public class MultiSurfaceNodeModel extends NodeModel {
     	}
     	
     	for (String s : candidates) {
-    		Matrix m = m_matrix_cache.remove(s);
-    		m = null;
+    		m_matrix_cache.remove(s);
     	}
     }
     
