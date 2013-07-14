@@ -21,6 +21,7 @@ import org.jzy3d.maths.BoundingBox3d;
 import org.jzy3d.maths.Coord3d;
 import org.jzy3d.plot3d.primitives.AbstractDrawable;
 import org.jzy3d.plot3d.primitives.Scatter;
+import org.jzy3d.plot3d.primitives.axes.layout.IAxeLayout;
 import org.jzy3d.plot3d.rendering.scene.Graph;
 import org.jzy3d.plot3d.rendering.scene.Scene;
 import org.la4j.matrix.Matrix;
@@ -38,6 +39,8 @@ import au.edu.unimelb.plantcell.views.plot3d.MyAxisRenderer;
 public class MultiSurfaceNodeView<T extends MultiSurfaceNodeModel> extends MassSpecSurfaceNodeView<T> implements TableModelListener {
 	private SurfaceTableModel m_surface_settings = null;
 	private JTable t;
+	
+	private float saw_min_x, saw_max_x, saw_min_y, saw_max_y;
 	
     /**
      * Creates a new view.
@@ -94,11 +97,23 @@ public class MultiSurfaceNodeView<T extends MultiSurfaceNodeModel> extends MassS
         m_surface_settings.modelChanged(nodeModel);
         if (nodeModel == null || nodeModel.getSurfaceCount() < 1) {
         	getChart().clear();
+        	setStatus("No model to display - please execute node!");
         	return;
         }
         Chart c = getChart();
         Graph g = new Graph(new Scene(), true);
-        
+        BoundingBox3d bb = g.getBounds();
+        bb.setZmin(0.0f);
+    	bb.setZmax(1.0f);
+    	bb.setXmin(0.0f);
+    	bb.setXmax(1.0f);
+    	bb.setYmin(0.0f);
+    	bb.setYmax(1.0f);
+    	IAxeLayout ial = c.getAxeLayout();
+        ial.setXTickRenderer(new MyAxisRenderer(nodeModel.getXMin(), nodeModel.getXMax()));
+    	ial.setYTickRenderer(new MyAxisRenderer(nodeModel.getYMin(), nodeModel.getYMax()));
+    	
+    	
         double z_min = Double.POSITIVE_INFINITY;
         double z_max = Double.NEGATIVE_INFINITY;
         for (String surface_name : nodeModel.getZNames()) {
@@ -111,25 +126,16 @@ public class MultiSurfaceNodeView<T extends MultiSurfaceNodeModel> extends MassS
         	double max = nodeModel.getMaximum(surface_name);		// NB: NO transform!
         	if (max > z_max)
         		z_max = max;
-        	
-	        BoundingBox3d bb = g.getBounds();
-	    	bb.setZmax(1.0f);
-	    	bb.setZmin(0.0f);
-	    	bb.setXmin(0.0f);
-	    	bb.setXmax(1.0f);
-	    	bb.setYmin(0.0f);
-	    	bb.setYmax(1.0f);
 	    	
 		    AbstractDrawable surface = getOpenGLSurface(in, surface_name);
 		    if (surface != null)
 		    	g.add(surface);
         }
-        c.getAxeLayout().setXTickRenderer(new MyAxisRenderer(nodeModel.getXMin(), nodeModel.getXMax()));
-    	c.getAxeLayout().setYTickRenderer(new MyAxisRenderer(nodeModel.getYMin(), nodeModel.getYMax()));
-    	c.getAxeLayout().setZTickRenderer(new MyAxisRenderer(z_min, z_max));
-    	c.getAxeLayout().setYAxeLabel(nodeModel.getYLabel());
-    	c.getAxeLayout().setXAxeLabel(nodeModel.getXLabel());
-    	c.getAxeLayout().setZAxeLabel("Z ("+nodeModel.getSurfaceCount()+" surfaces)");
+        ial.setZTickRenderer(new MyAxisRenderer(z_max, z_min));
+        ial.setYAxeLabel(nodeModel.getYLabel());
+    	ial.setXAxeLabel(nodeModel.getXLabel());
+    	ial.setZAxeLabel("Z ("+nodeModel.getSurfaceCount()+" surfaces)");
+    	
         c.getScene().setGraph(g);
     }
     
@@ -160,21 +166,40 @@ public class MultiSurfaceNodeView<T extends MultiSurfaceNodeModel> extends MassS
 		final double z_offset = (-50.0d + (Integer) m_surface_settings.getZOffset(surface_name)) / 100.0;
 		//if (type.startsWith("Scatter")) {
 			final ArrayList<Coord3d> points = new ArrayList<Coord3d>();
-			final double z_min = getMinimum(matrix);
-			final double z_max = getMaximum(matrix);
+			final double z_min  = getMinimum(matrix);
+			final double z_max  = getMaximum(matrix);
 			final double z_range= range(z_min, z_max);
+			final int rows      = matrix.rows();
+			final int columns   = matrix.columns();
+			//logger.debug("Matrix has "+rows+" rows, and "+columns+" columns.");
 			
+			saw_min_x = Float.POSITIVE_INFINITY;
+			saw_min_y = Float.POSITIVE_INFINITY;
+			saw_max_x = Float.NEGATIVE_INFINITY;
+			saw_max_y = Float.NEGATIVE_INFINITY;
 			matrix.each(new MatrixProcedure() {
-	
+				
 				@Override
 				public void apply(int r, int c, double val) {
-					points.add(new Coord3d(((float)r)/matrix.rows(), ((float)c)/matrix.columns(), (val - z_min) / z_range + z_offset));
+					float x_val = ((float)r)/rows;
+					float y_val = ((float)c)/columns;
+					if (x_val < saw_min_x)
+						saw_min_x = x_val;
+					if (x_val > saw_max_x)
+						saw_max_x = x_val;
+					if (y_val < saw_min_y)
+						saw_min_y = y_val;
+					if (y_val > saw_max_y)
+						saw_max_y = y_val;
+					points.add(new Coord3d(x_val, y_val, (val - z_min) / z_range + z_offset));
 				}
 				
 			});
 			
+			System.out.println("Saw X["+saw_min_x+", "+saw_max_x+"] Y["+saw_min_y+", "+saw_max_y+"]");
 			surface_colour.alphaSelf((float)alpha);
 			return new Scatter(points.toArray(new Coord3d[0]), surface_colour, (float) (getRadius() * 10.0f * size));
+			
 		//} else  { // must be surface
 		//	return null;
 		//}
