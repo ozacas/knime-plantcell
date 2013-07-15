@@ -78,6 +78,9 @@ public class MultiSurfaceNodeView<T extends MultiSurfaceNodeModel> extends MassS
     	t.setCellSelectionEnabled(false);
     	t.setDefaultRenderer(Color.class, new MyColorRenderer());
     	t.setDefaultRenderer(Integer.class, new MySliderRenderer());
+    	// we use a negative for the minimum of the Z-offset column to permit surfaces to be lowered relative to the others (up to 50% in either direction)
+    	// HACK FIXME: must correspond to SurfaceTableModel implementation
+    	t.getColumnModel().getColumn(5).setCellEditor(new MySliderEditor(-50, 50));
     	kid.add(t.getTableHeader());
     	sp.setLayout(new BorderLayout());
     	sp.add(kid, BorderLayout.NORTH);
@@ -163,7 +166,7 @@ public class MultiSurfaceNodeView<T extends MultiSurfaceNodeModel> extends MassS
     	logger.info("Color for object in "+surface_name+" is RGB: "+surface_colour.r+" "+surface_colour.g+" "+surface_colour.b);
     	
     	
-		final double z_offset = (-50.0d + (Integer) m_surface_settings.getZOffset(surface_name)) / 100.0;
+		final float z_offset = (float) ((Integer)m_surface_settings.getZOffset(surface_name)).intValue() / 100.0f;
 		//if (type.startsWith("Scatter")) {
 			final ArrayList<Coord3d> points = new ArrayList<Coord3d>();
 			final double z_min  = getMinimum(matrix);
