@@ -96,7 +96,7 @@ public class SurfaceTableModel implements TableModel {
 	public Object getZOffset(String surface_name) {
 		Integer z = m_zoffset.get(surface_name);
 		if (z == null)
-			return new Integer(50);		// ie. 0% offset
+			return new Integer(0);		// ie. not offset on Z-axis
 		return z;
 	}
 
