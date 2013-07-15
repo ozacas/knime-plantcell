@@ -1,7 +1,5 @@
 package au.edu.unimelb.plantcell.views.plot3d;
 
-import java.util.logging.Logger;
-
 import org.jzy3d.plot3d.primitives.axes.layout.renderers.ITickRenderer;
 
 /**
@@ -12,6 +10,7 @@ import org.jzy3d.plot3d.primitives.axes.layout.renderers.ITickRenderer;
  */
 public class MyAxisRenderer implements ITickRenderer {
 	private float v1;
+	@SuppressWarnings("unused")
 	private float v2;
 	private float m_range;
 	
