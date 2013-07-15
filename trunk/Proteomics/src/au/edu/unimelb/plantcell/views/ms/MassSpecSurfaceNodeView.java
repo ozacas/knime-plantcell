@@ -133,15 +133,19 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 		if (ms2scatter == null)
 			return s;
 		
+		assert(ms2scatter.rows() == intensity_matrix.rows() && ms2scatter.columns() == intensity_matrix.columns());
+		
 		ms2scatter.each(new MatrixProcedure() {
 
 			@Override
 			public void apply(int r, int c, double arg2) {
 				if (arg2 > 0.0) {
-					points.add(new Coord3d(((float)r)/xdim, ((float)c)/ydim, 0.0));
+					float intensity = (float) ((intensity_matrix.get(r, c) - z_min) / z_range);
+					
+					points.add(new Coord3d(((float)r)/xdim, ((float)c)/ydim, intensity));
 					
 					// the point is essentially transparent if the peak is not intense
-					float intensity = (float) ((intensity_matrix.get(r, c) - z_min) / z_range);
+					
 					// bin it (to avoid occlusion problems)
 					if (intensity >= 0.9)
 						intensity = 1.0f;
@@ -150,14 +154,14 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 					else
 						intensity = 0.4f;
 					
-					colours.add(new Color(1.0f, 0.0f, 0.0f, intensity));
+					colours.add(new Color(0.0f, 0.0f, 0.0f, intensity));
 				}
 			}
 			
 		});
 		s.setData(points.toArray(new Coord3d[0]));
 		s.setColors(colours.toArray(new Color[0]));
-		
+		s.setWidth((float) getRadius() * 10.0f);
 		return s;
 	}
 

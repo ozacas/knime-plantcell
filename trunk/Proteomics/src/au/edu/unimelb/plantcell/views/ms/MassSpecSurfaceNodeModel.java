@@ -413,7 +413,7 @@ public class MassSpecSurfaceNodeModel extends NodeModel {
     	MatrixStream ms = new MatrixMarketStream(new FileInputStream(f));
     	m_surface = ms.readMatrix(Matrices.CRS_FACTORY);
     	f = new File(internDir, "ms2.surface.matrix");
-    	ms = new MatrixMarketStream(new FileOutputStream(f));
+    	ms = new MatrixMarketStream(new FileInputStream(f));
     	m_ms2_heatmap = ms.readMatrix(Matrices.CRS_FACTORY);
     }
     
@@ -597,6 +597,8 @@ public class MassSpecSurfaceNodeModel extends NodeModel {
      * @return the deep copy of the internal node model (row=RT, column=MZ, intensity equals sum of all peak intensity in bin)
      */
 	public Matrix getSurface() {
+		if (m_surface == null)
+			return null;
 		return m_surface.copy();
 	}
 	
@@ -659,12 +661,14 @@ public class MassSpecSurfaceNodeModel extends NodeModel {
 	}
     
 	/**
-	 * Returns a shallow copy of the MS2 surface, since we know the view does not modify it in any way. 
+	 * Returns a copy of the MS2 "heatmap" matrix
 	 * @return
 	 * 
 	 */
 	public Matrix getMS2Surface() {
-		return m_ms2_heatmap;
+		if (m_ms2_heatmap == null)
+			return null;
+		return m_ms2_heatmap.copy();
 	}
 	
 	public double getMZmin() {
