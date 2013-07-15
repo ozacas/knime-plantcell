@@ -242,6 +242,9 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
 	
 	  			@Override
 	  			public void stateChanged(ChangeEvent arg0) {
+	  				if (bar_thickness.getValueIsAdjusting())
+	  					return;
+	  				
 	  				int val = bar_thickness.getValue();
 	  				if (val <= 50) {
 	  					setRadius(0.0125f * ((float)val) / 50);
@@ -330,7 +333,8 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
     }
     
     /**
-     * for bar plots, what is the radius of each bar in unit cube co-ordinates?
+     * For a given plot this metric (in [0,1] range) what is the scale factor
+     * for each (eg. bar for a bar plot)?
      * 
      * @return
      */
