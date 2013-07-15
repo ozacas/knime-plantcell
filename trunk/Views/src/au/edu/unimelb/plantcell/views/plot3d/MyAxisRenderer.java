@@ -1,5 +1,7 @@
 package au.edu.unimelb.plantcell.views.plot3d;
 
+import java.util.logging.Logger;
+
 import org.jzy3d.plot3d.primitives.axes.layout.renderers.ITickRenderer;
 
 /**
@@ -9,19 +11,39 @@ import org.jzy3d.plot3d.primitives.axes.layout.renderers.ITickRenderer;
  *
  */
 public class MyAxisRenderer implements ITickRenderer {
-	private float min;
-	private float max;
+	private float v1;
+	private float v2;
+	private float m_range;
 	
-	public MyAxisRenderer(double x_min, double x_max) {
-		assert((float) x_max >=  x_min);
-		
-		this.min = (float) x_min;
-		this.max = (float) x_max;
+	public MyAxisRenderer(double v1, double v2) {
+		this((float) v1, (float) v2);
+	}
+	
+	public MyAxisRenderer(float v1, float v2) {
+		float min = (v1 < v2) ? v1 : v2;
+		float max = (v1 > v2) ? v1 : v2;
+		this.v1 = (float) min;
+		this.v2 = (float) max;
+		m_range = range(min, max);
+		//Logger.getAnonymousLogger().info("Range is "+m_range);
+	}
+	
+	private float range(float x_min, float x_max) {
+		float ret = 0.0f;
+    	if ((x_min < 0.0f && x_max < 0.0f) || (x_max >= 0.0f && x_min >= 0.0f)) {
+    		ret = Math.abs(x_max) - Math.abs(x_min);
+    	} else {
+    		ret = Math.abs(x_min) + Math.abs(x_max);
+    	}
+    	
+    	if (ret < 0)
+    		return -ret;
+    	return ret;
 	}
 	
 	@Override
 	public String format(float value) {
-		return String.valueOf(min + value * (max-min));
+		return String.valueOf(v1 + value * m_range);
 	}
 
 }
