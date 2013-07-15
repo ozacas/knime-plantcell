@@ -74,7 +74,8 @@ public class SequenceCleanerTask extends BioJavaProcessorTask {
 		return new String[] {"Clean sequences (whitespace removal, non-coding symbols, stop codon->X conversion, all uppercase)",
 				"Gap removal: leading and trailing gaps only",
 				"Gap removal: all gaps",
-				"Stop codon removal: at end only (protein sequence only)"
+				"Stop codon removal: at end only (protein sequence only)",
+				"Fix unknown (X, B, J, Z) residues in protein sequence"
 		}; 
 	}
 	
@@ -94,6 +95,9 @@ public class SequenceCleanerTask extends BioJavaProcessorTask {
 					" if you want the original sequence.";
 		} else if (task.startsWith("Gap removal")) {
 			return "<html>Removes gap symbols before the first, and after the last, residue. Other gaps are preserved.";
+		} else if (task.startsWith("Fix unknown")) {
+			return "<html>Assumes unknown/ambiguous residues to be particular residues. X is assumed to be Glycine, B Asparagine, J isoleucine and Z Glutamine" +
+					" as described on http://en.wikipedia.org/wiki/Amino_acid";
 		} else {
 			return "<html>Remove trailing stop codons from the end of the specified protein sequence";
 		}
@@ -173,6 +177,25 @@ public class SequenceCleanerTask extends BioJavaProcessorTask {
 					cells[0] = new SequenceCell(sv.getSequenceType(), sv.getID(), seq);
 					cells[1] = new IntCell(before - after);
 				}
+				return cells;
+			} else if (m_task.startsWith("Fix unknown")) {
+				if (!sv.getSequenceType().isProtein())
+					return missing_cells(2);
+				String seq = sv.getStringValue().toUpperCase();
+				seq = seq.replaceAll("X", "G");
+				seq = seq.replaceAll("B", "N");
+				seq = seq.replaceAll("J", "I");
+				seq = seq.replaceAll("Z", "Q");
+				cells[0] = new SequenceCell(sv.getSequenceType(), sv.getID(), seq);
+				int n = 0;
+				String s2 = sv.getStringValue();
+				for (int i=0; i<seq.length(); i++) {
+					char c1 = seq.charAt(i);
+					char c2 = s2.charAt(i);
+					if (c1 != c2)
+						n++;
+				}
+				cells[1] = new IntCell(n);
 				return cells;
 			} else { // if (m_task.startsWith("Stop codon removal")) {
 				if (!sv.getSequenceType().isProtein()) 

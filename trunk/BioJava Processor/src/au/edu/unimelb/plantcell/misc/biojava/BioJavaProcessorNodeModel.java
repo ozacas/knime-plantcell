@@ -165,7 +165,7 @@ public class BioJavaProcessorNodeModel extends NodeModel {
     		return new SNPAssistedFrameshiftDetector();
     	} else if (task.startsWith("Tryptic")) {
     		return new TrypticPeptideExtractor_v2();
-    	} else if (task.startsWith("Clean")) {
+    	} else if (task.startsWith("Clean") || task.startsWith("Fix unknown")) {
     		return new SequenceCleanerTask();
     	} else if (task.startsWith("Alignment")) {
     		return new AlignmentSequenceExtractorTask();
