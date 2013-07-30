@@ -19,6 +19,7 @@
        		<tr><td>Sequential</td> <td>1, 2, 2, 4</td> <td>1, 2, 3, 4</td></tr>
        		<tr><td>Random</td> <td>1, 2, 2, 2, 4</td> <td>eg. 1, 3, 4, 2, 5</td></tr>
        		<tr><td>Minimum</td> <td>1, 2, 2, 4</td> <td>1, 2, 2, 4</td></tr>
+       		<tr><td>Minimum consecutive</td><td>1, 2, 2, 4</td> <td>1,2,2,3: note that NaN strategy is not currently supported with this Tie method</td></tr>
        		<tr><td>Maximum</td> <td>1, 2, 2, 4</td> <td>1, 3, 3, 4</td></tr>
        	</table>
        	
@@ -36,7 +37,7 @@
         <option name="Tie method">controls what the node does when two values have the same value - see the above table for details
         </option>
         
-        <option name="NaN method"><b>NaN</b> means <b>n</b>ot <b>a</b> <b>n</b>umber" - when the data contains missing or infinite values are represented this
+        <option name="NaN method"><b>NaN</b> means <b>n</b>ot <b>a</b> <b>n</b>umber - when the data contains missing or infinite values are represented this
         option controls the resulting rank for these items</option>
         
     </fullDescription>
