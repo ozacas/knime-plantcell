@@ -6,6 +6,8 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Logger;
@@ -26,6 +28,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
@@ -84,16 +87,25 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
     protected Plot3DBarNodeView(final T nodeModel) {
         super(nodeModel);
         
-        JFrame f = setupOpenGL("3D Plot");
-        final JPanel image_panel = new JPanel();
-        JPanel button_panel = addButtons(image_panel, true, true, true, true);
-        f.getContentPane().add(button_panel, BorderLayout.EAST);
+        init(nodeModel);
     }
 
     /**
+     * Second stage constructor called by baseclass, may be overriden in subclasses to suit.
+     * 
+     * @param nodeModel must not be null
+     */
+    protected void init(T nodeModel) {
+    	 JFrame f = setupOpenGL("3D Plot");
+         final JPanel image_panel = new JPanel();
+         JPanel button_panel = addButtons(image_panel, true, true, true, true);
+         f.getContentPane().add(button_panel, BorderLayout.EAST);
+    }
+    
+    /**
      * responsible for adding user controls (including listeners) to the right side of the borderlayout in the main frame
      * 
-     * @param image_panel
+     * @param image_panel		may be null, but it is a panel reserved for the display of a legend (an image) on the right-side of the figure
      * @param has_choice_of_symbol
      * @return
      */
@@ -131,22 +143,29 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
           button_panel.add(hilight);
           JButton legend = new JButton("Legend...");
           button_panel.add(Box.createRigidArea(new Dimension(5,5)));
-          button_panel.add(legend);
+          
+          if (image_panel != null)
+        	  button_panel.add(legend);
         
           JPanel transform_panel = new JPanel();
           transform_panel.setLayout(new BoxLayout(transform_panel, BoxLayout.X_AXIS));
           transform_panel.add(new JLabel("Z Transform"));
          
           transform_panel.add(z_transform);
-          z_transform.addActionListener(new ActionListener() {
-
-  			@Override
-  			public void actionPerformed(ActionEvent e) {
-  				modelChanged();
-  				getChart().render();
-  			}
-          	
+          z_transform.addItemListener(new ItemListener() {
+        	private Object last_value = null;
+			@Override
+			public void itemStateChanged(ItemEvent ev) {
+				if (ev.getStateChange() == ItemEvent.SELECTED && ev.getItem() != last_value) {
+  					last_value = ev.getItem();
+  					modelChanged();
+  					getChart().render();
+  				}
+			}
+        	  
           });
+          
+          
           legend.addActionListener(new ActionListener() {
 
   			@Override
@@ -192,7 +211,7 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
           show_wf.addActionListener(new ActionListener() {
 
   			@Override
-  			public void actionPerformed(ActionEvent arg0) {
+  			public void actionPerformed(ActionEvent ev) {
   				wireframe = show_wf.isSelected();
   				modelChanged();
   				getChart().render();
@@ -279,6 +298,8 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
           if (show_transparency)
         	  button_panel.add(bar_transparency);
           button_panel.add(Box.createVerticalGlue());
+          if (image_panel != null)
+         	button_panel.add(image_panel);
           return button_panel;
 	}
 
@@ -666,12 +687,29 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
 	 * Update the status bar for the user.
 	 * @param new_status if null, sets a default message. Otherwise the chosen message is presented to the user.
 	 */
-	protected void setStatus(String new_status) {
+	protected void setStatus(final String new_status) {
 		if (new_status == null) {
-			status.setText(getDefaultStatusMessage());
+			SwingUtilities.invokeLater(new Runnable() {
+
+				@Override
+				public void run() {
+					status.setText(getDefaultStatusMessage());
+					status.repaint();
+				}
+				
+			});
 			return;
 		}
-		status.setText(new_status);
+		
+		SwingUtilities.invokeLater(new Runnable() {
+
+			@Override
+			public void run() {
+				status.setText(new_status);
+				status.repaint();
+			}
+			
+		});
 	}
 	
 	public String getDefaultStatusMessage() {
