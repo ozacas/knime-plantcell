@@ -77,7 +77,7 @@ public class SubaNodeModel extends NodeModel {
 		RowIterator it = inData[0].iterator();
 	
 		HttpClient client = new HttpClient();
-		Pattern agi_match = Pattern.compile("^[Aa][Tt]\\d+[Gg]\\d+\\.\\d+$");
+		Pattern agi_match = Pattern.compile("^[Aa][Tt][1-5mMCc][Gg]\\d+\\.\\d+$");
 		while (it.hasNext()) {
 			DataRow r = it.next();
 			DataCell c= r.getCell(accsn_idx);
@@ -129,11 +129,11 @@ public class SubaNodeModel extends NodeModel {
 					logger.warn("Unable to process results from SUBA for AGI: "+agi+", skipping row.");
 				}
 		
-			
-			logger.info("Waiting for 10sec to be nice to SUBA server");
+			int delay = 4;
+			logger.info("Waiting for "+delay+" sec. to be nice to SUBA server");
 			exec.checkCanceled();
 			exec.setProgress(((double)id)/n_rows);
-			Thread.sleep(10 * 1000);
+			Thread.sleep(delay * 1000);
 		}
 		container.close();
 		
