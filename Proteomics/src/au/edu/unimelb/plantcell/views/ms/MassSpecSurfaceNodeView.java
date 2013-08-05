@@ -137,7 +137,7 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 		logger.info("Start time: "+start);
 		
 		// this method always returns a square matrix (since we are projecting onto a unit cube) so the output
-		// matrix does not necessarily equal the input RT [r1, r2] and MZ [mz1, mz2] ranges
+		// matrix does not necessarily equal the user input RT [r1, r2] and MZ [mz1, mz2] ranges
         SurfaceMatrixAdapter m  = nodeModel.getSurface(false, r1, r2, mz1, mz2);
         
         if (m == null || m.rows() < 1 || m.columns() < 1) {
@@ -155,22 +155,19 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
         final double z_min   = getMinimum(surface_matrix);		// NB: AFTER transform AND downsampling!
         final double z_range = range(z_min, z_max);
         logger.info("Z range after transform: ["+z_min+", "+z_max+"]");
+        logger.info("X range: ["+surface_matrix.getXMin()+", "+surface_matrix.getXMax()+"]");
+        logger.info("Y range: ["+surface_matrix.getYMin()+", "+surface_matrix.getYMax()+"]");
         
         Chart c = getChart();
         Graph g = new Graph(new Scene(), true);
-        BoundingBox3d bb = g.getBounds();
-    	bb.setZmax(1.0f);
-    	bb.setZmin(0.0f);
-    	bb.setXmin(0.0f);
-    	bb.setXmax(1.0f);
-    	bb.setYmin(0.0f);
-    	bb.setYmax(1.0f);
-    	c.getAxeLayout().setYAxeLabel("Retention Time");
-    	c.getAxeLayout().setXAxeLabel("M/Z");
+    	
     	String zTransform = ": "+getZTransform();
     	if (zTransform.endsWith("None"))
     		zTransform = "";
+    	c.getAxeLayout().setXAxeLabel("M/Z");
+    	c.getAxeLayout().setYAxeLabel("Retention Time");
     	c.getAxeLayout().setZAxeLabel("Intensity"+zTransform);
+    	
     	c.getAxeLayout().setXTickRenderer(new MyAxisRenderer(surface_matrix.getXMin(), surface_matrix.getXMax()));
     	c.getAxeLayout().setYTickRenderer(new MyAxisRenderer(surface_matrix.getYMin(), surface_matrix.getYMax()));
     	c.getAxeLayout().setZTickRenderer(new MyAxisRenderer(z_min, z_max));
@@ -186,12 +183,23 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
         // finally add the MS2 heatmap
         SurfaceMatrixAdapter heatmap_matrix = nodeModel.getSurface(true, surface_matrix.getYMin(), surface_matrix.getYMax(), 
         		surface_matrix.getXMin(), surface_matrix.getXMax());
-        SurfaceMatrixAdapter ms2 = downsample(heatmap_matrix, surface_matrix.rows(), surface_matrix.columns());
+        SurfaceMatrixAdapter ms2 = downsample(heatmap_matrix, surface_matrix.rows(), surface_matrix.columns(), true);
         addMatrixToCache(ms2);
         g.add(getMS2Scatter(ms2, surface_matrix, z_min, z_range));
         
+        // ensure the bounds are correctly set (so the axes scale correctly)
+        BoundingBox3d bb = g.getBounds();
+    	bb.setXmin(0.0f);
+    	bb.setXmax(1.0f);
+    	bb.setYmin(0.0f);
+    	bb.setYmax(1.0f);
+    	bb.setZmin(0.0f);
+    	bb.setZmax(1.0f);
+    	
         // set the graph for the user to see...
+    	c.getScene().clear();
         c.getScene().setGraph(g);
+        c.getView().setBoundManual(g.getBounds());
         
         long after_surface2 = System.currentTimeMillis();
 	    logger.info("Time to ms2 surface: "+(after_surface2 - after_surface));
@@ -242,7 +250,7 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 		return null;
 	}
 	
-	protected SurfaceMatrixAdapter downsample(final SurfaceMatrixAdapter surface, int new_rows, int new_cols) {
+	protected SurfaceMatrixAdapter downsample(final SurfaceMatrixAdapter surface, int new_rows, int new_cols, boolean is_ms2) {
 		SurfaceMatrixAdapter m = getCachedMatrix(surface, new_rows, new_cols, null);
 		if (m != null) {
 			logger.info("Using cached downsampled matrix.");
@@ -252,18 +260,17 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 		Matrix in = surface.getMatrix();
 		Matrix dest = in.factory().createMatrix(new_rows, new_cols);
 		
-		int y_n = in.rows() / new_rows;
-		int x_n = in.columns() / new_cols;
-		
-		int iy = 0;
-		int ix = 0;
+		double y_n = ((double)in.rows()) / new_rows;
+		double x_n = ((double)in.columns()) / new_cols;
 		
 		int largest_x = -1;
 		int largest_y = -1;
 		for (int i=0; i<dest.rows(); i++) {
 			for (int j=0; j<dest.columns(); j++) {
 				double max = Double.NEGATIVE_INFINITY;
-						
+				
+				int iy = (int) (y_n * i);
+				int ix = (int) (x_n * j);
 				for (int y=iy; y<iy + y_n; y++) {
 					for (int x=ix; x<ix + x_n; x++) {
 						if (y<0 || y>= in.rows())
@@ -284,18 +291,14 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 					dest.set(i, j, max);
 				}
 				
-				ix += x_n;
 			}
-			
-			iy += y_n;
-			ix = 0;
 		}
 		
 		logger.info("Got largest y="+largest_y+" x="+largest_x);
 		
 		SurfaceMatrixAdapter ret = new SurfaceMatrixAdapter(dest);
-		ret.setKey(surface.getKey()+" "+new_rows+"x"+new_cols);
 		ret.setBounds(surface);
+		ret.setKey(null);
 		return ret;
 	}
 	
@@ -307,7 +310,7 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 			return m;
 		}
 	
-		return addMatrixToCache(transform(downsample(in, downsample_rows, downsample_columns), zTransform));
+		return addMatrixToCache(transform(downsample(in, downsample_rows, downsample_columns, false), zTransform));
 	}
 	
 	protected SurfaceMatrixAdapter transform(final SurfaceMatrixAdapter matrix, final String zTransform) {
@@ -346,15 +349,15 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 			return matrix;
 		
 		SurfaceMatrixAdapter ret = new SurfaceMatrixAdapter(out);
-		ret.setKey(ret.getKey() + " "+zTransform);
 		ret.setBounds(matrix);
+		ret.setKey(ret.getKey() + " "+zTransform);
 		return ret;
 	}
 
 	@SuppressWarnings("restriction")
 	@Override
 	protected Quality getOpenGLQuality(final Logger logger, final GLCapabilities glc) {
-    	Quality q = Quality.Intermediate;
+    	Quality q = Quality.Nicest;
     	int transparent_bits = glc.getAlphaBits();
     	if (transparent_bits < 1) {
     		logger.warning("Your computer does not support transparency. Disabling.");

@@ -15,16 +15,16 @@ import org.la4j.matrix.Matrix;
  *
  */
 public class SurfaceMatrixAdapter  {
-	private Matrix m_matrix;
+	private final Matrix m_matrix;
 	private double m_xmin, m_xmax, m_ymin, m_ymax;
 	private String m_key;
 	private boolean m_isms2;
 	
-	public SurfaceMatrixAdapter(Matrix m) {
+	public SurfaceMatrixAdapter(final Matrix m) {
 		this(m, 0.0, 1.0, 0.0, 1.0, false);
 	}
 	
-	public SurfaceMatrixAdapter(Matrix m, double x_min, double x_max, double y_min, double y_max, boolean is_ms2) {
+	public SurfaceMatrixAdapter(final Matrix m, double x_min, double x_max, double y_min, double y_max, boolean is_ms2) {
 		assert(m != null);
 		m_matrix = m;
 		m_isms2  = is_ms2;
@@ -32,9 +32,15 @@ public class SurfaceMatrixAdapter  {
 		setKey(null);
 	}
 	
-	public SurfaceMatrixAdapter(Matrix m, boolean b) {
+	/**
+	 * Equivalent to <code>this(m, ... , is_ms2)</code>
+	 * 
+	 * @param m
+	 * @param is_ms2
+	 */
+	public SurfaceMatrixAdapter(final Matrix m, boolean is_ms2) {
 		this(m);
-		m_isms2 = b;
+		m_isms2 = is_ms2;
 	}
 
 	/***************************** Surface Matrix methods ***********************************/
