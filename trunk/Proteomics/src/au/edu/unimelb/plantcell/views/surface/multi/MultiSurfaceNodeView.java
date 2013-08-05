@@ -49,12 +49,15 @@ public class MultiSurfaceNodeView<T extends MultiSurfaceNodeModel> extends MassS
      */
     protected MultiSurfaceNodeView(final T nodeModel) {
         super(nodeModel);
-
-        JFrame f = setupOpenGL("Multi-Surface 3D Plot");
-        final JPanel image_panel = new JPanel();
-        // no 'show as' checkbox (on the right) for this view as each surface has its own
-        JPanel button_panel = addButtons(image_panel, false, false, false, false);
-        f.getContentPane().add(button_panel, BorderLayout.EAST);
+    }
+    
+    @Override
+    protected void init(T mdl) {
+    	 JFrame f = setupOpenGL("Multi-Surface 3D Plot");
+         final JPanel image_panel = new JPanel();
+         // no 'show as' checkbox (on the right) for this view as each surface has its own
+         JPanel button_panel = addButtons(image_panel, false, false, false, false);
+         f.getContentPane().add(button_panel, BorderLayout.EAST);
     }
     
     /**
@@ -211,8 +214,10 @@ public class MultiSurfaceNodeView<T extends MultiSurfaceNodeModel> extends MassS
 	@Override
 	public void tableChanged(TableModelEvent e) {
 		//System.err.println("Changed user settings: redrawing...");
+		setStatus("Please wait... this may take a long time.");
 		modelChanged();
 		getChart().render();
+		setStatus(null);
 	}
 
 }

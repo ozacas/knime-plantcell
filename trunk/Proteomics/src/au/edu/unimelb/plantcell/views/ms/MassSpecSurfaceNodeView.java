@@ -1,14 +1,24 @@
 package au.edu.unimelb.plantcell.views.ms;
 
 import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.media.opengl.GLCapabilities;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
 
 import org.jzy3d.chart.Chart;
 import org.jzy3d.colors.Color;
@@ -17,6 +27,9 @@ import org.jzy3d.colors.colormaps.ColorMapRainbow;
 import org.jzy3d.maths.BoundingBox3d;
 import org.jzy3d.maths.Coord3d;
 import org.jzy3d.maths.Range;
+import org.jzy3d.plot3d.builder.Builder;
+import org.jzy3d.plot3d.builder.Mapper;
+import org.jzy3d.plot3d.builder.concrete.OrthonormalGrid;
 import org.jzy3d.plot3d.primitives.AbstractDrawable;
 import org.jzy3d.plot3d.primitives.CompileableComposite;
 import org.jzy3d.plot3d.primitives.Scatter;
@@ -39,14 +52,65 @@ import au.edu.unimelb.plantcell.views.plot3d.Plot3DBarNodeView;
  *
  * @param <T> must extend from the MassSpecSurfaceNodeModel
  */
-public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeView<T> {
-
+public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeView<T> implements ActionListener {
+	private JSpinner m_rt_lower;
+	private JSpinner m_rt_upper;
+	private JSpinner m_mz_lower;
+	private JSpinner m_mz_upper;
+	
+	// a simple most-recently-used cache of the downsampled matrix for display -- see downsample() below
+	private Map<String,SurfaceMatrixAdapter> m_cache = new HashMap<String,SurfaceMatrixAdapter>();
+	
+	
+	
 	protected MassSpecSurfaceNodeView(T nodeModel) {
 		super(nodeModel);
-		
-		JFrame f = setupOpenGL("Mass Spec. mzML Surface View");
-	    final JPanel image_panel = new JPanel();
-	    JPanel button_panel = addButtons(image_panel, true, true, true, true);
+	}
+	
+	/**
+	 * this implementation, which subclasses may override, requires that <code>nodeModel</code> is derived from <code>MassSpecSurfaceNodeModel</code>
+	 * 
+	 * @param nodeModel must not be null
+	 */
+	@Override
+	protected void init(T nodeModel) {
+		JFrame f = setupOpenGL("Mass Spec. mzML - RT versus M/Z");
+	    JPanel button_panel = addButtons(null, true, true, true, true);
+	    JPanel p = new JPanel();
+	    p.setBorder(BorderFactory.createTitledBorder("Region of interest"));
+	    p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
+	    
+	    JPanel rt_panel = new JPanel();
+	    rt_panel.setLayout(new BoxLayout(rt_panel, BoxLayout.X_AXIS));
+	    rt_panel.add(new JLabel("RT: [ "));
+	    
+	    MassSpecSurfaceNodeModel mdl = (MassSpecSurfaceNodeModel) nodeModel;
+	    m_rt_lower = new JSpinner(new SpinnerNumberModel(mdl.getRTmin(), mdl.getRTmin(), mdl.getRTmax(), 100.0));
+	    m_rt_upper = new JSpinner(new SpinnerNumberModel(mdl.getRTmax(), mdl.getRTmin(), mdl.getRTmax(), 100.0));
+	   
+	    rt_panel.add(m_rt_lower);
+	    rt_panel.add(new JLabel(", "));
+	    rt_panel.add(m_rt_upper);
+	    rt_panel.add(new JLabel(" ]"));
+	    p.add(rt_panel);
+	    
+	    JPanel mz_panel = new JPanel();
+	    mz_panel.setLayout(new BoxLayout(mz_panel, BoxLayout.X_AXIS));
+	    mz_panel.add(new JLabel("M/Z: [ "));
+	    m_mz_lower = new JSpinner(new SpinnerNumberModel(mdl.getMZmin(), mdl.getMZmin(), mdl.getMZmax(), 100.0));
+	    m_mz_upper = new JSpinner(new SpinnerNumberModel(mdl.getMZmax(), mdl.getMZmin(), mdl.getMZmax(), 100.0));
+	   
+	    mz_panel.add(m_mz_lower);
+	    mz_panel.add(new JLabel(", "));
+	    mz_panel.add(m_mz_upper);
+	    mz_panel.add(new JLabel(" ]"));
+	    
+	    p.add(rt_panel);
+	    p.add(mz_panel);
+	    JButton refresh_button = new JButton("Refresh");
+	    refresh_button.addActionListener(this);
+	    p.add(refresh_button);
+	    button_panel.add(p);
 	    f.getContentPane().add(button_panel, BorderLayout.EAST);
 	}
 	
@@ -59,21 +123,38 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 			return;
 		}
         
-        Matrix m = nodeModel.getSurface();
+		double rt_min = ((Double)m_rt_lower.getValue()).doubleValue();
+		double rt_max = ((Double)m_rt_upper.getValue()).doubleValue();
+		double mz_min = ((Double)m_mz_lower.getValue()).doubleValue();
+		double mz_max = ((Double)m_mz_upper.getValue()).doubleValue();
+		
+		double r1 = Math.min(rt_min, rt_max);
+		double r2 = Math.max(rt_min, rt_max);
+		double mz1= Math.min(mz_min, mz_max);
+		double mz2= Math.max(mz_min, mz_max);
+		
+		long start = System.currentTimeMillis();
+		logger.info("Start time: "+start);
+		
+		// this method always returns a square matrix (since we are projecting onto a unit cube) so the output
+		// matrix does not necessarily equal the input RT [r1, r2] and MZ [mz1, mz2] ranges
+        SurfaceMatrixAdapter m  = nodeModel.getSurface(false, r1, r2, mz1, mz2);
+        
         if (m == null || m.rows() < 1 || m.columns() < 1) {
         	setStatus("No surface to display, please execute the node - reconfigure?");
         	getChart().clear();
         	return;
         }
-        Range x_range = new Range(0.0, 1.0);
-        Range y_range = new Range(0.0, 1.0);
-        
-        final Matrix matrix = transform(m, this.getZTransform());
-        final double z_max   = getMaximum(matrix);		// NB: AFTER transform!
-        final double z_min   = getMinimum(matrix);		// NB: AFTER transform!
+      
+        logger.info("Surface is "+m.rows()+" x "+m.columns());
+        final SurfaceMatrixAdapter surface_matrix  = transform(m, this.getZTransform(), (m.rows() > 500) ? 500 : m.rows(), (m.columns() > 500) ? 500 : m.columns());
+        long after_transform = System.currentTimeMillis();
+        logger.info("Got surface matrix: "+m.rows()+" x "+m.columns());
+        logger.info("Time to transform and downsampling: "+(after_transform - start));
+        final double z_max   = getMaximum(surface_matrix);		// NB: AFTER transform AND downsampling!
+        final double z_min   = getMinimum(surface_matrix);		// NB: AFTER transform AND downsampling!
         final double z_range = range(z_min, z_max);
-        final int xdim = matrix.rows()-1;
-        final int ydim = matrix.columns()-1;
+        logger.info("Z range after transform: ["+z_min+", "+z_max+"]");
         
         Chart c = getChart();
         Graph g = new Graph(new Scene(), true);
@@ -86,94 +167,53 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
     	bb.setYmax(1.0f);
     	c.getAxeLayout().setYAxeLabel("Retention Time");
     	c.getAxeLayout().setXAxeLabel("M/Z");
-    	c.getAxeLayout().setZAxeLabel("Intensity (sum)");
-    	c.getAxeLayout().setXTickRenderer(new MyAxisRenderer(nodeModel.getMZmin(), nodeModel.getMZmax()));
-    	c.getAxeLayout().setYTickRenderer(new MyAxisRenderer(nodeModel.getRTmin(), nodeModel.getRTmax()));
+    	String zTransform = ": "+getZTransform();
+    	if (zTransform.endsWith("None"))
+    		zTransform = "";
+    	c.getAxeLayout().setZAxeLabel("Intensity"+zTransform);
+    	c.getAxeLayout().setXTickRenderer(new MyAxisRenderer(surface_matrix.getXMin(), surface_matrix.getXMax()));
+    	c.getAxeLayout().setYTickRenderer(new MyAxisRenderer(surface_matrix.getYMin(), surface_matrix.getYMax()));
     	c.getAxeLayout().setZTickRenderer(new MyAxisRenderer(z_min, z_max));
         
         // since the practical screen resolution is of the order of 1k pixels, we sample based on the matrix dimension to reduce memory usage
         String show_as = getShowAs().toLowerCase().trim();
+	    AbstractDrawable surface = getOpenGLSurface(surface_matrix, show_as.startsWith("surface"), z_min, z_range);
+	    g.add(surface);
         
-        if (show_as.startsWith("surface")) {
-	        CompileableComposite surface = nodeModel.getOpenGLSurface(matrix, x_range, y_range, z_min, z_range);
-	        surface.setColorMapper(new ColorMapper(new ColorMapRainbow(), 0.0f, 1.0f, new Color(1,1,1,getAlpha())));
-	       	
-	        g.add(surface);
-        } else {	// must be scatter for now...
-	        Scatter s = new Scatter();
-	       
-	        final ArrayList<Coord3d> points = new ArrayList<Coord3d>();
-	        
-	        matrix.each(new MatrixProcedure() {
-
-				@Override
-				public void apply(int r, int c, double val) {
-					if (val > 0.0) {
-						points.add(new Coord3d(((float)r)/xdim, ((float)c)/ydim, (float) (val - z_min) / z_range));
-					}
-				}
-	        	
-	        });
-	       
-	        s.setData(points.toArray(new Coord3d[0]));
-	        g.add(s);
-        }
-        
+	    long after_surface = System.currentTimeMillis();
+	    logger.info("Time to main surface: "+(after_surface - after_transform));
+	    
         // finally add the MS2 heatmap
-        g.add(getMS2Scatter(nodeModel.getMS2Surface(), matrix, xdim, ydim, z_min, z_range));
+        SurfaceMatrixAdapter heatmap_matrix = nodeModel.getSurface(true, surface_matrix.getYMin(), surface_matrix.getYMax(), 
+        		surface_matrix.getXMin(), surface_matrix.getXMax());
+        SurfaceMatrixAdapter ms2 = downsample(heatmap_matrix, surface_matrix.rows(), surface_matrix.columns());
+        addMatrixToCache(ms2);
+        g.add(getMS2Scatter(ms2, surface_matrix, z_min, z_range));
         
         // set the graph for the user to see...
         c.getScene().setGraph(g);
+        
+        long after_surface2 = System.currentTimeMillis();
+	    logger.info("Time to ms2 surface: "+(after_surface2 - after_surface));
 	}
 	
-	private AbstractDrawable getMS2Scatter(final Matrix ms2scatter, final Matrix intensity_matrix, final int xdim, final int ydim, final double z_min, final double z_range) {
-		Scatter s = new Scatter();
-		final ArrayList<Coord3d> points = new ArrayList<Coord3d>();
-		final ArrayList<Color> colours  = new ArrayList<Color>();
-		if (ms2scatter == null)
-			return s;
-		
-		assert(ms2scatter.rows() == intensity_matrix.rows() && ms2scatter.columns() == intensity_matrix.columns());
-		
-		ms2scatter.each(new MatrixProcedure() {
 
-			@Override
-			public void apply(int r, int c, double arg2) {
-				if (arg2 > 0.0) {
-					float intensity = (float) ((intensity_matrix.get(r, c) - z_min) / z_range);
-					
-					points.add(new Coord3d(((float)r)/xdim, ((float)c)/ydim, intensity));
-					
-					// the point is essentially transparent if the peak is not intense
-					
-					// bin it (to avoid occlusion problems)
-					if (intensity >= 0.9)
-						intensity = 1.0f;
-					else if (intensity >= 0.4)
-						intensity = 0.7f;
-					else
-						intensity = 0.4f;
-					
-					colours.add(new Color(0.0f, 0.0f, 0.0f, intensity));
-				}
-			}
-			
-		});
-		s.setData(points.toArray(new Coord3d[0]));
-		s.setColors(colours.toArray(new Color[0]));
-		s.setWidth((float) getRadius() * 10.0f);
-		return s;
+	protected final double getMinimum(final SurfaceMatrixAdapter matrix) {
+		return getMinimum(matrix.getMatrix());
 	}
 
-	protected double getMinimum(Matrix matrix) {
+	protected double getMinimum(final Matrix matrix) {
 		assert(matrix != null);
-		
 		MinimumMatrixProcedure mp = new MinimumMatrixProcedure();
 		matrix.each(mp);
 		return mp.min;
 	}
-
-	protected double getMaximum(Matrix matrix) {
+	
+	protected final double getMaximum(final SurfaceMatrixAdapter m) {
+		return getMaximum(m.getMatrix());
+	}
+	
+	protected double getMaximum(final Matrix matrix) {
 		assert(matrix != null);
 		
 		MaximumMatrixProcedure mp = new MaximumMatrixProcedure();
@@ -181,9 +221,99 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 		return mp.max;
 	}
 	
-	protected Matrix transform(Matrix matrix, String zTransform) {
+	protected SurfaceMatrixAdapter addMatrixToCache(final SurfaceMatrixAdapter ret) {
+		// ensure not too many cached matrices...
+		if (m_cache.size() > 6)
+			m_cache.remove(m_cache.keySet().toArray(new String[0])[0]);		// delete first target
+		// add new matrix
+		m_cache.put(ret.getKey(), ret);
+		logger.info("Added matrix to cache: "+ret.getKey()+": "+m_cache.size()+" cached matrices.");
+		return ret;
+	}
+	
+	protected SurfaceMatrixAdapter getCachedMatrix(final SurfaceMatrixAdapter in, int new_rows, int new_cols, final String zTransform) {
+		String key = in.getKey()+" "+new_rows+"x"+new_cols;
+		if (zTransform != null)
+			key += " " + zTransform;
+		if (m_cache.containsKey(key)) {
+			return m_cache.get(key);
+		}
+		logger.info("Could not find cached matrix: "+key);
+		return null;
+	}
+	
+	protected SurfaceMatrixAdapter downsample(final SurfaceMatrixAdapter surface, int new_rows, int new_cols) {
+		SurfaceMatrixAdapter m = getCachedMatrix(surface, new_rows, new_cols, null);
+		if (m != null) {
+			logger.info("Using cached downsampled matrix.");
+			return m;
+		}
+		logger.info("Downsampling matrix to "+new_rows+" x "+new_cols);
+		Matrix in = surface.getMatrix();
+		Matrix dest = in.factory().createMatrix(new_rows, new_cols);
+		
+		int y_n = in.rows() / new_rows;
+		int x_n = in.columns() / new_cols;
+		
+		int iy = 0;
+		int ix = 0;
+		
+		int largest_x = -1;
+		int largest_y = -1;
+		for (int i=0; i<dest.rows(); i++) {
+			for (int j=0; j<dest.columns(); j++) {
+				double max = Double.NEGATIVE_INFINITY;
+						
+				for (int y=iy; y<iy + y_n; y++) {
+					for (int x=ix; x<ix + x_n; x++) {
+						if (y<0 || y>= in.rows())
+							continue;
+						if (x<0 || x>= in.columns()) 
+							continue;
+						double val = in.get(y, x);
+						if (val > max)
+							max = val;
+					}
+				}
+				
+				if (max > 0.0) {
+					if (i > largest_y) 
+						largest_y = i;
+					if (j > largest_x)
+						largest_x = j;
+					dest.set(i, j, max);
+				}
+				
+				ix += x_n;
+			}
+			
+			iy += y_n;
+			ix = 0;
+		}
+		
+		logger.info("Got largest y="+largest_y+" x="+largest_x);
+		
+		SurfaceMatrixAdapter ret = new SurfaceMatrixAdapter(dest);
+		ret.setKey(surface.getKey()+" "+new_rows+"x"+new_cols);
+		ret.setBounds(surface);
+		return ret;
+	}
+	
+	
+	protected SurfaceMatrixAdapter transform(final SurfaceMatrixAdapter in, final String zTransform, int downsample_rows, int downsample_columns) {
+		SurfaceMatrixAdapter m = getCachedMatrix(in, downsample_rows, downsample_columns, zTransform);
+		if (m != null) {
+			logger.info("Using cached matrix: "+m.getKey());
+			return m;
+		}
+	
+		return addMatrixToCache(transform(downsample(in, downsample_rows, downsample_columns), zTransform));
+	}
+	
+	protected SurfaceMatrixAdapter transform(final SurfaceMatrixAdapter matrix, final String zTransform) {
+		Matrix out = matrix.getMatrix().copy();
 		if (zTransform.startsWith("Log10")) {
-			return matrix.transform(new MatrixFunction() {
+			out = out.transform(new MatrixFunction() {
 
 				@Override
 				public double evaluate(int r, int c, double val) {
@@ -191,8 +321,9 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 				}
 				
 			});
+			// FALLTHRU
 		} else if (zTransform.startsWith("Recip")) {
-			return matrix.transform(new MatrixFunction() {
+			out = out.transform(new MatrixFunction() {
 
 				@Override
 				public double evaluate(int r, int c, double val) {
@@ -200,8 +331,9 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 				}
 				
 			});
+			// FALLTHRU
 		} else if (zTransform.startsWith("Square")) {
-			return matrix.transform(new MatrixFunction() {
+			out = out.transform(new MatrixFunction() {
 
 				@Override
 				public double evaluate(int r, int c, double val) {
@@ -209,14 +341,20 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 				}
 				
 			});
+			// FALLTHRU
 		} else
 			return matrix;
+		
+		SurfaceMatrixAdapter ret = new SurfaceMatrixAdapter(out);
+		ret.setKey(ret.getKey() + " "+zTransform);
+		ret.setBounds(matrix);
+		return ret;
 	}
 
 	@SuppressWarnings("restriction")
 	@Override
 	protected Quality getOpenGLQuality(final Logger logger, final GLCapabilities glc) {
-    	Quality q = Quality.Advanced;
+    	Quality q = Quality.Intermediate;
     	int transparent_bits = glc.getAlphaBits();
     	if (transparent_bits < 1) {
     		logger.warning("Your computer does not support transparency. Disabling.");
@@ -233,4 +371,111 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 	    	return new DefaultComboBoxModel<String>(new String[] { "Scatter (fastest)", "Surface" });
 	}
 
+
+	private AbstractDrawable getMS2Scatter(final SurfaceMatrixAdapter ms2scatter, final SurfaceMatrixAdapter intensity_matrix, 
+											final double z_min, final double z_range) {
+		Scatter s = new Scatter();
+		final ArrayList<Coord3d> points = new ArrayList<Coord3d>();
+		final ArrayList<Color> colours  = new ArrayList<Color>();
+		if (ms2scatter == null)
+			return s;
+		
+		assert(ms2scatter.rows() == intensity_matrix.rows() && 
+				ms2scatter.columns() == intensity_matrix.columns());
+		
+		final int ydim = ms2scatter.rows();
+		final int xdim = ms2scatter.columns();
+		ms2scatter.getMatrix().each(new MatrixProcedure() {
+
+			@Override
+			public void apply(int r, int c, double arg2) {
+				if (arg2 > 0.0) {
+					float intensity = (float) ((intensity_matrix.get(r, c) - z_min) / z_range);
+					
+					points.add(new Coord3d(((float)c)/xdim, ((float)r)/ydim, intensity));
+					float rgb = 1.0f - (float) arg2;
+					if (rgb < 0.0f)
+						rgb = 0.0f;
+					colours.add(new Color(rgb, rgb, rgb, 1.0f));
+				}
+			}
+			
+		});
+		s.setData(points.toArray(new Coord3d[0]));
+		s.setColors(colours.toArray(new Color[0]));
+		s.setWidth((float) getRadius() * 10.0f);
+		return s;
+	}
+	
+	public AbstractDrawable getOpenGLSurface(final SurfaceMatrixAdapter matrix, boolean as_surface, final double z_min, final double z_range) {
+		assert(matrix != null);
+	
+		final int xdim = matrix.columns();
+		final int ydim = matrix.rows();
+		
+		if (as_surface) {
+		    CompileableComposite surface = Builder.buildOrthonormalBig(
+		    		new OrthonormalGrid(new Range(0.0, 1.0), xdim, new Range(0.0, 1.0), ydim), 
+		    		new Mapper() {
+		
+				@Override
+				public double f(double x, double y) {
+					int ix = (int) (x * xdim);
+					int iy = (int) (y * ydim);
+					if (ix < 0)
+						ix = 0;
+					if (ix >= xdim)
+						ix = xdim - 1;
+					if (iy < 0)
+						iy = 0;
+					if (iy >= ydim)
+						iy = ydim - 1;
+					double out = ((matrix.get(iy, ix) - z_min) / z_range);
+					if (out > 0.0)
+						return out;
+					
+					// dont draw anything (better look than drawing something at the bottom of the cube)
+					return Double.NaN;
+				}
+	    	
+		    });
+		    surface.setColorMapper(new ColorMapper(new ColorMapRainbow(), 0.0f, 1.0f, new Color(1.0f,1.0f,1.0f,getAlpha())));
+		    return surface;
+		} else {
+			Scatter s = new Scatter();
+		       
+	        final ArrayList<Coord3d> points = new ArrayList<Coord3d>();
+	        matrix.getMatrix().each(new MatrixProcedure() {
+
+				@Override
+				public void apply(int r, int c, double val) {
+					if (val > 0.0) {
+						float y = ((float)r)/matrix.rows();
+						float x = ((float)c)/matrix.columns();
+						if (x > 1.0f || y > 1.0f || x < 0.0f || y < 0.0f) {
+							logger.info("Should not happen! "+x+" "+y);
+						}
+						points.add(new Coord3d(x, y, (float) (val - z_min) / z_range));
+					}
+				}
+	        	
+	        });
+	       
+	        s.setData(points.toArray(new Coord3d[0]));
+	        return s;
+		}
+	
+	}
+    
+	/**
+	 * called in response to a change of the surface dimensions, this code must update state and re-display the surface
+	 * @param arg0 ignored by the current implementation
+	 */
+	@Override
+	public void actionPerformed(ActionEvent arg0) {
+		setStatus("Please wait... this may take a long time.");
+		modelChanged();
+		getChart().render();
+		setStatus(null);
+	}
 }
