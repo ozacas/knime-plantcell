@@ -1,11 +1,13 @@
 package au.edu.unimelb.plantcell.views.ms;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -15,17 +17,8 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamReader;
 
-import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.expasy.jpl.core.ms.spectrum.peak.Peak;
-import org.jzy3d.maths.Range;
-import org.jzy3d.plot3d.builder.Builder;
-import org.jzy3d.plot3d.builder.Mapper;
-import org.jzy3d.plot3d.builder.concrete.OrthonormalGrid;
-import org.jzy3d.plot3d.primitives.CompileableComposite;
-import org.knime.core.data.DataCell;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DoubleValue;
-import org.knime.core.data.StringValue;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -45,7 +38,6 @@ import org.la4j.matrix.Matrices;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.functor.MatrixFunction;
 
-import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.io.read.spectra.AbstractXMLMatcher;
 import au.edu.unimelb.plantcell.io.read.spectra.BasicPeakList;
 import au.edu.unimelb.plantcell.io.read.spectra.BinaryDataArrayMatcher;
@@ -53,7 +45,6 @@ import au.edu.unimelb.plantcell.io.read.spectra.BinaryMatcher;
 import au.edu.unimelb.plantcell.io.read.spectra.PrecursorMatcher;
 import au.edu.unimelb.plantcell.io.read.spectra.RunMatcher;
 import au.edu.unimelb.plantcell.io.read.spectra.SelectedIonMatcher;
-import au.edu.unimelb.plantcell.io.read.spectra.SpectrumMatcher;
 import au.edu.unimelb.plantcell.io.read.spectra.XMLMatcher;
 
 /**
@@ -73,9 +64,11 @@ public class MassSpecSurfaceNodeModel extends NodeModel {
 	static final String CFGKEY_MZ_MAX= "mz-maximum";
 	static final String CFGKEY_THRESHOLD_METHOD = "threshold-method";
 	static final String CFGKEY_THRESHOLD = "intensity-threshold";		// value depends on method
+	static final String CFGKEY_DISPLAY_METHOD = "display-method";
 	
-	static final String[] THRESHOLD_METHODS = new String[] { "Minimum percentge of total ion current (per spectrum)", 
+	static final String[] THRESHOLD_METHODS = new String[] { "Minimum percentage of total ion current (per spectrum)", 
 		"Absolute intensity", "Accept all peaks", "Reject intense peaks" };
+	static final String[] MS2_DISPLAY_METHODS = new String[] { "All points colour black", "Spectral Quality Score (Xrea)" };
 	
 	private final SettingsModelStringArray m_files = new SettingsModelStringArray(CFGKEY_FILES, new String[] {});
 	private final SettingsModelDouble m_rt_min = new SettingsModelDouble(CFGKEY_RT_MIN, 300.0);
@@ -84,19 +77,16 @@ public class MassSpecSurfaceNodeModel extends NodeModel {
 	private final SettingsModelDouble m_mz_max = new SettingsModelDouble(CFGKEY_MZ_MAX, 2000.0);
 	private final SettingsModelString m_threshold_method = new SettingsModelString(CFGKEY_THRESHOLD_METHOD, THRESHOLD_METHODS[0]);
 	private final SettingsModelDouble m_threshold = new SettingsModelDouble(CFGKEY_THRESHOLD, 0.1);
+	private final SettingsModelString m_display_method = new SettingsModelString(CFGKEY_DISPLAY_METHOD, MS2_DISPLAY_METHODS[0]);
 	
 	
 	// internal state -- persisted via saveInternals()
-	Matrix m_surface;
-	Matrix m_ms2_heatmap;
-	
-	// internal state -- not persisted
+	private SurfaceMatrixAdapter m_surface;
+	private SurfaceMatrixAdapter m_ms2_heatmap;
 	private double m_rt_bin_width, m_mz_bin_width;
 	
-	// to avoid recomputing the surface we cache a reference to the last matrix (ie. after transformation)
-	// and if the matrix hasn't changed, we dont recompute the surface we just return this member instead
-	private CompileableComposite m_opengl_surface;
-	private Matrix m_opengl_last_matrix;
+	// internal state -- not persisted
+    private final HashMap<String,SurfaceMatrixAdapter> m_matrix_cache = new HashMap<String,SurfaceMatrixAdapter>();
 	
     /**
      * Constructor for the node model.
@@ -117,19 +107,14 @@ public class MassSpecSurfaceNodeModel extends NodeModel {
     	logger.info("M/Z limits: ["+m_mz_min.getDoubleValue()+","+m_mz_max.getDoubleValue()+"]");
     	logger.info("Processing "+m_files.getStringArrayValue().length+" mzML files.");
     	
-    	double rt_range = m_rt_max.getDoubleValue() - m_rt_min.getDoubleValue();
-		double mz_range = m_mz_max.getDoubleValue() - m_mz_min.getDoubleValue();
-    	int n_rt_bins = (int) Math.floor(rt_range / 0.1) + 1;	
-    	int n_mz_bins = (int) Math.floor(mz_range / 0.1) + 1;
-		logger.info("Calculating surface using "+n_rt_bins+" equal-sized RT bins and "+n_mz_bins+" equal-sized MZ bins.");
-
-		
-    	setBins(rt_range / n_rt_bins, mz_range / n_mz_bins);
-    	m_opengl_surface = null;
-    	m_opengl_last_matrix = null;
+     	int n_bins = calcBinWidths();
     	try {
-	    	m_surface = new CRSFactory().createMatrix(n_rt_bins, n_mz_bins);
-	    	m_ms2_heatmap = new CRSFactory().createMatrix(n_rt_bins, n_mz_bins);
+	    	m_surface     = new SurfaceMatrixAdapter(new CRSFactory().createMatrix(n_bins, n_bins), false);		// false: mark as mzML surface
+	    	m_surface.setBounds(m_rt_min.getDoubleValue(), m_rt_max.getDoubleValue(), m_mz_min.getDoubleValue(), m_mz_max.getDoubleValue());
+	    	m_surface.setKey(null);
+	    	m_ms2_heatmap = new SurfaceMatrixAdapter(new CRSFactory().createMatrix(n_bins, n_bins), true);		// true: ms2 heatmap
+	    	m_ms2_heatmap.setBounds(m_rt_min.getDoubleValue(), m_rt_max.getDoubleValue(), m_mz_min.getDoubleValue(), m_mz_max.getDoubleValue());
+	    	m_ms2_heatmap.setKey(null);
 	    	
 	    	for (String fName : m_files.getStringArrayValue()) {
 	    		logger.info("Processing file: "+fName);
@@ -145,7 +130,8 @@ public class MassSpecSurfaceNodeModel extends NodeModel {
 			throw mem;
 		}
     
-    	double non_zeroes = m_surface.fold(Matrices.asSumFunctionAccumulator(0.0, new MatrixFunction() {
+    	Matrix in = m_surface.getMatrix();
+    	double non_zeroes = in.fold(Matrices.asSumFunctionAccumulator(0.0, new MatrixFunction() {
 
 			@Override
 			public double evaluate(int arg0, int arg1, double arg2) {
@@ -154,36 +140,75 @@ public class MassSpecSurfaceNodeModel extends NodeModel {
     		
     	}));
     	
-    	logger.info("Matrix contains "+(int)non_zeroes+" peaks, "+(non_zeroes/(n_rt_bins*n_mz_bins)*100.0d)+"% of the matrix.");
+    	addMatrixToCache(m_surface);
+    	addMatrixToCache(m_ms2_heatmap);
+    	
+    	logger.info("Matrix contains "+(int)non_zeroes+" peaks, "+(non_zeroes/(in.rows()*in.columns())*100.0d)+"% of the matrix.");
     	logger.info("Data matrix created.");
         return new BufferedDataTable[]{};
     }
-
-    private void setBins(double rt_bin_width, double mz_bin_width) {
-		m_rt_bin_width = rt_bin_width;
-		m_mz_bin_width = mz_bin_width;
-		logger.info("RT bin width: "+m_rt_bin_width+", MZ bin width: "+m_mz_bin_width);
+    
+    private int calcBinWidths() {
+    	return calcBinWidths(m_rt_min.getDoubleValue(), m_rt_max.getDoubleValue(), m_mz_min.getDoubleValue(), m_mz_max.getDoubleValue());
 	}
     
-    private int getRTBin(double rt) {
-    	rt -= m_rt_min.getDoubleValue();
-    	if (rt < 0.0d || rt > m_rt_max.getDoubleValue())
+    private int calcBinWidths(double rt_min, double rt_max, double mz_min, double mz_max) {
+    	double rt_range = rt_max - rt_min;
+		double mz_range = mz_max - mz_min;
+		
+    	int n_bins = (int) Math.floor((rt_range > mz_range ? rt_range : mz_range) / 0.1) + 1;	
+		logger.info("Calculating surface using "+n_bins+" equal-sized bins for RT & MZ data.");
+		m_rt_bin_width = rt_range / n_bins;
+		m_mz_bin_width = mz_range / n_bins;
+		logger.info("RT bin width: "+m_rt_bin_width+", MZ bin width: "+m_mz_bin_width);
+		return n_bins;
+    }
+    
+    public int getRTBin(double rt) {
+    	return getRTBin(rt, m_surface, m_rt_bin_width);
+    }
+    
+    /**
+     * NB: must not rely on class members and ONLY use the parameters provided
+     * @param rt
+     * @param surface
+     * @param min
+     * @param max
+     * @param bin_width
+     * @return
+     */
+    public int getRTBin(double rt, final SurfaceMatrixAdapter surface, double bin_width) {
+    	rt -= surface.getYMin();
+    	if (rt < 0.0d || rt > surface.getYMax())
     		return -1;
     	
-    	int ret = ((int) Math.floor(rt / m_rt_bin_width));
-    	if (ret >= m_surface.rows())			// RT outside desired range?
+    	int ret = ((int) Math.floor(rt / bin_width));
+    	if (ret >= surface.rows())			// RT outside desired range?
     		return -1;
     	//System.out.println("RT bin: "+ret);
     	return ret;
     }
     
-    private int getMZBin(double mz) {
-    	mz -= m_mz_min.getDoubleValue();
-    	if (mz < 0.0d || mz > m_mz_max.getDoubleValue())
+    public int getMZBin(double mz) {
+    	return getMZBin(mz, m_surface, m_mz_bin_width);
+    }
+    
+    /**
+     * NB: must not rely on class members and ONLY use the parameters provided
+     * @param mz
+     * @param surface
+     * @param min
+     * @param max
+     * @param bin_width
+     * @return
+     */
+    public int getMZBin(double mz, final SurfaceMatrixAdapter surface, double bin_width) {
+    	mz -= surface.getXMin();
+    	if (mz < 0.0d || mz > surface.getXMax())
     		return -1;
     	
-    	int ret = ((int) Math.floor(mz / m_mz_bin_width));
-    	if (ret >= m_surface.columns())		// MZ outside desired range?
+    	int ret = ((int) Math.floor(mz / bin_width));
+    	if (ret >= surface.columns())		// MZ outside desired range?
     		return -1;
     	
     	//System.out.println("MZ bin: "+ret);
@@ -240,7 +265,15 @@ public class MassSpecSurfaceNodeModel extends NodeModel {
     			
     		};
     	}
-    	SpectrumReader sr = new SpectrumReader(ptf);
+    	SpectrumReader<MassSpecSurfaceNodeModel> sr = null;
+    	
+    	if (m_display_method.getStringValue().startsWith("All"))
+    		sr = new SpectrumReader<MassSpecSurfaceNodeModel>(m_surface, this, ptf, m_threshold.getDoubleValue());
+    	else if (m_display_method.getStringValue().equals(MS2_DISPLAY_METHODS[1])) {
+    		sr = new QualitySpectrumReader<MassSpecSurfaceNodeModel>(m_surface, this, ptf, m_threshold.getDoubleValue());
+    	} else {
+    		throw new InvalidSettingsException("MS2 scoring method "+m_display_method.getStringValue()+" is not implemented!");
+    	}
 		start_map.put("spectrum",  sr);
 		start_map.put("binary", new BinaryMatcher());
 		start_map.put("precursor", new PrecursorMatcher());
@@ -316,7 +349,11 @@ public class MassSpecSurfaceNodeModel extends NodeModel {
         		int r = getRTBin(rt);
         		int c = getMZBin(mz);
         		if (r >= 0 && r<m_ms2_heatmap.rows() && c >= 0 && c<m_ms2_heatmap.columns()) {
-        			m_ms2_heatmap.set(r, c, m_ms2_heatmap.get(r, c)+1.0);
+        			double val = m_ms2_heatmap.get(r, c);
+        			if (val <= 0.0) {
+        				val = sr.getMS2Score(ms2);
+        			}
+        			m_ms2_heatmap.set(r, c, val);
         			n_points++;
         		}
         	}
@@ -334,8 +371,6 @@ public class MassSpecSurfaceNodeModel extends NodeModel {
     protected void reset() {
     	m_surface = null;
     	m_ms2_heatmap = null;
-    	m_opengl_surface = null;
-    	m_opengl_last_matrix = null;
     }
 
     /**
@@ -361,6 +396,7 @@ public class MassSpecSurfaceNodeModel extends NodeModel {
          m_mz_max.saveSettingsTo(settings);
          m_threshold_method.saveSettingsTo(settings);
          m_threshold.saveSettingsTo(settings);
+         m_display_method.saveSettingsTo(settings);
     }
 
     /**
@@ -376,6 +412,7 @@ public class MassSpecSurfaceNodeModel extends NodeModel {
           m_mz_max.loadSettingsFrom(settings);
           m_threshold_method.loadSettingsFrom(settings);
           m_threshold.loadSettingsFrom(settings);
+          m_display_method.loadSettingsFrom(settings);
     }
 
     /**
@@ -385,6 +422,8 @@ public class MassSpecSurfaceNodeModel extends NodeModel {
     protected void validateSettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
     	m_files.validateSettings(settings);
+    	m_threshold_method.validateSettings(settings);
+    	m_display_method.validateSettings(settings);
     	
     	if (m_rt_min.getDoubleValue() > m_rt_max.getDoubleValue())
     		throw new InvalidSettingsException("RT minimum must be greater than RT max!");
@@ -411,10 +450,17 @@ public class MassSpecSurfaceNodeModel extends NodeModel {
     	reset();
     	File f = new File(internDir, "ms.surface.matrix");
     	MatrixStream ms = new MatrixMarketStream(new FileInputStream(f));
-    	m_surface = ms.readMatrix(Matrices.CRS_FACTORY);
+    	m_surface = new SurfaceMatrixAdapter(ms.readMatrix(Matrices.CRS_FACTORY));
     	f = new File(internDir, "ms2.surface.matrix");
     	ms = new MatrixMarketStream(new FileInputStream(f));
-    	m_ms2_heatmap = ms.readMatrix(Matrices.CRS_FACTORY);
+    	m_ms2_heatmap = new SurfaceMatrixAdapter(ms.readMatrix(Matrices.CRS_FACTORY));
+    	f = new File(internDir, "matrix.settings");
+    	BufferedReader rdr = new BufferedReader(new FileReader(f));
+    	m_rt_bin_width = Double.valueOf(rdr.readLine());
+    	m_mz_bin_width = Double.valueOf(rdr.readLine());
+    	m_surface.readInternals(rdr);
+    	m_ms2_heatmap.readInternals(rdr);
+    	rdr.close();
     }
     
     /**
@@ -426,249 +472,132 @@ public class MassSpecSurfaceNodeModel extends NodeModel {
             CanceledExecutionException {
     	File f = new File(internDir, "ms.surface.matrix");
     	MatrixStream ms = new MatrixMarketStream(new FileOutputStream(f));
-    	ms.writeMatrix(m_surface);
+    	ms.writeMatrix(m_surface.getMatrix());
     	f = new File(internDir, "ms2.surface.matrix");
     	ms = new MatrixMarketStream(new FileOutputStream(f));
-    	ms.writeMatrix(m_ms2_heatmap);
+    	ms.writeMatrix(m_ms2_heatmap.getMatrix());
+    	f = new File(internDir, "matrix.settings");
+    	PrintWriter pw = new PrintWriter(new FileWriter(f));
+    	pw.println(m_rt_bin_width);
+    	pw.println(m_mz_bin_width);
+    	m_surface.saveInternals(pw);
+    	m_ms2_heatmap.saveInternals(pw);
+    	pw.close();
     }
 
-    public class SpectrumReader extends SpectrumMatcher {
-    	private double  rt = Double.NaN;
-    	private int bad_ms1 = 0;
-    	private int total_ms1 = 0;
-    	private PeakThresholdFilter peak_filter;
-    	private final SummaryStatistics accepted_peak_stats = new SummaryStatistics();
-    	// for keeping track of which MS1 gave birth to a MS2/MS3 scan...
-    	private final HashMap<String,Double> scan2rt = new HashMap<String,Double>(10000);
-    	private final HashMap<String,Integer> scan2mslevel = new HashMap<String,Integer>(10000);
-    	private final HashMap<String,String> scan2parent = new HashMap<String,String>(10000);
-    	private final HashMap<String,Double> scan2mz = new HashMap<String,Double>(10000);
-    	
-    	// constructor
-    	public SpectrumReader() {
-    		super(true);		// MUST load MS1 ;-)
-    		peak_filter = null;
-    	}
-    	
-    	public void logPeakSummary(NodeLogger logger) {
-			logger.info("Accepted peaks: "+accepted_peak_stats.getN());
-			logger.info("Minimum peak intensity accepted: "+accepted_peak_stats.getMin());
-			logger.info("Maximum peak intensity accepted: "+accepted_peak_stats.getMax());
-			logger.info("Mean accepted peak intensity: "+accepted_peak_stats.getMean());
-			logger.info("SD of accepted peak intensity: "+accepted_peak_stats.getStandardDeviation());
-		}
-
-		public SpectrumReader(PeakThresholdFilter ptf) {
-    		this();
-    		peak_filter = ptf;
-    	}
-    	
-    	@Override
-    	public boolean hasMinimalMatchData() {
-    		if (!super.hasMinimalMatchData())
-    			return false;
-    		
-    		return (hasPeaks() && !Double.isNaN(rt));
-    	}
-    	
-    	public int getTotalMS1() {
-    		return total_ms1;
-    	}
-    	
-    	public int getBadMS1() {
-    		return bad_ms1;
-    	}
-    	
-    	@Override
-    	public void save(NodeLogger logger, MyDataContainer file_container,
-    			MyDataContainer scan_container, File xml_file) {
-    		// always store a scan into the internal state regardless of how much data was recorded...
-    		scan2mslevel.put(getID(), getMSLevel());
-    		String parent_id = getParentSpectrumID();
-    		if (parent_id != null)
-    			scan2parent.put(getID(), parent_id);
-			
-    		if (getMSLevel() == 1) {
-    			double val = unbox_cell(getRT());
-    			scan2rt.put(getID(), new Double(val));
-    		} else if (getMSLevel() >= 2) {
-    			double mz = unbox_cell(getPrecursorMZ());
-    			scan2mz.put(getID(), new Double(mz));
-    		}
-    		
-    		// NB: do NOT invoke the superclass method as it assumes the containers are non-null
-    		if (hasMinimalMatchData() && getMSLevel() == 1) {
-    			BasicPeakList pbl = makePeakList();
-    			int rt_bin = getRTBin(rt);
-    			for (Peak p : pbl.getPeaks()) {
-    				int mz_bin = getMZBin(p.getMz());
-    				double intensity = p.getIntensity();
-    				if (rt_bin >= 0 && mz_bin >= 0 && (peak_filter == null || peak_filter.accept(pbl, p, m_threshold.getDoubleValue()))) {
-    					
-    					// increment peak in bin by the measured intensity
-    					m_surface.set(rt_bin, mz_bin, m_surface.get(rt_bin, mz_bin)+intensity);
-    					accepted_peak_stats.addValue(intensity);
-    				}
-    			}
-    			total_ms1++;
-    		} else {
-    			if (getMSLevel() == 1) {
-    				bad_ms1++;
-    				total_ms1++;
-    			}
-    			
-    		}
-    		
-    		rt = Double.NaN;
-    	}
-    	
-		
-		private double unbox_cell(DataCell dc) {
-			if (dc == null || dc.isMissing())
-				return Double.NaN;
-			
-			if (dc.getType().isCompatible(DoubleValue.class)) {
-				DoubleValue dv = (DoubleValue) dc;
-				return dv.getDoubleValue();
-			} else if (dc.getType().isCompatible(StringValue.class)) {
-				try {
-					return Double.valueOf(((StringValue)dc).getStringValue());
-				} catch (NumberFormatException nfe) {
-					nfe.printStackTrace();
-					// FALLTHRU
-				}
-			}
-			return Double.NaN;
-		}
-
-		@Override
-		public void addCVParam(String value, String name, String accession, String cvRef, String unitAccession, String unitName) throws Exception {
-			super.addCVParam(value, name, accession, cvRef, unitAccession, unitName);
-			
-			// get scan start time ie. retention time?
-			if (accession.equals("MS:1000016") || name.equals("scan start time")) {
-				if (!Double.isNaN(rt))
-					throw new InvalidSettingsException("Already seen scan start time!");
-				
-				rt = Double.valueOf(value);		// must always be calculated in seconds
-				if (unitName.trim().equalsIgnoreCase("minute"))
-					rt *= 60.0d;
-			}
-		}
-		
-		/**********************************
-		 * METHODS FOR node model to use
-		 **********************************/
-		public Collection<String> getMS2Scans() {
-			ArrayList<String> ret = new ArrayList<String>();
-			for (String s : scan2mslevel.keySet()) {
-				Integer lvl = scan2mslevel.get(s);
-				if (lvl != null && lvl.intValue() == 2) {
-					ret.add(s);
-				}
-			}
-			return ret;
-		}
-		
-		public String getParent(String scanID) {
-			if (scanID == null)
-				return null;
-			return scan2parent.get(scanID);
-		}
-		
-		public double getMZ(String scanID) {
-			Double mz = scan2mz.get(scanID);
-			if (mz != null)
-				return mz.doubleValue();
-			return getMZ(scan2parent.get(scanID));
-		}
-		
-		public double getRetentionTime(String scanID) {
-			assert(scanID != null);
-			Double rt = scan2rt.get(scanID);
-			if (rt != null)
-				return rt.doubleValue();
-			return getRetentionTime(scan2parent.get(scanID));
-		}
-    }
 
     /**
-     * Returns a deep copy of the internal state for the view to mess with (ie. transform)
-     * @return the deep copy of the internal node model (row=RT, column=MZ, intensity equals sum of all peak intensity in bin)
+     * Returns the actual surface (NOT copied)
      */
-	public Matrix getSurface() {
+	public SurfaceMatrixAdapter getSurface() {
 		if (m_surface == null)
 			return null;
-		return m_surface.copy();
+		return m_surface;
 	}
 	
-	public CompileableComposite getOpenGLSurface(final Matrix matrix, 
-									final Range x_range, final Range y_range, 
-									final double z_min, final double z_range) {
-		assert(matrix != null);
-	
-		// lazy computation
-		if (m_opengl_surface != null && matrix == m_opengl_last_matrix)
-			return m_opengl_surface;
-		
-		final int x_steps = (matrix.rows() < 500) ? matrix.rows()-1 : 500;
-	    final int y_steps = (matrix.columns() < 500) ? matrix.columns()-1 : 500;
-	    CompileableComposite surface = Builder.buildOrthonormalBig(
-	    		new OrthonormalGrid(x_range, x_steps, y_range, y_steps), 
-	    		new Mapper() {
-	
-	    	//
-	    	// Given we have to downsample, what to report - mean, median, max, sum, ...? Go with max for now
-	    	//
-			@Override
-			public double f(double x, double y) {
-				int xdim = matrix.rows();
-				int ydim = matrix.columns();
-				int ix = (int) (x * xdim);
-				int iy = (int) (y * ydim);
-				int x_n = (int) Math.floor((double)xdim / x_steps) + 1;
-				int y_n = (int) Math.floor((double)ydim / y_steps) + 1;
-				int cnt = 0;
-				/*double sum = 0.0;*/
-				double max = Double.NEGATIVE_INFINITY;
-				for (int i=ix - x_n; i<ix+x_n; i++) {
-					for (int j=iy - y_n; j<iy + y_n; j++) {
-						if (i<0 || i>= xdim)
-							continue;
-						if (j<0 || j>= ydim) 
-							continue;
-						double val = matrix.get(i, j);
-						if (val <= 0.0)
-							continue;
-						//sum += val;
-						if (val > max)
-							max = val;
-						cnt++;
-					}
-				}
-				if (cnt < 1)
-					return 0.0d;
-				//return ((sum/cnt) - z_min) / z_range;*/
-				
-				return (max - z_min) / z_range;
-			}
-    	
-	    });
+	@SuppressWarnings("unused")
+	private boolean hasCachedMatrix(SurfaceMatrixAdapter in, double rt_min, double rt_max, double mz_min, double mz_max, boolean is_ms2) {
+		    String key = in.makeKey(rt_min, rt_max, mz_min, mz_max);
+	    	return hasCachedMatrix(key);
+	}
+	 
+	private boolean hasCachedMatrix(String key) {
+		 	if (m_matrix_cache.containsKey(key)) {
+	    		return true;
+	    	}
+	    	return false;
+	}
 	    
-	    m_opengl_surface = surface;
-	    m_opengl_last_matrix = matrix;
-	    return surface;
+	public SurfaceMatrixAdapter getCachedMatrix(final String matrix_name) {
+	    	SurfaceMatrixAdapter m = m_matrix_cache.get(matrix_name);
+	    	if (m != null)
+	    		return m;
+	    	return null;
 	}
-    
+	    
+		
+	private SurfaceMatrixAdapter addMatrixToCache(SurfaceMatrixAdapter surface) {
+		 	m_matrix_cache.put(surface.getKey(), surface);
+			return surface;
+	}
+	    
 	/**
-	 * Returns a copy of the MS2 "heatmap" matrix
+	 * If you call this method then you MUST call the corresponding <code>getMS2Surface(rt_min,rt_max,mz_min,mz_max)</code> or your matrices will not have the same dimensions!
+	 * 
+	 * @param rt_min
+	 * @param rt_max
+	 * @param mz_min
+	 * @param mz_max
+	 * @return
+	 */
+	public SurfaceMatrixAdapter getSurface(SurfaceMatrixAdapter in, double rt_min, double rt_max, double mz_min, double mz_max) {
+		assert(rt_min < rt_max && mz_min < mz_max && rt_max > 0.0 && mz_max > 0.0);
+		
+		// node not executed?
+		if (in == null) {
+			return null;
+		}
+		
+		// else...
+		int fromRow     = getRTBin(rt_min, in, m_rt_bin_width);
+		if (fromRow < 0)
+			fromRow = 0;
+		int untilRow    = getRTBin(rt_max, in, m_rt_bin_width);		
+		if (untilRow == -1)
+			untilRow = in.rows();
+		else 
+			untilRow++;				// +1 to ensure last bin is >=rt_max
+		int fromColumn  = getMZBin(mz_min, in, m_mz_bin_width);
+		if (fromColumn < 0)
+			fromColumn = 0;
+		int untilColumn = fromColumn + (untilRow - fromRow);
+		if (untilColumn < 0)
+			untilColumn = in.columns();
+		else 
+			untilColumn++;
+		int n = Math.max(untilColumn - fromColumn, untilRow - fromRow);
+		if (n > 0 && fromRow >= 0 && fromColumn >= 0) {
+			int lastRow = Math.min(in.rows()-1, fromRow + n);
+			int lastCol = Math.min(in.rows()-1, fromColumn + n);
+			
+			String key = in.makeKey(rt_min, rt_max, mz_min, mz_max);
+			if (hasCachedMatrix(key)) {
+				return getCachedMatrix(key);
+			} else {
+				SurfaceMatrixAdapter surface = new SurfaceMatrixAdapter(in.getMatrix().slice(fromRow, fromColumn, lastRow, lastCol));
+				// since the matrix bounds may have been adjusted (above), we must setBounds not to the input parameters but to the new matrix dimensions
+				double new_mz_max = mz_min + m_mz_bin_width * n;
+				double new_rt_max = rt_min + m_rt_bin_width * n;
+				surface.setBounds(mz_min, new_mz_max, rt_min, new_rt_max);
+				surface.setKey(key);
+				logger.info("Slice has "+surface.rows()+" rows and "+surface.columns()+" columns MZ["+mz_min+", "+new_mz_max+"] RT["+rt_min+", "+new_rt_max+"]");
+				logger.info("Surface has key: "+key);
+				return addMatrixToCache(surface);
+			}
+		} else {
+			logger.warn("Bogus matrix dimensions: not producing surface!");
+			logger.warn("Wanted to extract RT: ["+fromRow+", "+untilRow+"] M/Z ["+fromColumn+", "+untilColumn+"]");
+			return null;
+		}
+	}
+
+
+	/**
+	 * Returns the MS2 "heatmap" matrix. Only call this if your view uses the <code>getSurface()</code> ie. without
+	 * any parameters so that the matrices have the same dimensions.
+	 * 
 	 * @return
 	 * 
 	 */
-	public Matrix getMS2Surface() {
+	public SurfaceMatrixAdapter getMS2Surface() {
 		if (m_ms2_heatmap == null)
 			return null;
-		return m_ms2_heatmap.copy();
+		calcBinWidths();
+		return m_ms2_heatmap;
+	}
+	
+	public SurfaceMatrixAdapter getMS2Surface(double rt_min, double rt_max, double mz_min, double mz_max) {
+		return getSurface(m_ms2_heatmap, rt_min, rt_max, mz_min, mz_max);
 	}
 	
 	public double getMZmin() {
@@ -685,6 +614,21 @@ public class MassSpecSurfaceNodeModel extends NodeModel {
 	
 	public double getRTmax() {
 		return m_rt_max.getDoubleValue();
+	}
+
+	/**
+	 * Convenience wrapper around <code>getSurface(SurfaceMatrixAdapter sma,...)</code> where you dont
+	 * need to know the matrix to make the call. Just which one you want. Uses a cached matrix if possible.
+	 * 
+	 * @param want_ms2
+	 * @param yMin
+	 * @param yMax
+	 * @param xMin
+	 * @param xMax
+	 * @return
+	 */
+	public SurfaceMatrixAdapter getSurface(boolean want_ms2, double yMin, double yMax, double xMin, double xMax) {
+		return getSurface(!want_ms2 ? m_surface : m_ms2_heatmap, yMin, yMax, xMin, xMax);
 	}
 }
 

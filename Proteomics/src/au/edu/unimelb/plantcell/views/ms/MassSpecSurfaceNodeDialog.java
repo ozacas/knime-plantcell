@@ -190,6 +190,10 @@ public class MassSpecSurfaceNodeDialog extends DefaultNodeSettingsPane {
         		 new SettingsModelDouble(MassSpecSurfaceNodeModel.CFGKEY_THRESHOLD, 0.1), "Threshold value", 1.0
         		 ));
          
+         createNewGroup("MSn (n>=2) Score Function");
+         addDialogComponent(new DialogComponentButtonGroup(
+        		 new SettingsModelString(MassSpecSurfaceNodeModel.CFGKEY_DISPLAY_METHOD, MassSpecSurfaceNodeModel.MS2_DISPLAY_METHODS[0]),
+        		 false, "Select the score function.... ", MassSpecSurfaceNodeModel.MS2_DISPLAY_METHODS));
     }
     
     @Override
