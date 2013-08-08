@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.expasy.jpl.core.ms.spectrum.PeakList;
 import org.expasy.jpl.core.ms.spectrum.PeakListImpl;
+import org.expasy.jpl.core.ms.spectrum.PeakListImpl.Builder;
 import org.expasy.jpl.core.ms.spectrum.peak.Peak;
 import org.expasy.jpl.core.ms.spectrum.peak.PeakImpl;
 import org.expasy.jpl.io.ms.MSScan;
@@ -89,8 +90,23 @@ public class BasicPeakList implements Serializable {
 
 	@SuppressWarnings("unused")
 	protected void init(String pepmass, String charge, String title, int msLevel) {
+		double pm = Double.valueOf(pepmass);
+		int z = decodeChargeString(charge);
+		if (z > 0)
+				addHeader("CHARGE", charge);
+		m_ms_level = msLevel;
+		addHeader("TITLE", title);
+		addHeader("PEPMASS", pepmass);
+	}
+	
+	/**
+	 * Attempt to decode the charge state of the ion, if this fails -1 will be returned. Mascot strings are supported (partially)
+	 * 
+	 * @param charge
+	 * @return -1 if charge string cannot be decoded
+	 */
+	public static final int decodeChargeString(String charge) {
 		try {
-			double pm = Double.valueOf(pepmass);
 			if (charge != null && charge.length() > 0 && !charge.equals("NA") && !charge.equals("-1")) {
 				if (charge.endsWith("+")) {
 					charge = charge.substring(0, charge.length()-1);
@@ -98,16 +114,12 @@ public class BasicPeakList implements Serializable {
 				if (charge.startsWith("+")) {
 					charge = charge.substring(1);
 				}
-				int z = Integer.valueOf(charge);
-				if (z > 0)
-					addHeader("CHARGE", charge);
+				return Integer.valueOf(charge);
 			}
-			m_ms_level = msLevel;
 		} catch (NumberFormatException nfe) {
-			// be silent for now...
+			// be silent for now... and fallthru
 		}
-		addHeader("TITLE", title);
-		addHeader("PEPMASS", pepmass);
+		return -1;
 	}
 	
 	/**
@@ -122,7 +134,10 @@ public class BasicPeakList implements Serializable {
 	public BasicPeakList(double pepmass, int charge, String title, int msLevel, double[] mz, double[] intensity) {
 		this(String.valueOf(pepmass), String.valueOf(charge), title, msLevel);
 		assert(mz != null && intensity != null);
-		setPeakList(mz, intensity);
+		Peak precursor = null;
+		if (charge > 0 && pepmass > 0.0)
+			precursor = new PeakImpl.Builder(pepmass).charge(charge).msLevel(msLevel).build();
+		setPeakList(mz, intensity, precursor);
 	}
 	
 	/**
@@ -156,7 +171,14 @@ public class BasicPeakList implements Serializable {
 		return m_pl.hashCode();
 	}
 
-	public void setPeakList(double[] mz, double[] intensity) {
+	/**
+	 * Construct the internal state for the peaklist using the specified parameters
+	 * 
+	 * @param mz		must not be null or zero length and must be the same length as the intensity vector
+	 * @param intensity
+	 * @param precursor may be null
+	 */
+	public void setPeakList(double[] mz, double[] intensity, Peak precursor) {
 		if (mz == null || intensity == null || mz.length < 1 || mz.length != intensity.length)
 			setPeakList(PeakListImpl.newEmptyInstance());
 		else {
@@ -165,7 +187,7 @@ public class BasicPeakList implements Serializable {
 				pl.add(new PeakImpl.Builder(mz[i]).intensity(intensity[i]).msLevel(m_ms_level).build());
 			}
 			Collections.sort(pl);
-			setPeakList(pl);
+			setPeakList(pl, precursor);
 		}
 	}
 	
@@ -175,7 +197,7 @@ public class BasicPeakList implements Serializable {
 	 * 
 	 * @param pl
 	 */
-	public void setPeakList(List<Peak> pl) {
+	public void setPeakList(List<Peak> pl, final Peak precursor) {
 		// construct a new peak list
 		double[] mz = new double[pl.size()];
 		double[] intensities = new double[pl.size()];
@@ -185,13 +207,14 @@ public class BasicPeakList implements Serializable {
 			intensities[idx] = p.getIntensity();
 			idx++;
 		}
-		PeakList new_list = new PeakListImpl.Builder(mz).
+		Builder new_list = new PeakListImpl.Builder(mz).
 									intensities(intensities).
-									msLevel(m_ms_level).
-									build();
-				
+									msLevel(m_ms_level);
+		if (precursor != null)
+			new_list = new_list.precursor(precursor);
+		
 		// and then call appropriate initialiser
-		setPeakList(new_list);
+		setPeakList(new_list.build());
 	}
 	
 	public void setPeakList(PeakList pl) {

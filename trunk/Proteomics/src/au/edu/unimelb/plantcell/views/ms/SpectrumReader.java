@@ -41,7 +41,7 @@ public class SpectrumReader<T extends MassSpecSurfaceNodeModel> extends Spectrum
 	private T      m_mdl;
 	
 	// constructor
-	public SpectrumReader(SurfaceMatrixAdapter m, T nodeModel, PeakThresholdFilter ptf, double peak_intensity_threshold) {
+	public SpectrumReader(final SurfaceMatrixAdapter m, final T nodeModel, final PeakThresholdFilter ptf, double peak_intensity_threshold) {
 		super(true);		// MUST load MS1 ;-)
 		peak_filter = ptf;
 		m_threshold = peak_intensity_threshold;
@@ -195,7 +195,7 @@ public class SpectrumReader<T extends MassSpecSurfaceNodeModel> extends Spectrum
 	 * @param ms2
 	 * @return
 	 */
-	public double getMS2Score(String ms2) {
+	public double getMS2Score(final String ms2_scan_id) {
 		return 1.0;
 	}
 }

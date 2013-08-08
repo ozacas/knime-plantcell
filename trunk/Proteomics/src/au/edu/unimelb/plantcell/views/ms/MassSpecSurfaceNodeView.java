@@ -4,6 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -33,7 +35,9 @@ import org.jzy3d.plot3d.builder.concrete.OrthonormalGrid;
 import org.jzy3d.plot3d.primitives.AbstractDrawable;
 import org.jzy3d.plot3d.primitives.CompileableComposite;
 import org.jzy3d.plot3d.primitives.Scatter;
+import org.jzy3d.plot3d.primitives.axes.layout.providers.RegularTickProvider;
 import org.jzy3d.plot3d.rendering.canvas.Quality;
+import org.jzy3d.plot3d.rendering.legends.colorbars.ColorbarLegend;
 import org.jzy3d.plot3d.rendering.scene.Graph;
 import org.jzy3d.plot3d.rendering.scene.Scene;
 import org.knime.core.node.NodeModel;
@@ -407,6 +411,29 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 		s.setData(points.toArray(new Coord3d[0]));
 		s.setColors(colours.toArray(new Color[0]));
 		s.setWidth((float) getRadius() * 10.0f);
+		Collections.sort(colours, new Comparator<Color>() {
+
+			@Override
+			public int compare(Color c1, Color c2) {
+				float sum_a = c1.a + c1.b + c1.g;
+				float sum_b = c2.a + c2.b + c2.g;
+				
+				if (sum_a < sum_b)
+					return -1;
+				else if (sum_a > sum_b)
+					return 1;
+				else
+					return 0;
+			}
+			
+		});
+		
+		// add a colour bar for the MS/MS scores...
+		if (colours.size() > 0) {
+			s.setLegend(new ColorbarLegend(s, 
+					new RegularTickProvider(), new MyAxisRenderer(0.0, 1.0), 
+					colours.get(0), colours.get(colours.size()-1)));
+		}
 		return s;
 	}
 	
