@@ -24,7 +24,7 @@ public class MyAxisRenderer implements ITickRenderer {
 		this.v1 = (float) min;
 		this.v2 = (float) max;
 		m_range = range(min, max);
-		//Logger.getAnonymousLogger().info("Range is "+m_range);
+		//Logger.getAnonymousLogger().info("Axis range is "+m_range+": ["+v1+", "+v2+"]");
 	}
 	
 	private float range(float x_min, float x_max) {
