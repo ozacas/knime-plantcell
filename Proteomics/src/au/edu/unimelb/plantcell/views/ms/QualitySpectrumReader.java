@@ -7,8 +7,8 @@ import au.edu.unimelb.plantcell.proteomics.spectra.quality.XreaScore;
 
 
 /**
- * Computes Xrea scores for each MSn (n>=2) spectrum seen and causes the computed matrix to reflect the
- * quality of each datapoint.
+ * Computes Xrea scores for each MSn (n>=2) spectrum seen. This results in the computed surface showing the
+ * spectral quality at each datapoint where a precursor ion was fragmented.
  * 
  *
  * @param <T> must be an instance of MassSpecSurfaceNodeModel or subclass

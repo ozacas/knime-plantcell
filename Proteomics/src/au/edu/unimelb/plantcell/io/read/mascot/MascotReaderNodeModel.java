@@ -8,6 +8,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
+import org.expasy.jpl.core.ms.spectrum.PeakListImpl;
+import org.expasy.jpl.core.ms.spectrum.PeakListImpl.Builder;
+import org.expasy.jpl.core.ms.spectrum.peak.PeakImpl;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -39,6 +42,7 @@ import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.io.read.spectra.AbstractSpectraCell;
 import au.edu.unimelb.plantcell.io.read.spectra.BasicPeakList;
 import au.edu.unimelb.plantcell.io.read.spectra.SpectraUtilityFactory;
+
 import com.compomics.mascotdatfile.util.interfaces.FragmentIon;
 import com.compomics.mascotdatfile.util.interfaces.MascotDatfileInf;
 import com.compomics.mascotdatfile.util.interfaces.QueryToPeptideMapInf;
@@ -475,9 +479,21 @@ public class MascotReaderNodeModel extends NodeModel {
     	if (q == null || q.getNumberOfPeaks() < 1) 
     		return DataType.getMissingCell();
     	
-    	// HACK TODO: assumes MS/MS - 2 in the final parameter
-    	BasicPeakList mgf = new BasicPeakList(String.valueOf(q.getPrecursorMZ()), q.getChargeString(), q.getTitle(), 2);
-    	mgf.setPeakList(q.getMZArray(), q.getIntensityArray());
+    	// HACK TODO: assumes MS/MS from mascot search - is the true level even available? probably not if MGF submitted...
+    	int msLevel = 2;
+    	Builder builder = new PeakListImpl.Builder()
+    								.mzs(q.getMZArray())
+    								.intensities(q.getIntensityArray())
+    								.msLevel(msLevel);
+    	int z = BasicPeakList.decodeChargeString(q.getChargeString());
+    	if (q.getPrecursorMZ() > 0.0 && z > 0) {
+    		builder = builder.precursor(new PeakImpl.Builder(q.getPrecursorMZ())
+    								.charge(z)
+    								.msLevel(msLevel - 1)
+    								.intensity(q.getPrecursorIntensity()).build());
+    	}
+    	BasicPeakList mgf = new BasicPeakList(String.valueOf(q.getPrecursorMZ()), String.valueOf(z), q.getTitle(), msLevel);
+    	mgf.setPeakList(builder.build());
     	
     	return SpectraUtilityFactory.createCell(mgf);	
     }

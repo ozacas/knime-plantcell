@@ -3,6 +3,7 @@ package au.edu.unimelb.plantcell.io.read.spectra;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.expasy.jpl.core.ms.lc.RetentionTime;
 import org.expasy.jpl.core.ms.spectrum.peak.Peak;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
@@ -34,8 +35,13 @@ public abstract class AbstractSpectraCell extends DataCell implements SpectraVal
 		String mz = "";
 		if (p != null)
 			mz += p.getMz();
+		String rt = "";
+		if (p.getRT() != null) {
+			RetentionTime rt_val = p.getRT();
+			rt = "\nRetention Time: "+rt_val.getValue()+" ("+rt_val.getUnit().toString()+")";
+		}
 		return getID() + "\n"+"Peaks: "+getNumPeaks()+"\nMS Level: "+getMSLevel()+
-				"\nCharge: "+getCharge()+"\nPrecursor mass: "+mz;
+				"\nCharge: "+getCharge()+"\nPrecursor mass: "+mz+rt;
 		
 	}
 	public abstract String getID();

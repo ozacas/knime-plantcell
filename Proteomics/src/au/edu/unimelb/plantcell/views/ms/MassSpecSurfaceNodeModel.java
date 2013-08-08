@@ -68,7 +68,7 @@ public class MassSpecSurfaceNodeModel extends NodeModel {
 	
 	static final String[] THRESHOLD_METHODS = new String[] { "Minimum percentage of total ion current (per spectrum)", 
 		"Absolute intensity", "Accept all peaks", "Reject intense peaks" };
-	static final String[] MS2_DISPLAY_METHODS = new String[] { "All points colour black", "Spectral Quality Score (Xrea)" };
+	static final String[] MS2_DISPLAY_METHODS = new String[] { "All points colour black", "Spectral Quality Score (Xrea)", "MS/MS precursor charge (predicted)" };
 	
 	private final SettingsModelStringArray m_files = new SettingsModelStringArray(CFGKEY_FILES, new String[] {});
 	private final SettingsModelDouble m_rt_min = new SettingsModelDouble(CFGKEY_RT_MIN, 300.0);
@@ -266,11 +266,13 @@ public class MassSpecSurfaceNodeModel extends NodeModel {
     		};
     	}
     	SpectrumReader<MassSpecSurfaceNodeModel> sr = null;
-    	
-    	if (m_display_method.getStringValue().startsWith("All"))
+    	String display_method = m_display_method.getStringValue();
+    	if (display_method.startsWith("All"))
     		sr = new SpectrumReader<MassSpecSurfaceNodeModel>(m_surface, this, ptf, m_threshold.getDoubleValue());
-    	else if (m_display_method.getStringValue().equals(MS2_DISPLAY_METHODS[1])) {
+    	else if (display_method.equals(MS2_DISPLAY_METHODS[1])) {
     		sr = new QualitySpectrumReader<MassSpecSurfaceNodeModel>(m_surface, this, ptf, m_threshold.getDoubleValue());
+    	} else if (display_method.startsWith(MS2_DISPLAY_METHODS[2])) {
+    		sr = new PrecursorChargeSpectrumReader<MassSpecSurfaceNodeModel>(m_surface, this, ptf, m_threshold.getDoubleValue());
     	} else {
     		throw new InvalidSettingsException("MS2 scoring method "+m_display_method.getStringValue()+" is not implemented!");
     	}

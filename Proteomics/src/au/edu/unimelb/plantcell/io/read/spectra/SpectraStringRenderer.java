@@ -25,7 +25,7 @@ public class SpectraStringRenderer extends DefaultDataValueRenderer {
 
 	@Override
 	public String getDescription() {
-		return "Peak List (text)";
+		return "Summary";
 	}
 
 	@Override
