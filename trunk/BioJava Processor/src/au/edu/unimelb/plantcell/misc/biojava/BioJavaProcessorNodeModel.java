@@ -71,7 +71,7 @@ public class BioJavaProcessorNodeModel extends NodeModel {
     // and used in the models execution method. The default components of the
     // dialog work with "SettingsModels".
     private final SettingsModelString m_task            = make_as_string(CFGKEY_TASK);
-    private final SettingsModelString m_column = make_as_string(CFGKEY_SEQUENCE_COL);	// this node may process columns other than String columns
+    private final SettingsModelString m_column          = make_as_string(CFGKEY_SEQUENCE_COL);	// this node may process columns other than String columns
     private final SettingsModelString m_category        = make_as_string(CFGKEY_CATEGORY);
     
     // state which is not persisted
@@ -179,7 +179,7 @@ public class BioJavaProcessorNodeModel extends NodeModel {
     		return new HydrophobicityTask();
     	} else if (task.startsWith("Reverse Complement")) {
     		return new ReverseComplementTask();
-    	} else if (task.startsWith("Screen for Proline-rich HRGP")) {
+    	} else if (task.startsWith("Screen for Proline-rich HRGP") || task.equals("Add Proline rich metrics (all)")) {
     		return new HRGPScreenTask();
     	} else if (task.trim().length() >= 1) {
         	throw new NotImplementedException("Unknown BioJava task to perform! Probably a bug...");

@@ -32,6 +32,13 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 public class HRGPScreenTask extends BioJavaProcessorTask {
 	private int m_past, m_p, m_pvk, m_psyk;
 	private int m_n_regions;
+	private boolean want_all;
+	
+	@Override
+	public void init(final String task_name, int input_column_index) throws Exception {
+		super.init(task_name, input_column_index);
+		want_all = (task_name.endsWith("(all)"));
+	}
 	
 	@Override
 	public String getCategory() {
@@ -40,7 +47,7 @@ public class HRGPScreenTask extends BioJavaProcessorTask {
 	
 	@Override
 	public String[] getNames() { 
-		return new String[] { "Screen for Proline-rich HRGP-like proteins" };
+		return new String[] { "Screen for Proline-rich HRGP-like proteins", "Add Proline rich metrics (all)" };
 	}
 	
 	@Override
@@ -57,7 +64,9 @@ public class HRGPScreenTask extends BioJavaProcessorTask {
 	
 	@Override
 	public String getHTMLDescription(String task) {
-		return "<html>Adds metrics to aid in identification of proteins related to HRGP's (incl. Extensins, AGPs etc.). Requires protein sequence.";
+		return "<html>Adds metrics to aid in identification of proteins related to HRGP's (incl. Extensins, AGPs etc.)."+
+	            "Requires protein sequence. The 'screen' task only reports values if %RoI is at least 10% (otherwise missing), the 'add metrics'" +
+	            "task reports values for all input sequences. The screen task is more space efficient for really large numbers of sequences.";
 	}
 	
 	/**
@@ -111,7 +120,7 @@ public class HRGPScreenTask extends BioJavaProcessorTask {
 		// to save disk space and speed calculation we just output results only if at least one window found
 		// Update 20130603: following advice from Carolyn, reject all %RoI < 10% to avoid false positives
 		double percent_roi = ((double)bv.cardinality()) / len * 100.0d;
-		if (n_windows > 0 && percent_roi >= 10.0) {
+		if (n_windows > 0 && (want_all || percent_roi >= 10.0)) {
 			cells[0] = getHTMLCell(seq, bv);
 			getWindows(seq, bv, cells);		// side effects: m_n_windows and cells[1] and cells[5]
 			cells[2] = new DoubleCell(percent_roi);
