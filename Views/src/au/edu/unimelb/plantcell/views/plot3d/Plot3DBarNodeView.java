@@ -452,7 +452,7 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
      * @return must not be null
      */
     protected Quality getOpenGLQuality(final Logger logger, final GLCapabilities glc) {
-    	Quality q = Quality.Intermediate;
+    	Quality q = Quality.Nicest;
     	boolean no_depth_if_transparency = q.isDisableDepthBufferWhenAlpha();
         if (!no_depth_if_transparency) {
         	q.setAlphaActivated(true);

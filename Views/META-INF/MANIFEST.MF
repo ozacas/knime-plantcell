@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Views
 Bundle-SymbolicName: au.edu.unimelb.plantcell.views;singleton:=true
-Bundle-Version: 1.0.2
+Bundle-Version: 1.0.4
 Bundle-ClassPath: views.jar,
  lib/applet-launcher.jar,
  lib/gluegen-rt.jar,
@@ -21,7 +21,7 @@ Require-Bundle: org.eclipse.core.runtime,
  org.knime.workbench.ui;bundle-version="2.7.1",
  au.edu.unimelb.plantcell.core
 Bundle-ActivationPolicy: lazy
-Export-Package: au.edu.unimelb.plantcell.views.bar3d,
+Export-Package: au.edu.unimelb.plantcell.views.plot3d,
  javax.media.opengl,
  org.jzy3d.bridge,
  org.jzy3d.bridge.awt,
