@@ -36,7 +36,7 @@ public abstract class AbstractSpectraCell extends DataCell implements SpectraVal
 		if (p != null)
 			mz += p.getMz();
 		String rt = "";
-		if (p.getRT() != null) {
+		if (p != null && p.getRT() != null) {
 			RetentionTime rt_val = p.getRT();
 			rt = "\nRetention Time: "+rt_val.getValue()+" ("+rt_val.getUnit().toString()+")";
 		}
