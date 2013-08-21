@@ -41,24 +41,28 @@ public class SpectraTop10Renderer extends DefaultDataValueRenderer {
 		if (value instanceof SpectraValue) {
 			// 1. compute the tenth-biggest intensity (dont worry about ties)
 			SpectraValue si = (SpectraValue) value;
-			double[] intensities = si.getIntensity();
-			double[] mz = si.getMZ();
-			SortablePeak[] big_peaks = new SortablePeak[mz.length];
-			for (int i=0; i<mz.length; i++) {
-				big_peaks[i] = new SortablePeak(mz[i], intensities[i], true); // true == sort by intensity
-			}
 			StringBuilder sb = new StringBuilder();
-			Arrays.sort(big_peaks);
-		
-			// 3. sort peaks by ascending mz (permit spectra to have less than ten peaks to begin with)
-			int min = big_peaks.length-10;
-			if (min < 0)
-				min = 0;
-			for (int i=min; i<big_peaks.length; i++) {
-				sb.append(big_peaks[i].getMZ());
-				sb.append(' ');
-				sb.append(big_peaks[i].getIntensity());
-				sb.append('\n');
+
+			if (si.getNumPeaks() > 0) {
+				double[] intensities = si.getIntensity();
+				double[] mz = si.getMZ();
+				SortablePeak[] big_peaks = new SortablePeak[mz.length];
+				for (int i=0; i<mz.length; i++) {
+					big_peaks[i] = new SortablePeak(mz[i], intensities[i], true); // true == sort by intensity
+				}
+				Arrays.sort(big_peaks);
+				// 3. sort peaks by ascending mz (permit spectra to have less than ten peaks to begin with)
+				int min = big_peaks.length-10;
+				if (min < 0)
+					min = 0;
+				for (int i=min; i<big_peaks.length; i++) {
+					sb.append(big_peaks[i].getMZ());
+					sb.append(' ');
+					sb.append(big_peaks[i].getIntensity());
+					sb.append('\n');
+				}
+			} else {
+				sb.append("No peaks present.");
 			}
 			
 			super.setValue("<html><pre>"+sb.toString());
