@@ -2,7 +2,8 @@ package au.edu.unimelb.plantcell.io.read.spectra;
 
 import org.expasy.jpl.core.ms.spectrum.peak.Peak;
 import org.expasy.jpl.core.ms.spectrum.peak.PeakImpl;
-import org.expasy.jpl.io.ms.jrap.Scan;
+import org.systemsbiology.jrap.stax.Scan;
+import org.systemsbiology.jrap.stax.ScanHeader;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataValue;
 
@@ -32,7 +33,7 @@ public class mzMLSpectraCell extends AbstractSpectraCell {
      * @param s
      * @param id
      */
-	public mzMLSpectraCell(Scan s, String id) {
+	public mzMLSpectraCell(org.systemsbiology.jrap.stax.Scan s, String id) {
 		m_scan = s;
 		m_id = id;
 		double[] mz = getMZ();
@@ -109,7 +110,7 @@ public class mzMLSpectraCell extends AbstractSpectraCell {
 	
 	@Override
 	public double[] getIntensity() {
-		double[][] mat = m_scan.getDoubleMassIntensityList();
+		double[][] mat = m_scan.getMassIntensityList();
 		if (mat == null)
 			return null;
 		double[] intensity = new double[mat[1].length];
@@ -121,7 +122,7 @@ public class mzMLSpectraCell extends AbstractSpectraCell {
 
 	@Override
 	public double[] getMZ() {
-		double[][] mat = m_scan.getDoubleMassIntensityList();
+		double[][] mat = m_scan.getMassIntensityList();
 		if (mat == null)
 			return null;
 		double[] mz = new double[mat[0].length];
@@ -148,7 +149,8 @@ public class mzMLSpectraCell extends AbstractSpectraCell {
 	public Peak getPrecursor() {
 		if (m_scan == null)
 			return null;
-		return new PeakImpl.Builder(m_scan.getPrecursorMz()).charge(m_scan.getPrecursorCharge()).build();
+		ScanHeader hdr = m_scan.getHeader();
+		return new PeakImpl.Builder(hdr.getPrecursorMz()).charge(hdr.getPrecursorCharge()).build();
 	}
 
 }
