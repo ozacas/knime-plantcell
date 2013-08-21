@@ -46,7 +46,7 @@ public class NormalisationFilter extends AbstractPeakListFilter {
 				val = find_total(input);
 			return transform(val, input);
 		} else {
-			return PeakListImpl.newEmptyInstance();
+			return PeakListImpl.emptyInstance();
 		}
 	}
 
@@ -80,8 +80,7 @@ public class NormalisationFilter extends AbstractPeakListFilter {
 
 	private PeakList transform(double factor, PeakList input) {
 		assert(factor > 0.0);
-		double[] new_intensities = new double[input.size()];
-		input.getIntensities(new_intensities);
+		double[] new_intensities = input.getIntensities();
 		for (int i=0; i<new_intensities.length; i++) {
 			new_intensities[i] /= factor;
 		}
