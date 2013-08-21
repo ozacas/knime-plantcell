@@ -3,7 +3,7 @@ package au.edu.unimelb.plantcell.io.read.spectra;
 import java.io.File;
 import java.util.Iterator;
 
-import org.expasy.jpl.io.ms.MSScan;
+import org.expasy.jpl.io.ms.MassSpectrum;
 import org.expasy.jpl.io.ms.reader.DTAReader;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
@@ -50,15 +50,15 @@ public class DTADataProcessor extends AbstractDataProcessor {
 			throws Exception {
 		DTAReader rdr = DTAReader.newInstance();
 		rdr.parse(m_file);
-		Iterator<MSScan> it = rdr.iterator();
+		Iterator<MassSpectrum> it = rdr.iterator();
 		int no_precursor = 0;
 		int ncols = scan_container.getTableSpec().getNumColumns();
 		
 		while (it.hasNext()) {
-			MSScan ms = it.next();
+			MassSpectrum ms = it.next();
 			
 			BasicPeakList bpl = new BasicPeakList(ms);
-			if (ms.getPrecursor() == null) {
+			if (ms.getPeakList().getPrecursor() == null) {
 				no_precursor++;
 			}
 			
