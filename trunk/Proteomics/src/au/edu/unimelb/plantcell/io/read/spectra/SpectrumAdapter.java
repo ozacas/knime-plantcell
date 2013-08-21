@@ -115,7 +115,7 @@ public class SpectrumAdapter {
 		
 		// if the user doesn't want MS1's loaded then use a singleton peak list and the caller can test for it
 		if (dont_load_ms1 && mslevel < 2) {
-			pl = PeakListImpl.newEmptyInstance();
+			pl = PeakListImpl.emptyInstance();
 		} else {
 			// peaklist data
 			List<BinaryDataArray> bdal = s.getBinaryDataArrayList().getBinaryDataArray();
