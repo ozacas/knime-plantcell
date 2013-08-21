@@ -8,8 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
-import org.expasy.jpl.core.ms.spectrum.PeakListImpl;
-import org.expasy.jpl.core.ms.spectrum.PeakListImpl.Builder;
+import org.expasy.jpl.core.ms.spectrum.peak.Peak;
 import org.expasy.jpl.core.ms.spectrum.peak.PeakImpl;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -145,6 +144,10 @@ public class MascotReaderNodeModel extends NodeModel {
         int bad = 0;
         int good = 0;
         int total = dat_files.size();
+        boolean is_all        = m_resulttype.getStringValue().startsWith("all");
+		boolean is_best       = m_resulttype.getStringValue().startsWith("best");
+		boolean is_confidence = (!is_all && !is_best);
+		
         for (File f : dat_files) {
         	if (f.getName().toLowerCase().endsWith(".dat")) {
         		logger.info("Processing Mascot DAT file: "+f.getName());
@@ -158,9 +161,9 @@ public class MascotReaderNodeModel extends NodeModel {
         		try {
         			mascot_dat_file = MascotDatfileFactory.create(f.getAbsolutePath(), MascotDatfileType.INDEX);
         			q2pm            = mascot_dat_file.getQueryToPeptideMap();
-        			good++; // consider the .DAT file good if we get here without throw
-        		
-	        		for (int query=1; query<q2pm.getNumberOfQueries(); query++) {
+        			
+	        		for (int query=1; query <= q2pm.getNumberOfQueries(); query++) {
+	        			    //logger.info("Processing query: "+query);
 		        			good_hits = q2pm.getAllPeptideHits(query);
 		        			
 		        			// no hits for the query?
@@ -170,18 +173,17 @@ public class MascotReaderNodeModel extends NodeModel {
 		        				// only output hits according to the chosen strategy:
 		        				// 1. best hit only: only element 0 (which is always the best hit) is output
 		        				// 2. all hits
-		        				// 3. above user-chosen confidence level for the current FILE only
+		        				// 3. above user-chosen confidence level (for the current FILE only)
 		        				Query q = mascot_dat_file.getQuery(query);
 		        				String title = q.getTitle();
-		        				boolean is_all        = m_resulttype.getStringValue().startsWith("all");
-		        				boolean is_best       = m_resulttype.getStringValue().startsWith("best");
-		        				boolean is_confidence = (!is_all && !is_best);
 		        				int max = is_best ? 1 : good_hits.size();
 		        				
-				            	for (int i=0; i<max; i++) {
+				            	for (int i=0; i<max && i<good_hits.size(); i++) {
 				            		PeptideHit    ph = (PeptideHit) good_hits.elementAt(i);
 				            		
 				            		if (is_confidence && !ph.scoresAboveIdentityThreshold(m_confidence.getDoubleValue())) {
+				            			continue;
+				            		} else if (ph == null) {
 				            			continue;
 				            		}
 				            		DataCell[] cells = new DataCell[N_COLS];
@@ -214,9 +216,16 @@ public class MascotReaderNodeModel extends NodeModel {
 	        		// now output search parameters to second output port
 	        		Parameters p = mascot_dat_file.getParametersSection();
 	        		save_parameters(c2, p, f);
+        			good++; // consider the .DAT file good if we get here without throw
+
         		} catch (Exception e) {
         			if (e instanceof CanceledExecutionException)
         				throw e;
+        			
+        			/**
+        			 * Common causes of getting here are missing scores or other issue with .DAT file parsing. Its
+        			 * not clear whether this is a problem with a particular mascot version or mascotdatfile (or both)
+        			 */
         			logger.warn("Cannot process "+f.getName()+" - file corrupt?");
         			e.printStackTrace();
         			bad++;
@@ -475,25 +484,35 @@ public class MascotReaderNodeModel extends NodeModel {
      
     }
     
-    protected DataCell make_spectra(Query q) {
+    protected DataCell make_spectra(final Query q) {
     	if (q == null || q.getNumberOfPeaks() < 1) 
     		return DataType.getMissingCell();
     	
-    	// HACK TODO: assumes MS/MS from mascot search - is the true level even available? probably not if MGF submitted...
+    	// HACK TODO: assumes MS/MS from mascot search - is the true MS level even available? probably not if MGF submitted...
     	int msLevel = 2;
-    	Builder builder = new PeakListImpl.Builder()
-    								.mzs(q.getMZArray())
-    								.intensities(q.getIntensityArray())
-    								.msLevel(msLevel);
     	int z = BasicPeakList.decodeChargeString(q.getChargeString());
-    	if (q.getPrecursorMZ() > 0.0 && z > 0) {
-    		builder = builder.precursor(new PeakImpl.Builder(q.getPrecursorMZ())
-    								.charge(z)
-    								.msLevel(msLevel - 1)
-    								.intensity(q.getPrecursorIntensity()).build());
-    	}
     	BasicPeakList mgf = new BasicPeakList(String.valueOf(q.getPrecursorMZ()), String.valueOf(z), q.getTitle(), msLevel);
-    	mgf.setPeakList(builder.build());
+
+    	// here we use the setPeakList() variant which ensures the PeakList instance is well sorted by increasing m/z: required by JavaProtLib
+    	if (q.getMZArray() != null && q.getIntensityArray() != null) {
+    		Peak precursor = null;
+	    	if (q.getPrecursorMZ() > 0.0 && z > 0) {
+	    		if (q.getPrecursorIntensity() > 0.0) {
+	    			precursor = new PeakImpl.Builder(q.getPrecursorMZ())
+					.charge(z)
+					.msLevel(msLevel - 1)
+					.intensity(q.getPrecursorIntensity()).build();
+	    		} else {
+	    			precursor = new PeakImpl.Builder(q.getPrecursorMZ())
+	    								.charge(z)
+	    								.msLevel(msLevel - 1).build();
+	    		}
+	    	}
+	    	
+	    	mgf.setPeakList(q.getMZArray(), q.getIntensityArray(), precursor);
+    	} else {
+    		mgf.setPeakList(null);
+    	}
     	
     	return SpectraUtilityFactory.createCell(mgf);	
     }
