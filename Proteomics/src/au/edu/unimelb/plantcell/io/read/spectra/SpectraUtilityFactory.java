@@ -7,7 +7,6 @@ import au.edu.unimelb.plantcell.io.read.spectra.SpectraValue;
 
 import org.expasy.jpl.core.ms.spectrum.PeakList;
 import org.expasy.jpl.core.ms.spectrum.peak.Peak;
-import org.expasy.jpl.io.ms.jrap.Scan;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
@@ -77,7 +76,7 @@ public class SpectraUtilityFactory extends UtilityFactory {
  	 }
  	 
  	
-     public static DataCell createCell(Scan scn, String id) {
+     public static DataCell createCell(org.systemsbiology.jrap.stax.Scan scn, String id) {
     	 if (id == null) {
     		 id = "Spectra" + spectra_id;
     		 spectra_id++;
