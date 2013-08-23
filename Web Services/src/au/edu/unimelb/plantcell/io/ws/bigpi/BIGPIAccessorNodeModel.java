@@ -167,16 +167,20 @@ public class BIGPIAccessorNodeModel extends AbstractWebServiceNodeModel {
 					//logger.info(result);
 				
 					HashSet<UniqueID> got_hits = new HashSet<UniqueID>();
+					//for (UniqueID uid : batch_map.keySet()) {
+					//	System.out.println(uid.toString() + ": "+batch_map.get(uid).getID());
+					//}
 					for (String line : result.split("\\n")) {
 						if (line.startsWith("WARNING")) {
 							logger.warn(line);
 							continue;
 						} else if (line.trim().length() > 0) {
-							String[] fields = line.trim().split("\\s+");
-							DataCell[] out = missing_cells(n_out_cols);
+							//System.out.println(line);
+							String[]    fields = line.trim().split("\\s+");
+							DataCell[]     out = missing_cells(n_out_cols);
 							
-							UniqueID uid = new UniqueID(fields[1]);
-							String pos   = fields[7];
+							UniqueID uid       = new UniqueID(fields[1]);
+							String pos         = fields[7];
 							String has_no_gpi  = fields[12];
 							got_hits.add(uid);
 							
@@ -209,21 +213,27 @@ public class BIGPIAccessorNodeModel extends AbstractWebServiceNodeModel {
 							}
 							
 							DataRow input_row = uid2row.get(uid);
-							assert(input_row != null);
+							if (input_row == null)
+								throw new Exception("Missing row data for "+uid.toString());
 							c1.addRow(new JoinedRow(input_row, new DefaultRow(input_row.getKey(), out)));
+							uid2row.remove(uid);
 						}
 					}
 					
-					if (got_hits.size() < batch_map.size()) {
-						logger.warn("Expected hits for "+batch_map.size()+" sequences, but got hits for only "+got_hits.size()+" - missing values added. Too short for GPI prediction?");
-						for (UniqueID uid : uid2row.keySet()) {
-							if (!got_hits.contains(uid)) {
-								DataRow input_row = uid2row.get(uid);
-							
-								c1.addRow(new JoinedRow(input_row, new DefaultRow(input_row.getKey(), missing_cells(n_out_cols))));
-							}
+					//logger.info("Remaining size: "+uid2row.size());
+					
+					int missing  = 0;
+					for (UniqueID uid : uid2row.keySet()) {
+						if (!got_hits.contains(uid)) {
+							DataRow input_row = uid2row.get(uid);
+							missing++;
+							c1.addRow(new JoinedRow(input_row, new DefaultRow(input_row.getKey(), missing_cells(n_out_cols))));
 						}
 					}
+					if (missing > 0) {
+						logger.warn("Expected hits for "+batch_map.size()+" sequences, but "+missing+" sequences were not predicted - missing values added. Too short for GPI prediction?");
+					}
+					
 					done += batch_map.size();
 					break;
 				} catch (Exception e) {
@@ -266,17 +276,31 @@ public class BIGPIAccessorNodeModel extends AbstractWebServiceNodeModel {
 		}
 	}
 
+	/**
+	 * Compute a map to support the execute() method from the two input maps. Will throw if there are duplicate ID's to avoid
+	 * causing problems during execute() matching up the input rows to the BigPI results
+	 * 
+	 * @param batch_map
+	 * @param batch_rows
+	 * @return
+	 */
 	private Map<UniqueID, DataRow> make_uid2row_map(
-			Map<UniqueID, SequenceValue> batch_map, List<DataRow> batch_rows) {
+			Map<UniqueID, SequenceValue> batch_map, List<DataRow> batch_rows) throws Exception {
 		HashMap<UniqueID, DataRow> ret = new HashMap<UniqueID, DataRow>();
+		HashSet<String> dup_check = new HashSet<String>();
 		for (DataRow dr : batch_rows) {
 			DataCell dc = dr.getCell(m_seq_idx);
 			if (dc == null || dc.isMissing())
 				continue;
 			SequenceValue sv = (SequenceValue) dc;
+			if (dup_check.contains(sv.getID())) {
+				throw new InvalidSettingsException("Duplicate sequence ID's not permitted! Fix your input sequence(s): "+sv.getID());
+			}
 			for (UniqueID uid : batch_map.keySet()) {
 				SequenceValue s2 = batch_map.get(uid);
-				if (s2.equals(sv)) {
+				
+				if (s2.getID().equals(sv.getID())) {
+					dup_check.add(sv.getID());
 					ret.put(uid, dr);
 				}
 			}
