@@ -13,6 +13,10 @@
       
       <node category-path="/Bioinformatics/Read" factory-class="au.edu.unimelb.plantcell.io.convert.XCaliburRawConverterNodeFactory" id="au.edu.unimelb.plantcell.proteomics.io.convert.XCaliburRAWNodeFactory"/>
       		
+      <node category-path="/Bioinformatics/Under Development/Deprecated"
+            factory-class="au.edu.unimelb.plantcell.proteomics.proteinselector.RepresentativeProteinSelectorNodeFactory"
+            id="au.edu.unimelb.plantcell.proteomics.proteinselector.RepresentativeProteinSelectorNodeFactory" />
+   
       <node category-path="/Bioinformatics/Under Development/Deprecated" factory-class="au.edu.unimelb.plantcell.io.read.pepxml.PepXMLReaderNodeFactory" id="au.edu.unimelb.plantcell.io.read.pepxml.PepXMLReaderNodeFactory"/>
    
       <node category-path="/Bioinformatics/Read" factory-class="au.edu.unimelb.plantcell.io.read.spectra.SpectraReaderNodeFactory" id="au.edu.unimelb.plantcell.io.read.spectra.SpectraReaderNodeFactory"/>

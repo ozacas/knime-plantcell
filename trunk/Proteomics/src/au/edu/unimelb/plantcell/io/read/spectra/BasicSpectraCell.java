@@ -1,6 +1,7 @@
 package au.edu.unimelb.plantcell.io.read.spectra;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import org.expasy.jpl.core.ms.spectrum.peak.Peak;
 import org.knime.core.data.DataCell;
@@ -157,8 +158,14 @@ public class BasicSpectraCell extends AbstractSpectraCell {
 
 		@Override
 		public BasicSpectraCell deserialize(final DataCellDataInput input) throws IOException {
-			BasicPeakList mgf = BasicPeakList.load(input);
-			return new BasicSpectraCell(mgf);
+			try {
+				BasicPeakList mgf = BasicPeakList.load(input);
+				return new BasicSpectraCell(mgf);
+			} catch (Exception e) {
+				Logger.getAnonymousLogger().warning(e.toString());
+				e.printStackTrace();
+				return null;
+			}
 		}
 
 		@Override

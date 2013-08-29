@@ -2,19 +2,19 @@ package au.edu.unimelb.plantcell.io.read.spectra;
 
 import java.io.File;
 
-import org.expasy.jpl.io.ms.jrap.DataProcessingInfo;
-import org.expasy.jpl.io.ms.jrap.MSInstrumentInfo;
-import org.expasy.jpl.io.ms.jrap.MSOperator;
-import org.expasy.jpl.io.ms.jrap.MSXMLParser;
-import org.expasy.jpl.io.ms.jrap.MZXMLFileInfo;
-import org.expasy.jpl.io.ms.jrap.Scan;
-import org.expasy.jpl.io.ms.jrap.ScanHeader;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.NodeLogger;
+import org.systemsbiology.jrap.stax.DataProcessingInfo;
+import org.systemsbiology.jrap.stax.MSInstrumentInfo;
+import org.systemsbiology.jrap.stax.MSOperator;
+import org.systemsbiology.jrap.stax.MSXMLParser;
+import org.systemsbiology.jrap.stax.MZXMLFileInfo;
+import org.systemsbiology.jrap.stax.Scan;
+import org.systemsbiology.jrap.stax.ScanHeader;
 
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 
@@ -58,7 +58,7 @@ public class mzXMLDataProcessor extends AbstractDataProcessor {
 		m_p = new MSXMLParser(m_file.getAbsolutePath());
 		
 		// first output the file port
-		process_file(exec, file_container, m_p.getHeaderInfo());
+		process_file(exec, file_container, m_p.rapFileHeader());
 		
 		// now output the scan port
 		process_scans(exec, scan_container);

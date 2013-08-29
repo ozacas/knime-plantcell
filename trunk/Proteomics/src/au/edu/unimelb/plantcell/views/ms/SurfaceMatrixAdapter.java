@@ -1,6 +1,7 @@
 package au.edu.unimelb.plantcell.views.ms;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -19,27 +20,29 @@ public class SurfaceMatrixAdapter  {
 	private double m_xmin, m_xmax, m_ymin, m_ymax;
 	private String m_key;
 	private boolean m_isms2;
+	private File m_file;
 	
-	public SurfaceMatrixAdapter(final Matrix m) {
-		this(m, 0.0, 1.0, 0.0, 1.0, false);
+	public SurfaceMatrixAdapter(final File f, final Matrix m) {
+		this(f, m, 0.0, 1.0, 0.0, 1.0, false);
 	}
 	
-	public SurfaceMatrixAdapter(final Matrix m, double x_min, double x_max, double y_min, double y_max, boolean is_ms2) {
+	public SurfaceMatrixAdapter(final File f, final Matrix m, double x_min, double x_max, double y_min, double y_max, boolean is_ms2) {
 		assert(m != null);
 		m_matrix = m;
 		m_isms2  = is_ms2;
+		m_file   = f;
 		setBounds(x_min, x_max, y_min, y_max);
 		setKey(null);
 	}
 	
 	/**
-	 * Equivalent to <code>this(m, ... , is_ms2)</code>
+	 * Equivalent to <code>this(f, m, ... , is_ms2)</code>
 	 * 
 	 * @param m
 	 * @param is_ms2
 	 */
-	public SurfaceMatrixAdapter(final Matrix m, boolean is_ms2) {
-		this(m);
+	public SurfaceMatrixAdapter(final File f, final Matrix m, boolean is_ms2) {
+		this(f, m);
 		m_isms2 = is_ms2;
 	}
 
@@ -98,8 +101,11 @@ public class SurfaceMatrixAdapter  {
 	 * @param is_ms2
 	 * @return
 	 */
-	public String makeKey(double rt_min, double rt_max, double mz_min,double mz_max) {
-		return "matrix@"+this.hashCode()+"-"+this.rows()+"x"+this.columns()+" ms2="+m_isms2+" "+rt_min+","+rt_max+","+mz_min+","+mz_max;
+	private String makeKey(double rt_min, double rt_max, double mz_min,double mz_max) {
+		String file = "";
+		if (m_file != null)
+			file = m_file.getAbsolutePath();
+		return file+" matrix-"+this.rows()+"x"+this.columns()+" ms2="+m_isms2+" "+rt_min+","+rt_max+","+mz_min+","+mz_max;
 	}
 	
 	/******** convenience Matrix delegates ********/
@@ -145,5 +151,9 @@ public class SurfaceMatrixAdapter  {
 		Double y_min = Double.valueOf(rdr.readLine());
 		Double y_max = Double.valueOf(rdr.readLine());
 		setBounds(x_min.doubleValue(), x_max.doubleValue(), y_min.doubleValue(), y_max.doubleValue());
+	}
+
+	public File getFile() {
+		return m_file;
 	}
 }

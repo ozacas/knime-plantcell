@@ -13,9 +13,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.regex.Pattern;
 
+import org.expasy.jpl.core.ms.spectrum.PeakList;
 import org.expasy.jpl.core.ms.spectrum.peak.Peak;
 import org.expasy.jpl.core.ms.spectrum.peak.PeakImpl;
-import org.expasy.jpl.io.ms.MSScan;
+import org.expasy.jpl.io.ms.MassSpectrum;
 import org.expasy.jpl.io.ms.reader.MGFReader;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
@@ -79,7 +80,7 @@ public class MGFDataProcessor extends AbstractDataProcessor {
 		// load peaklists from input file
 		rdr.parse(tmp_file);
 		
-		Iterator<MSScan> it = rdr.iterator();
+		Iterator<MassSpectrum> it = rdr.iterator();
 		int ncols = scan_container.getTableSpec().getNumColumns();
 		int no_precursor = 0;
 		int no_charge = 0;
@@ -87,11 +88,12 @@ public class MGFDataProcessor extends AbstractDataProcessor {
 		int done = 0;
 		try {
 			while (it.hasNext()) {
-				MSScan ms = it.next();
+				MassSpectrum ms = it.next();
+				PeakList pl = ms.getPeakList();
 				
-				BasicPeakList bpl = new BasicPeakList(ms);
+				BasicPeakList bpl = new BasicPeakList(pl);
 				
-				Peak precursor = ms.getPrecursor();
+				Peak precursor = pl.getPrecursor();
 				if (precursor == null) {
 					no_precursor++;
 				} else if (precursor.getCharge() == PeakImpl.UNKNOWN_CHARGE_STATE) {
@@ -107,15 +109,15 @@ public class MGFDataProcessor extends AbstractDataProcessor {
 				cells[22] = new IntCell(bpl.getNumPeaks());
 				
 				String pepmass = bpl.getPepmass_safe();
-				if (pepmass != null)
-				         cells[13] = new DoubleCell(Double.parseDouble(pepmass));
+				if (pepmass != null && pepmass.trim().length() > 0)
+				         cells[13] = new DoubleCell(Double.valueOf(pepmass));
 				else
 				         cells[13] = DataType.getMissingCell();
 				String charge = bpl.getCharge_safe();
 				if (charge != null) {
 				         charge    = charge.trim().replaceAll("\\+", "");
 				         if (charge.length() > 0)
-				                 cells[10] = new IntCell(Integer.parseInt(charge));
+				                 cells[10] = new IntCell(Integer.valueOf(charge));
 				         else
 				                 cells[10] = DataType.getMissingCell();
 				}

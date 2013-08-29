@@ -12,7 +12,7 @@ import org.expasy.jpl.core.ms.spectrum.PeakListImpl;
 import org.expasy.jpl.core.ms.spectrum.PeakListImpl.Builder;
 import org.expasy.jpl.core.ms.spectrum.peak.Peak;
 import org.expasy.jpl.core.ms.spectrum.peak.PeakImpl;
-import org.expasy.jpl.io.ms.MSScan;
+import org.expasy.jpl.io.ms.MassSpectrum;
 import org.knime.core.data.DataCellDataInput;
 import org.knime.core.data.DataCellDataOutput;
 
@@ -54,13 +54,17 @@ public class BasicPeakList implements Serializable {
 	 * 
 	 * @param ms: used to populate the entire internal state based on javaprotlib's internals
 	 */
-	public BasicPeakList(MSScan ms) {
-		Peak precursor = ms.getPrecursor();
+	public BasicPeakList(MassSpectrum ms) {
+		assert(ms != null);
+		PeakList pl = ms.getPeakList();
+		assert(pl != null);
+		
+		Peak precursor = pl.getPrecursor();
 		
 		// try to determine if MS/MS or ...
 		int ms_level = -1;
-		if (ms.getMSLevel() > 0)
-			ms_level = ms.getMSLevel();
+		if (pl.getMSLevel() > 0)
+			ms_level = pl.getMSLevel();
 		
 		// determine a title from internal state from ms...
 		String id      = ms.getId();
@@ -180,7 +184,7 @@ public class BasicPeakList implements Serializable {
 	 */
 	public void setPeakList(double[] mz, double[] intensity, Peak precursor) {
 		if (mz == null || intensity == null || mz.length < 1 || mz.length != intensity.length)
-			setPeakList(PeakListImpl.newEmptyInstance());
+			setPeakList(PeakListImpl.emptyInstance());
 		else {
 			List<Peak> pl = new ArrayList<Peak>(mz.length);
 			for (int i=0; i<mz.length; i++) {
@@ -217,6 +221,9 @@ public class BasicPeakList implements Serializable {
 		setPeakList(new_list.build());
 	}
 	
+	/**
+	 * Initialises the peaklist and related members, null may be passed, in which case a singleton instance of an empty peak list will be used
+	 */
 	public void setPeakList(PeakList pl) {
 		assert(pl != null);
 		m_pl = pl;
@@ -237,7 +244,7 @@ public class BasicPeakList implements Serializable {
 			m_mz_min = min;
 			m_mz_max = max;
 		} else {
-			m_pl = PeakListImpl.newEmptyInstance();
+			m_pl = PeakListImpl.emptyInstance();
 		}
 	}
 	
@@ -322,8 +329,7 @@ public class BasicPeakList implements Serializable {
 		if (n < 1)
 			return new double[0];
 		
-		double[] ret = new double[n];
-		return m_pl.getMzs(ret);
+		return m_pl.getMzs();
 	}
 	
 	/**
@@ -333,9 +339,7 @@ public class BasicPeakList implements Serializable {
 		int n = getNumPeaks();
 		if (n < 1)
 			return new double[0];
-		
-		double[] ret = new double[n];
-		return m_pl.getIntensities(ret);
+		return m_pl.getIntensities();
 	}
 	
 	/**
@@ -376,7 +380,7 @@ public class BasicPeakList implements Serializable {
 	 * @param input guaranteed non-NULL
 	 * @return the loaded peaklist
 	 */
-	public static BasicPeakList load(DataCellDataInput input) throws IOException {
+	public static BasicPeakList load(final DataCellDataInput input) throws IOException {
 		// 1. load the peaklist
 		int n_peaks = input.readInt();
 		double[] mz = new double[n_peaks];
@@ -403,15 +407,20 @@ public class BasicPeakList implements Serializable {
 		}
 	
 		BasicPeakList ret = new BasicPeakList(map.get("PEPMASS"), map.get("CHARGE"), map.get("TITLE"), tc);
-		Peak peak_precursor = new PeakImpl.Builder(pre_mz).intensity(pre_intensity).msLevel(pre_ms_level).charge(pre_charge).build();
-		PeakList pl = new PeakListImpl.Builder(mz).intensities(intensity).msLevel(tc).precursor(peak_precursor).build();
+		PeakList pl = null;
+		if (n_peaks > 0) {
+			Peak peak_precursor = new PeakImpl.Builder(pre_mz).intensity(pre_intensity).msLevel(pre_ms_level).charge(pre_charge).build();
+			pl = new PeakListImpl.Builder(mz).intensities(intensity).msLevel(tc).precursor(peak_precursor).build();
+		} else {
+			pl = PeakListImpl.emptyInstance();
+		}
 		ret.setPeakList(pl);
 		ret.m_headers.clear();
 		ret.m_headers.putAll(map);
 		return ret;
 	}
 	
-	public static void save(BasicPeakList saveme, DataCellDataOutput output) throws IOException {
+	public static void save(final BasicPeakList saveme, final DataCellDataOutput output) throws IOException {
 		if (saveme == null) {
 			// no peaklist, but must still be compatible...
 			output.writeInt(0);
@@ -446,7 +455,7 @@ public class BasicPeakList implements Serializable {
 		
 		// 2. write precursor peak
 		Peak precursor = saveme.getPrecursor();
-		if (precursor != null) { 	// handle this exceptional case
+		if (precursor != null) { 	// handle no precursor case 
 			output.writeDouble(precursor.getMz());
 			output.writeDouble(precursor.getIntensity());
 			output.writeInt(precursor.getCharge());
