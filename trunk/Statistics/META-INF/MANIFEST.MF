@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Statistics
 Bundle-SymbolicName: au.edu.unimelb.plantcell.statistics; singleton:=true
-Bundle-Version: 1.2.25
+Bundle-Version: 1.2.27
 Bundle-ClassPath: ranker.jar
 Bundle-Vendor: http://www.plantcell.unimelb.edu.au/bioinformatics
 Require-Bundle: org.eclipse.core.runtime,
@@ -11,5 +11,5 @@ Require-Bundle: org.eclipse.core.runtime,
  org.knime.base,
  au.edu.unimelb.plantcell.core
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 
