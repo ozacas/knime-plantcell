@@ -39,6 +39,7 @@ public class SpectrumReader<T extends MassSpecSurfaceNodeModel> extends Spectrum
 	private SurfaceMatrixAdapter m_surface;
 	private double m_threshold;
 	private T      m_mdl;
+	private double min_rt, max_rt, min_mz, max_mz;
 	
 	// constructor
 	public SpectrumReader(final SurfaceMatrixAdapter m, final T nodeModel, final PeakThresholdFilter ptf, double peak_intensity_threshold) {
@@ -47,6 +48,10 @@ public class SpectrumReader<T extends MassSpecSurfaceNodeModel> extends Spectrum
 		m_threshold = peak_intensity_threshold;
 		m_surface   = m;
 		m_mdl       = nodeModel;
+		min_rt      = Double.POSITIVE_INFINITY;
+		max_rt      = Double.NEGATIVE_INFINITY;
+		min_mz      = Double.POSITIVE_INFINITY;
+		max_mz      = Double.NEGATIVE_INFINITY;
 	}
 	
 	public void logPeakSummary(NodeLogger logger) {
@@ -55,6 +60,8 @@ public class SpectrumReader<T extends MassSpecSurfaceNodeModel> extends Spectrum
 		logger.info("Maximum peak intensity accepted: "+accepted_peak_stats.getMax());
 		logger.info("Mean accepted peak intensity: "+accepted_peak_stats.getMean());
 		logger.info("SD of accepted peak intensity: "+accepted_peak_stats.getStandardDeviation());
+		logger.info("Observed RT range: ["+min_rt+", "+max_rt+"]");
+		logger.info("Observed M/Z range: "+min_mz+", "+max_mz+"]");
 	}
 	
 	@Override
@@ -92,11 +99,21 @@ public class SpectrumReader<T extends MassSpecSurfaceNodeModel> extends Spectrum
 		}
 		
 		// NB: do NOT invoke the superclass method as it assumes the containers are non-null
+		File mzmlFile = m_surface.getFile();
 		if (hasMinimalMatchData() && getMSLevel() == 1) {
 			BasicPeakList pbl = makePeakList();
-			int rt_bin = m_mdl.getRTBin(rt);
+			int rt_bin = m_mdl.getRTBin(mzmlFile, rt);
+			if (rt < min_rt)
+				min_rt = rt;
+			if (rt > max_rt)
+				max_rt = rt;
 			for (Peak p : pbl.getPeaks()) {
-				int mz_bin = m_mdl.getMZBin(p.getMz());
+				double mz = p.getMz();
+				if (mz < min_mz)
+					min_mz = mz;
+				if (mz > max_mz)
+					max_mz = mz;
+				int mz_bin = m_mdl.getMZBin(mzmlFile, mz);
 				double intensity = p.getIntensity();
 				if (rt_bin >= 0 && mz_bin >= 0 && (peak_filter == null || peak_filter.accept(pbl, p, m_threshold))) {
 					
@@ -117,9 +134,20 @@ public class SpectrumReader<T extends MassSpecSurfaceNodeModel> extends Spectrum
 		rt = Double.NaN;
 	}
 	
+	/**
+	 * If the node model, as configured by the user, does not want the MSn spectra from the mzML this will be false. Otherwise true.
+	 * Code in the reader (or subclass) should respond to this to avoid breaking the contract with the node model.
+	 * 
+	 * @return
+	 */
+	protected boolean wantMS2() {
+		if (m_mdl == null)			// should not happen
+			return false;
+		return m_mdl.wantMS2fromMzML();
+	}
 	
 	protected void saveScore() {
-		// this implementation does nothing since getScore() always returns a constant value
+		// this implementation does nothing since the getScore() implementation for this class always returns 1
 	}
 
 	private double unbox_cell(DataCell dc) {
@@ -160,6 +188,9 @@ public class SpectrumReader<T extends MassSpecSurfaceNodeModel> extends Spectrum
 	 **********************************/
 	public Collection<String> getMS2Scans() {
 		ArrayList<String> ret = new ArrayList<String>();
+		if (!wantMS2())
+			return ret;
+		
 		for (String s : scan2mslevel.keySet()) {
 			Integer lvl = scan2mslevel.get(s);
 			if (lvl != null && lvl.intValue() == 2) {

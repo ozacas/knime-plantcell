@@ -27,10 +27,13 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
+import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
+
+import au.edu.unimelb.plantcell.io.read.spectra.SpectraValue;
 
 /**
  * <code>NodeDialog</code> for the "MassSpecSurface" Node.
@@ -49,7 +52,8 @@ public class MassSpecSurfaceNodeDialog extends DefaultNodeSettingsPane {
     /**
      * New pane for configuring the MassSpecSurface node.
      */
-    protected MassSpecSurfaceNodeDialog() {
+    @SuppressWarnings("unchecked")
+	protected MassSpecSurfaceNodeDialog() {
     	 super();
          
          final JList<String> flist = new JList<String>(file_list.getStringArrayValue());
@@ -166,34 +170,60 @@ public class MassSpecSurfaceNodeDialog extends DefaultNodeSettingsPane {
          
          this.addTab("mzML files", spectra_file_panel);
          
-         createNewGroup("Retention time (seconds)");
+         setHorizontalPlacement(true);
+         createNewGroup("Retention time (seconds) limits");
          addDialogComponent(new DialogComponentNumber(
         		 new SettingsModelDouble(MassSpecSurfaceNodeModel.CFGKEY_RT_MIN, 300.0), 
         		 "Minimum", 60.0));
          addDialogComponent(new DialogComponentNumber(
         		 new SettingsModelDouble(MassSpecSurfaceNodeModel.CFGKEY_RT_MAX, 3000.0), 
         		 "Maximum", 60.0));
+         closeCurrentGroup();
          
-         createNewGroup("M/Z window");
+         createNewGroup("M/Z limits");
          addDialogComponent(new DialogComponentNumber(
         		 new SettingsModelDouble(MassSpecSurfaceNodeModel.CFGKEY_MZ_MIN, 100.0), 
         		 "Minimum", 100.0));
          addDialogComponent(new DialogComponentNumber(
         		 new SettingsModelDouble(MassSpecSurfaceNodeModel.CFGKEY_MZ_MAX, 2000.0), 
         		 "Maximum", 100.0));
-         
+         closeCurrentGroup();
+
+         setHorizontalPlacement(false);
          createNewGroup("Peak filter");
          addDialogComponent(new DialogComponentButtonGroup(
         		 new SettingsModelString(MassSpecSurfaceNodeModel.CFGKEY_THRESHOLD_METHOD, MassSpecSurfaceNodeModel.THRESHOLD_METHODS[0]), 
         		 false, "Filter peaks which are not...", MassSpecSurfaceNodeModel.THRESHOLD_METHODS));
          addDialogComponent(new DialogComponentNumber(
-        		 new SettingsModelDouble(MassSpecSurfaceNodeModel.CFGKEY_THRESHOLD, 0.1), "Threshold value", 1.0
+        		 new SettingsModelDouble(MassSpecSurfaceNodeModel.CFGKEY_THRESHOLD, 0.1), "Threshold value", 1.0, 8
         		 ));
          
-         createNewGroup("MSn (n>=2) Score Function");
+         createNewGroup("MSn (n>=2) data");
          addDialogComponent(new DialogComponentButtonGroup(
         		 new SettingsModelString(MassSpecSurfaceNodeModel.CFGKEY_DISPLAY_METHOD, MassSpecSurfaceNodeModel.MS2_DISPLAY_METHODS[0]),
-        		 false, "Select the score function.... ", MassSpecSurfaceNodeModel.MS2_DISPLAY_METHODS));
+        		 false, "Color MSn datapoints by ", MassSpecSurfaceNodeModel.MS2_DISPLAY_METHODS));
+         
+         final SettingsModelString sms = new SettingsModelString(MassSpecSurfaceNodeModel.CFGKEY_SPECTRA_FROM, "");
+         final SettingsModelString spectra_sms = new SettingsModelString(MassSpecSurfaceNodeModel.CFGKEY_SPECTRA_COLUMN, "");
+         
+         sms.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				spectra_sms.setEnabled(!sms.getStringValue().equals(MassSpecSurfaceNodeModel.MS2_SPECTRA_FROM[0]));
+			}
+        	 
+         });
+         sms.setStringValue(MassSpecSurfaceNodeModel.MS2_SPECTRA_FROM[0]);
+         
+         DialogComponentButtonGroup bg = new DialogComponentButtonGroup(
+        		 sms, true, "Add datapoints from MS2 spectra from... ",
+        		 MassSpecSurfaceNodeModel.MS2_SPECTRA_FROM);
+         addDialogComponent(bg);
+         
+         addDialogComponent(new DialogComponentColumnNameSelection(
+        		 spectra_sms, 
+        		 "Input table spectra column... ", 0, false, false, SpectraValue.class));
     }
     
     @Override

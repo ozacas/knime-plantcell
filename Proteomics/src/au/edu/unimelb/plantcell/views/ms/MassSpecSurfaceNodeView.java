@@ -3,6 +3,7 @@ package au.edu.unimelb.plantcell.views.ms;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -16,6 +17,7 @@ import javax.swing.BoxLayout;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -42,6 +44,7 @@ import org.jzy3d.plot3d.rendering.scene.Graph;
 import org.jzy3d.plot3d.rendering.scene.Scene;
 import org.knime.core.node.NodeModel;
 import org.la4j.matrix.Matrix;
+import org.la4j.matrix.dense.Basic2DMatrix;
 import org.la4j.matrix.functor.MatrixFunction;
 import org.la4j.matrix.functor.MatrixProcedure;
 
@@ -61,6 +64,7 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 	private JSpinner m_rt_upper;
 	private JSpinner m_mz_lower;
 	private JSpinner m_mz_upper;
+	private JComboBox<String> file_list;
 	
 	// a simple most-recently-used cache of the downsampled matrix for display -- see downsample() below
 	private Map<String,SurfaceMatrixAdapter> m_cache = new HashMap<String,SurfaceMatrixAdapter>();
@@ -78,8 +82,15 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 	 */
 	@Override
 	protected void init(T nodeModel) {
+	    MassSpecSurfaceNodeModel mdl = (MassSpecSurfaceNodeModel) nodeModel;
+
 		JFrame f = setupOpenGL("Mass Spec. mzML - RT versus M/Z");
 	    JPanel button_panel = addButtons(null, true, true, true, true);
+	    JPanel p2 = new JPanel();
+	    p2.setLayout(new BoxLayout(p2, BoxLayout.X_AXIS));
+	    p2.add(new JLabel("File"));
+	    file_list = new JComboBox<String>(mdl.getFilesByName());
+	    p2.add(file_list);
 	    JPanel p = new JPanel();
 	    p.setBorder(BorderFactory.createTitledBorder("Region of interest"));
 	    p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
@@ -88,7 +99,6 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 	    rt_panel.setLayout(new BoxLayout(rt_panel, BoxLayout.X_AXIS));
 	    rt_panel.add(new JLabel("RT: [ "));
 	    
-	    MassSpecSurfaceNodeModel mdl = (MassSpecSurfaceNodeModel) nodeModel;
 	    m_rt_lower = new JSpinner(new SpinnerNumberModel(mdl.getRTmin(), mdl.getRTmin(), mdl.getRTmax(), 100.0));
 	    m_rt_upper = new JSpinner(new SpinnerNumberModel(mdl.getRTmax(), mdl.getRTmin(), mdl.getRTmax(), 100.0));
 	   
@@ -126,6 +136,7 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 			getChart().clear();
 			return;
 		}
+		File mzmlFile = nodeModel.getFileByName(file_list.getSelectedItem().toString());
         
 		double rt_min = ((Double)m_rt_lower.getValue()).doubleValue();
 		double rt_max = ((Double)m_rt_upper.getValue()).doubleValue();
@@ -142,7 +153,7 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 		
 		// this method always returns a square matrix (since we are projecting onto a unit cube) so the output
 		// matrix does not necessarily equal the user input RT [r1, r2] and MZ [mz1, mz2] ranges
-        SurfaceMatrixAdapter m  = nodeModel.getSurface(false, r1, r2, mz1, mz2);
+        SurfaceMatrixAdapter m  = nodeModel.getSurface(mzmlFile, false, r1, r2, mz1, mz2);
         
         if (m == null || m.rows() < 1 || m.columns() < 1) {
         	setStatus("No surface to display, please execute the node - reconfigure?");
@@ -185,7 +196,7 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 	    logger.info("Time to main surface: "+(after_surface - after_transform));
 	    
         // finally add the MS2 heatmap
-        SurfaceMatrixAdapter heatmap_matrix = nodeModel.getSurface(true, surface_matrix.getYMin(), surface_matrix.getYMax(), 
+        SurfaceMatrixAdapter heatmap_matrix = nodeModel.getSurface(mzmlFile, true, surface_matrix.getYMin(), surface_matrix.getYMax(), 
         		surface_matrix.getXMin(), surface_matrix.getXMax());
         SurfaceMatrixAdapter ms2 = downsample(heatmap_matrix, surface_matrix.rows(), surface_matrix.columns(), true);
         addMatrixToCache(ms2);
@@ -262,7 +273,7 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 		}
 		logger.info("Downsampling matrix to "+new_rows+" x "+new_cols);
 		Matrix in = surface.getMatrix();
-		Matrix dest = in.factory().createMatrix(new_rows, new_cols);
+		Matrix dest = new Basic2DMatrix(new_rows, new_cols);
 		
 		double y_n = ((double)in.rows()) / new_rows;
 		double x_n = ((double)in.columns()) / new_cols;
@@ -300,7 +311,7 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 		
 		logger.info("Got largest y="+largest_y+" x="+largest_x);
 		
-		SurfaceMatrixAdapter ret = new SurfaceMatrixAdapter(dest);
+		SurfaceMatrixAdapter ret = new SurfaceMatrixAdapter(surface.getFile(), dest, is_ms2);
 		ret.setBounds(surface);
 		ret.setKey(null);
 		return ret;
@@ -352,7 +363,7 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 		} else
 			return matrix;
 		
-		SurfaceMatrixAdapter ret = new SurfaceMatrixAdapter(out);
+		SurfaceMatrixAdapter ret = new SurfaceMatrixAdapter(matrix.getFile(), out);
 		ret.setBounds(matrix);
 		ret.setKey(ret.getKey() + " "+zTransform);
 		return ret;
@@ -503,6 +514,27 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 	 */
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
+		// sanity check arguments
+		double rt_min = ((Double)m_rt_lower.getValue()).doubleValue();
+		double rt_max = ((Double)m_rt_upper.getValue()).doubleValue();
+		double mz_min = ((Double)m_mz_lower.getValue()).doubleValue();
+		double mz_max = ((Double)m_mz_upper.getValue()).doubleValue();
+		if (rt_max <= rt_min) {
+			m_rt_lower.setForeground(java.awt.Color.RED);
+			m_rt_upper.setForeground(java.awt.Color.RED);
+			return;
+		}
+		if (mz_max <= mz_min) {
+			m_mz_lower.setForeground(java.awt.Color.RED);
+			m_mz_upper.setForeground(java.awt.Color.RED);
+			return;
+		}
+		m_rt_lower.setForeground(java.awt.Color.BLACK);
+		m_rt_upper.setForeground(java.awt.Color.BLACK);
+		m_mz_lower.setForeground(java.awt.Color.BLACK);
+		m_mz_upper.setForeground(java.awt.Color.BLACK);
+		
+		// ok, go ahead and update...
 		setStatus("Please wait... this may take a long time.");
 		modelChanged();
 		getChart().render();

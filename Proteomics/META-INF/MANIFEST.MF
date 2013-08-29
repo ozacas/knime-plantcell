@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Proteomics
 Bundle-SymbolicName: au.edu.unimelb.plantcell.proteomics; singleton:=true
-Bundle-Version: 1.2.18
+Bundle-Version: 1.2.22
 Bundle-ClassPath: insilicodigestor.jar,
  lib/collections-generic-4.01.jar,
  lib/com.springsource.antlr-2.7.7.jar,
@@ -29,14 +29,12 @@ Bundle-ClassPath: insilicodigestor.jar,
  lib/jpl-core-1.0.jar,
  lib/jpl-io-1.0.jar,
  lib/jpl-io-hdp-1.0.jar,
- lib/jpl-msmatch-1.0.jar,
  lib/jrap-stax.jar,
  lib/jsr173_api.jar,
  lib/jsr181-api.jar,
  lib/jsr250-api.jar,
  lib/looks-2.2.2.jar,
  lib/management-api.jar,
- lib/mascotdatfile-3.2.jar,
  lib/mimepull.jar,
  lib/omssa-parser-1.4.jar,
  lib/policy.jar,
@@ -55,7 +53,9 @@ Bundle-ClassPath: insilicodigestor.jar,
  lib/xpp3-1.1.3.4-RC3.jar,
  lib/xtandem-parser-1.2.4.jar,
  lib/xxindex-0.11.jar,
- lib/la4j-0.4.0.jar
+ lib/la4j-0.4.0.jar,
+ lib/mascotdatfile-3.4.9.jar,
+ lib/jpl-msmatch-1.0.jar
 Bundle-Vendor: http://www.plantcell.unimelb.edu.au/bioinformatics
 Require-Bundle: org.eclipse.core.runtime,
  org.knime.workbench.core,
@@ -66,7 +66,6 @@ Require-Bundle: org.eclipse.core.runtime,
  org.knime.workbench.ui;bundle-version="2.4.0",
  org.apache.log4j;bundle-version="1.2.15",
  au.edu.unimelb.plantcell.statistics;bundle-version="1.2.23",
- org.apache.commons.collections;bundle-version="3.2.0",
  au.edu.unimelb.plantcell.core,
  au.edu.unimelb.plantcell.views;bundle-version="1.0.3"
 Bundle-ActivationPolicy: lazy
@@ -77,6 +76,7 @@ Export-Package: au.edu.unimelb.plantcell.io.read.mascot,
  au.edu.unimelb.plantcell.proteomics.digestion,
  au.edu.unimelb.plantcell.proteomics.inference,
  au.edu.unimelb.plantcell.proteomics.phosphorylation,
+ au.edu.unimelb.plantcell.proteomics.proteinselector,
  au.edu.unimelb.plantcell.proteomics.spectra.quality,
  org.expasy.jpl.core.ms.spectrum.peak,
  org.la4j.decomposition,
@@ -96,6 +96,18 @@ Export-Package: au.edu.unimelb.plantcell.io.read.mascot,
  org.la4j.vector.sparse
 Import-Package: it.unimi.dsi.fastutil,
  it.unimi.dsi.fastutil.floats,
- javax.activation
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+ javax.activation,
+ org.apache.commons.collections;version="3.2.0",
+ org.apache.commons.collections.bag;version="3.2.0",
+ org.apache.commons.collections.bidimap;version="3.2.0",
+ org.apache.commons.collections.buffer;version="3.2.0",
+ org.apache.commons.collections.collection;version="3.2.0",
+ org.apache.commons.collections.comparators;version="3.2.0",
+ org.apache.commons.collections.functors;version="3.2.0",
+ org.apache.commons.collections.iterators;version="3.2.0",
+ org.apache.commons.collections.keyvalue;version="3.2.0",
+ org.apache.commons.collections.list;version="3.2.0",
+ org.apache.commons.collections.map;version="3.2.0",
+ org.apache.commons.collections.set;version="3.2.0"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 
