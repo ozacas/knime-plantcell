@@ -42,6 +42,7 @@ import au.edu.unimelb.plantcell.io.read.spectra.AbstractSpectraCell;
 import au.edu.unimelb.plantcell.io.read.spectra.BasicPeakList;
 import au.edu.unimelb.plantcell.io.read.spectra.SpectraUtilityFactory;
 
+import com.compomics.mascotdatfile.util.exception.MascotDatfileException;
 import com.compomics.mascotdatfile.util.interfaces.FragmentIon;
 import com.compomics.mascotdatfile.util.interfaces.MascotDatfileInf;
 import com.compomics.mascotdatfile.util.interfaces.QueryToPeptideMapInf;
@@ -156,16 +157,16 @@ public class MascotReaderNodeModel extends NodeModel {
         		// count problem files here...
         		MascotDatfileInf mascot_dat_file;
         		QueryToPeptideMapInf q2pm;
-        		Vector good_hits;
+        		List<PeptideHit> good_hits;
         		
         		try {
         			/**
-        			 * WARNING WARNING WARNING: do not use MascotDatFileType.INDEXED ever! It uses singleton members for the index, meaning
+        			 * WARNING WARNING WARNING: do not use MascotDatFileType.INDEX ever! It uses singleton members for the index, meaning
         			 * that multiple simultaneous .dat file reads will trash each dat file's summary index - surely this is a bug in mascotdatfile????
         			 * 
         			 * BUG TODO FIXME: this means this node will fail with really large .dat files with out of memory (unless you have heaps configured in your knime.ini)
         			 */
-        			mascot_dat_file = MascotDatfileFactory.create(f.getAbsolutePath(), MascotDatfileType.MEMORY);
+        			mascot_dat_file = MascotDatfileFactory.create(f.getAbsolutePath(), MascotDatfileType.INDEX);
         			q2pm            = mascot_dat_file.getQueryToPeptideMap();
         			
 	        		for (int query=1; query <= q2pm.getNumberOfQueries(); query++) {
@@ -185,7 +186,7 @@ public class MascotReaderNodeModel extends NodeModel {
 		        				int max = is_best ? 1 : good_hits.size();
 		        				
 				            	for (int i=0; i<max && i<good_hits.size(); i++) {
-				            		PeptideHit    ph = (PeptideHit) good_hits.elementAt(i);
+				            		PeptideHit    ph = (PeptideHit) good_hits.get(i);
 				            		
 				            		if (is_confidence && !ph.scoresAboveIdentityThreshold(m_confidence.getDoubleValue())) {
 				            			continue;
@@ -224,16 +225,12 @@ public class MascotReaderNodeModel extends NodeModel {
 	        		save_parameters(c2, p, f);
         			good++; // consider the .DAT file good if we get here without throw
 
-        		} catch (Exception e) {
-        			if (e instanceof CanceledExecutionException)
-        				throw e;
-        			
+        		} catch (MascotDatfileException|NumberFormatException e) {
         			/**
         			 * Common causes of getting here are missing scores or other issue with .DAT file parsing. Its
         			 * not clear whether this is a problem with a particular mascot version or mascotdatfile (or both)
         			 */
-        			logger.warn("Cannot process "+f.getName()+" - file corrupt?");
-        			e.printStackTrace();
+        			logger.warn("Cannot process "+f.getName()+" - file corrupt? Continuing to process remaining files...", e);
         			bad++;
         			continue;
         		}
