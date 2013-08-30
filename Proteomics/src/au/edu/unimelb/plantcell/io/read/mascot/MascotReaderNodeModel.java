@@ -159,7 +159,13 @@ public class MascotReaderNodeModel extends NodeModel {
         		Vector good_hits;
         		
         		try {
-        			mascot_dat_file = MascotDatfileFactory.create(f.getAbsolutePath(), MascotDatfileType.INDEX);
+        			/**
+        			 * WARNING WARNING WARNING: do not use MascotDatFileType.INDEXED ever! It uses singleton members for the index, meaning
+        			 * that multiple simultaneous .dat file reads will trash each dat file's summary index - surely this is a bug in mascotdatfile????
+        			 * 
+        			 * BUG TODO FIXME: this means this node will fail with really large .dat files with out of memory (unless you have heaps configured in your knime.ini)
+        			 */
+        			mascot_dat_file = MascotDatfileFactory.create(f.getAbsolutePath(), MascotDatfileType.MEMORY);
         			q2pm            = mascot_dat_file.getQueryToPeptideMap();
         			
 	        		for (int query=1; query <= q2pm.getNumberOfQueries(); query++) {
