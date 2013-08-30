@@ -92,6 +92,7 @@ public class MGFDataProcessor extends AbstractDataProcessor {
 				PeakList pl = ms.getPeakList();
 				
 				BasicPeakList bpl = new BasicPeakList(pl);
+				bpl.setTitle(ms.getTitle());
 				
 				Peak precursor = pl.getPrecursor();
 				if (precursor == null) {
@@ -101,7 +102,11 @@ public class MGFDataProcessor extends AbstractDataProcessor {
 				}
 				
 				DataCell[] cells = missing_cells(ncols);
-				cells[2]  = new StringCell(bpl.getRT_safe());
+				String rt = bpl.getRT_safe();
+				if (rt.length() > 0) {
+					cells[2]  = new StringCell(rt);
+				}
+				cells[8]  = new IntCell(pl.getMSLevel());
 				cells[21] = new StringCell(m_file.getAbsolutePath());
 				if (ncols > 23) {
 				         cells[23] = SpectraUtilityFactory.createCell(bpl);
@@ -139,9 +144,9 @@ public class MGFDataProcessor extends AbstractDataProcessor {
 		}
 		
 		if (no_precursor > 0)
-			logger.warn("Cannot find precursor peaks in "+no_precursor+" spectra, some data will be missing.");
+			logger.warn("Cannot find precursor specified in "+no_precursor+" peak lists, may affect downstream analysis.");
 		if (no_charge > 0)
-			logger.warn("No charge state (prediction) in "+no_charge+" spectra, perhaps a problem with the data?");
+			logger.warn("No charge for "+no_charge+" peak lists, perhaps a problem with the data?");
 	}
 	
 	/**

@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Proteomics
 Bundle-SymbolicName: au.edu.unimelb.plantcell.proteomics; singleton:=true
-Bundle-Version: 1.2.22
+Bundle-Version: 1.2.23
 Bundle-ClassPath: insilicodigestor.jar,
  lib/collections-generic-4.01.jar,
  lib/com.springsource.antlr-2.7.7.jar,
@@ -109,5 +109,5 @@ Import-Package: it.unimi.dsi.fastutil,
  org.apache.commons.collections.list;version="3.2.0",
  org.apache.commons.collections.map;version="3.2.0",
  org.apache.commons.collections.set;version="3.2.0"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 

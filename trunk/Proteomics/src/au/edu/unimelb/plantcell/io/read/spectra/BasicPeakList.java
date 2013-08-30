@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import org.expasy.jpl.core.ms.lc.RetentionTime;
 import org.expasy.jpl.core.ms.spectrum.PeakList;
 import org.expasy.jpl.core.ms.spectrum.PeakListImpl;
 import org.expasy.jpl.core.ms.spectrum.PeakListImpl.Builder;
@@ -44,6 +45,10 @@ public class BasicPeakList implements Serializable {
 	
 	public BasicPeakList(PeakList pl) {
 		setPeakList(pl);
+		
+		if (pl != null && pl.getPrecursor() != null) {
+			init(pl.getPrecursor(), "", pl.getMSLevel());
+		}
 	}
 	
 	/**
@@ -75,7 +80,7 @@ public class BasicPeakList implements Serializable {
 	
 		// ensure peaklist and internal state is set...
 		if (precursor != null) {
-			init(String.valueOf(precursor.getMz()), String.valueOf(precursor.getCharge()), title, ms_level);
+			init(precursor, title, ms_level);
 		} else {
 			init("", "", title, ms_level);
 		}
@@ -92,8 +97,37 @@ public class BasicPeakList implements Serializable {
 		init(pepmass, charge, title, msLevel);
 	}
 
+	/**
+	 * only call this if the precursor is known
+	 * @param precursor may not be null
+	 * @param title
+	 * @param msLevel
+	 */
+	protected void init(final Peak precursor, final String title, final int msLevel) {
+		assert(precursor != null);
+		init(String.valueOf(precursor.getMz()), String.valueOf(precursor.getCharge()), title, msLevel);
+		
+		// add headers for the retention time if the precursor has it...
+		RetentionTime rt = precursor.getRT();
+		if (rt != null) {
+			addHeader("RTINSECONDS", String.valueOf(rt2seconds(rt)));
+		}
+	}
+	
+	/**
+	 * Returns the RT in seconds as a double
+	 * @param rt
+	 * @return
+	 */
+	private double rt2seconds(RetentionTime rt) {
+		double val = rt.getValue();
+		if (rt.getUnit().equals(RetentionTime.RTUnit.minute))
+			val *= 60.0;
+		return val;
+	}
+
 	@SuppressWarnings("unused")
-	protected void init(String pepmass, String charge, String title, int msLevel) {
+	protected void init(final String pepmass, final String charge, final String title, int msLevel) {
 		double pm = Double.valueOf(pepmass);
 		int z = decodeChargeString(charge);
 		if (z > 0)
@@ -143,22 +177,6 @@ public class BasicPeakList implements Serializable {
 			precursor = new PeakImpl.Builder(pepmass).charge(charge).msLevel(msLevel).build();
 		setPeakList(mz, intensity, precursor);
 	}
-	
-	/**
-	 * @param next
-	 *
-	public BasicPeakList(SpectrumAdapter sa) {
-		assert(sa != null);
-	
-		addHeader("TITLE", sa.getTitle());
-		addHeader("PEPMASS", ""+sa.getParentMZ()+" "+sa.getParentIntensity());
-		addHeader("CHARGE", String.valueOf(sa.getParentCharge()));
-		if (sa.getRetentionTime() > 0.0) {
-			addHeader("RTINSECONDS", String.valueOf(sa.getRetentionTime()));
-		}
-		addHeader("SCANS", String.valueOf(sa.getIndex()));
-		setPeakList(sa.getPeakList());
-	}*/
 	 
 	@Override
 	protected Object clone() throws CloneNotSupportedException {
@@ -248,7 +266,7 @@ public class BasicPeakList implements Serializable {
 		}
 	}
 	
-	public void addHeader(String key, String val) {
+	private void addHeader(String key, String val) {
 		m_headers.put(key, val);
 	}
 	
@@ -467,12 +485,31 @@ public class BasicPeakList implements Serializable {
 			output.writeInt(-1);
 		}
 		
-		// 3. save metadata
+		// 3. save metadata: here we must be very careful to always have PEPMASS, CHARGE and TITLE specified even if not supplied by the input data
+		//    as the loading code expects it to be there. Impute from something if need be...
 		output.writeInt(saveme.getTandemCount());
-		output.writeInt(saveme.m_headers.size());
-		for (String key : saveme.m_headers.keySet()) {
+		HashMap<String,String> out_map = new HashMap<String,String>();
+		out_map.putAll(saveme.m_headers);
+		if (!out_map.containsKey("TITLE")) {
+			out_map.put("TITLE", saveme.getTitle_safe());
+		}
+		if (!out_map.containsKey("PEPMASS")) {
+			if (precursor != null)
+				out_map.put("PEPMASS", String.valueOf(precursor.getMz()));
+			else 
+				out_map.put("PEPMASS", "0.0");
+		}
+		if (!out_map.containsKey("CHARGE")) {
+			if (precursor != null) 
+				out_map.put("CHARGE", String.valueOf(precursor.getCharge())+"+");
+			else {
+				out_map.put("CHARGE", "1+");
+			}
+		}
+		output.writeInt(out_map.size());
+		for (String key : out_map.keySet()) {
 			output.writeUTF(key);
-			output.writeUTF(saveme.m_headers.get(key));
+			output.writeUTF(out_map.get(key));
 		}
 	}
 
