@@ -17,7 +17,7 @@ public class FormattedRenderer extends MultiLineStringValueRenderer {
 	 */
 	private static final long serialVersionUID = 6888195260349272796L;
 
-	public enum FormatType { F_CLUSTALW, F_PLAIN, F_PHYLIP_INTERLEAVED, F_PHYLIP_SEQUENTIAL};
+	public enum FormatType { F_CLUSTALW, F_PLAIN, F_PHYLIP_INTERLEAVED, F_PHYLIP_SEQUENTIAL, F_FASTA};
 	
 	private FormatType m_format;
 	
@@ -48,6 +48,8 @@ public class FormattedRenderer extends MultiLineStringValueRenderer {
 			return "Phylip (Interleaved)";
 		case F_PHYLIP_SEQUENTIAL:
 			return "Phylip (Sequential)"; 
+		case F_FASTA:
+			return "Fasta";
 		default:
 			return "Plain";
 		}

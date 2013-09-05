@@ -37,7 +37,7 @@ public class AlignmentWriterNodeDialog extends DefaultNodeSettingsPane {
         addDialogComponent(new DialogComponentFileChooser(m_folder, "folder-history", JFileChooser.SAVE_DIALOG, true));
         addDialogComponent(new DialogComponentColumnNameSelection(m_column, AlignmentWriterNodeModel.CFGKEY_COLUMN, 
         						0, true, false, AlignmentValue.class));
-        addDialogComponent(new DialogComponentStringSelection(m_format, "Alignment format to save to", new String[] { "Clustal", "NEXUS" }));
+        addDialogComponent(new DialogComponentStringSelection(m_format, "Alignment format to save to", new String[] { "Clustal", "NEXUS", "Fasta" }));
     }
 }
 
