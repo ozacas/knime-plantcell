@@ -20,6 +20,8 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
+import au.edu.unimelb.plantcell.io.ws.multialign.FormattedRenderer.FormatType;
+
 
 
 /**
@@ -32,8 +34,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 public class AlignmentWriterNodeModel extends NodeModel {
     
     // the logger instance
-    private static final NodeLogger logger = NodeLogger
-            .getLogger(AlignmentWriterNodeModel.class);
+    private static final NodeLogger logger = NodeLogger.getLogger("Alignment Writer");
         
     static final String CFGKEY_FORMAT = "alignment-format";
     static final String CFGKEY_COLUMN = "alignment-column";
@@ -73,13 +74,28 @@ public class AlignmentWriterNodeModel extends NodeModel {
     		
     		if (aln_cell instanceof MultiAlignmentCell) {
     			MultiAlignmentCell ac = (MultiAlignmentCell) aln_cell;
-    			save_alignment(new File(m_folder.getStringValue(), basename + ".aln"), ac, m_format.getStringValue().toLowerCase());
+    			String format = m_format.getStringValue().toLowerCase();
+    			save_alignment(new File(m_folder.getStringValue(), getFileName(basename, format)), ac, format);
     		}
     	}
     	return null;
     }
 
     /**
+     * Responsible for choosing an appropriate filename to save the alignment to based on the alignment format chosen
+     * @param basename
+     * @param format
+     * @return
+     */
+    private String getFileName(String basename, String format) {
+		if (format.startsWith("fasta")) {
+			return basename+".fasta";
+		} else {
+			return basename+".aln";
+		}
+	}
+
+	/**
      * Saves the specified alignment cell (instance of MultiAlignmentCell) in the specified file, with the specified format.
      * An error is thrown if the alignment is not valid for the chosen format or cannot be saved for any reason
      * 
@@ -88,14 +104,21 @@ public class AlignmentWriterNodeModel extends NodeModel {
      * @param alignment_format must be in all lowercase eg. clustal, nexus etc...
      * @throws IOException	   thrown upon exception eg. disk full
      */
-    private void save_alignment(File file, MultiAlignmentCell ac, String alignment_format) throws IOException, UnsupportedAlignmentException  {
+    private void save_alignment(final File file, final MultiAlignmentCell ac, final String alignment_format) throws IOException, UnsupportedAlignmentException  {
+    	FormatType ft = null;
     	if (alignment_format.startsWith("clustal")) {
-    		String txt = ac.getFormattedAlignment(FormattedRenderer.FormatType.F_CLUSTALW);
+    		ft = FormattedRenderer.FormatType.F_CLUSTALW;
+    	}
+    	if (alignment_format.startsWith("fasta")) {
+    		ft = FormattedRenderer.FormatType.F_FASTA;
+    	}
+    	if (ft != null) {
+    		String txt = ac.getFormattedAlignment(ft);
     		PrintWriter pw = new PrintWriter(new FileOutputStream(file));
     		pw.print(txt);
     		pw.close();
     	} else {
-    		throw new UnsupportedAlignmentException("Unsupported format "+alignment_format);
+    		throw new UnsupportedAlignmentException("Unsupported alignment format "+alignment_format);
     	}
 	}
 
@@ -155,13 +178,6 @@ public class AlignmentWriterNodeModel extends NodeModel {
     protected void loadInternals(final File internDir,
             final ExecutionMonitor exec) throws IOException,
             CanceledExecutionException {
-        
-        // TODO load internal data. 
-        // Everything handed to output ports is loaded automatically (data
-        // returned by the execute method, models loaded in loadModelContent,
-        // and user settings set through loadSettingsFrom - is all taken care 
-        // of). Load here only the other internals that need to be restored
-        // (e.g. data used by the views).
 
     }
     
@@ -172,13 +188,6 @@ public class AlignmentWriterNodeModel extends NodeModel {
     protected void saveInternals(final File internDir,
             final ExecutionMonitor exec) throws IOException,
             CanceledExecutionException {
-       
-        // TODO save internal models. 
-        // Everything written to output ports is saved automatically (data
-        // returned by the execute method, models saved in the saveModelContent,
-        // and user settings saved through saveSettingsTo - is all taken care 
-        // of). Save here only the other internals that need to be preserved
-        // (e.g. data used by the views).
 
     }
 

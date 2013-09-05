@@ -106,6 +106,8 @@ public class MultiAlignmentCell extends DataCell implements AlignmentValue, Seri
 			AlignmentUtils.printSequential(m_a, pw);
 		} else if (format == FormattedRenderer.FormatType.F_PHYLIP_INTERLEAVED) {
 			AlignmentUtils.printInterleaved(m_a, pw);
+		} else if (format == FormattedRenderer.FormatType.F_FASTA) {
+			printFasta(m_a, pw);
 		} else {
 			AlignmentUtils.printPlain(m_a, pw);
 		}
@@ -113,6 +115,13 @@ public class MultiAlignmentCell extends DataCell implements AlignmentValue, Seri
 		return sw.toString();
 	}
 	
+	private void printFasta(final Alignment a, final PrintWriter pw) {
+		for (int i=0; i<a.getSequenceCount(); i++) {
+			pw.println(">"+a.getIdentifier(i));
+			pw.println(a.getAlignedSequenceString(i));
+		}
+	}
+
 	@Override
 	public String toString() {
 		StringWriter sw = new StringWriter(100 * 1024);
