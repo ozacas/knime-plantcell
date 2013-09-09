@@ -9,12 +9,12 @@ public class DistanceMatrixCell implements MatrixValue {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
+/*
 	@Override
 	protected boolean equalsDataCell(DataCell dc) {
 		// TODO Auto-generated method stub
 		return false;
-	}
+	}*/
 
 	@Override
 	public int hashCode() {
