@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Sink">
+    <name>Tree2PhyloXML Writer</name>
+    
+    <shortDescription>
+        Saves a tree format (eg. Newick or PhyloXML) tree with decorated data from the input table
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>Saves an input tree file (eg. Newick or PhyloXML format) tree with decorated data from the input table
+        as a <a href="http://www.phyloxml.org">PhyloXML</a> document. The document can be opened at the conclusion of processing
+        if this is desired.</intro>
+        
+        
+        <option name="Tree to decorate">Enter the newick file which you wish to use as the source (gene) tree. It will not be modified.</option>
+        <option name="Output file">The tree, after decoration with your data, is saved to this location. Always <a href="http://www.phyloxml.org">PhyloXML format</a></option>
+        <option name="Overwrite existing output file?">If checked, the node will overwrite an existing output file</option>
+        <option name="Start Archaeopteryx">If checked, display the adjusted tree in archaeopteryx once the execution is complete</option>
+        <option name="Tree labels">Select the sequence column which provided taxa for the tree. The phyloxml can include this
+        sequence if the 'include sequence' button is checked</option>
+        <option name="Match taxa names">This option can be used to match part of the input tree label to the input data. By default,
+        all the taxa names from the newick files are matched against input data.</option>
+        <option name="Scientific species names">Choose the column (or none) which provides scientific species names</option>
+        <option name="Image URLs">Each taxa can have an image, here you can choose which column provides the URL for each taxa (or none)</option>
+        <option name="Label for domains">Domain architecture eg. structural features for each sequence can be labelled with three parallel
+        lists. This vector provides a list of labels (which should be short for clarity) of the features on the sequence to show. All
+        three lists must have the same number of values</option>
+        <option name="Start positions">A list of values which describe the start positions for each feature</option>
+        <option name="End positions">A list of values which describe the end position of each feature</option>
+        
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input data to label taxa">Input table including (optional) species and domain architecture information.</inPort>
+        <outPort index="0" name="Decoration statistics">What happened during decoration: how many taxa were annotated?</outPort>
+    </ports>
+ 
+</knimeNode>

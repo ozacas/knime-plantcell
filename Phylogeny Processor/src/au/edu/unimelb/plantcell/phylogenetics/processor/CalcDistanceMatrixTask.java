@@ -24,7 +24,7 @@ public class CalcDistanceMatrixTask implements RunnableTask {
 	@Override
 	public DataTableSpec getOutputSpec(DataTableSpec inSpec) {
 		DataColumnSpec[] cols = new DataColumnSpec[1];
-		cols[0] = new DataColumnSpecCreator("Distance Matrix", DistanceMatrixCell.TYPE).createSpec();
+		//cols[0] = new DataColumnSpecCreator("Distance Matrix", DistanceMatrixCell.TYPE).createSpec();
 		return new DataTableSpec(cols);
 	}
 
