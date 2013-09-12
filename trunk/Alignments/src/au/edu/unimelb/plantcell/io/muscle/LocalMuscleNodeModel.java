@@ -234,6 +234,7 @@ public class LocalMuscleNodeModel extends NodeModel {
     	
     	return cols[0];
     }
+    
     /**
      * {@inheritDoc}
      */
