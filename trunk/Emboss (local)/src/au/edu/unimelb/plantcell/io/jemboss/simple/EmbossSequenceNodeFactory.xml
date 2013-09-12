@@ -11,7 +11,9 @@
         <intro>
         This node appends sequences (eg. DNA/Protein) to the existing table using the
         <a href="http://emboss.sourceforge.net">EMBOSS toolkit</a>. These sequences
-        can then be further analysed using other nodes in the PlantCell extension eg. <b>NCBI BLAST+</b>
+        can then be further analysed using other nodes in the PlantCell extension eg. <b>NCBI BLAST+</b>.
+        Only EMBOSS programs which provide sequences in a suitable format are available from this node.
+        
         <p>
         Note that for this node to work, you <b>must</b>:
         	<ol>

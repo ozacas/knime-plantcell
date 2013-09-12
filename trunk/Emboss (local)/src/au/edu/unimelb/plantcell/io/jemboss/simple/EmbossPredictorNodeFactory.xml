@@ -13,7 +13,8 @@
          href="http://www.sanger.ac.uk/resources/software/gff/">GFF-style</a> data for the chosen sequences using the
         <a href="http://emboss.sourceforge.net">EMBOSS toolkit</a>. This can be used to
         identify key regions of interest and compare them to identified peptides during a
-        proteomics experiment (for example).
+        proteomics experiment (for example). Only EMBOSS programs which provide predictions in a GFF format are available from this node.
+        
         <p>
         Note that for this node to work, you <b>must</b>:
         	<ol>
