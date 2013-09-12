@@ -26,8 +26,10 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumberEdit;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelNumber;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
@@ -177,7 +179,8 @@ public class MascotReaderNodeDialog extends DefaultNodeSettingsPane {
         
         this.addTab("Mascot DAT files", file_panel);
         
-        DialogComponentButtonGroup bg = new DialogComponentButtonGroup(f_resulttype, true, "Result Selection per query", new String[] { "all hits", "best hit only", "confident hits only (identity threshold)"});
+        DialogComponentButtonGroup bg = new DialogComponentButtonGroup(f_resulttype, true, "Report which peptide hits per query?", 
+        		new String[] { "all hits", "best hit only", "confident hits only (identity threshold)", "confident hits only (above homology threshold)"});
         bg.setToolTipText("Which peptide identifications per spectra do you want to see?");
         addDialogComponent(bg);
         f_resulttype.addChangeListener(new ChangeListener() {
@@ -187,6 +190,8 @@ public class MascotReaderNodeDialog extends DefaultNodeSettingsPane {
         });
         
         addDialogComponent(new DialogComponentNumberEdit(f_ci,"Identity Threshold Confidence", 5));
+        
+        addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(MascotReaderNodeModel.CFGKEY_WANT_SPECTRA, true), "Want MS/MS spectra?"));
     }
     
     @Override
