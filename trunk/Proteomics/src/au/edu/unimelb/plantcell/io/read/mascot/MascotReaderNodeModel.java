@@ -33,6 +33,7 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
@@ -70,9 +71,10 @@ public class MascotReaderNodeModel extends NodeModel {
     /** the settings key which is used to retrieve and 
         store the settings (from the dialog or from a settings file)    
        (package visibility to be usable from the dialog). */
-	static final String CFGKEY_FILES     = "mascot-files-to-load";
+	static final String CFGKEY_FILES      = "mascot-files-to-load";
 	static final String CFGKEY_CONFIDENCE = "confidence";
 	static final String CFGKEY_RESULTTYPE = "results-selection";
+	static final String CFGKEY_WANT_SPECTRA = "want-spectra?";
 
     /** initial default count value. */
     private static final double DEFAULT_CONFIDENCE = 0.05;		// 95% CI
@@ -84,7 +86,7 @@ public class MascotReaderNodeModel extends NodeModel {
     private final SettingsModelStringArray        m_files = new SettingsModelStringArray(CFGKEY_FILES, new String[] {});
     private final SettingsModelDoubleBounded m_confidence = (SettingsModelDoubleBounded) make(CFGKEY_CONFIDENCE);
     private final SettingsModelString        m_resulttype = make_as_string(CFGKEY_RESULTTYPE);
-    
+    private final SettingsModelBoolean		 m_want_spectra = (SettingsModelBoolean) make(CFGKEY_WANT_SPECTRA);
 
     /**
      * Constructor for the node model.
@@ -103,6 +105,8 @@ public class MascotReaderNodeModel extends NodeModel {
     		return sm;
     	} else if (k.equals(CFGKEY_RESULTTYPE)) {
     		return new SettingsModelString(CFGKEY_RESULTTYPE, DEFAULT_RESULTTYPE);
+    	} else if (k.equals(CFGKEY_WANT_SPECTRA)) {
+    		return new SettingsModelBoolean(CFGKEY_WANT_SPECTRA, true);
     	}
     	return null;
     }
@@ -114,7 +118,6 @@ public class MascotReaderNodeModel extends NodeModel {
     /**
      * {@inheritDoc}
      */
-    @SuppressWarnings("rawtypes")
 	@Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
@@ -147,7 +150,8 @@ public class MascotReaderNodeModel extends NodeModel {
         int total = dat_files.size();
         boolean is_all        = m_resulttype.getStringValue().startsWith("all");
 		boolean is_best       = m_resulttype.getStringValue().startsWith("best");
-		boolean is_confidence = (!is_all && !is_best);
+		boolean is_confidence_identity = m_resulttype.getStringValue().indexOf("identity threshold") >= 0;
+		boolean is_confidence_homology = m_resulttype.getStringValue().indexOf("homology threshold") >= 0;
 		
         for (File f : dat_files) {
         	if (f.getName().toLowerCase().endsWith(".dat")) {
@@ -161,15 +165,18 @@ public class MascotReaderNodeModel extends NodeModel {
         		
         		try {
         			/**
-        			 * WARNING WARNING WARNING: do not use MascotDatFileType.INDEX ever! It uses singleton members for the index, meaning
-        			 * that multiple simultaneous .dat file reads will trash each dat file's summary index - surely this is a bug in mascotdatfile????
+        			 * WARNING WARNING WARNING: do not use the mascotdatfile.jar (up to v3.49) as it uses singleton members for the index, meaning
+        			 * that multiple simultaneous .dat file reads will trash each dat file's summary index - surely this is a bug????
         			 * 
-        			 * BUG TODO FIXME: this means this node will fail with really large .dat files with out of memory (unless you have heaps configured in your knime.ini)
+        			 * BUG TODO FIXME: at the moment we use a custom copy of the mascotdatfile source code and removed the singleton design pattern from SummaryIndex
         			 */
         			mascot_dat_file = MascotDatfileFactory.create(f.getAbsolutePath(), MascotDatfileType.INDEX);
         			q2pm            = mascot_dat_file.getQueryToPeptideMap();
         			
 	        		for (int query=1; query <= q2pm.getNumberOfQueries(); query++) {
+	        				if (query % 100 == 0)
+	        					exec.checkCanceled();
+	        				
 	        			    //logger.info("Processing query: "+query);
 		        			good_hits = q2pm.getAllPeptideHits(query);
 		        			
@@ -182,16 +189,21 @@ public class MascotReaderNodeModel extends NodeModel {
 		        				// 2. all hits
 		        				// 3. above user-chosen confidence level (for the current FILE only)
 		        				Query q = mascot_dat_file.getQuery(query);
+		        				DataCell spectra_cell = make_spectra(q);
 		        				String title = q.getTitle();
 		        				int max = is_best ? 1 : good_hits.size();
 		        				
 				            	for (int i=0; i<max && i<good_hits.size(); i++) {
 				            		PeptideHit    ph = (PeptideHit) good_hits.get(i);
+				            		if (ph == null)
+				            			continue;
 				            		
-				            		if (is_confidence && !ph.scoresAboveIdentityThreshold(m_confidence.getDoubleValue())) {
+				            		if (is_confidence_identity && !ph.scoresAboveIdentityThreshold(m_confidence.getDoubleValue())) {
 				            			continue;
-				            		} else if (ph == null) {
+				            		} else if (is_confidence_homology && !ph.scoresAboveHomologyThreshold()) {
 				            			continue;
+				            		} else {
+				            			// fall-thru and report it...
 				            		}
 				            		DataCell[] cells = new DataCell[N_COLS];
 				            		cells[0]         = new StringCell(ph.getSequence());
@@ -208,7 +220,7 @@ public class MascotReaderNodeModel extends NodeModel {
 				                	cells[11]        = new StringCell(title);
 				                	cells[12]        = matchingIonsCell(ph, q, mascot_dat_file);
 				                	cells[13]        = theoreticalIonsCell(ph, q, mascot_dat_file);
-				                	cells[14]        = make_spectra(q);
+				                	cells[14]        = spectra_cell;
 				                	
 				            		DataRow row = new DefaultRow("Hit"+row_id, cells);
 				            		container.addRowToTable(row);
@@ -443,6 +455,7 @@ public class MascotReaderNodeModel extends NodeModel {
         m_files.saveSettingsTo(settings);
         m_confidence.saveSettingsTo(settings);
         m_resulttype.saveSettingsTo(settings);
+        m_want_spectra.saveSettingsTo(settings);
     }
 
     /**
@@ -454,6 +467,9 @@ public class MascotReaderNodeModel extends NodeModel {
         m_files.loadSettingsFrom(settings);
         m_confidence.loadSettingsFrom(settings);
         m_resulttype.loadSettingsFrom(settings);
+        if (settings.containsKey(CFGKEY_WANT_SPECTRA)) {
+        	m_want_spectra.loadSettingsFrom(settings);
+        }
     }
 
     /**
@@ -465,6 +481,9 @@ public class MascotReaderNodeModel extends NodeModel {
         m_files.validateSettings(settings);
         m_confidence.validateSettings(settings);
         m_resulttype.validateSettings(settings);
+        if (settings.containsKey(CFGKEY_WANT_SPECTRA)) {
+        	m_want_spectra.validateSettings(settings);
+        }
     }
     
     /**
@@ -487,8 +506,15 @@ public class MascotReaderNodeModel extends NodeModel {
      
     }
     
+    /**
+     * Returns a data cell representing the mascot query. If the node is configured to not want spectra
+     * loaded, then this method returns <code>DataType.getMissingCell</code> rather than waste time computing something which wont be used
+     * 
+     * @param q must be a query spectrum from the Mascot dat file
+     * @return
+     */
     protected DataCell make_spectra(final Query q) {
-    	if (q == null || q.getNumberOfPeaks() < 1) 
+    	if (q == null || q.getNumberOfPeaks() < 1 || !m_want_spectra.getBooleanValue()) 
     		return DataType.getMissingCell();
     	
     	// HACK TODO: assumes MS/MS from mascot search - is the true MS level even available? probably not if MGF submitted...
