@@ -8,7 +8,6 @@ import javax.swing.event.ChangeListener;
 
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
-import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
@@ -77,10 +76,7 @@ public class EmbossPlotNodeDialog extends StandardEmbossDialog {
         addDialogComponent(new DialogComponentColumnNameSelection(new SettingsModelString(EmbossPredictorNodeModel.CFGKEY_SEQUENCE, "Annotated Sequence"),
         		"Sequences to process", 0, SequenceValue.class
         		));
-       
-        addDialogComponent(new DialogComponentString(
-        			new SettingsModelString(EmbossPredictorNodeModel.CFGKEY_ARGS, ""), "Arguments (advanced users only)"
-        		));
+    
         
         addAdvancedTab();
     }

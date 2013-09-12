@@ -65,7 +65,7 @@ public class UserField extends ACDField implements ActionListener {
 		if (isIntegerWidget()) {
 			m_widget = new JSpinner();
 		} else if (isListWidget()) {
-			m_widget = new JComboBox(getListItems());
+			m_widget = new JComboBox<String>(getListItems());
 		} else if (isBooleanWidget()) {
 			m_widget = new JCheckBox();
 		} else if (isFileWidget()) {
@@ -185,13 +185,14 @@ public class UserField extends ACDField implements ActionListener {
 	}
 
 	
+	@SuppressWarnings("unchecked")
 	public String getValue() {
 		if (m_widget instanceof JTextField) {
 			return ((JTextField)m_widget).getText();
 		} else if (m_widget instanceof JSpinner) {
 			return ((JSpinner) m_widget).getValue().toString();
 		} else if (m_widget instanceof JComboBox) {
-			return ((JComboBox) m_widget).getSelectedItem().toString();
+			return ((JComboBox<String>) m_widget).getSelectedItem().toString();
 		} else if (m_widget instanceof JCheckBox) {
 			return ((JCheckBox) m_widget).isSelected() ? "Y" : "N";
 		}
@@ -199,6 +200,7 @@ public class UserField extends ACDField implements ActionListener {
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
 	public void loadFieldFrom(Map<String,String> props) {
 		if (props == null)
 			props = getProperties();
@@ -213,7 +215,7 @@ public class UserField extends ACDField implements ActionListener {
 	
 			initSpinnerModel(sp, val);
 		} else if (m_widget instanceof JComboBox) {
-			((JComboBox) m_widget).setSelectedItem(val);
+			((JComboBox<String>) m_widget).setSelectedItem(val);
 		} else if (m_widget instanceof JCheckBox) {
 			((JCheckBox) m_widget).setSelected(val.equals("Y"));
 		}
@@ -268,6 +270,7 @@ public class UserField extends ACDField implements ActionListener {
 	}
 	
 
+	@SuppressWarnings("unchecked")
 	public void setValue(String val) throws InvalidSettingsException {
 		if (m_widget == null)
 			return;
@@ -284,14 +287,26 @@ public class UserField extends ACDField implements ActionListener {
 			}
 		} else if (m_widget instanceof JComboBox) {
 			// the value will be from the m_values hash, so we look it up to find the list item...
+			
+			// 1. check the values first (backward compatibility)
 			for (String key : m_values.keySet()) {
 				String v = m_values.get(key);
 				if (v.equals(val)) {
-					((JComboBox)m_widget).setSelectedItem(val);
+					((JComboBox<String>)m_widget).setSelectedItem(val);
 					return;
 				}
 			}
-			throw new InvalidSettingsException("Failed to find value: "+val+" for "+getName());
+			
+			// 2. and now the keys
+			for (String key : m_values.keySet()) {
+				if (val.equals(key)) {
+					((JComboBox<String>)m_widget).setSelectedItem(key);
+					return;
+				}
+			}
+			
+			// 3. throw if still not found
+			throw new InvalidSettingsException("User specified value is not supported: "+val+" for "+getName());
 		} else {
 			throw new InvalidSettingsException("No setValue() implementation for widget!");
 		}

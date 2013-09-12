@@ -81,10 +81,6 @@ public class EmbossSequenceNodeDialog extends StandardEmbossDialog {
         		"Sequences to process", 0, SequenceValue.class
         		));
        
-        addDialogComponent(new DialogComponentString(
-        			new SettingsModelString(EmbossPredictorNodeModel.CFGKEY_ARGS, ""), "Arguments (advanced users only)"
-        		));
-        
         addAdvancedTab();
     }
     

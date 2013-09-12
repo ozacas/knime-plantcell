@@ -13,6 +13,8 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 
+import com.sun.istack.internal.logging.Logger;
+
 /**
  * If you this class, do not call the superclass add/remove methods directly. Instead
  * use the methods provided here.
@@ -121,6 +123,7 @@ public class UserSettingsPanel extends JPanel {
 						add(uf);
 						uf.setValue(val);
 					} catch (InvalidSettingsException ise) {
+						Logger.getLogger("EMBOSS dialog", UserSettingsPanel.class).warning("Unable to configure "+acd_field+" - check your configuration!");
 						ise.printStackTrace();
 					}
 				}

@@ -13,6 +13,8 @@
         <a href="http://emboss.sourceforge.net">EMBOSS toolkit</a>. This can be used to visualise
         hydropathy, charge, restriction sites or other characteristics of sequence data. The node
         creates images in PNG format, which can easily be saved and loaded into many paint programs.
+        Only EMBOSS programs which provide plots in a suitable format are available from this node.
+        
         <p>
         Note that for this node to work, you <b>must</b>:
         	<ol>
