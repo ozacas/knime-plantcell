@@ -49,7 +49,7 @@ import au.edu.unimelb.plantcell.io.ws.multialign.AlignmentValue.AlignmentType;
  *
  */
 public class LocalMafftNodeModel extends NodeModel {
-private final NodeLogger logger = NodeLogger.getLogger("MAFFT Aligner (local)");
+    private final NodeLogger logger = NodeLogger.getLogger("MAFFT Aligner (local)");
 	
 	public static final String CFGKEY_ROOT = "mafft root folder";
 	public static final String CFGKEY_SEQUENCES = "sequences-column";
@@ -209,6 +209,13 @@ private final NodeLogger logger = NodeLogger.getLogger("MAFFT Aligner (local)");
 	    return new BufferedDataTable[]{out};
 	}
     
+	/**
+	 * Append the relevant arguments to the chosen command line for the MAFFT algorithm chosen by user configuration
+	 * 
+	 * @param cmdLine  command line instance to modify
+	 * @param algo     mafft algorithm chosen
+	 * @throws InvalidSettingsException
+	 */
 	private void addAlgoOptions(final CommandLine cmdLine, final String algo) throws InvalidSettingsException {
 		if (algo == null || algo.length() < 1 || algo.equals(TRADEOFFS[0])) {
 			cmdLine.addArgument("--auto");
