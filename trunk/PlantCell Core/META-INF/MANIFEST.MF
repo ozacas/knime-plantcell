@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: PlantCell Core
 Bundle-SymbolicName: au.edu.unimelb.plantcell.core;singleton:=true
-Bundle-Version: 1.2.25
+Bundle-Version: 1.2.29
 Bundle-ClassPath: plantcellcore.jar,
  lib/axis-1.4.jar,
  lib/commons-cli-1.1.jar,
@@ -128,8 +128,22 @@ Export-Package: au.edu.unimelb.plantcell.core,
  org.apache.axis.wsdl.gen,
  org.apache.axis.wsdl.symbolTable,
  org.apache.axis.wsdl.toJava,
- org.apache.commons.collections.buffer,
- org.apache.commons.collections.primitives,
+ org.apache.commons.collections;version="3.2.1",
+ org.apache.commons.collections.bag;version="3.2.1",
+ org.apache.commons.collections.bidimap;version="3.2.1",
+ org.apache.commons.collections.buffer;version="3.2.1",
+ org.apache.commons.collections.collection;version="3.2.1",
+ org.apache.commons.collections.comparators;version="3.2.1",
+ org.apache.commons.collections.functors;version="3.2.1",
+ org.apache.commons.collections.iterators;version="3.2.1",
+ org.apache.commons.collections.keyvalue;version="3.2.1",
+ org.apache.commons.collections.list;version="3.2.1",
+ org.apache.commons.collections.map;version="3.2.1",
+ org.apache.commons.collections.primitives;version="3.2.1",
+ org.apache.commons.collections.primitives.adapters;version="3.2.1",
+ org.apache.commons.collections.primitives.adapters.io;version="3.2.1",
+ org.apache.commons.collections.primitives.decorators;version="3.2.1",
+ org.apache.commons.collections.set;version="3.2.1",
  org.apache.commons.exec,
  org.apache.commons.exec.environment,
  org.apache.commons.exec.launcher,
@@ -268,3 +282,4 @@ Export-Package: au.edu.unimelb.plantcell.core,
 Bundle-ActivationPolicy: lazy
 Import-Package: org.knime.workbench.ui
 Bundle-Activator: au.edu.unimelb.plantcell.core.CorePlugin
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
