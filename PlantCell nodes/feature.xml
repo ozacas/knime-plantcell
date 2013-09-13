@@ -2,8 +2,9 @@
 <feature
       id="au.edu.unimelb.plantcell.www"
       label="PlantCell KNIME nodes"
-      version="1.2.21"
+      version="1.2.36"
       provider-name="http://www.plantcell.unimelb.edu.au/"
+      os="linux,solaris,win32"
       exclusive="true">
 
    <description url="http://www.plantcell.unimelb.edu.au/bioinformatics">
@@ -42,6 +43,7 @@ Each is subject to the license terms of the respective software package.
 
    <plugin
          id="au.edu.unimelb.plantcell.algorithms.StringFinder"
+         os="linux,solaris,win32"
          download-size="0"
          install-size="0"
          version="0.0.0"/>
@@ -174,6 +176,12 @@ Each is subject to the license terms of the respective software package.
 
    <plugin
          id="au.edu.unimelb.plantcell.views"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="au.edu.unimelb.plantcell.phylogenetics.processor"
          download-size="0"
          install-size="0"
          version="0.0.0"/>
