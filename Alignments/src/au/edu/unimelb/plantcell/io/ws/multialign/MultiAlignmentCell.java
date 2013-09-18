@@ -2,6 +2,7 @@ package au.edu.unimelb.plantcell.io.ws.multialign;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Reader;
 import java.io.Serializable;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -43,22 +44,32 @@ public class MultiAlignmentCell extends DataCell implements AlignmentValue, Seri
 	}
 	
 	/**
+	 * Equivalent to <code>MultiAlignmentCell(new StringReader(fasta), dt)</code>
+	 * @param fasta
+	 * @param dt
+	 * @throws IOException
+	 */
+	public MultiAlignmentCell(String fasta, AlignmentType dt) throws IOException {
+		this(new StringReader(fasta), dt);
+	}
+	
+	/**
 	 * Constructs an alignment cell from the specified aligned sequences (in FASTA format)
 	 * and using the specified type of sequence (which is usually an instance of either 
 	 * @ref{SpecificAminoAcids} or @ref{IUPACNucleotides}) from PAL
 	 * 
-	 * @param  aligned sequences in FASTA format
+	 * @param  r    reader over a FASTA formatted data source
 	 * @param dt    alignment type (see AlignmentValue.java)
 	 * @throws IOException
 	 */
-	public MultiAlignmentCell(String fasta, AlignmentType dt) throws IOException {
+	public MultiAlignmentCell(final Reader r, final AlignmentType dt) throws IOException {
 		pal.datatype.DataType t = null;
 		if (dt == AlignmentType.AL_AA) {
 			t = new AminoAcids();
 		} else if (dt == AlignmentType.AL_NA) {
 			t = new Nucleotides();
 		}
-		m_a = AlignmentReaders.readFastaSequences(new StringReader(fasta), t);
+		m_a = AlignmentReaders.readFastaSequences(r, t);
 	}
 	
 	public MultiAlignmentCell(Alignment a) {
