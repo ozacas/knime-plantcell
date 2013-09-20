@@ -61,9 +61,10 @@ public class Plot3DBarNodeModel extends NodeModel {
     private SummaryStatistics z_stats = null;					// re-computed during loadInternals
     
     @SuppressWarnings("unused")
-	private String[] m_rows = null;		// row ID's used for highlighting (NOT YET implemented)
-    private Color[] m_colours = null;	// row colours used for the graph
+	private String[] m_rows = null;		    // row ID's used for highlighting (NOT YET implemented)
+    private Color[] m_colours = null;	    // row colours used for the graph
     private FloatArrayList m_overlay= null;	// used for an axis-aligned overlay plot (optional)
+    private FloatArrayList m_sizes = null;  // used to scale the size of each datapoint individually
     
     /**
      * Constructor for the node model.
@@ -108,6 +109,7 @@ public class Plot3DBarNodeModel extends NodeModel {
     	ArrayList<String> rowids = new ArrayList<String>(n_rows);
     	ArrayList<Color> colours = new ArrayList<Color>(n_rows);
     	ArrayList<Float> overlay= new ArrayList<Float>(n_rows);
+    	m_sizes = new FloatArrayList(n_rows);
     	for (DataRow r : inData[0]) {
     		DataCell x_cell = r.getCell(x_idx);
     		DataCell y_cell = r.getCell(y_idx);
@@ -136,8 +138,12 @@ public class Plot3DBarNodeModel extends NodeModel {
 	    				}
 	    			}
     			}
-    			java.awt.Color c_awt = inData[0].getSpec().getRowColor(r).getColor();
+    			
+    			DataTableSpec spec = inData[0].getSpec();
+    			java.awt.Color c_awt = spec.getRowColor(r).getColor();
     			colours.add(c_awt != null ? new Color(c_awt.getRed(), c_awt.getGreen(), c_awt.getBlue()) : Color.BLACK);
+    			double size = spec.getRowSizeFactor(r);
+    			m_sizes.add((float)size);
     		} catch (NumberFormatException nfe) {
     			bad++;
     		}
@@ -179,6 +185,7 @@ public class Plot3DBarNodeModel extends NodeModel {
         m_rows = null;
         m_colours = null;
         m_overlay = null;
+        m_sizes = null;
         x_fal.clear();
         y_fal.clear();
         z_fal.clear();
@@ -326,6 +333,16 @@ public class Plot3DBarNodeModel extends NodeModel {
     	} else {
     		pw.println("0");
     	}
+    	
+    	// 4. size of each datapoint (if any)
+    	if (m_sizes != null) {
+    		pw.println(m_sizes.size());
+    		for (int i=0; i<m_sizes.size(); i++) {
+    			pw.println(m_sizes.getFloat(i));
+    		}
+    	} else {
+    		pw.println("0");
+    	}
     	pw.close();
     }
 
@@ -368,12 +385,14 @@ public class Plot3DBarNodeModel extends NodeModel {
 	 * @param y
 	 * @param z
 	 */
-	public void getDataPoints(FloatArrayList x, FloatArrayList y, FloatArrayList z, Color[] colours) {
-		assert(x != null && y != null && z != null);
+	public void getDataPoints(FloatArrayList x, FloatArrayList y, FloatArrayList z, Color[] colours, FloatArrayList sizes) {
+		assert(x != null && y != null && z != null && sizes != null);
 		
 		x.addAll(x_fal);
 		y.addAll(y_fal);
 		z.addAll(z_fal);
+		sizes.addAll(m_sizes);
+		
 		int n = countDataPoints();
 		for (int i=0; i<n; i++) {
 			colours[i]= m_colours[i];

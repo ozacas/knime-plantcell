@@ -477,11 +477,11 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
         assert nodeModel != null;
         
        // long start = System.currentTimeMillis();
-        String drawing_type = getShowAs();
-        boolean is_sphere = drawing_type.equals("Sphere");
+        String drawing_type       = getShowAs();
+        boolean is_sphere         = drawing_type.equals("Sphere");
         boolean is_parallelepiped = drawing_type.equals("Box");
-        boolean is_scatter = drawing_type.startsWith("Scatter");
-        boolean has_overlay = nodeModel.hasOverlay();
+        boolean is_scatter        = drawing_type.startsWith("Scatter");
+        boolean has_overlay       = nodeModel.hasOverlay();
         if (nodeModel != null && nodeModel.hasDataPoints()) {
         	float[] overlay = null;
         	double overlay_min = 0.0;
@@ -496,10 +496,12 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
         	}
         	Color[] colours = new Color[nodeModel.countDataPoints()];
         	
+        	// get the data from the model including user configured sizes and colours (scatter mode wont display the size, but will the colour)
         	FloatArrayList x = new FloatArrayList(nodeModel.countDataPoints());
         	FloatArrayList y = new FloatArrayList(nodeModel.countDataPoints());
         	FloatArrayList z = new FloatArrayList(nodeModel.countDataPoints());
-        	nodeModel.getDataPoints(x, y, z, colours);
+        	FloatArrayList sizes = new FloatArrayList(nodeModel.countDataPoints());
+        	nodeModel.getDataPoints(x, y, z, colours, sizes);
         	
         	SummaryStatistics x_stats = new SummaryStatistics();
         	SummaryStatistics y_stats = new SummaryStatistics();
@@ -513,6 +515,12 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
         	double x_range = range(x_stats.getMin(), x_stats.getMax());
         	double y_range = range(y_stats.getMin(), y_stats.getMax());
         	double z_range = range(z_stats.getMin(), z_stats.getMax());
+        	if (x_range < Double.MIN_VALUE)
+        		x_range = 1.0;
+        	if (y_range < Double.MIN_VALUE)
+        		y_range = 1.0;
+        	if (z_range < Double.MIN_VALUE)
+        		z_range = 1.0;
         	
         	// convert each data point to [0,1] for the view
         	long n = x_stats.getN();
@@ -563,20 +571,21 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
 		        		float xi = x.get(i);
 		        		float yi = y.get(i);
 		        		float zi = z.get(i);
+		        		float size = sizes.getFloat(i) * bar_radius;
 		        		if (!is_sphere && !is_parallelepiped) {
-		        			HistogramBar hb = new MyHistogramBar(xi, yi, zi, bar_radius, colours[i], wireframe, i);
+		        			HistogramBar hb = new MyHistogramBar(xi, yi, zi, size, colours[i], wireframe, i);
 		        		
 		        			g.add(hb);
 		        		} else if (is_parallelepiped) { 
-		        			bb = new BoundingBox3d(xi - bar_radius, xi + bar_radius,
-		        									yi - bar_radius, yi + bar_radius,
+		        			bb = new BoundingBox3d(xi - size, xi + size,
+		        									yi - size, yi + size,
 		        									0, (float) zi);
 		        			CompositeParallelepiped box = new CompositeParallelepiped(bb);
 		        			box.setColor(colours[i]);
 		        			box.setWireframeDisplayed(wireframe);
 		        			g.add(box);
 		        		} else {
-		        			Sphere s = new MySelectableSphere(new Coord3d(xi, yi, zi), bar_radius, 10, colours[i]);
+		        			Sphere s = new MySelectableSphere(new Coord3d(xi, yi, zi), size, 10, colours[i]);
 		        			s.setWireframeDisplayed(wireframe);
 		        			g.add(s);
 		        		}
