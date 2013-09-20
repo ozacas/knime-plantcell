@@ -24,10 +24,12 @@
         <option name="Scientific species names">Choose the column (or none) which provides scientific species names</option>
         <option name="Image URLs">Each taxa can have an image, here you can choose which column provides the URL for each taxa (or none)</option>
         <option name="Label for domains">Domain architecture eg. structural features for each sequence can be labelled with three parallel
-        lists. This vector provides a list of labels (which should be short for clarity) of the features on the sequence to show. All
-        three lists must have the same number of values</option>
-        <option name="Start positions">A list of values which describe the start positions for each feature</option>
-        <option name="End positions">A list of values which describe the end position of each feature</option>
+        lists. This vector provides a list of strings (which should be short for clarity) of the features on the sequence to show. All
+        three lists (labels, start &amp; end positions) must have the same number of values. Missing values in lists must not be present. GroupBy "list" aggregation function can be used to create the required cell</option>
+        <option name="Start positions">A list of values which describe the start positions for each feature. GroupBy "list" aggregation function can be used
+        to create the required cell</option>
+    
+        <option name="End positions">A list of values which describe the end position of each feature. GroupBy "list" aggregation function can be used to create the required cell</option>
         
     </fullDescription>
     

@@ -38,6 +38,9 @@ public class PhyloXMLWriterNodeDialog extends DefaultNodeSettingsPane {
         addDialogComponent(new DialogComponentFileChooser(
         					new SettingsModelString(PhyloXMLWriterNodeModel.CFGKEY_INFILE, ""), "Input tree file (eg. Newick/PhyloXML)"
         		));
+        addDialogComponent(new DialogComponentBoolean(
+        					new SettingsModelBoolean(PhyloXMLWriterNodeModel.CFGKEY_ASSUME_SUPPORT, Boolean.FALSE), "interpret internal node names as support values?"
+        		));
         
         createNewGroup("Where should the decorated tree be saved? (always PhyloXML)");
         addDialogComponent(new DialogComponentFileChooser(
