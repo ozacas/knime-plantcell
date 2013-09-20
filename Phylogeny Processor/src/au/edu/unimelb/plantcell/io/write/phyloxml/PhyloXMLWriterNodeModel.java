@@ -16,6 +16,7 @@ import org.forester.phylogeny.PhylogenyMethods;
 import org.forester.phylogeny.PhylogenyNode;
 import org.forester.phylogeny.data.BranchColor;
 import org.forester.phylogeny.data.BranchData;
+import org.forester.phylogeny.data.Confidence;
 import org.forester.phylogeny.data.DomainArchitecture;
 import org.forester.phylogeny.data.NodeData;
 import org.forester.phylogeny.data.ProteinDomain;
@@ -72,6 +73,7 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
 	static final String CFGKEY_TAXA_REGEXP   = "taxa-regexp";
 	static final String CFGKEY_WANT_SEQUENCE = "want-sequence?";
 	static final String CFGKEY_WANT_IMAGES   = "image-url";
+	static final String CFGKEY_ASSUME_SUPPORT= "assume-internal-node-names-are-support?";
     
 	// persisted state
 	private final SettingsModelString m_infile = new SettingsModelString(CFGKEY_INFILE, "");
@@ -86,6 +88,7 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
 	private final SettingsModelString m_taxa_regexp   = new SettingsModelString(CFGKEY_TAXA_REGEXP, "(.*)");
 	private final SettingsModelBoolean m_save_sequence= new SettingsModelBoolean(CFGKEY_WANT_SEQUENCE, Boolean.FALSE);
 	private final SettingsModelString m_image_url = new SettingsModelString(CFGKEY_WANT_IMAGES, "");
+	private final SettingsModelBoolean m_assume_support = new SettingsModelBoolean(CFGKEY_ASSUME_SUPPORT, Boolean.FALSE);
    
 	// not persisted -- used during execute()
 	private Pattern m_taxa_pattern;
@@ -127,6 +130,7 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     	PhylogenyParser parser = ParserUtils.createParserDependingOnFileType(infile, true);
     	Phylogeny[] phys = PhylogenyMethods.readPhylogenies(parser, infile);
     	m_taxa_pattern = Pattern.compile(m_taxa_regexp.getStringValue());
+    	logger.info("Loaded and now decorating "+phys.length+" input trees.");
     	
     	// 2. process input rows collecting data as we go...
     	HashMap<String,Color>   colour_map = new HashMap<String,Color>();
@@ -176,7 +180,7 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     					start_list.isMissing() || end_list.isMissing() || labels.isMissing()) {
     				continue;
     			}
-    			addDomainsToMap(domain_map, taxa, start_list, end_list, labels, sv.getLength());
+    			addDomainsToMap(domain_map, taxa, start_list, end_list, labels, sv.getLength(), r.getKey().getString());
     		}
     	}
     	logger.info("Colour map has "+colour_map.size()+" taxa.");
@@ -192,6 +196,22 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     		for (final PhylogenyNodeIterator it = phy.iteratorPostorder(); it.hasNext(); ) {
     			final PhylogenyNode n = it.next();
     			boolean is_decorated = false;
+    			
+    			// assume node name for internal nodes is support? If so, then convert it to a 
+    			// PhyloXML confidence setting so that ATV understands the data - TODO FIXME should we support non-bootstrap confidence types?
+    			if (m_assume_support.getBooleanValue()) {
+    				if (n.isInternal() && n.getName().trim().matches("^[\\d\\.]+$")) {
+    					try {
+    						String support = n.getName();
+    						Confidence conf = new Confidence(Double.valueOf(support), "bootstrap");
+    						n.getBranchData().addConfidence(conf);
+        					n.setName("");
+    					} catch (NumberFormatException nfe) {
+    						// do nothing, we just leave the node as it is...
+    					}
+    				}
+    			}
+    			
     			String taxa = getTaxa(n.getName());
     			if (colour_map.containsKey(taxa)) {
     				BranchData bd = new BranchData();
@@ -276,7 +296,7 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
 	}
 
 	private void addDomainsToMap(final HashMap<String, DomainArchitecture> domain_map,
-			final String taxa, final DataCell start_list, final DataCell end_list, final DataCell label_list, final int total_length) throws InvalidSettingsException {
+			final String taxa, final DataCell start_list, final DataCell end_list, final DataCell label_list, final int total_length, final String rk) throws InvalidSettingsException {
 		assert(domain_map != null);
 		CollectionDataValue starts = null;
 		if (start_list instanceof CollectionDataValue) 
@@ -290,7 +310,7 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
 			labels = (CollectionDataValue)label_list;
 		
 		if (starts == null || ends == null || labels == null || starts.size() != ends.size() || starts.size() != labels.size())
-			throw new InvalidSettingsException("Missing data for domains: aborting!");
+			throw new InvalidSettingsException("Missing data for domains: aborting on row"+rk);
 		
 		Iterator<DataCell> it_starts = starts.iterator();
 		Iterator<DataCell> it_ends = ends.iterator();
@@ -349,6 +369,7 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     	m_taxa_regexp.saveSettingsTo(settings);
     	m_save_sequence.saveSettingsTo(settings);
     	m_image_url.saveSettingsTo(settings);
+    	m_assume_support.saveSettingsTo(settings);
     }
 
     /**
@@ -369,6 +390,11 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     	m_taxa_regexp.loadSettingsFrom(settings);
     	m_save_sequence.loadSettingsFrom(settings);
     	m_image_url.loadSettingsFrom(settings);
+    	if (settings.containsKey(CFGKEY_ASSUME_SUPPORT)) {			// backward compatibility
+    		m_assume_support.loadSettingsFrom(settings);
+    	} else {
+    		m_assume_support.setBooleanValue(Boolean.FALSE);		// dont assume by default
+    	}
     }
 
     /**
@@ -389,6 +415,7 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     	m_taxa_regexp.validateSettings(settings);
     	m_save_sequence.validateSettings(settings);
     	m_image_url.validateSettings(settings);
+    	m_assume_support.validateSettings(settings);
     }
     
     /**
