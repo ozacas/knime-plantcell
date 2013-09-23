@@ -42,7 +42,7 @@ public class TreePruneNodeDialog extends DefaultNodeSettingsPane {
         createNewGroup("Taxa");
         addDialogComponent(new DialogComponentColumnNameSelection(
         		new SettingsModelString(TreePruneNodeModel.CFGKEY_TAXA, ""), "Sequences from... ",
-        		0, true, true, SequenceValue.class
+        		0, false, true, SequenceValue.class
         		));
         addDialogComponent(new DialogComponentColumnNameSelection(
         		new SettingsModelString(TreePruneNodeModel.CFGKEY_SPECIES, ""), "Scientific species names from... ", 

@@ -1,18 +1,16 @@
 package au.edu.unimelb.plantcell.io.pruner;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
+import org.forester.phylogeny.data.Confidence;
 import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
 import org.knime.core.node.InvalidSettingsException;
-
-import au.edu.unimelb.plantcell.core.cells.SequenceValue;
+import org.knime.core.node.NodeLogger;
 
 /**
  * Uses forester library to remove tips from the tree which meet the following conditions:
@@ -26,32 +24,28 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 public class PruneShortestIdentity implements PruningStrategy {
 	private int m_support;
 	private int m_identity;
-	private final Map<String,String> m_species_map = new HashMap<String,String>();	// maps for taxa id -> species
 	private final HashSet<String> m_accepted = new HashSet<String>();		// taxa names of accepted nodes
 	
 	public PruneShortestIdentity() {
-		this(100, 100, null);
+		this(100, 100);
 	}
 	
-	public PruneShortestIdentity(int support_threshold, int identity_threshold, final Map<String,String> species_map) {
+	public PruneShortestIdentity(int support_threshold, int identity_threshold) {
 		m_support = support_threshold;
 		m_identity= identity_threshold;		
-		if (species_map != null)
-			m_species_map.putAll(species_map);
 	}
 	
 	@Override
-	public void execute(final Phylogeny input_tree, final Map<String, SequenceValue> taxa) throws Exception {
-		assert(input_tree != null && taxa != null && taxa.size() > 0);
+	public void execute(final TreePruneNodeModel mdl, final Phylogeny input_tree) throws Exception {
+		assert(input_tree != null && mdl != null);
 		
 		m_accepted.clear();
-		m_species_map.clear();
 		for (final PhylogenyNodeIterator it = input_tree.iteratorPostorder(); it.hasNext(); ) {
 			PhylogenyNode n = it.next();
 			List<PhylogenyNode> externals = getExternalKids(n);
 			if (n.isInternal() && externals != null && externals.size() >= 2) {
-				for (String specie : getSuitableSpecies(externals, m_species_map)) {
-					validateExternals(n, externals, specie, m_species_map, taxa);
+				for (String specie : getSuitableSpecies(externals)) {
+					validateExternals(mdl, n, externals, specie);
 				}
 				
 			}
@@ -64,8 +58,7 @@ public class PruneShortestIdentity implements PruningStrategy {
 	 * @param specie
 	 * @param taxa2species
 	 */
-	private void validateExternals(final PhylogenyNode parent, final List<PhylogenyNode> externals, String specie, 
-			final Map<String,String> taxa2species, final Map<String,SequenceValue> taxa2sequence) 
+	private void validateExternals(final TreePruneNodeModel mdl, final PhylogenyNode parent, final List<PhylogenyNode> externals, String specie) 
 			throws InvalidSettingsException {
 		double c = getSupportValue(parent);
 		// parent node have sufficient support? 
@@ -79,14 +72,14 @@ public class PruneShortestIdentity implements PruningStrategy {
 		}
 		
 		// what external nodes to consider for the specified parent?
-		List<PhylogenyNode> candidates = getExternalCandidates(externals, specie, taxa2species);
+		List<PhylogenyNode> candidates = getExternalCandidates(mdl, externals, specie);
 		
 		// remove candidates which are redundant according to chosen filter
 		List<PhylogenyNode> accepted = new ArrayList<PhylogenyNode>();
 		accepted.addAll(candidates);
 		HashSet<PhylogenyNode> protected_candidates = new HashSet<PhylogenyNode>();
 		for (PhylogenyNode candidate : candidates) {
-			if (prune1candidate(candidate, accepted, protected_candidates, taxa2sequence)) {
+			if (prune1candidate(mdl, candidate, accepted, protected_candidates)) {
 				accepted.remove(candidate);
 			} else {
 				protected_candidates.add(candidate);
@@ -95,7 +88,7 @@ public class PruneShortestIdentity implements PruningStrategy {
 		
 		// add them to accept list
 		for (PhylogenyNode n : accepted) {
-			m_accepted.add(getTaxa(n.getName()));
+			m_accepted.add(mdl.getTaxa(n));
 		}
 	}
 
@@ -106,8 +99,8 @@ public class PruneShortestIdentity implements PruningStrategy {
 	 * @param taxa2seq
 	 * @return
 	 */
-	private boolean prune1candidate(final PhylogenyNode c, final List<PhylogenyNode> result, 
-			final Set<PhylogenyNode> protected_nodes, final Map<String,SequenceValue> taxa2seq) {
+	private boolean prune1candidate(final TreePruneNodeModel mdl, final PhylogenyNode c, 
+							final List<PhylogenyNode> result, final Set<PhylogenyNode> protected_nodes) {
 		// cannot remove a protected node (required for another analysis to be true)
 		if (protected_nodes.contains(c))
 			return false;
@@ -116,32 +109,44 @@ public class PruneShortestIdentity implements PruningStrategy {
 	}
 	
 	/**
-	 * TODO BUG FIXME: Internal node names are assumed to have the support value...
-	 * @param parent
+	 * If the tree is properly curated the phyloxml will have a <code>&lt;confidence&gt;</code> tag of type bootstrap
+	 * and we use that for the support value. If not present and its an internal node, we assume that the internal
+	 * node name is the support value. If not either of these cases, <code>Double.NaN</code> is returned.
+	 * 
+	 * @param n
 	 * @return
 	 */
-	private double getSupportValue(PhylogenyNode parent) {
-		try {
-			double d = Double.valueOf(parent.getName());
-			return d;
-		} catch (Exception e) {
-			return Double.NaN;
+	private double getSupportValue(final PhylogenyNode n) {
+		if (n.getBranchData().isHasConfidences()) {
+			List<Confidence> clist = n.getBranchData().getConfidences();
+			for (Confidence c : clist) {
+				if (c.getType().equals("bootstrap"))
+					return c.getValue();
+			}
+			// fall thru
 		}
+		
+		if (n.isInternal()) {
+			try {
+				double d = Double.valueOf(n.getName());
+				return d;
+			} catch (Exception e) {
+				return Double.NaN;
+			}
+		} 
+		
+		return Double.NaN;
 	}
 
-	private List<PhylogenyNode> getExternalCandidates(List<PhylogenyNode> in, String wanted_specie, final Map<String,String> taxa2species) {
+	private List<PhylogenyNode> getExternalCandidates(final TreePruneNodeModel mdl, List<PhylogenyNode> in, String wanted_specie) {
 		List<PhylogenyNode> ret = new ArrayList<PhylogenyNode>();
 		for (PhylogenyNode n : in) {
-			String species = taxa2species.get(getTaxa(n.getName()));
+			String species = mdl.getSpecies(n);
 			if (species != null && species.equals(wanted_specie)) {
 				ret.add(n);
 			}
 		}
 		return ret;
-	}
-	
-	private String getTaxa(final String name) {
-		return name;
 	}
 
 	/**
@@ -164,17 +169,21 @@ public class PruneShortestIdentity implements PruningStrategy {
 	 * @param smap map from taxa name to species name
 	 * @return list of suitable species names identified from supplied external nodes
 	 */
-	private List<String> getSuitableSpecies(List<PhylogenyNode> externals,
-			Map<String, String> smap) {
+	private List<String> getSuitableSpecies(final List<PhylogenyNode> externals) {
 		ArrayList<String> ret = new ArrayList<String>();
 		
 		return ret;
 	}
 
 	@Override
-	public boolean acceptTaxa(final SequenceValue taxa) {
-		String t = getTaxa(taxa.getID());
+	public boolean accept(final TreePruneNodeModel mdl, final PhylogenyNode n) {
+		String t = mdl.getTaxa(n);
 		return m_accepted.contains(t);
 	}
 
+	@Override
+	public void summary(final NodeLogger l, final Phylogeny p) {
+		l.info("Accepted "+m_accepted.size()+" tip nodes from tree.");
+		l.info("Tree now has "+p.getNodeCount()+ " nodes remaining.");
+	}
 }
