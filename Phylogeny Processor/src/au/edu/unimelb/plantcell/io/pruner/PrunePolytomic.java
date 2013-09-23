@@ -3,7 +3,6 @@ package au.edu.unimelb.plantcell.io.pruner;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
@@ -12,7 +11,8 @@ import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 
 /**
- * Removes taxa which are descended from a non-binary node
+ * Removes taxa which are descended from a non-binary node or alternately prunes all but the first 2 kids to make the node binary
+ * depending on construction parameters
  * 
  * @author andrew.cassin
  *
@@ -30,7 +30,7 @@ public class PrunePolytomic implements PruningStrategy {
 	}
 
 	@Override
-	public void execute(Phylogeny input_tree, Map<String, SequenceValue> taxa)
+	public void execute(final Phylogeny input_tree, Map<String, SequenceValue> taxa)
 			throws Exception {
 		rejected_taxa.clear();
 		for (PhylogenyNodeIterator it = input_tree.iteratorPreorder(); it.hasNext(); ) {
@@ -43,6 +43,7 @@ public class PrunePolytomic implements PruningStrategy {
 					//Logger.getAnonymousLogger().info("Pruning node ID: "+n.getId()+" descendants="+n.getNumberOfDescendants());
 					for (PhylogenyNode kid : externals) {
 						rejected_taxa.add(kid.getName());
+						// NB: we dont delete the kids here since the parent has already gone...
 					}
 				} else {
 					// remove all but 2 kids but leave n as part of the tree
@@ -50,6 +51,7 @@ public class PrunePolytomic implements PruningStrategy {
 					for (PhylogenyNode kid : externals) {
 						if (idx++ > 1) {
 							rejected_taxa.add(kid.getName());
+							n.removeChildNode(kid);
 						}
 					}
 				}
