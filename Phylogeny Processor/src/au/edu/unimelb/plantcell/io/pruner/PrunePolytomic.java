@@ -2,13 +2,11 @@ package au.edu.unimelb.plantcell.io.pruner;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
 import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
-
-import au.edu.unimelb.plantcell.core.cells.SequenceValue;
+import org.knime.core.node.NodeLogger;
 
 /**
  * Removes taxa which are descended from a non-binary node or alternately prunes all but the first 2 kids to make the node binary
@@ -18,7 +16,7 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
  *
  */
 public class PrunePolytomic implements PruningStrategy {
-	private HashSet<String> rejected_taxa = new HashSet<String>();
+	private HashSet<PhylogenyNode> rejected_taxa = new HashSet<PhylogenyNode>();
 	private boolean m_reduce = false;
 	
 	public PrunePolytomic() {
@@ -30,9 +28,9 @@ public class PrunePolytomic implements PruningStrategy {
 	}
 
 	@Override
-	public void execute(final Phylogeny input_tree, Map<String, SequenceValue> taxa)
-			throws Exception {
+	public void execute(final TreePruneNodeModel mdl, final Phylogeny input_tree) throws Exception {
 		rejected_taxa.clear();
+		
 		for (PhylogenyNodeIterator it = input_tree.iteratorPreorder(); it.hasNext(); ) {
 			PhylogenyNode n = it.next();
 			
@@ -42,7 +40,7 @@ public class PrunePolytomic implements PruningStrategy {
 					n.getParent().removeChildNode(n);
 					//Logger.getAnonymousLogger().info("Pruning node ID: "+n.getId()+" descendants="+n.getNumberOfDescendants());
 					for (PhylogenyNode kid : externals) {
-						rejected_taxa.add(kid.getName());
+						rejected_taxa.add(kid);
 						// NB: we dont delete the kids here since the parent has already gone...
 					}
 				} else {
@@ -50,7 +48,7 @@ public class PrunePolytomic implements PruningStrategy {
 					int idx = 0;
 					for (PhylogenyNode kid : externals) {
 						if (idx++ > 1) {
-							rejected_taxa.add(kid.getName());
+							rejected_taxa.add(kid);
 							n.removeChildNode(kid);
 						}
 					}
@@ -60,10 +58,15 @@ public class PrunePolytomic implements PruningStrategy {
 	}
 
 	@Override
-	public boolean acceptTaxa(SequenceValue taxa) {
-		if (rejected_taxa.contains(taxa.getID()))
+	public boolean accept(final TreePruneNodeModel mdl, PhylogenyNode n) {
+		if (rejected_taxa.contains(n))
 			return false;
 		return true;
 	}
 
+	@Override
+	public void summary(final NodeLogger l, final Phylogeny p) {
+		l.info("Removed "+rejected_taxa.size()+" tip nodes from tree.");
+		l.info("Tree now has "+p.getNodeCount()+ " nodes remaining.");
+	}
 }
