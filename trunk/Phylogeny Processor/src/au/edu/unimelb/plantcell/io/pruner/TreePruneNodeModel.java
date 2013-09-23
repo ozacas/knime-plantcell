@@ -11,10 +11,12 @@ import java.util.regex.Pattern;
 
 import org.forester.io.parsers.PhylogenyParser;
 import org.forester.io.parsers.util.ParserUtils;
+import org.forester.io.writers.PhylogenyWriter;
 import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyMethods;
 import org.forester.phylogeny.PhylogenyNode;
 import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
+import org.forester.util.ForesterUtil;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -36,6 +38,7 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import org.knime.core.node.defaultnodesettings.SettingsModelOptionalString;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
@@ -64,7 +67,7 @@ public class TreePruneNodeModel extends NodeModel {
 	
 	// persisted state
 	private final SettingsModelString m_infile = new SettingsModelString(CFGKEY_INFILE, "");
-	private final SettingsModelString m_outfile= new SettingsModelString(CFGKEY_OUTFILE, "");
+	private final SettingsModelOptionalString m_outfile= new SettingsModelOptionalString(CFGKEY_OUTFILE, "", true);
 	private final SettingsModelBoolean m_overwrite = new SettingsModelBoolean(CFGKEY_OVERWRITE, Boolean.FALSE);
 	private final SettingsModelString m_taxa    = new SettingsModelString(CFGKEY_TAXA, "");
 	private final SettingsModelString m_species = new SettingsModelString(CFGKEY_SPECIES, "");			// scientific name assumed for now
@@ -120,18 +123,36 @@ public class TreePruneNodeModel extends NodeModel {
     	// 2. apply pruning strategy to each tree
     	final PruningStrategy ps = make_pruning_strategy(m_strategy.getStringValue(), species_map);
     	final Set<String> node_names = new HashSet<String>(initial_capacity);
-    	for (Phylogeny p : phys) {
-    		logger.info("Identifying nodes in tree: "+p.getName());
-    		for (PhylogenyNodeIterator it = p.iteratorPreorder(); it.hasNext(); ) {
-    			PhylogenyNode n = it.next();
-    			if (n.isExternal() && taxa_map.containsKey(n.getName())) {
-    				node_names.add(n.getName());
-    			}
+
+    	for (int i=0; i<phys.length; i++) {
+    		Phylogeny p = phys[i];
+    		
+    		// HACK TODO FIXME: we only prune the first tree in the file for now...
+    		// we do this because the output table cant store the results of multiple prunes... does anyone want this?
+    		if (i == 0) {
+	    		logger.info("Identifying nodes in tree: "+p.getName());
+	    		for (PhylogenyNodeIterator it = p.iteratorPreorder(); it.hasNext(); ) {
+	    			PhylogenyNode n = it.next();
+	    			if (n.isExternal() && taxa_map.containsKey(n.getName())) {
+	    				node_names.add(n.getName());
+	    			}
+	    		}
+	    		
+	    		logger.info("Pruning tree: "+p.getName());
+	    		ps.execute(p, taxa_map);
+	    		phys[i] = p;
     		}
     		
-    		logger.info("Pruning tree: "+p.getName());
-    		ps.execute(p, taxa_map);
-    		break; // HACK TODO FIXME: we only prune the first tree in the file for now...
+    	}
+    	
+    	// 2a. save pruned tree (if state permits) 
+    	if (m_outfile.getStringValue().length() > 0) {
+    		File out = new File(m_outfile.getStringValue());
+    		if (out.exists() && out.isFile() && !m_overwrite.getBooleanValue())
+    			throw new InvalidSettingsException("Will not overwrite existing file: "+out.getAbsolutePath());
+    		PhylogenyWriter writer = new PhylogenyWriter();
+    		// NB: all trees get saved!
+        	writer.toPhyloXML(phys, 0, out, ForesterUtil.LINE_SEPARATOR);
     	}
     	
     	// 3. create output table
@@ -246,6 +267,7 @@ public class TreePruneNodeModel extends NodeModel {
     protected void validateSettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
     	m_infile.validateSettings(settings);
+    	
     	m_outfile.validateSettings(settings);
     	m_overwrite.validateSettings(settings);
     	m_species.validateSettings(settings);
