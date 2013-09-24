@@ -12,6 +12,7 @@ import org.forester.phylogeny.PhylogenyNode;
 import org.forester.phylogeny.data.BranchData;
 import org.forester.phylogeny.data.Confidence;
 import org.forester.phylogeny.data.NodeData;
+import org.forester.phylogeny.data.Sequence;
 import org.forester.phylogeny.data.Taxonomy;
 import org.forester.phylogeny.data.Uri;
 import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
@@ -72,15 +73,16 @@ public class PhyloXMLReaderNodeModel extends NodeModel {
     	PhylogenyParser parser = ParserUtils.createParserDependingOnFileType(infile, true);
     	Phylogeny[]       phys = PhylogenyMethods.readPhylogenies(parser, infile);
     	
-    	MyDataContainer  c = new MyDataContainer(exec.createDataContainer(make_output_spec()), "Node");
+    	DataTableSpec outSpec = make_output_spec();
+    	MyDataContainer      c = new MyDataContainer(exec.createDataContainer(outSpec), "Node");
     	
     	for (int i=0; i<phys.length; i++) {
     		for (PhylogenyNodeIterator it = phys[i].iteratorPreorder(); it.hasNext(); ) {
     			PhylogenyNode n = it.next();
-    			BranchData bd = n.getBranchData();
-    			NodeData nd = n.getNodeData();
+    			BranchData   bd = n.getBranchData();
+    			NodeData     nd = n.getNodeData();
     			
-	    		DataCell[] cells = new DataCell[13];
+	    		DataCell[] cells = new DataCell[outSpec.getNumColumns()];
 	    		for (int j=0; j<cells.length; j++) {
 	    			cells[j] = DataType.getMissingCell();
 	    		}
@@ -120,8 +122,22 @@ public class PhyloXMLReaderNodeModel extends NodeModel {
 	    		}
 	    		
 	    		cells[3] = new IntCell(n.getNumberOfDescendants());
-	    		cells[4] = new IntCell(n.getNumberOfExternalNodes());
-	    		
+	    		List<PhylogenyNode> kids = n.getAllDescendants();
+	    		int cnt = 0;
+	    		if (kids != null) {
+		    		for (PhylogenyNode node : kids) {
+		    			if (node.isExternal()) {
+		    				cnt++;
+		    			}
+		    		}
+	    		}
+	    		cells[4] = new IntCell(cnt);
+	    		Sequence seq = getSequence(nd.getSequences());
+	    		if (seq != null && seq.getMolecularSequence() != null)
+	    			cells[13]= new StringCell(seq.getMolecularSequence());
+	    		cells[14] = new StringCell(String.valueOf(n.getId()));
+	    		if (!n.isRoot())
+	    			cells[15] = new StringCell(String.valueOf(n.getParent().getId()));
 	    		c.addRow(cells);
     		}
     	}
@@ -129,7 +145,14 @@ public class PhyloXMLReaderNodeModel extends NodeModel {
         return new BufferedDataTable[] { c.close() };
     }
 
-    private String getImageURL(List<Uri> uris) {
+    private Sequence getSequence(List<Sequence> sequences) {
+		if (sequences == null || sequences.size() < 1) {
+			return null;
+		}
+		return sequences.get(0);
+	}
+
+	private String getImageURL(List<Uri> uris) {
 		if (uris == null || uris.size() < 1)
 			return null;
 		for (Uri u : uris) {
@@ -149,7 +172,7 @@ public class PhyloXMLReaderNodeModel extends NodeModel {
 	}
 
 	private DataTableSpec make_output_spec() {
-		DataColumnSpec[] cols = new DataColumnSpec[13];
+		DataColumnSpec[] cols = new DataColumnSpec[16];
 		cols[0] = new DataColumnSpecCreator("Input file", StringCell.TYPE).createSpec();
 		cols[1] = new DataColumnSpecCreator("Node name", StringCell.TYPE).createSpec();
 		cols[2] = new DataColumnSpecCreator("Parent node name (missing iff root)", StringCell.TYPE).createSpec();
@@ -163,6 +186,9 @@ public class PhyloXMLReaderNodeModel extends NodeModel {
 		cols[10]= new DataColumnSpecCreator("Distance from root", DoubleCell.TYPE).createSpec();
 		cols[11]= new DataColumnSpecCreator("Tree Number (from 1, iff file has multiple trees)", IntCell.TYPE).createSpec();
 		cols[12]= new DataColumnSpecCreator("Bootstrap support value", DoubleCell.TYPE).createSpec();
+		cols[13]= new DataColumnSpecCreator("Molecular Sequence", StringCell.TYPE).createSpec();
+		cols[14]= new DataColumnSpecCreator("Node ID", StringCell.TYPE).createSpec();
+		cols[15]= new DataColumnSpecCreator("Parent Node ID", StringCell.TYPE).createSpec();
 		
 		return new DataTableSpec(cols);
 	}
