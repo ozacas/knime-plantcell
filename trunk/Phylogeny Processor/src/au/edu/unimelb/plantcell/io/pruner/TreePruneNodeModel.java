@@ -81,7 +81,8 @@ public class TreePruneNodeModel extends NodeModel {
 	final Map<String,String> species_map = new HashMap<String,String>();
 	final Map<String,String> rowid2taxa  = new HashMap<String,String>();
 	final Map<String,PhylogenyNode> rowid2node = new HashMap<String,PhylogenyNode>();
-	
+	final Set<String> node_names = new HashSet<String>();
+
     /**
      * Constructor for the node model.
      */
@@ -100,9 +101,9 @@ public class TreePruneNodeModel extends NodeModel {
     	//if (seq_idx < 0)
     	//	throw new InvalidSettingsException("Cannot find taxa column: "+m_taxa.getStringValue()+" - reconfigure?");
     	
-    	File infile = new File(m_infile.getStringValue());
+    	File            infile = new File(m_infile.getStringValue());
     	PhylogenyParser parser = ParserUtils.createParserDependingOnFileType(infile, true);
-    	Phylogeny[] phys = PhylogenyMethods.readPhylogenies(parser, infile);
+    	Phylogeny[]       phys = PhylogenyMethods.readPhylogenies(parser, infile);
     	logger.info("Loaded "+phys.length+" trees from "+infile.getAbsolutePath()+" for pruning.");
     	
     	
@@ -112,6 +113,7 @@ public class TreePruneNodeModel extends NodeModel {
     	species_map.clear();
     	rowid2taxa.clear();
     	rowid2node.clear();
+    	node_names.clear();
     	
     	// gene tree? ie. rows are related to tree nodes via sequence column
     	if (seq_idx >= 0) {
@@ -145,7 +147,6 @@ public class TreePruneNodeModel extends NodeModel {
     	
     	// 2. apply pruning strategy to each tree
     	final PruningStrategy ps = make_pruning_strategy(m_strategy.getStringValue());
-    	final Set<String> node_names = new HashSet<String>();
 
     	for (int i=0; i<phys.length; i++) {
     		Phylogeny p = phys[i];
@@ -155,13 +156,15 @@ public class TreePruneNodeModel extends NodeModel {
     			taxa2rowid.put(rowid2taxa.get(r2t), r2t);
     		}
     		
-    		// HACK TODO FIXME: we only prune the first tree in the file for now...
     		// we do this because the output table cant store the results of multiple prunes... does anyone want this?
     		if (i == 0) {
 	    		logger.info("Identifying nodes in tree: "+p.getName());
 	    		for (PhylogenyNodeIterator it = p.iteratorPreorder(); it.hasNext(); ) {
 	    			PhylogenyNode n = it.next();
-	    			String taxa = getTaxa(n);
+	    			if (!n.isExternal())
+	    				continue;
+	    			
+	    			String taxa = getTaxaName(n);
 	    			node_names.add(taxa);
 	    			String rowid = taxa2rowid.get(taxa);
 	    			if (rowid != null)
@@ -195,7 +198,7 @@ public class TreePruneNodeModel extends NodeModel {
 				
 				BooleanCell bc = BooleanCell.FALSE;
 				if (n != null) {
-					if (ps.accept(mdl, n))
+					if (!ps.accept(mdl, n))
 						bc = BooleanCell.TRUE;
 					// else fallthru...
 				}
@@ -213,10 +216,21 @@ public class TreePruneNodeModel extends NodeModel {
     	return new BufferedDataTable[] {out};
     }
 
-
+    /**
+     * Returns the node only if it is present in the input table AND in the input tree file
+     * @param row
+     * @return
+     */
 	protected PhylogenyNode lookup_node(final DataRow row) {
 		PhylogenyNode ret = rowid2node.get(row.getKey().getString());
-		return ret;
+		if (ret == null)
+			return ret;
+		
+		if (node_names.contains(getTaxaName(ret)))
+			return ret;
+		
+		// not found in input tree
+		return null;
 	}
 
 	private PruningStrategy make_pruning_strategy(final String strat) throws InvalidSettingsException {
@@ -237,7 +251,7 @@ public class TreePruneNodeModel extends NodeModel {
 		DataColumnSpec[] cols = new DataColumnSpec[3];
 		cols[0] = new DataColumnSpecCreator("Removed from tree?", BooleanCell.TYPE).createSpec();
 		cols[1] = new DataColumnSpecCreator("Reason for pruning", StringCell.TYPE).createSpec();
-		cols[2] = new DataColumnSpecCreator("Found in input tree?", BooleanCell.TYPE).createSpec();
+		cols[2] = new DataColumnSpecCreator("Taxa matched in input tree?", BooleanCell.TYPE).createSpec();
 		return cols;
 	}
 
@@ -338,6 +352,10 @@ public class TreePruneNodeModel extends NodeModel {
 		} else {
 			return null;
 		}
+	}
+	
+	public String getTaxaName(PhylogenyNode n) {
+		return getTaxa(n.getName());
 	}
 	
 	public String getTaxa(PhylogenyNode n) {
