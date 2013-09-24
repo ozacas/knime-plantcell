@@ -4,12 +4,13 @@
     <name>Tree Reader</name>
     
     <shortDescription>
-        Saves a tree format (eg. Newick or PhyloXML) tree with decorated data from the input table
+       Loads an input tree file (eg. Newick or PhyloXML format) tree as a table. Not all PhyloXML markup is supported.
     </shortDescription>
     
     <fullDescription>
         <intro>Loads an input tree file (eg. Newick or PhyloXML format) tree as a table. Not all PhyloXML markup
-        is supported.</intro>
+        is supported. The tree is output as a "flat" table of node -> parent rows with annotation details, where available,
+        in the remaining columns.</intro>
         
         
         <option name="Input file">Enter the newick/phyloxml/nexus file which you wish to read. It will not be modified.</option>

@@ -33,6 +33,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 import au.edu.unimelb.plantcell.core.MyDataContainer;
@@ -50,9 +51,13 @@ public class PhyloXMLReaderNodeModel extends NodeModel {
         
     /** user config keys */
 	static final String CFGKEY_INFILE    = "input file";
+	static final String CFGKEY_NN_AS_SUPPORT = "internal-node-names-as-support?";
+	static final String CFGKEY_MISSING_NN_IS_1 = "empty-node-name-is_1?";
     
 	// persisted state
 	private final SettingsModelString m_infile = new SettingsModelString(CFGKEY_INFILE, "");
+	private final SettingsModelBoolean m_internal_nn_as_support = new SettingsModelBoolean(CFGKEY_NN_AS_SUPPORT, Boolean.FALSE);
+	private final SettingsModelBoolean m_treat_missing_nn_as_perfect_support  = new SettingsModelBoolean(CFGKEY_MISSING_NN_IS_1, Boolean.FALSE);
 	
 	
     /**
@@ -75,7 +80,9 @@ public class PhyloXMLReaderNodeModel extends NodeModel {
     	
     	DataTableSpec outSpec = make_output_spec();
     	MyDataContainer      c = new MyDataContainer(exec.createDataContainer(outSpec), "Node");
-    	
+    	boolean treat_internal_node_names_as_support = m_internal_nn_as_support.getBooleanValue();
+    	boolean treat_empty_as_1 = m_treat_missing_nn_as_perfect_support.getBooleanValue();
+    			
     	for (int i=0; i<phys.length; i++) {
     		for (PhylogenyNodeIterator it = phys[i].iteratorPreorder(); it.hasNext(); ) {
     			PhylogenyNode n = it.next();
@@ -90,8 +97,9 @@ public class PhyloXMLReaderNodeModel extends NodeModel {
 	    		cells[0] = new StringCell(infile.getAbsolutePath());
 	    		cells[11]= new IntCell(i+1);
 	    		
-	    		if (bd.isHasConfidences())
-	    			cells[12]= new DoubleCell(getBootstrap(bd));
+				double support = getBootstrap(n, treat_internal_node_names_as_support, treat_empty_as_1);
+				if (!Double.isNaN(support))
+					cells[12]= new DoubleCell(support);
 	    		
 	    		if (!n.isRoot()) {
 	    			cells[10] = new DoubleCell(n.calculateDistanceToRoot());
@@ -162,10 +170,26 @@ public class PhyloXMLReaderNodeModel extends NodeModel {
 		return null;
 	}
 
-	private double getBootstrap(BranchData bd) {
-		for (Confidence c : bd.getConfidences()) {
-			if (c.getType().equals("bootstrap")) {
-				return c.getValue();
+	private double getBootstrap(final PhylogenyNode n, boolean use_internal_node_names_as_support, boolean treat_empty_as_perfect_support) {
+		BranchData bd = n.getBranchData();
+		
+		if (bd != null && bd.isHasConfidences()) {
+			for (Confidence c : bd.getConfidences()) {
+				if (c.getType().equals("bootstrap")) {
+					return c.getValue();
+				}
+			}
+		} else if (use_internal_node_names_as_support && !n.isExternal()) {
+			try {
+				String nn = n.getName();
+				if (nn != null && nn.length() < 1 && treat_empty_as_perfect_support) {
+					return 1.0;
+				} else if (nn != null && nn.length() >= 1 && use_internal_node_names_as_support) {
+					return Double.valueOf(nn);
+				}
+				return Double.NaN;
+			} catch (NumberFormatException nfe) {
+				return Double.NaN;
 			}
 		}
 		return Double.NaN;
@@ -217,7 +241,8 @@ public class PhyloXMLReaderNodeModel extends NodeModel {
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
     	m_infile.saveSettingsTo(settings);
-    	
+    	m_internal_nn_as_support.saveSettingsTo(settings);
+    	m_treat_missing_nn_as_perfect_support.saveSettingsTo(settings);
     }
 
     /**
@@ -227,6 +252,8 @@ public class PhyloXMLReaderNodeModel extends NodeModel {
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
     	m_infile.loadSettingsFrom(settings);
+    	m_internal_nn_as_support.loadSettingsFrom(settings);
+    	m_treat_missing_nn_as_perfect_support.loadSettingsFrom(settings);
     	
     }
 
@@ -237,7 +264,8 @@ public class PhyloXMLReaderNodeModel extends NodeModel {
     protected void validateSettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
     	m_infile.validateSettings(settings);
-    	
+    	m_internal_nn_as_support.validateSettings(settings);
+    	m_treat_missing_nn_as_perfect_support.validateSettings(settings);
     }
     
     /**

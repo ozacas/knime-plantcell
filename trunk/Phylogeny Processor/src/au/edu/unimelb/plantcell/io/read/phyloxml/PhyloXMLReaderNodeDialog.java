@@ -1,7 +1,9 @@
 package au.edu.unimelb.plantcell.io.read.phyloxml;
 
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 
@@ -22,6 +24,14 @@ public class PhyloXMLReaderNodeDialog extends DefaultNodeSettingsPane {
         					".xml|.phyloxml",
         					".newick|.nw",
         					".nexus|.nex|.nx"
+        		));
+        
+        createNewGroup("Node settings");
+        addDialogComponent(new DialogComponentBoolean(
+        			new SettingsModelBoolean(PhyloXMLReaderNodeModel.CFGKEY_NN_AS_SUPPORT, Boolean.FALSE), "Treat internal node names as support?"
+        		));
+        addDialogComponent(new DialogComponentBoolean(
+        			new SettingsModelBoolean(PhyloXMLReaderNodeModel.CFGKEY_MISSING_NN_IS_1, Boolean.FALSE), "Empty internal node name is 1.0 support?"
         		));
         
     }
