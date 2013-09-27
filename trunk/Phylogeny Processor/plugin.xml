@@ -8,6 +8,21 @@
             category-path="/Bioinformatics/Under Development"
             factory-class="au.edu.unimelb.plantcell.phylogenetics.processor.PhylogenyProcessorNodeFactory"
             id="au.edu.unimelb.plantcell.phylogenetics.processor.PhylogenyProcessorNodeFactory"/>
+            
+      <node
+            category-path="/Bioinformatics/Write"
+            factory-class="au.edu.unimelb.plantcell.io.write.phyloxml.PhyloXMLWriterNodeFactory"
+            id="au.edu.unimelb.plantcell.io.write.phyloxml.PhyloXMLWriterNodeFactory"/>
+            
+      <node
+            category-path="/Bioinformatics/Phylogenetics"
+            factory-class="au.edu.unimelb.plantcell.io.pruner.TreePruneNodeFactory"
+            id="au.edu.unimelb.plantcell.io.pruner.TreePruneNodeFactory"/>
+            
+ 	  <node
+            category-path="/Bioinformatics/Read"
+            factory-class="au.edu.unimelb.plantcell.io.read.phyloxml.PhyloXMLReaderNodeFactory"
+            id="au.edu.unimelb.plantcell.io.read.phyloxml.PhyloXMLReaderNodeFactory"/>
    </extension>
    
 </plugin>

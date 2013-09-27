@@ -333,7 +333,9 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
 		}
 		da.setTotalLength(total_length);		// total length of the molecular sequence (eg. AA)
 	
-		domain_map.put(taxa, da);
+		// adding zero sized vector to the XML output will cause an xml load exception so...
+		if (starts.size() > 0)
+			domain_map.put(taxa, da);
  	}
 
 	/**
