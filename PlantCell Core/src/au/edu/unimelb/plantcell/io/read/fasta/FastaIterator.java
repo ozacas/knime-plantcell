@@ -133,7 +133,7 @@ public class FastaIterator implements Iterable<SequenceValue>, Iterator<Sequence
 			return false;
 		}
 		
-		m_id = accsns[0];		// TODO: only first accession for a given protein for now
+		m_id = accsns[0];		// TODO: only first accession for a given sequence for now
 		String[] descr = parse_description(m_re_descr, entries);
 		if (descr == null || descr.length < 1) {
 			m_seq = null;
