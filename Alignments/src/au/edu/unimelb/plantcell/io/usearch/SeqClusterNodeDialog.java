@@ -56,7 +56,7 @@ public class SeqClusterNodeDialog extends DefaultNodeSettingsPane {
     	}));
     	
     	addDialogComponent(new DialogComponentNumber(
-    			new SettingsModelIntegerBounded(SeqClusterNodeModel.CFGKEY_THRESHOLD, 95, 0,100), 
+    			new SettingsModelIntegerBounded(SeqClusterNodeModel.CFGKEY_THRESHOLD, 95, 0, 100), 
     			"Identity Threshold (%)", 5
     			));
     	
