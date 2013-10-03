@@ -256,6 +256,7 @@ public class SeqClusterNodeModel extends NodeModel {
          m_log.saveSettingsTo(settings);
          m_user_defined.saveSettingsTo(settings);
          m_algo.saveSettingsTo(settings);
+         m_identity.saveSettingsTo(settings);
 	}
 
 	@Override
@@ -266,6 +267,7 @@ public class SeqClusterNodeModel extends NodeModel {
          m_log.validateSettings(settings);
          m_user_defined.validateSettings(settings);
          m_algo.validateSettings(settings);
+         m_identity.validateSettings(settings);
 	}
 
 	@Override
@@ -276,6 +278,7 @@ public class SeqClusterNodeModel extends NodeModel {
          m_log.loadSettingsFrom(settings);
          m_user_defined.loadSettingsFrom(settings);
          m_algo.loadSettingsFrom(settings);
+         m_identity.loadSettingsFrom(settings);
 	}
 
 	@Override
