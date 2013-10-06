@@ -11,7 +11,7 @@ import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
+import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.util.ColumnFilter;
 
@@ -56,8 +56,8 @@ public class SeqClusterNodeDialog extends DefaultNodeSettingsPane {
     	}));
     	
     	addDialogComponent(new DialogComponentNumber(
-    			new SettingsModelIntegerBounded(SeqClusterNodeModel.CFGKEY_THRESHOLD, 95, 0, 100), 
-    			"Identity Threshold (%)", 5
+    			new SettingsModelDoubleBounded(SeqClusterNodeModel.CFGKEY_THRESHOLD, 95.0, 0.0, 100.0), 
+    			"Identity Threshold (%)", 5.0
     			));
     	
     	createNewGroup("Advanced users only");
