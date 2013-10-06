@@ -27,6 +27,8 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
+import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
@@ -64,7 +66,7 @@ public class SeqClusterNodeModel extends NodeModel {
 	private SettingsModelString  m_input_sequences = new SettingsModelString(CFGKEY_SEQUENCES, "");
 	private SettingsModelBoolean m_log             = new SettingsModelBoolean(CFGKEY_LOG_STDERR, Boolean.FALSE);
 	private SettingsModelString  m_user_defined    = new SettingsModelString(CFGKEY_USER_DEFINED, "");
-	private SettingsModelInteger m_identity        = new SettingsModelIntegerBounded(CFGKEY_THRESHOLD, 95, 0, 100);
+	private SettingsModelDouble m_identity         = new SettingsModelDoubleBounded(CFGKEY_THRESHOLD, 95, 0.0, 100.0);
 	private SettingsModelString  m_algo            = new SettingsModelString(CFGKEY_ALGO, ALGO[0]);
 	
 	
@@ -130,7 +132,7 @@ public class SeqClusterNodeModel extends NodeModel {
 	    	cmdLine.addArgument("-"+m_algo.getStringValue());
 	    	cmdLine.addArgument(out_fasta.getName());
 	    	cmdLine.addArgument("-id");
-	    	cmdLine.addArgument(""+((double)m_identity.getIntValue()) / 100.0);
+	    	cmdLine.addArgument(""+((double)m_identity.getDoubleValue()) / 100.0);
 	    	cmdLine.addArgument("-centroids");
 	    	File out_centroid = File.createTempFile("centroid_out", ".fasta", td.asFile());
 	    	File out_consensus= File.createTempFile("consensus_out", ".fasta", td.asFile());
@@ -150,6 +152,7 @@ public class SeqClusterNodeModel extends NodeModel {
 	    	exe.setWorkingDirectory(pwd);		// must always be this (see below!)
 	    	exe.setWatchdog(new ExecuteWatchdog(ExecuteWatchdog.INFINITE_TIMEOUT));
 	    
+	    	exec.checkCanceled();
 	    	int status = exe.execute(cmdLine);
 	    	
 	    	if (exe.isFailure(status))
