@@ -14,6 +14,7 @@ import org.forester.io.writers.PhylogenyWriter;
 import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyMethods;
 import org.forester.phylogeny.PhylogenyNode;
+import org.forester.phylogeny.data.Annotation;
 import org.forester.phylogeny.data.BranchColor;
 import org.forester.phylogeny.data.BranchData;
 import org.forester.phylogeny.data.Confidence;
@@ -236,8 +237,19 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     				Sequence s = new Sequence();
     				//s.setSymbol(taxa);
     				//s.setName(taxa);
-    				if (m_save_sequence.getBooleanValue())
-    					s.setMolecularSequence(taxa_map.get(taxa).getStringValue());
+    				if (m_save_sequence.getBooleanValue()) {
+    					SequenceValue sv = taxa_map.get(taxa);
+    					if (sv != null) {
+    						// only add an annotation to the phyloxml if a description for the sequence is available
+    						if (sv.hasDescription()) {
+    							Annotation annot = new Annotation();
+    							annot.setDesc(sv.getDescription());
+        						s.addAnnotation(annot);
+    						}
+    						// but all sequences objects should have sequence...
+    						s.setMolecularSequence(sv.getStringValue());
+    					}
+    				}
     				s.setDomainArchitecture(domain_map.get(taxa));
     				
     				n.getNodeData().setSequence(s);
