@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,6 +18,7 @@ import org.forester.phylogeny.PhylogenyNode;
 import org.forester.phylogeny.data.Annotation;
 import org.forester.phylogeny.data.BranchColor;
 import org.forester.phylogeny.data.BranchData;
+import org.forester.phylogeny.data.BranchWidth;
 import org.forester.phylogeny.data.Confidence;
 import org.forester.phylogeny.data.DomainArchitecture;
 import org.forester.phylogeny.data.NodeData;
@@ -75,6 +77,7 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
 	static final String CFGKEY_WANT_SEQUENCE = "want-sequence?";
 	static final String CFGKEY_WANT_IMAGES   = "image-url";
 	static final String CFGKEY_ASSUME_SUPPORT= "assume-internal-node-names-are-support?";
+	static final String CFGKEY_BRANCH_WIDTHS = "branch-width-column";
     
 	// persisted state
 	private final SettingsModelString m_infile = new SettingsModelString(CFGKEY_INFILE, "");
@@ -90,6 +93,8 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
 	private final SettingsModelBoolean m_save_sequence= new SettingsModelBoolean(CFGKEY_WANT_SEQUENCE, Boolean.FALSE);
 	private final SettingsModelString m_image_url = new SettingsModelString(CFGKEY_WANT_IMAGES, "");
 	private final SettingsModelBoolean m_assume_support = new SettingsModelBoolean(CFGKEY_ASSUME_SUPPORT, Boolean.FALSE);
+	private final SettingsModelString m_branch_widths = new SettingsModelString(CFGKEY_BRANCH_WIDTHS, "");
+	
    
 	// not persisted -- used during execute()
 	private Pattern m_taxa_pattern;
@@ -109,6 +114,7 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
 
+    	try {
     	// 0. find the various columns, some are mandatory others not
     	int taxa_idx = inData[0].getSpec().findColumnIndex(m_taxa.getStringValue());
     	if (taxa_idx < 0)
@@ -139,8 +145,16 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     	HashMap<String,String> uri_map = new HashMap<String,String>();
     	HashMap<String,DomainArchitecture> domain_map = new HashMap<String,DomainArchitecture>();
     	HashMap<String,SequenceValue> taxa_map = new HashMap<String,SequenceValue>();
+    	HashMap<String,String> taxa2bwval = new HashMap<String,String>();	// only populated if want_branch_widths
     	int not_decorated = 0;
-    	
+    	int bw_idx = inData[0].getSpec().findColumnIndex(m_branch_widths.getStringValue());
+    	boolean want_branch_widths = (bw_idx >= 0);
+				
+    	if (!want_branch_widths)
+    		logger.warn("Not computing branch widths for each branch in the tree");
+    	else {
+    		logger.info("Using unique count of column '"+m_branch_widths.getStringValue()+"' to determine branch widths. Only decorated taxa are used.");
+    	}
     	for (DataRow r : inData[0]) {
     		// use the row colours for the taxa in the phyloxml
     		DataCell taxa_cell = r.getCell(taxa_idx);
@@ -183,20 +197,32 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     			}
     			addDomainsToMap(domain_map, taxa, start_list, end_list, labels, sv.getLength(), r.getKey().getString());
     		}
+    		if (want_branch_widths) {
+    			DataCell branch_value = r.getCell(bw_idx);
+    			if (branch_value == null || branch_value.isMissing()) {
+    				continue;
+    			}
+    			taxa2bwval.put(taxa, branch_value.toString());
+    		}
     	}
     	logger.info("Colour map has "+colour_map.size()+" taxa.");
     	logger.info("Species map has "+species_map.size()+" taxa.");
     	logger.info("Domain map has "+domain_map.size()+" taxa.");
     	logger.info("Taxa map has "+taxa_map.size()+" taxa.");
+    	logger.info("Branch width value map has "+taxa2bwval.size()+" taxa.");
     	
     	MyDataContainer c = new MyDataContainer(exec.createDataContainer(make_output_spec()), "Row");
     	
     	// 3. walk tree decorating it with input data...
+    	HashMap<String,HashSet<String>> node2branchset = new HashMap<String,HashSet<String>>();
+    	
     	int decorated = 0;
     	for (Phylogeny phy : phys) {
+    		int saw = 0;
     		for (final PhylogenyNodeIterator it = phy.iteratorPostorder(); it.hasNext(); ) {
     			final PhylogenyNode n = it.next();
     			boolean is_decorated = false;
+    			saw++;
     			
     			// assume node name for internal nodes is support? If so, then convert it to a 
     			// PhyloXML confidence setting so that ATV understands the data - TODO FIXME should we support non-bootstrap confidence types?
@@ -210,6 +236,15 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     					} catch (NumberFormatException nfe) {
     						// do nothing, we just leave the node as it is...
     					}
+    				}
+    			}
+    			
+    			if (n.isExternal() && want_branch_widths) {
+    				// we dont compute it unless we have to: expensive in time and memory!
+    				String value = taxa2bwval.get(n.getName());
+    				if (value != null) {
+    					propagate_to_root(node2branchset, n, value);
+    					is_decorated = true;
     				}
     			}
     			
@@ -259,9 +294,42 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     			if (is_decorated)
     				decorated++;
     		}
+    		
+    		logger.info("Saw "+saw+" tree nodes in tree.");
     	}
     	
-    	// 3a. save it...
+    	// 3a. now that the whole tree has been traversed we can add the branch widths
+    	// note that we use the square root transform to avoid branches being too big on screen in Archaeopteryx...
+    	if (want_branch_widths) {
+    		logger.info("Branch set has "+node2branchset.size()+" tree nodes.");
+    		
+	    	HashSet<String> missing_widths = new HashSet<String>();
+	    	for (Phylogeny phy : phys) {
+	    		for (final PhylogenyNodeIterator it = phy.iteratorPostorder(); it.hasNext(); ) {
+	    			final PhylogenyNode n = it.next();
+	    			
+	    			String id = ""+n.getId();
+	    			HashSet<String> set = node2branchset.get(id);
+	    			if (set == null) {
+	    				missing_widths.add(id);
+	    			} else {
+	    				BranchData bd = n.getBranchData();
+	    				if (bd != null) {
+	    					BranchWidth bw = new BranchWidth(Math.sqrt(set.size()));
+	    					bd.setBranchWidth(bw);
+	    				} else {
+	    					missing_widths.add(id);
+	    				}
+	    			}
+	    		}
+	    	}
+	    	
+	    	if (missing_widths.size() > 0) {
+	    		logger.warn(""+missing_widths.size()+" tree nodes do not have branch widths set (input taxa table is incomplete?)");
+	    	}
+    	}
+    	
+    	// 3b. save it...
     	PhylogenyWriter writer = new PhylogenyWriter();
     	writer.toPhyloXML(phys, 0, outfile, ForesterUtil.LINE_SEPARATOR);
     	
@@ -280,12 +348,36 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     		 // Display of the tree(s) with Archaeopteryx.
            Archaeopteryx.createApplication( phys );
     	}*/
-    	
+
     	// 5. all done
         return new BufferedDataTable[] { c.close() };
+        
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    		throw e;
+    	}
+    	
     }
 
-    private DataTableSpec make_output_spec() {
+    private void propagate_to_root(final HashMap<String, HashSet<String>> node2bval, 
+    								final PhylogenyNode n, final String value) {
+    	assert(node2bval != null && n != null && value != null);
+    	String id = "" + n.getId();
+    	HashSet<String> set = node2bval.get(id);
+    	if (set == null) {
+    		set = new HashSet<String>();
+    	}
+    	set.add(value);
+    	node2bval.put(id, set);
+    	
+		if (n.isRoot()) {
+			return;		// do not recurse job done!
+		} else {
+			propagate_to_root(node2bval, n.getParent(), value);
+		}
+	}
+
+	private DataTableSpec make_output_spec() {
 		DataColumnSpec[] cols = new DataColumnSpec[3];
 		cols[0] = new DataColumnSpecCreator("Input file", StringCell.TYPE).createSpec();
 		cols[1] = new DataColumnSpecCreator("Output file", StringCell.TYPE).createSpec();
@@ -384,6 +476,7 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     	m_save_sequence.saveSettingsTo(settings);
     	m_image_url.saveSettingsTo(settings);
     	m_assume_support.saveSettingsTo(settings);
+    	m_branch_widths.saveSettingsTo(settings);
     }
 
     /**
@@ -409,6 +502,11 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     	} else {
     		m_assume_support.setBooleanValue(Boolean.FALSE);		// dont assume by default
     	}
+    	if (settings.containsKey(CFGKEY_BRANCH_WIDTHS)) {
+    		m_branch_widths.loadSettingsFrom(settings);
+    	} else {
+    		m_branch_widths.setStringValue("");
+    	}
     }
 
     /**
@@ -429,7 +527,10 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     	m_taxa_regexp.validateSettings(settings);
     	m_save_sequence.validateSettings(settings);
     	m_image_url.validateSettings(settings);
-    	m_assume_support.validateSettings(settings);
+    	
+    	// left out for backward compatibility
+    	//m_assume_support.validateSettings(settings);
+    	//m_branch_widths.validateSettings(settings);
     }
     
     /**
