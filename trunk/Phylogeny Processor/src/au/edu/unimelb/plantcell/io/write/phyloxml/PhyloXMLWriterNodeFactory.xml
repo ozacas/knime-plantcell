@@ -16,13 +16,23 @@
         <option name="Tree to decorate">Enter the newick file which you wish to use as the source (gene) tree. It will not be modified.</option>
         <option name="Output file">The tree, after decoration with your data, is saved to this location. Always <a href="http://www.phyloxml.org">PhyloXML format</a></option>
         <option name="Overwrite existing output file?">If checked, the node will overwrite an existing output file</option>
-        <option name="Start Archaeopteryx">If checked, display the adjusted tree in archaeopteryx once the execution is complete</option>
+        <option name="Start Archaeopteryx">If checked, display the adjusted tree in archaeopteryx once the execution is complete. Currently
+        disabled as it can crash KNIME on some platforms.</option>
         <option name="Tree labels">Select the sequence column which provided taxa for the tree. The phyloxml can include this
         sequence if the 'include sequence' button is checked</option>
-        <option name="Match taxa names">This option can be used to match part of the input tree label to the input data. By default,
+        <option name="Match taxa names (advanced users only)">This option can be used to match part of the input tree label to the input data. By default,
         all the taxa names from the newick files are matched against input data.</option>
+       
+        <tab name="Decorations of output tree">
         <option name="Scientific species names">Choose the column (or none) which provides scientific species names</option>
         <option name="Image URLs">Each taxa can have an image, here you can choose which column provides the URL for each taxa (or none)</option>
+        <option name="Branch widths determined by unique ...">Select the column (or none if you dont want branch widths set)
+        to accumulate branch widths. A unique count of values for the taxa underneath each node in the tree is used to set
+        the branch width. A square root transform is applied to ensure no branch is too wide.
+        This requires a large amount of memory (and time for really large trees).</option>
+        </tab>
+        
+        <tab name="Domain Labelling">
         <option name="Label for domains">Domain architecture eg. structural features for each sequence can be labelled with three parallel
         lists. This vector provides a list of strings (which should be short for clarity) of the features on the sequence to show. All
         three lists (labels, start &amp; end positions) must have the same number of values. Missing values in lists must not be present. GroupBy "list" aggregation function can be used to create the required cell</option>
@@ -30,6 +40,7 @@
         to create the required cell</option>
     
         <option name="End positions">A list of values which describe the end position of each feature. GroupBy "list" aggregation function can be used to create the required cell</option>
+        </tab>
         
     </fullDescription>
     

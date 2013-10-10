@@ -69,6 +69,13 @@ public class PhyloXMLWriterNodeDialog extends DefaultNodeSettingsPane {
         		new SettingsModelString(PhyloXMLWriterNodeModel.CFGKEY_WANT_IMAGES, ""), "Image URLs from... ",
         		0, false, true, StringValue.class
         		));
+        
+        addDialogComponent(new DialogComponentColumnNameSelection(
+        		new SettingsModelString(PhyloXMLWriterNodeModel.CFGKEY_BRANCH_WIDTHS, ""), "Branch widths determined by unique ...",
+        		0, false, true, StringValue.class
+        		));
+        
+        createNewGroup("Domain labelling");
         final ColumnFilter cf = new ColumnFilter() {
 
 			@Override
