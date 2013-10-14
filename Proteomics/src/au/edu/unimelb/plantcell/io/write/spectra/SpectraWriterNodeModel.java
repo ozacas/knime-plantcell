@@ -47,6 +47,7 @@ public class SpectraWriterNodeModel extends NodeModel {
 	static final String CFGKEY_FORMAT          = "file-format";
 	static final String CFGKEY_COLUMN          = "spectra";
 	static final String CFGKEY_FILENAME_SUFFIX = "suffix";
+	static final String CFGKEY_SAVE_EMPTY_PEAKLISTS = "save-empty-peaklists?";
 	
     private static final String DEFAULT_FILE = "c:/temp/spectra.mgf";
     private static final boolean DEFAULT_OVERWRITE = false;
@@ -61,6 +62,7 @@ public class SpectraWriterNodeModel extends NodeModel {
     private final SettingsModelString m_format     = new SettingsModelString(CFGKEY_FORMAT, DEFAULT_FORMAT);
     private final SettingsModelString m_col        = new SettingsModelString(CFGKEY_COLUMN, DEFAULT_COLUMN);
     private final SettingsModelString m_suffix     = new SettingsModelString(CFGKEY_FILENAME_SUFFIX, "");
+    private final SettingsModelBoolean m_save_empty= new SettingsModelBoolean(CFGKEY_SAVE_EMPTY_PEAKLISTS, Boolean.FALSE);
 
     /**
      * Constructor for the node model.
@@ -83,6 +85,7 @@ public class SpectraWriterNodeModel extends NodeModel {
     	RowIterator it = inData[0].iterator();
     	
     	int done = 0;
+    	int skipped = 0;
     	int todo = inData[0].getRowCount();
     	
     	HashMap<String,PrintWriter> file_map = new HashMap<String,PrintWriter>();
@@ -133,6 +136,14 @@ public class SpectraWriterNodeModel extends NodeModel {
     			exec.setProgress(((double) done)/todo, "Processing spectra "+done);
     		}
     		
+    		if (mz == null || mz.length < 0) {
+    			if (!m_save_empty.getBooleanValue()) {
+    				skipped++;
+    				continue;
+    			}
+    			logger.warn(title+ " has no peaks (but saved without peaks anyway)!");
+    		}
+    		
     		// write the spectra to the output file
     		pw.println("BEGIN IONS");
     		// some mascot implementations require PEPMASS right after the BEGIN IONS so...
@@ -156,8 +167,6 @@ public class SpectraWriterNodeModel extends NodeModel {
 	    			pw.print(' ');
 	    			pw.println(intensity[i]);
 	    		}
-    		} else {
-    			logger.warn(title+ " has no peaks (but saved without peaks anyway)!");
     		}
     		pw.println("END IONS");
     		
@@ -169,7 +178,7 @@ public class SpectraWriterNodeModel extends NodeModel {
     	for (String s : file_map.keySet()) {
     		file_map.get(s).close();
     	}
-    	logger.info("Wrote "+done+" spectra.");
+    	logger.info("Wrote "+done+" spectra, "+skipped+" input spectra were not saved.");
     	
     	// done!
         return new BufferedDataTable[]{};
@@ -250,6 +259,7 @@ public class SpectraWriterNodeModel extends NodeModel {
     	m_format.saveSettingsTo(settings);
     	m_overwrite.saveSettingsTo(settings);
     	m_suffix.saveSettingsTo(settings);
+    	m_save_empty.saveSettingsTo(settings);
     }
 
     /**
@@ -269,7 +279,11 @@ public class SpectraWriterNodeModel extends NodeModel {
     	} else {
     		m_suffix.setStringValue("");
     	}
-
+    	if (settings.containsKey(CFGKEY_SAVE_EMPTY_PEAKLISTS)) {
+    		m_save_empty.loadSettingsFrom(settings);
+    	} else {
+    		m_save_empty.setBooleanValue(Boolean.FALSE);
+    	}
     }
 
     /**
@@ -284,6 +298,9 @@ public class SpectraWriterNodeModel extends NodeModel {
     	m_overwrite.validateSettings(settings);
     	if (settings.containsKey(CFGKEY_FILENAME_SUFFIX)) {
     		m_suffix.validateSettings(settings);
+    	}
+    	if (settings.containsKey(CFGKEY_SAVE_EMPTY_PEAKLISTS)) {
+    		m_save_empty.validateSettings(settings);
     	}
     }
     
