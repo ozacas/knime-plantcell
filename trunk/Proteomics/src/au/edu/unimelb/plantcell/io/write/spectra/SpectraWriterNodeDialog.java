@@ -38,19 +38,27 @@ public class SpectraWriterNodeDialog extends DefaultNodeSettingsPane {
 	protected SpectraWriterNodeDialog() {
         super();
         
+        createNewGroup("File(s) to save to...");
         addDialogComponent(new DialogComponentFileChooser(
         		new SettingsModelString(SpectraWriterNodeModel.CFGKEY_FILE, ""), 
         		"file-history", JFileChooser.SAVE_DIALOG, false));
         
         addDialogComponent(new DialogComponentBoolean(
         		new SettingsModelBoolean(SpectraWriterNodeModel.CFGKEY_OVERWRITE, false), "Overwrite?"));
+        closeCurrentGroup();
         
         addDialogComponent(new DialogComponentColumnNameSelection(
         		new SettingsModelString(SpectraWriterNodeModel.CFGKEY_COLUMN, ""), "Column to save: ", 0, SpectraValue.class));
         
+        createNewGroup("Output format");
         addDialogComponent(new DialogComponentStringSelection(
         		new SettingsModelString(SpectraWriterNodeModel.CFGKEY_FORMAT, "Mascot Generic Format"), "Output format", "Mascot Generic Format"));
-   
+        addDialogComponent(new DialogComponentBoolean(
+        		new SettingsModelBoolean(SpectraWriterNodeModel.CFGKEY_SAVE_EMPTY_PEAKLISTS, Boolean.FALSE),
+        		"Save empty peaklists (if checked)?"
+        		));
+        closeCurrentGroup();
+        
         addDialogComponent(new DialogComponentColumnNameSelection (
         		new SettingsModelString(SpectraWriterNodeModel.CFGKEY_FILENAME_SUFFIX, ""), "Suffix for save to multiple files: ", 0, false, true,
         		new ColumnFilter() {
@@ -70,7 +78,7 @@ public class SpectraWriterNodeDialog extends DefaultNodeSettingsPane {
 					}
         			
         		}));
-        	
+        
     }
 }
 

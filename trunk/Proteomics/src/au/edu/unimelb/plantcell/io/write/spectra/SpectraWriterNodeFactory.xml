@@ -28,7 +28,10 @@
         <option name="Output filename">The file to save to. If chosen, the suffix will be appended to each file</option>
         <option name="Column to save">Spectra column to save eg. from Spectra Reader or Mascot Reader nodes</option>
         <option name="Overwrite?">The node will abort if an attempt is made to overwrite a file unless this option is checked</option>
+       
         <option name="Output format">Only MGF is supported for now, other formats to come soon</option>
+        <option name="Save empty peaklists?">Save empty peak lists to output MGF?</option>
+        
         <option name="Suffix column">Choose none to save a single (combined spectra) file, or to create multiple files with. The column
         must have no more than approx. 40 different values as this will create too many files to be practically useful.</option>
     </fullDescription>
