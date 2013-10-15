@@ -29,8 +29,6 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
 import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
-import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
-import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 import au.edu.unimelb.plantcell.core.ErrorLogger;
@@ -66,7 +64,7 @@ public class SeqClusterNodeModel extends NodeModel {
 	private SettingsModelString  m_input_sequences = new SettingsModelString(CFGKEY_SEQUENCES, "");
 	private SettingsModelBoolean m_log             = new SettingsModelBoolean(CFGKEY_LOG_STDERR, Boolean.FALSE);
 	private SettingsModelString  m_user_defined    = new SettingsModelString(CFGKEY_USER_DEFINED, "");
-	private SettingsModelDouble m_identity         = new SettingsModelDoubleBounded(CFGKEY_THRESHOLD, 95, 0.0, 100.0);
+	private SettingsModelDouble  m_identity        = new SettingsModelDoubleBounded(CFGKEY_THRESHOLD, 95, 0.0, 100.0);
 	private SettingsModelString  m_algo            = new SettingsModelString(CFGKEY_ALGO, ALGO[0]);
 	
 	
