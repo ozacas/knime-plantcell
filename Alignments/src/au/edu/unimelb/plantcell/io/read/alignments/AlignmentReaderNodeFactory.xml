@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>Alignment Reader</name>
+    
+    <shortDescription>
+        Supports reading a single alignment file into the KNIME platform
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+      		Supports reading a single alignment file into the KNIME platform
+        </intro>
+        
+        
+    </fullDescription>
+    
+    <ports>
+        <outPort index="0" name="Alignments">Loaded input data</outPort>
+        <!-- possibly more output ports here-->
+    </ports>    
+  
+</knimeNode>
