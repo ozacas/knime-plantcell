@@ -34,6 +34,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 import au.edu.unimelb.plantcell.core.ErrorLogger;
+import au.edu.unimelb.plantcell.core.NullLogger;
 import au.edu.unimelb.plantcell.core.UniqueID;
 import au.edu.unimelb.plantcell.core.cells.SequenceType;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
@@ -51,10 +52,10 @@ import au.edu.unimelb.plantcell.io.ws.multialign.AlignmentValue.AlignmentType;
 public class LocalMafftNodeModel extends NodeModel {
     private final NodeLogger logger = NodeLogger.getLogger("MAFFT Aligner (local)");
 	
-	public static final String CFGKEY_ROOT = "mafft root folder";
-	public static final String CFGKEY_SEQUENCES = "sequences-column";
-	public static final String CFGKEY_LOG_STDERR= "log-stderr";
-	public static final String CFGKEY_ALGO = "algorithm";
+	public static final String CFGKEY_ROOT         = "mafft root folder";
+	public static final String CFGKEY_SEQUENCES    = "sequences-column";
+	public static final String CFGKEY_LOG_STDERR   = "log-stderr";
+	public static final String CFGKEY_ALGO         = "algorithm";
 	public static final String CFGKEY_USER_DEFINED = "user-defined-options";
 	
 	// order is VERY important and cannot be changed without care!
@@ -159,13 +160,7 @@ public class LocalMafftNodeModel extends NodeModel {
 							return sb.toString();
 						}
 	    	    	};
-	    	    	LogOutputStream errors = m_log.getBooleanValue() ? new ErrorLogger(logger, true) : new LogOutputStream() {
-	
-						@Override
-						protected void processLine(String arg0, int arg1) {
-						}
-	    	    		
-	    	    	};
+	    	    	LogOutputStream errors = m_log.getBooleanValue() ? new ErrorLogger(logger, true) : new NullLogger();
 	    	    	exe.setStreamHandler(new PumpStreamHandler(tsv, errors));
 	    	    	exe.setWorkingDirectory(f.getParentFile());		// must match addQueryDatabase() semantics
 	    	    	exe.setWatchdog(new ExecuteWatchdog(ExecuteWatchdog.INFINITE_TIMEOUT));
@@ -186,10 +181,7 @@ public class LocalMafftNodeModel extends NodeModel {
 	            		return DataType.getMissingCell();
 	            	}
 	            	
-					if (st.isProtein())
-						return AlignmentCellFactory.createCell(tsv.toString(), AlignmentType.AL_AA);
-					else
-						return AlignmentCellFactory.createCell(tsv.toString(), AlignmentType.AL_NA);
+					return AlignmentCellFactory.createCell(tsv.toString(), st.isProtein() ? AlignmentType.AL_AA : AlignmentType.AL_NA);
 				} catch (IOException|InvalidSettingsException ioe) {
 					logger.error("Cannot mafft!", ioe);
 					return DataType.getMissingCell();
@@ -236,6 +228,11 @@ public class LocalMafftNodeModel extends NodeModel {
 			cmdLine.addArgument("--globalpair");
 			cmdLine.addArgument("--maxiterate");
 			cmdLine.addArgument("1000");
+		} else if (algo.equals(TRADEOFFS[1])) {
+			String[] params = m_user_defined.getStringValue().split("\\s+");
+			for (String param : params) {
+				cmdLine.addArgument(param);
+			}
 		} else {
 			throw new InvalidSettingsException("Unknown algorithm: "+algo);
 		}
