@@ -167,6 +167,7 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     			not_decorated++;
     			continue;
     		}
+    		
     		taxa_map.put(taxa, sv);
     		ColorAttr c = inData[0].getSpec().getRowColor(r);
     		Color   col = c.getColor();
@@ -225,7 +226,7 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     			saw++;
     			
     			// assume node name for internal nodes is support? If so, then convert it to a 
-    			// PhyloXML confidence setting so that ATV understands the data - TODO FIXME should we support non-bootstrap confidence types?
+    			// PhyloXML confidence setting so that Archa... understands the data - TODO FIXME should we support non-bootstrap confidence types?
     			if (m_assume_support.getBooleanValue()) {
     				if (n.isInternal() && n.getName().trim().matches("^[\\d\\.]+$")) {
     					try {
@@ -241,7 +242,9 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     			
     			if (n.isExternal() && want_branch_widths) {
     				// we dont compute it unless we have to: expensive in time and memory!
-    				String value = taxa2bwval.get(n.getName());
+    				String name = n.getName();
+    				
+    				String value = taxa2bwval.get(getTaxa(name));
     				if (value != null) {
     					propagate_to_root(node2branchset, n, value);
     					is_decorated = true;
@@ -302,6 +305,14 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     	// note that we use the square root transform to avoid branches being too big on screen in Archaeopteryx...
     	if (want_branch_widths) {
     		logger.info("Branch set has "+node2branchset.size()+" tree nodes.");
+    		boolean want_sqrt = false;
+    		for (HashSet<String> set : node2branchset.values()) {
+    			if (set.size() > 50) {
+    				want_sqrt = true; 
+    				logger.warn("Encountered large branch widths: applying SQRT transform to all.");
+    				break;
+    			}
+    		}
     		
 	    	HashSet<String> missing_widths = new HashSet<String>();
 	    	for (Phylogeny phy : phys) {
@@ -315,7 +326,7 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
 	    			} else {
 	    				BranchData bd = n.getBranchData();
 	    				if (bd != null) {
-	    					BranchWidth bw = new BranchWidth(Math.sqrt(set.size()));
+	    					BranchWidth bw = new BranchWidth(want_sqrt ? Math.sqrt(set.size()) : set.size());
 	    					bd.setBranchWidth(bw);
 	    				} else {
 	    					missing_widths.add(id);
