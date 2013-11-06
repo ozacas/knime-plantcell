@@ -2,14 +2,33 @@
 <?eclipse version="3.0"?><plugin>
    
    <extension point="org.knime.workbench.repository.nodes">
-      <node category-path="/Bioinformatics/Web Services" factory-class="au.edu.unimelb.plantcell.io.ws.multialign.MultiAlignerNodeFactory" id="au.edu.unimelb.plantcell.io.ws.multialign.MultiAlignerNodeFactory"/>
+      <node category-path="/Bioinformatics/Web Services" 
+      factory-class="au.edu.unimelb.plantcell.io.ws.multialign.MultiAlignerNodeFactory" 
+      id="au.edu.unimelb.plantcell.io.ws.multialign.MultiAlignerNodeFactory"/>
   
-      <node category-path="/Bioinformatics/Write" factory-class="au.edu.unimelb.plantcell.io.ws.multialign.AlignmentWriterNodeFactory" id="au.edu.unimelb.plantcell.io.ws.multialign.AlignmentWriterNodeFactory"/>
+      <node category-path="/Bioinformatics/Write" 
+      factory-class="au.edu.unimelb.plantcell.io.ws.multialign.AlignmentWriterNodeFactory" 
+      id="au.edu.unimelb.plantcell.io.ws.multialign.AlignmentWriterNodeFactory"/>
   
-      <node category-path="/Bioinformatics/Sequence Analysis" factory-class="au.edu.unimelb.plantcell.io.ws.multialign.SequenceAlignerNodeFactory" id="au.edu.unimelb.plantcell.io.ws.multialign.SequenceAlignerNodeFactory"/>
+      <node category-path="/Bioinformatics/Sequence Analysis" 
+      factory-class="au.edu.unimelb.plantcell.io.ws.multialign.SequenceAlignerNodeFactory" 
+      id="au.edu.unimelb.plantcell.io.ws.multialign.SequenceAlignerNodeFactory"/>
   
-  	  <node category-path="/Bioinformatics/Sequence Analysis" factory-class="au.edu.unimelb.plantcell.io.muscle.LocalMuscleNodeFactory" id="au.edu.unimelb.plantcell.io.muscle.LocalMuscleNodeFactory" />
+  	  <node category-path="/Bioinformatics/Sequence Analysis" 
+  	  factory-class="au.edu.unimelb.plantcell.io.muscle.LocalMuscleNodeFactory" 
+  	  id="au.edu.unimelb.plantcell.io.muscle.LocalMuscleNodeFactory" />
   	  
+  	  <node category-path="/Bioinformatics/Sequence Analysis" 
+  	  factory-class="au.edu.unimelb.plantcell.io.mafft.LocalMafftNodeFactory" 
+  	  id="au.edu.unimelb.plantcell.io.mafft.LocalMafftNodeFactory" />
+  	  
+  	  <node category-path="/Bioinformatics/Sequence Analysis" 
+  	  factory-class="au.edu.unimelb.plantcell.io.usearch.SeqClusterNodeFactory" 
+  	  id="au.edu.unimelb.plantcell.io.usearch.SeqClusterNodeFactory" />
+  	  
+  	  <node category-path="/Bioinformatics/Read"
+  	  factory-class="au.edu.unimelb.plantcell.io.read.alignments.AlignmentReaderNodeFactory"
+  	  id="au.edu.unimelb.plantcell.io.read.alignments.AlignmentReaderNodeFactory" />
    </extension>
    
 </plugin>

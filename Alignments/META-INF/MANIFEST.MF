@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Multiple Aligner
 Bundle-SymbolicName: au.edu.unimelb.plantcell.io.ws.multialign;singleton:=true
-Bundle-Version: 1.2.6
+Bundle-Version: 1.2.11
 Bundle-ClassPath: lib/jaligner.jar,
  lib/neobio.jar,
  multialigner.jar
@@ -122,4 +122,5 @@ Export-Package: au.edu.unimelb.plantcell.io.ws.multialign;
    pal.util,
    pal.coalescent,
    org.w3c.dom"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 
