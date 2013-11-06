@@ -24,7 +24,8 @@ import org.knime.core.data.renderer.DataValueRenderer;
  *
  */
 public class GraphicalTrackRenderer extends Canvas implements DataValueRenderer {
-	private final static Font LABEL_FONT = new Font ("Sanserif", Font.BOLD, 12);
+	protected final static Font LABEL_FONT = new Font ("Sanserif", Font.BOLD, 12);
+	protected final static Font MONO_FONT  = new Font(Font.MONOSPACED, Font.PLAIN, 14);
 	
 	/**
 	 * not used
@@ -60,7 +61,15 @@ public class GraphicalTrackRenderer extends Canvas implements DataValueRenderer 
 		m_seq = null;
 	}
 
-	public void setSequence(SequenceValue sv) {
+	protected boolean hasSequence() {
+		return (m_seq != null && m_seq.getLength() > 0);
+	}
+	
+	protected SequenceValue getSequence() {
+		return m_seq;
+	}
+	
+	protected void setSequence(SequenceValue sv) {
 		m_seq = sv;
 	}
 	
@@ -89,8 +98,8 @@ public class GraphicalTrackRenderer extends Canvas implements DataValueRenderer 
 						
 				} 
 				if (has_regions) {
-					INSTANCE.setSequence(sv);
-					return INSTANCE;
+					this.setSequence(sv);
+					return this;
 				}
 			}
 			// else fallthru...
@@ -99,9 +108,10 @@ public class GraphicalTrackRenderer extends Canvas implements DataValueRenderer 
 		return new JLabel("No visual tracks for display!");
 	}
 	
+
 	@Override
-	public boolean accepts(DataColumnSpec spec) {
-		return true;
+	public boolean accepts(DataColumnSpec cs) {
+		return (cs != null && cs.getType().isCompatible(SequenceValue.class));
 	}
 	
 	@Override
@@ -111,7 +121,7 @@ public class GraphicalTrackRenderer extends Canvas implements DataValueRenderer 
 	}
 
 	@Override
-	public Component getListCellRendererComponent(JList arg0, Object arg1,
+	public Component getListCellRendererComponent(@SuppressWarnings("rawtypes") JList arg0, Object arg1,
 			int arg2, boolean arg3, boolean arg4) {
 		return getRendererComponent(arg1);
 	}
@@ -131,8 +141,9 @@ public class GraphicalTrackRenderer extends Canvas implements DataValueRenderer 
 		return getMinimumSize();
 	}
 
+	@Override
 	public void paint(Graphics g) {
-		if (m_seq == null)
+		if (hasSequence())
 			return;
 		Font oldFont = g.getFont();
 		g.setColor(Color.BLACK);

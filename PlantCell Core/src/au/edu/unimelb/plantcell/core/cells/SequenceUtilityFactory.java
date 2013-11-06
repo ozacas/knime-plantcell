@@ -39,6 +39,7 @@ public class SequenceUtilityFactory extends UtilityFactory {
             final DataColumnSpec spec) {
         return new DefaultDataValueRendererFamily(StringValueRenderer.INSTANCE, 
         		SummarySequenceRenderer.INSTANCE,
+        		PrettySequenceRenderer.INSTANCE,
         		GraphicalTrackRenderer.INSTANCE,
         		ThreeLetterSequenceRenderer.INSTANCE
         		);
