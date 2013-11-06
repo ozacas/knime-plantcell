@@ -59,7 +59,7 @@ public class LocalMafftNodeModel extends NodeModel {
 	public static final String CFGKEY_USER_DEFINED = "user-defined-options";
 	
 	// order is VERY important and cannot be changed without care!
-	public static final String[] TRADEOFFS = new String[] { "Auto", "User-defined", "FFT-NS-1", "FFT-NS-2", "FFT-NS-i (max 1000 cycles)", "L-INS-i", "G-INS-i" };
+	public static final String[] TRADEOFFS = new String[] { "Auto", "User-defined", "FFT-NS-1", "FFT-NS-2", "FFT-NS-i (max 1000 cycles)", "L-INS-i", "G-INS-i", "E-INS-i" };
 	
 	private SettingsModelString m_root = new SettingsModelString(CFGKEY_ROOT, "");
 	private SettingsModelString m_input_sequences = new SettingsModelString(CFGKEY_SEQUENCES, "");
@@ -226,6 +226,10 @@ public class LocalMafftNodeModel extends NodeModel {
 			cmdLine.addArgument("1000");
 		} else if (algo.equals(TRADEOFFS[6])) {
 			cmdLine.addArgument("--globalpair");
+			cmdLine.addArgument("--maxiterate");
+			cmdLine.addArgument("1000");
+		} else if (algo.equals(TRADEOFFS[7])) {
+			cmdLine.addArgument("--genafpair");
 			cmdLine.addArgument("--maxiterate");
 			cmdLine.addArgument("1000");
 		} else if (algo.equals(TRADEOFFS[1])) {
