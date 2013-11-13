@@ -286,8 +286,10 @@ public class BIGPIAccessorNodeModel extends AbstractWebServiceNodeModel {
 	 */
 	private Map<UniqueID, DataRow> make_uid2row_map(
 			Map<UniqueID, SequenceValue> batch_map, List<DataRow> batch_rows) throws Exception {
+		
 		HashMap<UniqueID, DataRow> ret = new HashMap<UniqueID, DataRow>();
 		HashSet<String> dup_check = new HashSet<String>();
+		
 		for (DataRow dr : batch_rows) {
 			DataCell dc = dr.getCell(m_seq_idx);
 			if (dc == null || dc.isMissing())
