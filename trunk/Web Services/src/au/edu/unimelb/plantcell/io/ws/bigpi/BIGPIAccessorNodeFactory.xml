@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="./default.png" type="Manipulator">
-    <name>BIG-PI@Nectar</name>
+    <name>GPI-anchor Predictor (BigPI)</name>
     
     <shortDescription>
         Provides a KNIME interface to GPI Anchor prediction from BIG-PI (an academic license of this
