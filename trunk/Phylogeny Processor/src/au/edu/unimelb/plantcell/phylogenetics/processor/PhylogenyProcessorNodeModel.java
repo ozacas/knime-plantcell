@@ -3,22 +3,12 @@ package au.edu.unimelb.plantcell.phylogenetics.processor;
 import java.io.File;
 import java.io.IOException;
 
-import org.knime.core.data.DataCell;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.RowIterator;
-import org.knime.core.data.RowKey;
-import org.knime.core.data.def.DefaultRow;
-import org.knime.core.data.def.DoubleCell;
-import org.knime.core.data.def.IntCell;
-import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
@@ -26,6 +16,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 
 /**
@@ -37,8 +28,7 @@ import org.knime.core.node.NodeSettingsWO;
 public class PhylogenyProcessorNodeModel extends NodeModel {
     
     // the logger instance
-    private static final NodeLogger logger = NodeLogger
-            .getLogger(PhylogenyProcessorNodeModel.class);
+    private static final NodeLogger logger = NodeLogger.getLogger("Phylogeny Processor");
     
     public final static String CFG_TASK = "task-to-perform";
         
