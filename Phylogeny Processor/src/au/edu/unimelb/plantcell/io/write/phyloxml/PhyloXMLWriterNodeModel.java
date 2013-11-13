@@ -158,6 +158,8 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     	for (DataRow r : inData[0]) {
     		// use the row colours for the taxa in the phyloxml
     		DataCell taxa_cell = r.getCell(taxa_idx);
+    		
+    		// skip missing values for taxa...
     		if (taxa_cell == null || taxa_cell.isMissing())
     			continue;
     		
@@ -177,33 +179,29 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     		
     		if (species_idx >= 0) {
     			DataCell species_cell = r.getCell(species_idx);
-    			if (species_cell == null || species_cell.isMissing()) 
-    				continue;
-    			species_map.put(taxa, species_cell.toString());
+    			if (species_cell != null && !species_cell.isMissing()) 
+    				species_map.put(taxa, species_cell.toString());
     		}
     		if (image_idx >= 0) {
     			DataCell image_cell = r.getCell(image_idx);
-    			if (image_cell == null || image_cell.isMissing())
-    				continue;
-    			uri_map.put(taxa, image_cell.toString());
+    			if (image_cell != null && !image_cell.isMissing())
+    				uri_map.put(taxa, image_cell.toString());
     		}
     		if (dom_start_idx >= 0 && dom_end_idx >= 0 && dom_labels_idx >= 0) {
     			DataCell start_list = r.getCell(dom_start_idx);
     			DataCell end_list = r.getCell(dom_end_idx);
     			DataCell labels = r.getCell(dom_labels_idx);
     			
-    			if (start_list == null || end_list == null || labels == null ||
-    					start_list.isMissing() || end_list.isMissing() || labels.isMissing()) {
-    				continue;
+    			if (start_list != null && end_list != null && labels != null &&
+    					!start_list.isMissing() && !end_list.isMissing() && !labels.isMissing()) {
+    				addDomainsToMap(domain_map, taxa, start_list, end_list, labels, sv.getLength(), r.getKey().getString());
     			}
-    			addDomainsToMap(domain_map, taxa, start_list, end_list, labels, sv.getLength(), r.getKey().getString());
+    			
     		}
     		if (want_branch_widths) {
     			DataCell branch_value = r.getCell(bw_idx);
-    			if (branch_value == null || branch_value.isMissing()) {
-    				continue;
-    			}
-    			taxa2bwval.put(taxa, branch_value.toString());
+    			if (branch_value != null && !branch_value.isMissing())
+    				taxa2bwval.put(taxa, branch_value.toString());
     		}
     	}
     	logger.info("Colour map has "+colour_map.size()+" taxa.");
