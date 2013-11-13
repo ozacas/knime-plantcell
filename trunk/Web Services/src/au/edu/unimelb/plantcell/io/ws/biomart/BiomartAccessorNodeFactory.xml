@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>Biomart Query</name>
+    
+    <shortDescription>
+        Provides access to Biomarts - see http://www.biomart.org for more details
+    </shortDescription>
+    
+    <fullDescription>
+        <intro> 
+        Provides access to Biomarts - see http://www.biomart.org for more details
+        </intro>
+        
+       
+    </fullDescription>
+    
+    <ports>
+        <outPort index="0" name="Biomart data">Data as requested by query</outPort>
+    </ports>    
+ 
+</knimeNode>
