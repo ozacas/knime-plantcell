@@ -8,17 +8,17 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for dataset complex type.
+ * <p>Java class for filterData complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="dataset">
+ * &lt;complexType name="filterData">
  *   &lt;complexContent>
  *     &lt;extension base="{http://soap.api.biomart.org/}liteMartConfiguratorObject">
  *       &lt;sequence>
  *       &lt;/sequence>
- *       &lt;attribute name="isHidden" use="required" type="{http://www.w3.org/2001/XMLSchema}boolean" />
+ *       &lt;attribute name="isSelected" use="required" type="{http://www.w3.org/2001/XMLSchema}boolean" />
  *     &lt;/extension>
  *   &lt;/complexContent>
  * &lt;/complexType>
@@ -27,28 +27,28 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "dataset")
-public class Dataset
+@XmlType(name = "filterData")
+public class FilterData
     extends LiteMartConfiguratorObject
 {
 
-    @XmlAttribute(name = "isHidden", required = true)
-    protected boolean isHidden;
+    @XmlAttribute(name = "isSelected", required = true)
+    protected boolean isSelected;
 
     /**
-     * Gets the value of the isHidden property.
+     * Gets the value of the isSelected property.
      * 
      */
-    public boolean isIsHidden() {
-        return isHidden;
+    public boolean isIsSelected() {
+        return isSelected;
     }
 
     /**
-     * Sets the value of the isHidden property.
+     * Sets the value of the isSelected property.
      * 
      */
-    public void setIsHidden(boolean value) {
-        this.isHidden = value;
+    public void setIsSelected(boolean value) {
+        this.isSelected = value;
     }
 
 }

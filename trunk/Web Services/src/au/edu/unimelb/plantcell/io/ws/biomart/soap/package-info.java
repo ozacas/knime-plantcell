@@ -1,2 +1,2 @@
-@javax.xml.bind.annotation.XmlSchema(namespace = "http://www.biomart.org:80/MartServiceSoap")
+@javax.xml.bind.annotation.XmlSchema(namespace = "http://soap.api.biomart.org/")
 package au.edu.unimelb.plantcell.io.ws.biomart.soap;

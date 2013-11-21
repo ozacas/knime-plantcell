@@ -7,18 +7,19 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for getAttributes complex type.
+ * <p>Java class for getContainers complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="getAttributes">
+ * &lt;complexType name="getContainers">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
  *         &lt;element name="datasets" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="config" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *         &lt;element name="container" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
+ *         &lt;element name="withAttributes" type="{http://www.w3.org/2001/XMLSchema}boolean" minOccurs="0"/>
+ *         &lt;element name="withFilters" type="{http://www.w3.org/2001/XMLSchema}boolean" minOccurs="0"/>
  *         &lt;element name="allowPartialList" type="{http://www.w3.org/2001/XMLSchema}boolean" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
@@ -29,17 +30,19 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "getAttributes", propOrder = {
+@XmlType(name = "getContainers", propOrder = {
     "datasets",
     "config",
-    "container",
+    "withAttributes",
+    "withFilters",
     "allowPartialList"
 })
-public class GetAttributes {
+public class GetContainers {
 
     protected String datasets;
     protected String config;
-    protected String container;
+    protected Boolean withAttributes;
+    protected Boolean withFilters;
     protected Boolean allowPartialList;
 
     /**
@@ -91,27 +94,51 @@ public class GetAttributes {
     }
 
     /**
-     * Gets the value of the container property.
+     * Gets the value of the withAttributes property.
      * 
      * @return
      *     possible object is
-     *     {@link String }
+     *     {@link Boolean }
      *     
      */
-    public String getContainer() {
-        return container;
+    public Boolean isWithAttributes() {
+        return withAttributes;
     }
 
     /**
-     * Sets the value of the container property.
+     * Sets the value of the withAttributes property.
      * 
      * @param value
      *     allowed object is
-     *     {@link String }
+     *     {@link Boolean }
      *     
      */
-    public void setContainer(String value) {
-        this.container = value;
+    public void setWithAttributes(Boolean value) {
+        this.withAttributes = value;
+    }
+
+    /**
+     * Gets the value of the withFilters property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link Boolean }
+     *     
+     */
+    public Boolean isWithFilters() {
+        return withFilters;
+    }
+
+    /**
+     * Sets the value of the withFilters property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link Boolean }
+     *     
+     */
+    public void setWithFilters(Boolean value) {
+        this.withFilters = value;
     }
 
     /**

@@ -7,16 +7,16 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for getDatasets complex type.
+ * <p>Java class for getContainersResponse complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="getDatasets">
+ * &lt;complexType name="getContainersResponse">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="mart" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
+ *         &lt;element name="container" type="{http://soap.api.biomart.org/}container" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -26,35 +26,35 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "getDatasets", propOrder = {
-    "mart"
+@XmlType(name = "getContainersResponse", propOrder = {
+    "container"
 })
-public class GetDatasets {
+public class GetContainersResponse {
 
-    protected String mart;
+    protected Container container;
 
     /**
-     * Gets the value of the mart property.
+     * Gets the value of the container property.
      * 
      * @return
      *     possible object is
-     *     {@link String }
+     *     {@link Container }
      *     
      */
-    public String getMart() {
-        return mart;
+    public Container getContainer() {
+        return container;
     }
 
     /**
-     * Sets the value of the mart property.
+     * Sets the value of the container property.
      * 
      * @param value
      *     allowed object is
-     *     {@link String }
+     *     {@link Container }
      *     
      */
-    public void setMart(String value) {
-        this.mart = value;
+    public void setContainer(Container value) {
+        this.container = value;
     }
 
 }

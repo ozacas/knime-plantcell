@@ -7,16 +7,16 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for getDatasets complex type.
+ * <p>Java class for getResultsResponse complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="getDatasets">
+ * &lt;complexType name="getResultsResponse">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="mart" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
+ *         &lt;element name="result" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -26,35 +26,35 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "getDatasets", propOrder = {
-    "mart"
+@XmlType(name = "getResultsResponse", propOrder = {
+    "result"
 })
-public class GetDatasets {
+public class GetResultsResponse {
 
-    protected String mart;
+    protected String result;
 
     /**
-     * Gets the value of the mart property.
+     * Gets the value of the result property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getMart() {
-        return mart;
+    public String getResult() {
+        return result;
     }
 
     /**
-     * Sets the value of the mart property.
+     * Sets the value of the result property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setMart(String value) {
-        this.mart = value;
+    public void setResult(String value) {
+        this.result = value;
     }
 
 }
