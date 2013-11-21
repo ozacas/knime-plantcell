@@ -7,19 +7,19 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for getAttributes complex type.
+ * <p>Java class for getFilterValues complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="getAttributes">
+ * &lt;complexType name="getFilterValues">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
+ *         &lt;element name="filter" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
+ *         &lt;element name="value" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="datasets" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="config" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *         &lt;element name="container" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *         &lt;element name="allowPartialList" type="{http://www.w3.org/2001/XMLSchema}boolean" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -29,18 +29,66 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "getAttributes", propOrder = {
+@XmlType(name = "getFilterValues", propOrder = {
+    "filter",
+    "value",
     "datasets",
-    "config",
-    "container",
-    "allowPartialList"
+    "config"
 })
-public class GetAttributes {
+public class GetFilterValues {
 
+    protected String filter;
+    protected String value;
     protected String datasets;
     protected String config;
-    protected String container;
-    protected Boolean allowPartialList;
+
+    /**
+     * Gets the value of the filter property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getFilter() {
+        return filter;
+    }
+
+    /**
+     * Sets the value of the filter property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setFilter(String value) {
+        this.filter = value;
+    }
+
+    /**
+     * Gets the value of the value property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getValue() {
+        return value;
+    }
+
+    /**
+     * Sets the value of the value property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setValue(String value) {
+        this.value = value;
+    }
 
     /**
      * Gets the value of the datasets property.
@@ -88,54 +136,6 @@ public class GetAttributes {
      */
     public void setConfig(String value) {
         this.config = value;
-    }
-
-    /**
-     * Gets the value of the container property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getContainer() {
-        return container;
-    }
-
-    /**
-     * Sets the value of the container property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setContainer(String value) {
-        this.container = value;
-    }
-
-    /**
-     * Gets the value of the allowPartialList property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Boolean }
-     *     
-     */
-    public Boolean isAllowPartialList() {
-        return allowPartialList;
-    }
-
-    /**
-     * Sets the value of the allowPartialList property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Boolean }
-     *     
-     */
-    public void setAllowPartialList(Boolean value) {
-        this.allowPartialList = value;
     }
 
 }

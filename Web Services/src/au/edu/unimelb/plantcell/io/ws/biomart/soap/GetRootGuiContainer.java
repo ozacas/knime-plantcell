@@ -7,16 +7,16 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for getDatasets complex type.
+ * <p>Java class for getRootGuiContainer complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="getDatasets">
+ * &lt;complexType name="getRootGuiContainer">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="mart" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
+ *         &lt;element name="guitype" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -26,35 +26,35 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "getDatasets", propOrder = {
-    "mart"
+@XmlType(name = "getRootGuiContainer", propOrder = {
+    "guitype"
 })
-public class GetDatasets {
+public class GetRootGuiContainer {
 
-    protected String mart;
+    protected String guitype;
 
     /**
-     * Gets the value of the mart property.
+     * Gets the value of the guitype property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getMart() {
-        return mart;
+    public String getGuitype() {
+        return guitype;
     }
 
     /**
-     * Sets the value of the mart property.
+     * Sets the value of the guitype property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setMart(String value) {
-        this.mart = value;
+    public void setGuitype(String value) {
+        this.guitype = value;
     }
 
 }

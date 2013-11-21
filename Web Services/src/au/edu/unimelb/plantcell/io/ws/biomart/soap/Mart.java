@@ -3,7 +3,7 @@ package au.edu.unimelb.plantcell.io.ws.biomart.soap;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
 
 
@@ -15,22 +15,16 @@ import javax.xml.bind.annotation.XmlType;
  * <pre>
  * &lt;complexType name="mart">
  *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+ *     &lt;extension base="{http://soap.api.biomart.org/}liteMartConfiguratorObject">
  *       &lt;sequence>
- *         &lt;element name="name" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *         &lt;element name="displayName" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *         &lt;element name="database" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *         &lt;element name="host" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *         &lt;element name="path" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *         &lt;element name="port" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *         &lt;element name="visible" type="{http://www.w3.org/2001/XMLSchema}int"/>
- *         &lt;element name="default" type="{http://www.w3.org/2001/XMLSchema}int"/>
- *         &lt;element name="serverVirtualSchema" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *         &lt;element name="includeDatasets" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *         &lt;element name="martUser" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *         &lt;element name="redirect" type="{http://www.w3.org/2001/XMLSchema}int"/>
  *       &lt;/sequence>
- *     &lt;/restriction>
+ *       &lt;attribute name="mart" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *       &lt;attribute name="config" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *       &lt;attribute name="group" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *       &lt;attribute name="isHidden" use="required" type="{http://www.w3.org/2001/XMLSchema}boolean" />
+ *       &lt;attribute name="meta" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *       &lt;attribute name="operation" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *     &lt;/extension>
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
@@ -38,307 +32,158 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "mart", propOrder = {
-    "name",
-    "displayName",
-    "database",
-    "host",
-    "path",
-    "port",
-    "visible",
-    "_default",
-    "serverVirtualSchema",
-    "includeDatasets",
-    "martUser",
-    "redirect"
-})
-public class Mart {
+@XmlType(name = "mart")
+public class Mart
+    extends LiteMartConfiguratorObject
+{
 
-    @XmlElement(required = true)
-    protected String name;
-    @XmlElement(required = true)
-    protected String displayName;
-    @XmlElement(required = true)
-    protected String database;
-    @XmlElement(required = true)
-    protected String host;
-    @XmlElement(required = true)
-    protected String path;
-    @XmlElement(required = true)
-    protected String port;
-    protected int visible;
-    @XmlElement(name = "default")
-    protected int _default;
-    @XmlElement(required = true)
-    protected String serverVirtualSchema;
-    @XmlElement(required = true)
-    protected String includeDatasets;
-    @XmlElement(required = true)
-    protected String martUser;
-    protected int redirect;
+    @XmlAttribute(name = "mart")
+    protected String mart;
+    @XmlAttribute(name = "config")
+    protected String config;
+    @XmlAttribute(name = "group")
+    protected String group;
+    @XmlAttribute(name = "isHidden", required = true)
+    protected boolean isHidden;
+    @XmlAttribute(name = "meta")
+    protected String meta;
+    @XmlAttribute(name = "operation")
+    protected String operation;
 
     /**
-     * Gets the value of the name property.
+     * Gets the value of the mart property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getName() {
-        return name;
+    public String getMart() {
+        return mart;
     }
 
     /**
-     * Sets the value of the name property.
+     * Sets the value of the mart property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setName(String value) {
-        this.name = value;
+    public void setMart(String value) {
+        this.mart = value;
     }
 
     /**
-     * Gets the value of the displayName property.
+     * Gets the value of the config property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getDisplayName() {
-        return displayName;
+    public String getConfig() {
+        return config;
     }
 
     /**
-     * Sets the value of the displayName property.
+     * Sets the value of the config property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setDisplayName(String value) {
-        this.displayName = value;
+    public void setConfig(String value) {
+        this.config = value;
     }
 
     /**
-     * Gets the value of the database property.
+     * Gets the value of the group property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getDatabase() {
-        return database;
+    public String getGroup() {
+        return group;
     }
 
     /**
-     * Sets the value of the database property.
+     * Sets the value of the group property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setDatabase(String value) {
-        this.database = value;
+    public void setGroup(String value) {
+        this.group = value;
     }
 
     /**
-     * Gets the value of the host property.
+     * Gets the value of the isHidden property.
+     * 
+     */
+    public boolean isIsHidden() {
+        return isHidden;
+    }
+
+    /**
+     * Sets the value of the isHidden property.
+     * 
+     */
+    public void setIsHidden(boolean value) {
+        this.isHidden = value;
+    }
+
+    /**
+     * Gets the value of the meta property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getHost() {
-        return host;
+    public String getMeta() {
+        return meta;
     }
 
     /**
-     * Sets the value of the host property.
+     * Sets the value of the meta property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setHost(String value) {
-        this.host = value;
+    public void setMeta(String value) {
+        this.meta = value;
     }
 
     /**
-     * Gets the value of the path property.
+     * Gets the value of the operation property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getPath() {
-        return path;
+    public String getOperation() {
+        return operation;
     }
 
     /**
-     * Sets the value of the path property.
+     * Sets the value of the operation property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setPath(String value) {
-        this.path = value;
-    }
-
-    /**
-     * Gets the value of the port property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getPort() {
-        return port;
-    }
-
-    /**
-     * Sets the value of the port property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setPort(String value) {
-        this.port = value;
-    }
-
-    /**
-     * Gets the value of the visible property.
-     * 
-     */
-    public int getVisible() {
-        return visible;
-    }
-
-    /**
-     * Sets the value of the visible property.
-     * 
-     */
-    public void setVisible(int value) {
-        this.visible = value;
-    }
-
-    /**
-     * Gets the value of the default property.
-     * 
-     */
-    public int getDefault() {
-        return _default;
-    }
-
-    /**
-     * Sets the value of the default property.
-     * 
-     */
-    public void setDefault(int value) {
-        this._default = value;
-    }
-
-    /**
-     * Gets the value of the serverVirtualSchema property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getServerVirtualSchema() {
-        return serverVirtualSchema;
-    }
-
-    /**
-     * Sets the value of the serverVirtualSchema property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setServerVirtualSchema(String value) {
-        this.serverVirtualSchema = value;
-    }
-
-    /**
-     * Gets the value of the includeDatasets property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getIncludeDatasets() {
-        return includeDatasets;
-    }
-
-    /**
-     * Sets the value of the includeDatasets property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setIncludeDatasets(String value) {
-        this.includeDatasets = value;
-    }
-
-    /**
-     * Gets the value of the martUser property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getMartUser() {
-        return martUser;
-    }
-
-    /**
-     * Sets the value of the martUser property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setMartUser(String value) {
-        this.martUser = value;
-    }
-
-    /**
-     * Gets the value of the redirect property.
-     * 
-     */
-    public int getRedirect() {
-        return redirect;
-    }
-
-    /**
-     * Sets the value of the redirect property.
-     * 
-     */
-    public void setRedirect(int value) {
-        this.redirect = value;
+    public void setOperation(String value) {
+        this.operation = value;
     }
 
 }

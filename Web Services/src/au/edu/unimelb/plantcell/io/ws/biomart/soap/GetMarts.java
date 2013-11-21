@@ -3,21 +3,20 @@ package au.edu.unimelb.plantcell.io.ws.biomart.soap;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for anonymous complex type.
+ * <p>Java class for getMarts complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType>
+ * &lt;complexType name="getMarts">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="message" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
+ *         &lt;element name="guicontainer" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -27,36 +26,35 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {
-    "message"
+@XmlType(name = "getMarts", propOrder = {
+    "guicontainer"
 })
-@XmlRootElement(name = "BioMartException")
-public class BioMartException {
+public class GetMarts {
 
-    protected String message;
+    protected String guicontainer;
 
     /**
-     * Gets the value of the message property.
+     * Gets the value of the guicontainer property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getMessage() {
-        return message;
+    public String getGuicontainer() {
+        return guicontainer;
     }
 
     /**
-     * Sets the value of the message property.
+     * Sets the value of the guicontainer property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setMessage(String value) {
-        this.message = value;
+    public void setGuicontainer(String value) {
+        this.guicontainer = value;
     }
 
 }

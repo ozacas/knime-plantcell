@@ -5,21 +5,20 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for anonymous complex type.
+ * <p>Java class for getAttributesResponse complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType>
+ * &lt;complexType name="getAttributesResponse">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="attributePage" type="{http://www.biomart.org:80/MartServiceSoap}attributePage" maxOccurs="unbounded" minOccurs="0"/>
+ *         &lt;element name="attribute" type="{http://soap.api.biomart.org/}attribute" maxOccurs="unbounded" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -29,41 +28,40 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {
-    "attributePage"
+@XmlType(name = "getAttributesResponse", propOrder = {
+    "attribute"
 })
-@XmlRootElement(name = "getAttributesResponse")
 public class GetAttributesResponse {
 
-    protected List<AttributePage> attributePage;
+    protected List<Attribute> attribute;
 
     /**
-     * Gets the value of the attributePage property.
+     * Gets the value of the attribute property.
      * 
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the attributePage property.
+     * This is why there is not a <CODE>set</CODE> method for the attribute property.
      * 
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
-     *    getAttributePage().add(newItem);
+     *    getAttribute().add(newItem);
      * </pre>
      * 
      * 
      * <p>
      * Objects of the following type(s) are allowed in the list
-     * {@link AttributePage }
+     * {@link Attribute }
      * 
      * 
      */
-    public List<AttributePage> getAttributePage() {
-        if (attributePage == null) {
-            attributePage = new ArrayList<AttributePage>();
+    public List<Attribute> getAttribute() {
+        if (attribute == null) {
+            attribute = new ArrayList<Attribute>();
         }
-        return this.attributePage;
+        return this.attribute;
     }
 
 }
