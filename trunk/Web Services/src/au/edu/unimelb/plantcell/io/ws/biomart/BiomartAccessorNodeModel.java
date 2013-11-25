@@ -1,7 +1,17 @@
 package au.edu.unimelb.plantcell.io.ws.biomart;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
+import java.net.URL;
 import java.util.HashSet;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
+import org.eclipse.core.runtime.FileLocator;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
@@ -15,6 +25,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
+import org.osgi.framework.Bundle;
 
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.io.ws.biomart.soap.BioMartSoapService;
@@ -78,22 +89,39 @@ public class BiomartAccessorNodeModel extends AbstractWebServiceNodeModel {
 		return new DataTableSpec(cols);
 	}
 	
+	public static BioMartSoapService getService() {
+		try {
+			Bundle bundle = Platform.getBundle("au.edu.unimelb.plantcell.io.ws");
+  			URL u = FileLocator.find(bundle, new Path("/wsdl/biomart.wsdl"), null);
+  			 
+  			 // must not call default constructor for local WSDL... so...
+  			BioMartSoapService mart = new BioMartSoapService(u,new QName("http://soap.api.biomart.org/", "BioMartSoapService"));
+			
+			return mart;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new BioMartSoapService();
+		}
+	}
 	protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
 	            final ExecutionContext exec) throws Exception {
 	
-    	BioMartSoapService mart = new BioMartSoapService();
-    	PortalServiceImpl  port = mart.getPortalServiceImplPort();
+    	PortalServiceImpl  port = getService().getPortalServiceImplPort();
     	DataTableSpec outSpec = make_output_spec(null);
     	
     	String limit = "";
     	if (m_rowlimit.getIntValue() > 0) {
     		limit = "limit=\""+String.valueOf(m_rowlimit.getIntValue())+"\"";
+    	} else {
+    		logger.warn("No limit for number of rows: may take a long time!");
     	}
     	
     	StringBuilder attributes = new StringBuilder();
     	for (String attr : m_what.getStringArrayValue()) {
-    		attributes.append("<Attribute name=\""+attr+"\" />");
+    		attributes.append("<Attribute name= \""+attr+"\" />");
     	}
+    	logger.info("Expecting "+m_what.getStringArrayValue().length+ " columns!");
+    	
     	Mart m = getMart(port, m_db.getStringValue());
     	if (m == null)
     		throw new InvalidSettingsException("Unknown mart: "+m_db.getStringValue()+" - server down?");
@@ -101,9 +129,10 @@ public class BiomartAccessorNodeModel extends AbstractWebServiceNodeModel {
     	if (ds == null)
     		throw new InvalidSettingsException("Unknown dataset: "+m_dataset.getStringValue());
     	
-    	String query = String.format("<!DOCTYPE Query>"
-    	+"<Query client=\"javaclient\" processor=\"TSV\" "+limit+" header=\"1\" >"
-    	+"	<Dataset name=\"%s\" config=\"%s\">"
+    	String query = String.format(
+    			"<!DOCTYPE Query>"
+    	+"<Query virtualSchemaName= \"default\" formatter= \"TSV\" header= \"1\" "+limit+" uniqueRows= \"0\" count = \"\" datasetConfigVersion = \"0.6\" >"
+    	+"	<Dataset name= \"%s\" interface= \"default\" >"
     	+attributes.toString()
     	+"</Dataset></Query>", ds.getName(), m.getConfig()
     	);
@@ -111,26 +140,48 @@ public class BiomartAccessorNodeModel extends AbstractWebServiceNodeModel {
     	logger.info("Accessing biomart database: "+m_db.getStringValue());
     	logger.info("Accessing dataset: "+m_dataset.getStringValue());
     	
-    	logger.info(query);
-    	String results = port.getResults(query);
-    	logger.info(results);
-    	
     	MyDataContainer c = new MyDataContainer(exec.createDataContainer(outSpec), "Row");
+    	try {
+    		logger.info(query);
+    		String results = port.getResults(query);
+    		BufferedReader rdr = new BufferedReader(new StringReader(results));
+    		String line;
+    		int line_counter = 0;
+    		while ((line = rdr.readLine()) != null) {
+    			String[] fields = line.split("\\t");
+    			if (line_counter == 0) {
+    				line_counter++;
+    				logger.info("Header line: "+line);
+    				continue;
+    			}
+    			if (fields.length != outSpec.getNumColumns())
+    				throw new IOException("Expected "+outSpec.getNumColumns()+" columns but got "+fields.length+" - line is: "+line);
+    			DataCell[] cells = new DataCell[fields.length];
+    			for (int i=0; i<cells.length; i++) {
+    				cells[i] = new StringCell(fields[i]);
+    			}
+    			c.addRow(cells);
+    		}
+    	} catch (Exception ex) {
+    		ex.printStackTrace();
+    		throw ex;
+    	}
+    	
 		return new BufferedDataTable[] { c.close() };
 	}
 	
 
-	private Mart getMart(final PortalServiceImpl port, String mart_name) {
+	public static Mart getMart(final PortalServiceImpl port, String mart_name) {
 		List<Mart> marts = port.getMarts(null);
 		for (Mart m : marts) {
-			if (m.getName().equals(mart_name) || m.getDisplayName().equals(mart_name))
+			if (m.getName().equals(mart_name) || m.getDisplayName().equals(mart_name) || m.getGroup().equals(mart_name))
 				return m;
 		}
 		
 		return null;
 	}
 
-	private Dataset getDataset(final PortalServiceImpl port, final Mart m, String dataset_name) {
+	public static Dataset getDataset(final PortalServiceImpl port, final Mart m, String dataset_name) {
 		List<Dataset> datasets = port.getDatasets(m.getName());
 		for (Dataset ds : datasets) {
 			if (ds.getName().equals(dataset_name) || ds.getDisplayName().equals(dataset_name)) {
