@@ -12,6 +12,7 @@ import javax.swing.JPanel;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
 
 import com.sun.istack.internal.logging.Logger;
 
@@ -84,7 +85,7 @@ public class UserSettingsPanel extends JPanel {
 		settings.addString(CFGKEY_USER_FIELDS, sb.toString());
 	}
 	
-	public void loadAdditionalSettingsFrom(NodeSettingsRO settings) {
+	public void loadAdditionalSettingsFrom(NodeSettingsRO settings) throws NotConfigurableException {
 		String s;
 		String progName;
 		try {
@@ -106,11 +107,11 @@ public class UserSettingsPanel extends JPanel {
 		ACDApplication prog = null;
 		try {
 			prog = ACDApplication.find(progName);
-			if (prog == null)
-				return;
 		} catch (Exception e) {
 			e.printStackTrace();
 		} 
+		if (prog == null)
+			throw new NotConfigurableException("Cannot find EMBOSS program: check EMBOSS installation folder before configure!");
 		for (String field : fields) {
 			Matcher m = p.matcher(field);
 			if (m.matches()) {
