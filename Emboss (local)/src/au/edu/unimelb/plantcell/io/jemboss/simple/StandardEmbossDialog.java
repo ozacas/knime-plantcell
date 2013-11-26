@@ -19,6 +19,7 @@ import javax.swing.ListSelectionModel;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
@@ -161,7 +162,8 @@ public class StandardEmbossDialog extends DefaultNodeSettingsPane {
 		}
 		
 		@Override 
-		public void loadAdditionalSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] inSpecs) {
+		public void loadAdditionalSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] inSpecs) 
+				throws NotConfigurableException {
 			user_settings_panel.loadAdditionalSettingsFrom(settings);
 		}
 }
