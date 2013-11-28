@@ -3,9 +3,11 @@ package au.edu.unimelb.plantcell.io.write.phyloxml;
 import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -129,11 +131,12 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     		logger.info("Using species column: "+m_species.getStringValue());
     	}
     	// 1. get started...
+    	logger.info("Reading tree from "+m_infile.getStringValue());
     	File infile  = new File(m_infile.getStringValue());
     	File outfile = new File(m_outfile.getStringValue());
     	if (outfile.exists() && !m_overwrite.getBooleanValue())
     		throw new InvalidSettingsException("Will not overwrite existing: "+outfile.getAbsolutePath());
-    	
+    	logger.info("Saving decorated tree to "+m_outfile.getStringValue());
     	PhylogenyParser parser = ParserUtils.createParserDependingOnFileType(infile, true);
     	Phylogeny[] phys = PhylogenyMethods.readPhylogenies(parser, infile);
     	m_taxa_pattern = Pattern.compile(m_taxa_regexp.getStringValue());
@@ -187,6 +190,7 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     			if (image_cell != null && !image_cell.isMissing())
     				uri_map.put(taxa, image_cell.toString());
     		}
+    	
     		if (dom_start_idx >= 0 && dom_end_idx >= 0 && dom_labels_idx >= 0) {
     			DataCell start_list = r.getCell(dom_start_idx);
     			DataCell end_list = r.getCell(dom_end_idx);
@@ -194,6 +198,7 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     			
     			if (start_list != null && end_list != null && labels != null &&
     					!start_list.isMissing() && !end_list.isMissing() && !labels.isMissing()) {
+    				
     				addDomainsToMap(domain_map, taxa, start_list, end_list, labels, sv.getLength(), r.getKey().getString());
     			}
     			
@@ -312,29 +317,38 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     			}
     		}
     		
-	    	HashSet<String> missing_widths = new HashSet<String>();
+	    	HashMap<String,List<String>> missing_widths = new HashMap<String,List<String>>();
 	    	for (Phylogeny phy : phys) {
 	    		for (final PhylogenyNodeIterator it = phy.iteratorPostorder(); it.hasNext(); ) {
 	    			final PhylogenyNode n = it.next();
 	    			
 	    			String id = ""+n.getId();
 	    			HashSet<String> set = node2branchset.get(id);
-	    			if (set == null) {
-	    				missing_widths.add(id);
+	    			if (set == null || n.getBranchData() == null) {
+	    				ArrayList<String> taxa = new ArrayList<String>();
+    					for (PhylogenyNode kids : n.getAllExternalDescendants()) {
+    						taxa.add(kids.getName());
+    					}
+    					missing_widths.put(id,taxa);
 	    			} else {
 	    				BranchData bd = n.getBranchData();
-	    				if (bd != null) {
-	    					BranchWidth bw = new BranchWidth(want_sqrt ? Math.sqrt(set.size()) : set.size());
-	    					bd.setBranchWidth(bw);
-	    				} else {
-	    					missing_widths.add(id);
-	    				}
+	    				assert(bd != null);
+	    				BranchWidth bw = new BranchWidth(want_sqrt ? Math.sqrt(set.size()) : set.size());
+	    				bd.setBranchWidth(bw);
 	    			}
 	    		}
 	    	}
 	    	
 	    	if (missing_widths.size() > 0) {
-	    		logger.warn(""+missing_widths.size()+" tree nodes do not have branch widths set (input taxa table is incomplete?)");
+	    		logger.warn(""+missing_widths.size()+" tree nodes do not have branch widths set (input taxa table is incomplete?). These correspond to nodes with the following descendants:");
+	    		for (String id : missing_widths.keySet()) {
+	    			StringBuilder sb = new StringBuilder();
+	    			for (String kid : missing_widths.get(id)) {
+	    				sb.append(kid);
+	    				sb.append(' ');
+	    			}
+	    			logger.warn("\t"+sb.toString().trim());
+	    		}
 	    	}
     	}
     	
