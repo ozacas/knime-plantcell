@@ -1,13 +1,17 @@
 package au.edu.unimelb.plantcell.io.ws.biomart;
 
 import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -31,19 +35,33 @@ import au.edu.unimelb.plantcell.io.ws.biomart.soap.Mart;
 import au.edu.unimelb.plantcell.io.ws.biomart.soap.PortalServiceImpl;
 
 
-
+/**
+ * Dialog for selecting the database (mart), dataset (if a mart has more than one) and filtering
+ * the data as required by the user eg. a particular proteome or pathway or whatever. Usual swing junk.
+ * 
+ * @author andrew.cassin
+ *
+ */
 public class BiomartAccessorNodeDialog extends DefaultNodeSettingsPane {
 	private final static PortalServiceImpl port;
 	static {
     	port = BiomartAccessorNodeModel.getService().getPortalServiceImplPort();
-	};
+	};	
 	
 	public BiomartAccessorNodeDialog() 	{
 		final SettingsModelString                sms_db = new SettingsModelString(BiomartAccessorNodeModel.CFGKEY_DB, "");
 		final SettingsModelString           sms_dataset = new SettingsModelString(BiomartAccessorNodeModel.CFGKEY_DATASET, "");
 		final DialogComponentStringSelection dc_dataset = new DialogComponentStringSelection(sms_dataset, "Dataset name", new String[] { "No server available!" });
+		final SettingsModelStringArray sms_filters = new SettingsModelStringArray(BiomartAccessorNodeModel.CFGKEY_FILTER, new String[0]);
+		sms_filters.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+			}
+			
+		});
 		final DialogComponentStringListSelection dc_filters = new DialogComponentStringListSelection(
-				new SettingsModelStringArray(BiomartAccessorNodeModel.CFGKEY_FILTER, new String[0]), 
+				sms_filters, 
 				"Only show data where... ", new ArrayList<String>(), ListSelectionModel.MULTIPLE_INTERVAL_SELECTION, false, 10);
 		final DialogComponentStringListSelection dc_what = new DialogComponentStringListSelection(
 				new SettingsModelStringArray(BiomartAccessorNodeModel.CFGKEY_WHAT, new String[0]),
@@ -68,7 +86,7 @@ public class BiomartAccessorNodeDialog extends DefaultNodeSettingsPane {
 			public void stateChanged(ChangeEvent arg0) {
 				ArrayList<String> newItems = new ArrayList<String>();
 				Mart m = BiomartAccessorNodeModel.getMart(port, sms_db.getStringValue());
-				for (Dataset d :  getDatasets(m)) {
+				for (Dataset d :  BiomartAccessorNodeModel.getDatasets(port, m)) {
 					newItems.add(d.getName());
 				}
 				dc_dataset.replaceListItems(newItems, null);
@@ -85,13 +103,12 @@ public class BiomartAccessorNodeDialog extends DefaultNodeSettingsPane {
 			@Override
 			public void stateChanged(ChangeEvent arg0) {
 				final Mart m = BiomartAccessorNodeModel.getMart(port, sms_db.getStringValue());
-				List<Dataset> datasets = getDatasets(m);
+				List<Dataset> datasets = BiomartAccessorNodeModel.getDatasets(port, m);
 				if (datasets != null) {
-					Dataset ds = null;
 					for (Dataset d : datasets) {
 						if (d.getName().equals(sms_dataset.getStringValue()) || 
 								d.getDisplayName().equals(sms_dataset.getStringValue())) {
-							List<Filter> filters = getFilters(m, d);
+							List<Filter> filters = BiomartAccessorNodeModel.getFilters(port, m, d);
 							ArrayList<String> newItems = new ArrayList<String>();
 							for (Filter f : filters) {
 								newItems.add(f.getDisplayName());
@@ -116,18 +133,74 @@ public class BiomartAccessorNodeDialog extends DefaultNodeSettingsPane {
 			}
 			
 		});
+		
 		this.setHorizontalPlacement(true);
 		addDialogComponent(dc_filters);
 		Container ctr = dc_filters.getComponentPanel().getParent();
-		JTable p = new JTable(new FilterTableModel());
+		JPanel button_panel = new JPanel();
+		button_panel.setLayout(new BoxLayout(button_panel, BoxLayout.Y_AXIS));
+		JButton add_filter = new JButton("Add Filter >>");
+		final FilterTableModel ftm = new FilterTableModel();
+		final JTable p = new JTable(ftm);
+		p.setPreferredSize(new Dimension(400,200));
+		p.getColumnModel().getColumn(5).setCellEditor(new FilterValueEditor());
 		
-		ctr.add(new JScrollPane(p));
+		add_filter.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent ev) {
+				String[] cur_filters = sms_filters.getStringArrayValue();
+				if (cur_filters != null && cur_filters.length > 0) {
+					for (String filter_name: cur_filters) {
+						Filter f = BiomartAccessorNodeModel.getFilter(port, sms_db.getStringValue(), sms_dataset.getStringValue(), filter_name);
+						if (f != null && !f.isIsHidden()) {
+							((FilterTableModel)p.getModel()).append(f);
+						}
+					}
+				}
+			}
+			
+		});
+		button_panel.add(add_filter);
+		button_panel.add(Box.createRigidArea(new Dimension(10,10)));
+		JButton b = new JButton("Remove selected <<");
+		b.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent ev) {
+				FilterTableModel ftm = new FilterTableModel();
+				FilterTableModel old = (FilterTableModel) p.getModel();
+				
+				int[] sel = p.getSelectedRows();
+				for (int i=0; i<old.getRowCount(); i++) {
+					boolean is_selected = false;
+					for (int j=0; j<sel.length; j++) {
+						if (i == sel[j]) {
+							is_selected = true; break;
+						}
+					}
+					if (!is_selected) {
+						ftm.append(old.getFilter(i));
+					}
+				}
+				p.setModel(ftm);
+			}
+			
+		});
+		button_panel.add(b);
+		ctr.add(button_panel);
+		
+		p.setPreferredScrollableViewportSize(new Dimension(400,200));
+		p.setFillsViewportHeight(true);
+		JScrollPane sp = new JScrollPane(p);
+		sp.setPreferredSize(new Dimension(400,200));
+		ctr.add(sp);
 		this.setHorizontalPlacement(false);
 		
 		createNewGroup("Report these columns (attributes)...");
 		addDialogComponent(dc_what);
 		
-		createNewGroup("Advanced users only");
+		createNewTab("Advanced");
 		addDialogComponent(
 				new DialogComponentString(
 						new SettingsModelString(BiomartAccessorNodeModel.CFGKEY_URL, ""), "Biomart Server")
@@ -145,7 +218,7 @@ public class BiomartAccessorNodeDialog extends DefaultNodeSettingsPane {
 	
 		Mart m = BiomartAccessorNodeModel.getMart(port, mart_name);
 		if (m != null) {
-			List<Dataset> datasets = getDatasets(m);
+			List<Dataset> datasets = BiomartAccessorNodeModel.getDatasets(port, m);
 			
 			Dataset my_dataset = null;
 			for (final Dataset ds : datasets) {
@@ -154,7 +227,6 @@ public class BiomartAccessorNodeDialog extends DefaultNodeSettingsPane {
 					break;
 				}
 			}
-			
 			
 			if (my_dataset != null) {
 				List<Attribute> attributes = port.getAttributes(my_dataset.getName(), m.getConfig(), null, true);
@@ -170,39 +242,4 @@ public class BiomartAccessorNodeDialog extends DefaultNodeSettingsPane {
 		return ret;
 	}
 	
-	protected List<Filter> getFilters(final Mart m, final Dataset ds) {
-		assert(m != null && ds != null);
-		
-		ArrayList<Filter> ret = new ArrayList<Filter>();
-		ret.addAll(port.getFilters(ds.getName(), null, null));
-		
-		return ret;
-	}
-	
-	private List<Dataset> getDatasets(final Mart m) {
-		assert(m != null);
-		ArrayList<Dataset> ret = new ArrayList<Dataset>();
-		for (Dataset ds : port.getDatasets(m.getName())) {
-			if (!ds.isIsHidden())
-				ret.add(ds);
-		}
-		
-		return ret;
-	}
-	
-	protected Map<String,Mart> getMarts() {
-		HashMap<String,Mart> ret = new HashMap<String,Mart>();
-
-    	for (Mart m : port.getMarts(null)) {
-    		if (!m.isIsHidden()) {
-    			ret.put(m.getDisplayName(), m);
-    		}
-    	}
-    	if (ret.size() > 0) {
-    		return ret;
-    	} else {
-    		ret.put("Server not available", null);
-    		return ret;
-    	}
-	}
 }

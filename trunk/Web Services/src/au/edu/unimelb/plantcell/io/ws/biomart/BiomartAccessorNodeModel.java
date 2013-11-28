@@ -3,8 +3,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
@@ -30,6 +33,7 @@ import org.osgi.framework.Bundle;
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.io.ws.biomart.soap.BioMartSoapService;
 import au.edu.unimelb.plantcell.io.ws.biomart.soap.Dataset;
+import au.edu.unimelb.plantcell.io.ws.biomart.soap.Filter;
 import au.edu.unimelb.plantcell.io.ws.biomart.soap.Mart;
 import au.edu.unimelb.plantcell.io.ws.biomart.soap.PortalServiceImpl;
 import au.edu.unimelb.plantcell.io.ws.tmhmm.AbstractWebServiceNodeModel;
@@ -61,8 +65,23 @@ public class BiomartAccessorNodeModel extends AbstractWebServiceNodeModel {
 	private final SettingsModelStringArray m_what   = new SettingsModelStringArray(CFGKEY_WHAT, new String[] {});
 	private final SettingsModelIntegerBounded m_rowlimit = new SettingsModelIntegerBounded(CFGKEY_ROWLIMIT, 1000, 0, Integer.MAX_VALUE);
 	
+	// MRU cache for objects (rather than reissue SOAP calls needlessly). Resetting the node will destroy this state.
+	private static List<Mart>    m_last_marts;
+	private static List<Dataset> m_last_datasets;
+	private static String        m_last_datasets_mart;
+	private static List<Filter>  m_mru_filters;
+	private static Mart          m_mru_filters_mart;
+	private static Dataset       m_mru_filters_ds;
+	
+	
 	public BiomartAccessorNodeModel() {
 		super(0, 1);
+		m_last_marts = null;
+		m_last_datasets = null;
+		m_last_datasets_mart = null;		// m_last_datasets is specific to A PARTICULAR MART
+		m_mru_filters = null;				// m_mru_filters is specific to a Mart AND Dataset
+		m_mru_filters_mart = null;
+		m_mru_filters_ds = null;
 	}
 	
 	 
@@ -103,6 +122,7 @@ public class BiomartAccessorNodeModel extends AbstractWebServiceNodeModel {
 			return new BioMartSoapService();
 		}
 	}
+	
 	protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
 	            final ExecutionContext exec) throws Exception {
 	
@@ -142,7 +162,7 @@ public class BiomartAccessorNodeModel extends AbstractWebServiceNodeModel {
     	
     	MyDataContainer c = new MyDataContainer(exec.createDataContainer(outSpec), "Row");
     	try {
-    		logger.info(query);
+    		logger.debug(query);
     		String results = port.getResults(query);
     		BufferedReader rdr = new BufferedReader(new StringReader(results));
     		String line;
@@ -169,29 +189,20 @@ public class BiomartAccessorNodeModel extends AbstractWebServiceNodeModel {
     	
 		return new BufferedDataTable[] { c.close() };
 	}
+
+	@Override
+	protected void reset() {
+		super.reset();
+		
+		// remove cache for web services
+		m_last_marts = null;
+		m_last_datasets = null;
+		m_last_datasets_mart = null;
+		m_mru_filters = null;
+		m_mru_filters_mart = null;
+		m_mru_filters_ds = null;
+	}
 	
-
-	public static Mart getMart(final PortalServiceImpl port, String mart_name) {
-		List<Mart> marts = port.getMarts(null);
-		for (Mart m : marts) {
-			if (m.getName().equals(mart_name) || m.getDisplayName().equals(mart_name) || m.getGroup().equals(mart_name))
-				return m;
-		}
-		
-		return null;
-	}
-
-	public static Dataset getDataset(final PortalServiceImpl port, final Mart m, String dataset_name) {
-		List<Dataset> datasets = port.getDatasets(m.getName());
-		for (Dataset ds : datasets) {
-			if (ds.getName().equals(dataset_name) || ds.getDisplayName().equals(dataset_name)) {
-				return ds;
-			}
-		}
-		
-		return null;
-	}
-
 	@Override
 	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
 	            throws InvalidSettingsException {
@@ -236,4 +247,102 @@ public class BiomartAccessorNodeModel extends AbstractWebServiceNodeModel {
 		// NOOP for this node
 		return null;
 	}
+
+
+	public static Mart getMart(final PortalServiceImpl port, final String mart_name) {
+		// side-effects MRU cache if needed
+		getMarts(port);
+		
+		for (Mart m : m_last_marts) {
+			if (m.getName().equals(mart_name) || m.getDisplayName().equals(mart_name) || m.getGroup().equals(mart_name))
+				return m;
+		}
+		
+		return null;
+	}
+
+	public static Dataset getDataset(final PortalServiceImpl port, final Mart m, final String dataset_name) {	
+		/* MRU cache is side-effected by this call if needed */
+		getDatasets(port, m);
+		
+		for (Dataset ds : m_last_datasets) {
+			if (ds.getName().equals(dataset_name) || ds.getDisplayName().equals(dataset_name)) {
+				return ds;
+			}
+		}
+		
+		return null;
+	}
+
+	public static Filter getFilter(final PortalServiceImpl port, final String mart,
+			final String dataset, final String filter_name) {
+		Mart m = getMart(port, mart);
+		if (m == null)
+				return null;
+		Dataset ds = getDataset(port, m, dataset);
+		if (ds == null)
+				return null;
+		List<Filter> filters = getFilters(port, m, ds);
+		for (Filter f : filters) {
+			if (f.getName().equals(filter_name) || f.getDisplayName().equals(filter_name) || f.getDescription().equals(filter_name)) {
+				return f;
+			}
+		}
+		
+		return null;
+	}
+	
+	public static List<Filter> getFilters(final PortalServiceImpl port, final Mart m, final Dataset ds) {
+		assert(m != null && ds != null);
+		
+		if (m_mru_filters != null && m_mru_filters_mart.equals(m) && m_mru_filters_ds.equals(ds)) 
+			return m_mru_filters;
+		else {
+			ArrayList<Filter> ret = new ArrayList<Filter>();
+			ret.addAll(port.getFilters(ds.getName(), null, null));
+			m_mru_filters = ret;
+			m_mru_filters_mart = m;
+			m_mru_filters_ds = ds;
+			return ret;
+		}
+	}
+	
+	public static List<Dataset> getDatasets(final PortalServiceImpl port, final Mart m) {
+		assert(m != null);
+		if (m_last_datasets != null && m.getName().equals(m_last_datasets_mart)) {
+			return m_last_datasets;
+		}
+		// else...
+		ArrayList<Dataset> ret = new ArrayList<Dataset>();
+		for (Dataset ds : port.getDatasets(m.getName())) {
+			if (!ds.isIsHidden())
+				ret.add(ds);
+		}
+		
+		// update MRU cache
+		m_last_datasets = ret;
+		m_last_datasets_mart = m.getName();
+		
+		return ret;
+	}
+	
+	public static Map<String,Mart> getMarts(final PortalServiceImpl port) {
+		HashMap<String,Mart> ret = new HashMap<String,Mart>();
+		
+		if (m_last_marts == null)
+			m_last_marts = port.getMarts(null);
+		
+    	for (Mart m : m_last_marts) {
+    		if (!m.isIsHidden()) {
+    			ret.put(m.getDisplayName(), m);
+    		}
+    	}
+    	if (ret.size() > 0) {
+    		return ret;
+    	} else {
+    		ret.put("Server not available", null);
+    		return ret;
+    	}
+	}
+	
 }
