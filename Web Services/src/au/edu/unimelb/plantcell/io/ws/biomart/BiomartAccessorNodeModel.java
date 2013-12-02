@@ -31,6 +31,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.osgi.framework.Bundle;
 
 import au.edu.unimelb.plantcell.core.MyDataContainer;
+import au.edu.unimelb.plantcell.io.ws.biomart.soap.Attribute;
 import au.edu.unimelb.plantcell.io.ws.biomart.soap.BioMartSoapService;
 import au.edu.unimelb.plantcell.io.ws.biomart.soap.Dataset;
 import au.edu.unimelb.plantcell.io.ws.biomart.soap.Filter;
@@ -94,6 +95,9 @@ public class BiomartAccessorNodeModel extends AbstractWebServiceNodeModel {
 		HashSet<String> done = new HashSet<String>();
 		for (int i=0; i<cols.length; i++) {
 			String item = items[i];
+			if (item.indexOf(':') > 0) {
+				item = item.substring(item.indexOf(':')+1);
+			}
 			if (done.contains(item)) {
 				int val = 1;
 				do {
@@ -138,6 +142,9 @@ public class BiomartAccessorNodeModel extends AbstractWebServiceNodeModel {
     	
     	StringBuilder attributes = new StringBuilder();
     	for (String attr : m_what.getStringArrayValue()) {
+    		if (attr.indexOf(':') > 0) {
+    			attr = attr.substring(0, attr.indexOf(':'));
+    		}
     		attributes.append("<Attribute name= \""+attr+"\" />");
     	}
     	logger.info("Expecting "+m_what.getStringArrayValue().length+ " columns!");
@@ -343,6 +350,17 @@ public class BiomartAccessorNodeModel extends AbstractWebServiceNodeModel {
     		ret.put("Server not available", null);
     		return ret;
     	}
+	}
+
+
+	public static List<Attribute> getAttributes(final PortalServiceImpl port, final String datasetName, final String martName) {
+		Mart m = getMart(port, martName);
+		Dataset ds = getDataset(port, m, datasetName);
+		if (m != null && ds != null) {
+			return port.getAttributes(ds.getName(), m.getConfig(), null, true);
+		} else {
+			return new ArrayList<Attribute>();
+		}
 	}
 	
 }
