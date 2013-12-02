@@ -7,7 +7,10 @@ import java.util.EventObject;
 import javax.swing.AbstractCellEditor;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.table.TableCellEditor;
 
@@ -29,11 +32,12 @@ public class FilterValueEditor extends AbstractCellEditor implements TableCellEd
 	// this delegate is specific to the row being edited so you cannot assume what the 
 	// instance is unless you know the row data
 	private DefaultCellEditor m_delegate = null;
-
+	private String m_value;
+	
 	@Override
 	public Object getCellEditorValue() {
 		if (m_delegate == null)
-			return null;
+			return m_value;
 		return m_delegate.getCellEditorValue();
 	}
 
@@ -54,24 +58,37 @@ public class FilterValueEditor extends AbstractCellEditor implements TableCellEd
 			return true;
 		}
 		boolean ret = m_delegate.stopCellEditing();
-		super.stopCellEditing();
 		return ret;
 	}
 
 	@Override
 	public Component getTableCellEditorComponent(JTable t, Object val, boolean isSelected, int r, int c) {
+		m_value = null;
+		m_delegate = null;
 		FilterTableModel ftm = (FilterTableModel) t.getModel();
 		Filter v = ftm.getFilter(r);
-		if (v != null && v.getType() != null && v.getType().equals("singleSelect")) {
+		boolean has_type = (v != null && v.getType() != null);
+		
+		// TODO BUG FIXME: for now multiple select is a combobox, will support proper multi selection later...
+		if (has_type && (v.getType().equals("singleSelect") || v.getType().equals("multiSelect"))) {
 			ArrayList<String> values = new ArrayList<String>();
 			for (FilterData fd : ((Filter)v).getValues().getValue()) {
 				values.add(fd.getDisplayName());
 			}
 			m_delegate = new DefaultCellEditor(new JComboBox<String>(values.toArray(new String[0])));
+		} else if (has_type && v.getType().equals("upload")) {
+			// pop up a modal dialog box and get the list from the user
+			JOptionPane opt = new JOptionPane();
+			JTextArea input = new JTextArea();
+			input.setRows(20);
+			input.setColumns(60);
+			input.setEditable(true);
+			input.setWrapStyleWord(true);
+			m_value = JOptionPane.showInputDialog(null, new JScrollPane(input), "", JOptionPane.OK_CANCEL_OPTION);
+			return opt;
 		} else {
 			// assume JTextField
 			JTextField tf = new JTextField();
-			tf.setText("test");
 			m_delegate = new DefaultCellEditor(tf);
 		}
 		return m_delegate.getTableCellEditorComponent(t, "test", isSelected, r, c);

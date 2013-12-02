@@ -43,9 +43,16 @@ public class FilterTableModel extends AbstractTableModel implements TableModel {
 		}
 	}
 	
+	public void clear() {
+		m_user_filters.clear();
+		m_user_values.clear();
+		fireTableDataChanged();
+	}
+	
 	public void remove(final Filter f) {
 		if (f != null) {
 			m_user_filters.remove(f);
+			m_user_values.remove(f);
 			fireTableDataChanged();
 		}
 	}
@@ -83,6 +90,17 @@ public class FilterTableModel extends AbstractTableModel implements TableModel {
 		cached_columns = cols;
 		
 		return cols;
+	}
+	
+	@Override
+	public String getColumnName(int c) {
+		Vector<TableColumn> cols = get_columns();
+		return cols.get(c).getHeaderValue().toString();
+	}
+	
+	@Override
+	public Class<?> getColumnClass(int c) {
+		return (c == 5) ? Filter.class : String.class;
 	}
 	
 	@Override
@@ -135,6 +153,7 @@ public class FilterTableModel extends AbstractTableModel implements TableModel {
 		}
 	}
 
+	@Override
 	public void setValueAt(Object new_val, int r, int c) {
 		if (c == 6) {
 			Filter f = m_user_filters.get(r);
