@@ -6,7 +6,7 @@
    <extension point="org.knime.workbench.repository.nodes">
       <node category-path="/Bioinformatics/Under Development/" 
       			factory-class="au.edu.unimelb.plantcell.io.jemboss.local.JEmbossProcessorNodeFactory" 
-      			id="au.edu.unimelb.plantcell.io.jemboss.local.JEmbossProcessorNodeFactory"/>
+      			id="au.edu.unimelb.plantcell.io.jemboss.local.JEmbossProcessorNodeFactory" deprecated="true" />
       			
       <node category-path="/Bioinformatics/Sequence Analysis/JEmboss" 
       			factory-class="au.edu.unimelb.plantcell.io.jemboss.simple.EmbossPredictorNodeFactory" 
