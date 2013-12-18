@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Views
 Bundle-SymbolicName: au.edu.unimelb.plantcell.views;singleton:=true
-Bundle-Version: 1.0.5
+Bundle-Version: 1.0.6
 Bundle-ClassPath: views.jar,
  lib/applet-launcher.jar,
  lib/gluegen-rt.jar,
