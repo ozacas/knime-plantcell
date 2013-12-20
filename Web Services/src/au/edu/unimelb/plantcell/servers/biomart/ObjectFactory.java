@@ -10,7 +10,7 @@ import javax.xml.namespace.QName;
 /**
  * This object contains factory methods for each 
  * Java content interface and Java element interface 
- * generated in the au.edu.unimelb.plantcell.io.ws.biomart.soap package. 
+ * generated in the au.edu.unimelb.plantcell.servers.biomart package. 
  * <p>An ObjectFactory allows you to programatically 
  * construct new instances of the Java representation 
  * for XML content. The Java representation of XML 
@@ -52,7 +52,7 @@ public class ObjectFactory {
     private final static QName _GetFiltersResponse_QNAME = new QName("http://soap.api.biomart.org/", "getFiltersResponse");
 
     /**
-     * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: au.edu.unimelb.plantcell.io.ws.biomart.soap
+     * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: au.edu.unimelb.plantcell.servers.biomart
      * 
      */
     public ObjectFactory() {

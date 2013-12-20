@@ -32,12 +32,12 @@ public interface PortalServiceImpl {
      * @param config
      * @param allowPartialList
      * @return
-     *     returns java.util.List<au.edu.unimelb.plantcell.io.ws.biomart.soap.Attribute>
+     *     returns java.util.List<au.edu.unimelb.plantcell.servers.biomart.Attribute>
      */
     @WebMethod
     @WebResult(name = "attribute", targetNamespace = "")
-    @RequestWrapper(localName = "getAttributes", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.io.ws.biomart.soap.GetAttributes")
-    @ResponseWrapper(localName = "getAttributesResponse", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.io.ws.biomart.soap.GetAttributesResponse")
+    @RequestWrapper(localName = "getAttributes", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.servers.biomart.GetAttributes")
+    @ResponseWrapper(localName = "getAttributesResponse", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.servers.biomart.GetAttributesResponse")
     @Action(input = "http://soap.api.biomart.org/PortalServiceImpl/getAttributesRequest", output = "http://soap.api.biomart.org/PortalServiceImpl/getAttributesResponse")
     public List<Attribute> getAttributes(
         @WebParam(name = "datasets", targetNamespace = "")
@@ -55,12 +55,12 @@ public interface PortalServiceImpl {
      * @param datasets
      * @param config
      * @return
-     *     returns java.util.List<au.edu.unimelb.plantcell.io.ws.biomart.soap.Filter>
+     *     returns java.util.List<au.edu.unimelb.plantcell.servers.biomart.Filter>
      */
     @WebMethod
     @WebResult(name = "filter", targetNamespace = "")
-    @RequestWrapper(localName = "getFilters", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.io.ws.biomart.soap.GetFilters")
-    @ResponseWrapper(localName = "getFiltersResponse", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.io.ws.biomart.soap.GetFiltersResponse")
+    @RequestWrapper(localName = "getFilters", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.servers.biomart.GetFilters")
+    @ResponseWrapper(localName = "getFiltersResponse", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.servers.biomart.GetFiltersResponse")
     @Action(input = "http://soap.api.biomart.org/PortalServiceImpl/getFiltersRequest", output = "http://soap.api.biomart.org/PortalServiceImpl/getFiltersResponse")
     public List<Filter> getFilters(
         @WebParam(name = "datasets", targetNamespace = "")
@@ -74,12 +74,12 @@ public interface PortalServiceImpl {
      * 
      * @param guitype
      * @return
-     *     returns au.edu.unimelb.plantcell.io.ws.biomart.soap.GuiContainer
+     *     returns au.edu.unimelb.plantcell.servers.biomart.GuiContainer
      */
     @WebMethod
     @WebResult(name = "guicontainer", targetNamespace = "")
-    @RequestWrapper(localName = "getRootGuiContainer", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.io.ws.biomart.soap.GetRootGuiContainer")
-    @ResponseWrapper(localName = "getRootGuiContainerResponse", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.io.ws.biomart.soap.GetRootGuiContainerResponse")
+    @RequestWrapper(localName = "getRootGuiContainer", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.servers.biomart.GetRootGuiContainer")
+    @ResponseWrapper(localName = "getRootGuiContainerResponse", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.servers.biomart.GetRootGuiContainerResponse")
     @Action(input = "http://soap.api.biomart.org/PortalServiceImpl/getRootGuiContainerRequest", output = "http://soap.api.biomart.org/PortalServiceImpl/getRootGuiContainerResponse")
     public GuiContainer getRootGuiContainer(
         @WebParam(name = "guitype", targetNamespace = "")
@@ -89,12 +89,12 @@ public interface PortalServiceImpl {
      * 
      * @param guicontainer
      * @return
-     *     returns java.util.List<au.edu.unimelb.plantcell.io.ws.biomart.soap.Mart>
+     *     returns java.util.List<au.edu.unimelb.plantcell.servers.biomart.Mart>
      */
     @WebMethod
     @WebResult(name = "mart", targetNamespace = "")
-    @RequestWrapper(localName = "getMarts", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.io.ws.biomart.soap.GetMarts")
-    @ResponseWrapper(localName = "getMartsResponse", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.io.ws.biomart.soap.GetMartsResponse")
+    @RequestWrapper(localName = "getMarts", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.servers.biomart.GetMarts")
+    @ResponseWrapper(localName = "getMartsResponse", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.servers.biomart.GetMartsResponse")
     @Action(input = "http://soap.api.biomart.org/PortalServiceImpl/getMartsRequest", output = "http://soap.api.biomart.org/PortalServiceImpl/getMartsResponse")
     public List<Mart> getMarts(
         @WebParam(name = "guicontainer", targetNamespace = "")
@@ -104,12 +104,12 @@ public interface PortalServiceImpl {
      * 
      * @param mart
      * @return
-     *     returns java.util.List<au.edu.unimelb.plantcell.io.ws.biomart.soap.Dataset>
+     *     returns java.util.List<au.edu.unimelb.plantcell.servers.biomart.Dataset>
      */
     @WebMethod
     @WebResult(name = "dataset", targetNamespace = "")
-    @RequestWrapper(localName = "getDatasets", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.io.ws.biomart.soap.GetDatasets")
-    @ResponseWrapper(localName = "getDatasetsResponse", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.io.ws.biomart.soap.GetDatasetsResponse")
+    @RequestWrapper(localName = "getDatasets", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.servers.biomart.GetDatasets")
+    @ResponseWrapper(localName = "getDatasetsResponse", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.servers.biomart.GetDatasetsResponse")
     @Action(input = "http://soap.api.biomart.org/PortalServiceImpl/getDatasetsRequest", output = "http://soap.api.biomart.org/PortalServiceImpl/getDatasetsResponse")
     public List<Dataset> getDatasets(
         @WebParam(name = "mart", targetNamespace = "")
@@ -122,12 +122,12 @@ public interface PortalServiceImpl {
      * @param config
      * @param filter
      * @return
-     *     returns java.util.List<au.edu.unimelb.plantcell.io.ws.biomart.soap.FilterData>
+     *     returns java.util.List<au.edu.unimelb.plantcell.servers.biomart.FilterData>
      */
     @WebMethod
     @WebResult(name = "filtervalue", targetNamespace = "")
-    @RequestWrapper(localName = "getFilterValues", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.io.ws.biomart.soap.GetFilterValues")
-    @ResponseWrapper(localName = "getFilterValuesResponse", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.io.ws.biomart.soap.GetFilterValuesResponse")
+    @RequestWrapper(localName = "getFilterValues", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.servers.biomart.GetFilterValues")
+    @ResponseWrapper(localName = "getFilterValuesResponse", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.servers.biomart.GetFilterValuesResponse")
     @Action(input = "http://soap.api.biomart.org/PortalServiceImpl/getFilterValuesRequest", output = "http://soap.api.biomart.org/PortalServiceImpl/getFilterValuesResponse")
     public List<FilterData> getFilterValues(
         @WebParam(name = "filter", targetNamespace = "")
@@ -147,12 +147,12 @@ public interface PortalServiceImpl {
      * @param config
      * @param allowPartialList
      * @return
-     *     returns au.edu.unimelb.plantcell.io.ws.biomart.soap.Container
+     *     returns au.edu.unimelb.plantcell.servers.biomart.Container
      */
     @WebMethod
     @WebResult(name = "container", targetNamespace = "")
-    @RequestWrapper(localName = "getContainers", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.io.ws.biomart.soap.GetContainers")
-    @ResponseWrapper(localName = "getContainersResponse", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.io.ws.biomart.soap.GetContainersResponse")
+    @RequestWrapper(localName = "getContainers", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.servers.biomart.GetContainers")
+    @ResponseWrapper(localName = "getContainersResponse", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.servers.biomart.GetContainersResponse")
     @Action(input = "http://soap.api.biomart.org/PortalServiceImpl/getContainersRequest", output = "http://soap.api.biomart.org/PortalServiceImpl/getContainersResponse")
     public Container getContainers(
         @WebParam(name = "datasets", targetNamespace = "")
@@ -170,12 +170,12 @@ public interface PortalServiceImpl {
      * 
      * @param datasets
      * @return
-     *     returns java.util.List<au.edu.unimelb.plantcell.io.ws.biomart.soap.Dataset>
+     *     returns java.util.List<au.edu.unimelb.plantcell.servers.biomart.Dataset>
      */
     @WebMethod
     @WebResult(name = "dataset", targetNamespace = "")
-    @RequestWrapper(localName = "getLinkables", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.io.ws.biomart.soap.GetLinkables")
-    @ResponseWrapper(localName = "getLinkablesResponse", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.io.ws.biomart.soap.GetLinkablesResponse")
+    @RequestWrapper(localName = "getLinkables", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.servers.biomart.GetLinkables")
+    @ResponseWrapper(localName = "getLinkablesResponse", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.servers.biomart.GetLinkablesResponse")
     @Action(input = "http://soap.api.biomart.org/PortalServiceImpl/getLinkablesRequest", output = "http://soap.api.biomart.org/PortalServiceImpl/getLinkablesResponse")
     public List<Dataset> getLinkables(
         @WebParam(name = "datasets", targetNamespace = "")
@@ -189,8 +189,8 @@ public interface PortalServiceImpl {
      */
     @WebMethod
     @WebResult(name = "result", targetNamespace = "")
-    @RequestWrapper(localName = "getResults", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.io.ws.biomart.soap.GetResults")
-    @ResponseWrapper(localName = "getResultsResponse", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.io.ws.biomart.soap.GetResultsResponse")
+    @RequestWrapper(localName = "getResults", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.servers.biomart.GetResults")
+    @ResponseWrapper(localName = "getResultsResponse", targetNamespace = "http://soap.api.biomart.org/", className = "au.edu.unimelb.plantcell.servers.biomart.GetResultsResponse")
     @Action(input = "http://soap.api.biomart.org/PortalServiceImpl/getResultsRequest", output = "http://soap.api.biomart.org/PortalServiceImpl/getResultsResponse")
     public String getResults(
         @WebParam(name = "query", targetNamespace = "")

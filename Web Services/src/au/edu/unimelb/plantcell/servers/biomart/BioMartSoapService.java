@@ -17,7 +17,7 @@ import javax.xml.ws.WebServiceFeature;
  * Generated source version: 2.2
  * 
  */
-@WebServiceClient(name = "BioMartSoapService", targetNamespace = "http://soap.api.biomart.org/", wsdlLocation = "file:/C:/Users/pcbrc.admin/AppData/Local/Temp/tempdir8493977923759735766.tmp/martsoap_1.wsdl")
+@WebServiceClient(name = "BioMartSoapService", targetNamespace = "http://soap.api.biomart.org/", wsdlLocation = "http://central.biomart.org/martsoap?wsdl")
 public class BioMartSoapService
     extends Service
 {
@@ -30,7 +30,7 @@ public class BioMartSoapService
         URL url = null;
         WebServiceException e = null;
         try {
-            url = new URL("file:/C:/Users/pcbrc.admin/AppData/Local/Temp/tempdir8493977923759735766.tmp/martsoap_1.wsdl");
+            url = new URL("http://central.biomart.org/martsoap?wsdl");
         } catch (MalformedURLException ex) {
             e = new WebServiceException(ex);
         }
