@@ -10,8 +10,8 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 
-import au.edu.unimelb.plantcell.io.ws.biomart.soap.Filter;
-import au.edu.unimelb.plantcell.io.ws.biomart.soap.FilterData;
+import au.edu.unimelb.plantcell.servers.biomart.Filter;
+import au.edu.unimelb.plantcell.servers.biomart.FilterData;
 
 /**
  * 

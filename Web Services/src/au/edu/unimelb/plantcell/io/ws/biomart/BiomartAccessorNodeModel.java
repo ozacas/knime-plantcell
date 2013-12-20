@@ -31,13 +31,12 @@ import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.osgi.framework.Bundle;
 
 import au.edu.unimelb.plantcell.core.MyDataContainer;
-import au.edu.unimelb.plantcell.io.ws.biomart.soap.Attribute;
-import au.edu.unimelb.plantcell.io.ws.biomart.soap.BioMartSoapService;
-import au.edu.unimelb.plantcell.io.ws.biomart.soap.Dataset;
-import au.edu.unimelb.plantcell.io.ws.biomart.soap.Filter;
-import au.edu.unimelb.plantcell.io.ws.biomart.soap.Mart;
-import au.edu.unimelb.plantcell.io.ws.biomart.soap.PortalServiceImpl;
-import au.edu.unimelb.plantcell.io.ws.tmhmm.AbstractWebServiceNodeModel;
+import au.edu.unimelb.plantcell.servers.biomart.Attribute;
+import au.edu.unimelb.plantcell.servers.biomart.BioMartSoapService;
+import au.edu.unimelb.plantcell.servers.biomart.Dataset;
+import au.edu.unimelb.plantcell.servers.biomart.Filter;
+import au.edu.unimelb.plantcell.servers.biomart.Mart;
+import au.edu.unimelb.plantcell.servers.biomart.PortalServiceImpl;
 
 
 /**
@@ -46,7 +45,7 @@ import au.edu.unimelb.plantcell.io.ws.tmhmm.AbstractWebServiceNodeModel;
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  *
  */
-public class BiomartAccessorNodeModel extends AbstractWebServiceNodeModel {
+public class BiomartAccessorNodeModel extends au.edu.unimelb.plantcell.io.ws.tmhmm.AbstractWebServiceNodeModel {
 	 // the logger instance
     private static final NodeLogger logger = NodeLogger.getLogger("Biomart Accessor");
     
@@ -118,7 +117,7 @@ public class BiomartAccessorNodeModel extends AbstractWebServiceNodeModel {
   			URL u = FileLocator.find(bundle, new Path("/wsdl/biomart.wsdl"), null);
   			 
   			 // must not call default constructor for local WSDL... so...
-  			BioMartSoapService mart = new BioMartSoapService(u,new QName("http://soap.api.biomart.org/", "BioMartSoapService"));
+  			BioMartSoapService mart = new BioMartSoapService(u,new QName("http://www.biomart.org:80/MartServiceSoap", "BioMartSoapService"));
 			
 			return mart;
 		} catch (Exception e) {

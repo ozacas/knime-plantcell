@@ -14,8 +14,8 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.table.TableCellEditor;
 
-import au.edu.unimelb.plantcell.io.ws.biomart.soap.Filter;
-import au.edu.unimelb.plantcell.io.ws.biomart.soap.FilterData;
+import au.edu.unimelb.plantcell.servers.biomart.Filter;
+import au.edu.unimelb.plantcell.servers.biomart.FilterData;
 
 /**
  * Supports single selection of a particular value or text editing where appropriate to enable
