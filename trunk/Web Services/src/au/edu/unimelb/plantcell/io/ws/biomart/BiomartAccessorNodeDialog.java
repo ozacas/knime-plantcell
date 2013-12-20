@@ -20,8 +20,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponentLabel;
-import org.knime.core.node.defaultnodesettings.DialogComponentMultiLineString;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringListSelection;
@@ -30,11 +28,11 @@ import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
-import au.edu.unimelb.plantcell.io.ws.biomart.soap.Attribute;
-import au.edu.unimelb.plantcell.io.ws.biomart.soap.Dataset;
-import au.edu.unimelb.plantcell.io.ws.biomart.soap.Filter;
-import au.edu.unimelb.plantcell.io.ws.biomart.soap.Mart;
-import au.edu.unimelb.plantcell.io.ws.biomart.soap.PortalServiceImpl;
+import au.edu.unimelb.plantcell.servers.biomart.Attribute;
+import au.edu.unimelb.plantcell.servers.biomart.Dataset;
+import au.edu.unimelb.plantcell.servers.biomart.Filter;
+import au.edu.unimelb.plantcell.servers.biomart.Mart;
+import au.edu.unimelb.plantcell.servers.biomart.PortalServiceImpl;
 
 
 /**
