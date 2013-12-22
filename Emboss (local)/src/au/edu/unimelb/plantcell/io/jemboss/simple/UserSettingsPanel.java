@@ -94,7 +94,7 @@ public class UserSettingsPanel extends JPanel {
 			int idx = progName.indexOf(":");
 			if (idx >= 0) 
 				progName = progName.substring(0, idx);
-			if (s == null)
+			if (s == null || progName == null || progName.length() < 1)
 				return;
 		} catch (InvalidSettingsException e) {
 			e.printStackTrace();
