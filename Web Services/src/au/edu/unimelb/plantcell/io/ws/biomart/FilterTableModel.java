@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
@@ -155,8 +156,13 @@ public class FilterTableModel extends AbstractTableModel implements TableModel {
 
 	@Override
 	public void setValueAt(Object new_val, int r, int c) {
-		if (c == 6) {
+		if (c == 5) {
 			Filter f = m_user_filters.get(r);
+			String name = f.getName();
+			if (name == null)
+				name = "?";
+			Logger.getAnonymousLogger().info("Set filter value to "+new_val.toString()+" for "+name+" rc="+r+","+c);
+
 			if (f != null) {
 				m_user_values.put(f, new_val.toString());
 				fireTableDataChanged();

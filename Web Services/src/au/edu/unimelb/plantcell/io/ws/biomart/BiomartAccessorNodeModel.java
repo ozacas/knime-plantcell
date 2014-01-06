@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.namespace.QName;
 
@@ -18,6 +20,7 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
@@ -29,6 +32,8 @@ import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.osgi.framework.Bundle;
+
+import com.sun.org.apache.xml.internal.security.utils.Base64;
 
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.servers.biomart.Attribute;
@@ -56,6 +61,7 @@ public class BiomartAccessorNodeModel extends au.edu.unimelb.plantcell.io.ws.tmh
 	public static final String CFGKEY_DATASET       = "biomart-dataset";		// within chosen database
 	public static final String CFGKEY_WHAT          = "biomart-what";
 	public static final String CFGKEY_ROWLIMIT      = "row-limit-on-data-fetched";
+	public static final String CFGKEY_WANTED_FILTER = "user-configured-filters";
 
 	private final SettingsModelString m_url   = new SettingsModelString(CFGKEY_URL, "");
 	//private final SettingsModelString m_query = new SettingsModelString(CFGKEY_QUERY, "");
@@ -64,6 +70,7 @@ public class BiomartAccessorNodeModel extends au.edu.unimelb.plantcell.io.ws.tmh
 	private final SettingsModelStringArray m_filter = new SettingsModelStringArray(CFGKEY_FILTER, new String[] {});
 	private final SettingsModelStringArray m_what   = new SettingsModelStringArray(CFGKEY_WHAT, new String[] {});
 	private final SettingsModelIntegerBounded m_rowlimit = new SettingsModelIntegerBounded(CFGKEY_ROWLIMIT, 1000, 0, Integer.MAX_VALUE);
+	private final SettingsModelStringArray m_wanted_filters = new SettingsModelStringArray(CFGKEY_WANTED_FILTER, new String[] {});
 	
 	// MRU cache for objects (rather than reissue SOAP calls needlessly). Resetting the node will destroy this state.
 	private static List<Mart>    m_last_marts;
@@ -117,7 +124,7 @@ public class BiomartAccessorNodeModel extends au.edu.unimelb.plantcell.io.ws.tmh
   			URL u = FileLocator.find(bundle, new Path("/wsdl/biomart.wsdl"), null);
   			 
   			 // must not call default constructor for local WSDL... so...
-  			BioMartSoapService mart = new BioMartSoapService(u,new QName("http://www.biomart.org:80/MartServiceSoap", "BioMartSoapService"));
+  			BioMartSoapService mart = new BioMartSoapService(u,new QName("http://soap.api.biomart.org/", "BioMartSoapService"));
 			
 			return mart;
 		} catch (Exception e) {
@@ -135,6 +142,7 @@ public class BiomartAccessorNodeModel extends au.edu.unimelb.plantcell.io.ws.tmh
     	String limit = "";
     	if (m_rowlimit.getIntValue() > 0) {
     		limit = "limit=\""+String.valueOf(m_rowlimit.getIntValue())+"\"";
+    		logger.warn("Only reporting up to "+m_rowlimit.getIntValue()+" rows of data.");
     	} else {
     		logger.warn("No limit for number of rows: may take a long time!");
     	}
@@ -144,9 +152,27 @@ public class BiomartAccessorNodeModel extends au.edu.unimelb.plantcell.io.ws.tmh
     		if (attr.indexOf(':') > 0) {
     			attr = attr.substring(0, attr.indexOf(':'));
     		}
-    		attributes.append("<Attribute name= \""+attr+"\" />");
+    		attributes.append("<Attribute name= \""+attr+"\" />\n");
     	}
     	logger.info("Expecting "+m_what.getStringArrayValue().length+ " columns!");
+    	
+    	int n_filters = 0;
+    	StringBuilder filters = new StringBuilder();
+    	for (String filter : m_wanted_filters.getStringArrayValue()) {
+    		Pattern p = Pattern.compile("^([^=]+?)=(.*)$");
+    		Matcher m = p.matcher(filter);
+    		if (m.matches()) {
+    			String name = m.group(1);
+    			String val  = new String(Base64.decode(m.group(2)));
+    			if (name.length() < 1 || val.length() < 1) {
+    				logger.warn("No filter value specified for "+name+" -- please reconfigure!");
+    				continue;
+    			}
+    			filters.append("<Filter name=\""+name+"\" value=\""+val+"\" />\n");
+    			n_filters++;
+    		}
+    	}
+    	logger.info("Added "+n_filters+ " query filters to biomart query.");
     	
     	Mart m = getMart(port, m_db.getStringValue());
     	if (m == null)
@@ -160,6 +186,7 @@ public class BiomartAccessorNodeModel extends au.edu.unimelb.plantcell.io.ws.tmh
     	+"<Query virtualSchemaName= \"default\" formatter= \"TSV\" header= \"1\" "+limit+" uniqueRows= \"0\" count = \"\" datasetConfigVersion = \"0.6\" >"
     	+"	<Dataset name= \"%s\" interface= \"default\" >"
     	+attributes.toString()
+    	+filters.toString()
     	+"</Dataset></Query>", ds.getName(), m.getConfig()
     	);
     	
@@ -167,6 +194,8 @@ public class BiomartAccessorNodeModel extends au.edu.unimelb.plantcell.io.ws.tmh
     	logger.info("Accessing dataset: "+m_dataset.getStringValue());
     	
     	MyDataContainer c = new MyDataContainer(exec.createDataContainer(outSpec), "Row");
+    	exec.checkCanceled();
+    	boolean warned = false;
     	try {
     		logger.debug(query);
     		String results = port.getResults(query);
@@ -180,11 +209,19 @@ public class BiomartAccessorNodeModel extends au.edu.unimelb.plantcell.io.ws.tmh
     				logger.info("Header line: "+line);
     				continue;
     			}
-    			if (fields.length != outSpec.getNumColumns())
-    				throw new IOException("Expected "+outSpec.getNumColumns()+" columns but got "+fields.length+" - line is: "+line);
-    			DataCell[] cells = new DataCell[fields.length];
+    			if (fields.length != outSpec.getNumColumns()) {
+    				if (!warned) {
+    					logger.warn("Expected "+outSpec.getNumColumns()+" columns but got "+fields.length+" - line is: "+line);
+    					logger.warn("Adding missing values for missing attributes. Further warnings disabled.");
+    				}
+    				warned = true;
+    			}
+    			DataCell[] cells = new DataCell[outSpec.getNumColumns()];
     			for (int i=0; i<cells.length; i++) {
-    				cells[i] = new StringCell(fields[i]);
+    				if (i < fields.length)
+    					cells[i] = new StringCell(fields[i]);
+    				else 
+    					cells[i] = DataType.getMissingCell();
     			}
     			c.addRow(cells);
     		}
@@ -223,6 +260,7 @@ public class BiomartAccessorNodeModel extends au.edu.unimelb.plantcell.io.ws.tmh
 		m_dataset.saveSettingsTo(settings);
 		m_what.saveSettingsTo(settings);
 		m_rowlimit.saveSettingsTo(settings);
+		m_wanted_filters.saveSettingsTo(settings);
 	}
 
 	@Override
@@ -234,6 +272,7 @@ public class BiomartAccessorNodeModel extends au.edu.unimelb.plantcell.io.ws.tmh
 		m_dataset.validateSettings(settings);
 		m_what.validateSettings(settings);
 		m_rowlimit.validateSettings(settings);
+		m_wanted_filters.validateSettings(settings);
 	}
 
 	@Override
@@ -245,6 +284,7 @@ public class BiomartAccessorNodeModel extends au.edu.unimelb.plantcell.io.ws.tmh
 		m_dataset.loadSettingsFrom(settings);
 		m_what.loadSettingsFrom(settings);
 		m_rowlimit.loadSettingsFrom(settings);
+		m_wanted_filters.loadSettingsFrom(settings);
 	}
 
 
@@ -360,6 +400,22 @@ public class BiomartAccessorNodeModel extends au.edu.unimelb.plantcell.io.ws.tmh
 		} else {
 			return new ArrayList<Attribute>();
 		}
+	}
+	
+	protected static List<String> getAttributesAsString(final PortalServiceImpl port, final String db, final String mart_name) {
+		ArrayList<String> ret = new ArrayList<String>();
+	
+		List<Attribute> attrs = getAttributes(port, db, mart_name);
+		if (attrs != null && attrs.size() > 0) {
+			for (Attribute a : attrs) {
+				ret.add(a.getName()+": "+a.getDisplayName());
+			}
+		}
+		
+		if (ret.size() == 0) {
+			ret.add("No attributes available!");
+		}
+		return ret;
 	}
 	
 }
