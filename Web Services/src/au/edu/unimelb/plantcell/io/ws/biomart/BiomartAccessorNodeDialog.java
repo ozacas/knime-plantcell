@@ -4,6 +4,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -21,6 +22,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.apache.commons.lang.SerializationUtils;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -209,32 +211,6 @@ public class BiomartAccessorNodeDialog extends DefaultNodeSettingsPane {
 		
 		createNewGroup("Report these columns (attributes)...");
 		addDialogComponent(dc_what);
-		final SettingsModelString attr_descr = new SettingsModelString("_crap", "");
-		// since most datasets have no description for the attributes we dont display this for now...
-		/*DialogComponentMultiLineString lbl = new DialogComponentMultiLineString(attr_descr, "", true, 30, 10);
-		sms_what.addChangeListener(new ChangeListener() {
-
-			@Override
-			public void stateChanged(ChangeEvent ev) {
-				/*String[] cols = sms_what.getStringArrayValue();
-				List<Attribute> attrs = BiomartAccessorNodeModel.getAttributes(port, sms_dataset.getStringValue(), sms_db.getStringValue());
-				StringBuilder sb = new StringBuilder();
-				for (Attribute a : attrs) {
-					for (String col : cols) {
-						String attr_name_from_col = col.substring(0, col.indexOf(':'));
-						if (a.getName().equals(attr_name_from_col)) {
-							sb.append(a.getName()+": "+a.getDescription()+"\n");
-							break;
-						}
-					}
-				}
-				if (sb.length() < 1)
-					sb.append("Select column(s) at left, to see its description.");
-				attr_descr.setStringValue(sb.toString());
-			}
-			
-		});
-		addDialogComponent(lbl);*/
 		
 		createNewTab("Advanced");
 		addDialogComponent(
@@ -253,15 +229,15 @@ public class BiomartAccessorNodeDialog extends DefaultNodeSettingsPane {
 	@Override
 	public void loadAdditionalSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] inSpecs) {
 		FilterTableModel              ftm = (FilterTableModel) p.getModel();
-		Map<String,String> wanted_filters = new HashMap<String,String>();
+		Map<String,Object> wanted_filters = new HashMap<String,Object>();
 		
 		try {
 			ftm.clear();
 			String[] filters = settings.getStringArray(BiomartAccessorNodeModel.CFGKEY_WANTED_FILTER);
 			for (int i=0; i<filters.length; i++) {
 				String name = filters[i].substring(0, filters[i].indexOf('='));
-				String val  = new String(Base64.decode(filters[i].substring(filters[i].indexOf('=')+1)));
-				wanted_filters.put(name,val);
+				Object o = SerializationUtils.deserialize(Base64.decode(filters[i].substring(filters[i].indexOf('=')+1)));
+				wanted_filters.put(name,o);
 			}
 			
 			String db = settings.getString(BiomartAccessorNodeModel.CFGKEY_DB);
@@ -270,13 +246,11 @@ public class BiomartAccessorNodeDialog extends DefaultNodeSettingsPane {
 			Dataset ds = BiomartAccessorNodeModel.getDataset(port, m, dataset);
 			if (ds == null || m == null) {
 				// be silent: new node probably just put onto canvas...
-				//Logger.getLogger("Biomart", BiomartAccessorNodeDialog.class).warning("Unable to find dataset: "+db+", "+dataset);
 			} else {
 				List<Filter> known_filters = BiomartAccessorNodeModel.getFilters(port, m, ds);
 				Map<String,Filter> known_filter_map = new HashMap<String,Filter>();
 				for (Filter f : known_filters) {
 					known_filter_map.put(f.getName(), f);
-					//Logger.getAnonymousLogger().info(f.getName() + ": "+f.getDisplayName());
 				}
 				
 				for (String filter_name : wanted_filters.keySet()) {
@@ -285,7 +259,6 @@ public class BiomartAccessorNodeDialog extends DefaultNodeSettingsPane {
 						continue;
 					ftm.append(f);
 					int r = ftm.getRowCount()-1;
-					//Logger.getAnonymousLogger().info(filter_name);
 					ftm.setValueAt(wanted_filters.get(filter_name), r, 5);
 				}
 			}
@@ -301,10 +274,10 @@ public class BiomartAccessorNodeDialog extends DefaultNodeSettingsPane {
 		FilterTableModel ftm = (FilterTableModel) p.getModel();
 		ArrayList<String> user_filters = new ArrayList<String>();
 		for (int i=0; i<ftm.getRowCount(); i++) {
-			Filter f    = ftm.getFilter(i);
-			String val  = ftm.getValueAt(i, 5).toString();
+			Object val   = ftm.getFilterUserValue(i);
+			byte[] data = SerializationUtils.serialize((Serializable) val);
 			// NB: cannot use the f.getDisplayName() as this would cause parsing errors on load
-			user_filters.add(f.getName()+"="+Base64.encode(val.getBytes()));
+			user_filters.add(ftm.getFilter(i).getName()+"="+Base64.encode(data));
 		}
 		settings.addStringArray(BiomartAccessorNodeModel.CFGKEY_WANTED_FILTER, user_filters.toArray(new String[0]));
 	}
