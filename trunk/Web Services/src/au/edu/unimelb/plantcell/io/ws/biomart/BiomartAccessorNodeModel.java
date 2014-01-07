@@ -1,18 +1,17 @@
 package au.edu.unimelb.plantcell.io.ws.biomart;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.StringReader;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.SerializationUtils;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
@@ -33,8 +32,6 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.osgi.framework.Bundle;
 
-import com.sun.org.apache.xml.internal.security.utils.Base64;
-
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.servers.biomart.Attribute;
 import au.edu.unimelb.plantcell.servers.biomart.BioMartSoapService;
@@ -42,6 +39,8 @@ import au.edu.unimelb.plantcell.servers.biomart.Dataset;
 import au.edu.unimelb.plantcell.servers.biomart.Filter;
 import au.edu.unimelb.plantcell.servers.biomart.Mart;
 import au.edu.unimelb.plantcell.servers.biomart.PortalServiceImpl;
+
+import com.sun.org.apache.xml.internal.security.utils.Base64;
 
 
 /**
@@ -159,18 +158,19 @@ public class BiomartAccessorNodeModel extends au.edu.unimelb.plantcell.io.ws.tmh
     	int n_filters = 0;
     	StringBuilder filters = new StringBuilder();
     	for (String filter : m_wanted_filters.getStringArrayValue()) {
-    		Pattern p = Pattern.compile("^([^=]+?)=(.*)$");
-    		Matcher m = p.matcher(filter);
-    		if (m.matches()) {
-    			String name = m.group(1);
-    			String val  = new String(Base64.decode(m.group(2)));
-    			if (name.length() < 1 || val.length() < 1) {
-    				logger.warn("No filter value specified for "+name+" -- please reconfigure!");
-    				continue;
-    			}
-    			filters.append("<Filter name=\""+name+"\" value=\""+val+"\" />\n");
-    			n_filters++;
+    		int idx = filter.indexOf('=');
+    		if (idx < 0)
+    			throw new InvalidSettingsException("Incorrect filter data, got: "+filter);
+    		String         key = filter.substring(0, idx);
+    		String base64_data = filter.substring(idx+1);
+    		
+    		Object val = SerializationUtils.deserialize(Base64.decode(base64_data));
+    		if (key.length() < 1 || val == null) {
+    			logger.warn("No filter value specified for "+key+" -- please reconfigure!");
+    			continue;
     		}
+    		filters.append(getFilterXML(key, val));
+    		n_filters++;
     	}
     	logger.info("Added "+n_filters+ " query filters to biomart query.");
     	
@@ -232,6 +232,35 @@ public class BiomartAccessorNodeModel extends au.edu.unimelb.plantcell.io.ws.tmh
     	
 		return new BufferedDataTable[] { c.close() };
 	}
+
+	/**
+	 * Returns an XML fragment representing the filter. If the value is a collection, it will
+	 * trim each element and comma separate them for the value as biomart requires. If the
+	 * value is a scalar (single value) then it will be trimmed and then placed into the XML fragment returned. 
+	 * Pretty ugly web service api though!
+	 * 
+	 * @param key
+	 * @param val: either Collection<String> or Object
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	private String getFilterXML(String key, Object val) throws InvalidSettingsException {
+		StringBuilder sb = new StringBuilder();
+		if (val instanceof Collection) {
+			for (String s : (Collection<String>)val) {
+				sb.append(s.trim());
+				sb.append(",");
+			}
+		} else {
+			sb.append(val.toString().trim());
+		}
+		
+		if (sb.length() < 1) {
+			throw new InvalidSettingsException("Filter "+key+" has no value! Reconfigure!");
+		}
+		return "<Filter name=\""+key+"\" value=\""+sb.toString()+"\" />\n";
+	}
+
 
 	@Override
 	protected void reset() {

@@ -29,7 +29,7 @@ public class FilterTableModel extends AbstractTableModel implements TableModel {
 	 * data for the table: a list of user filters
 	 */
 	private final List<Filter>       m_user_filters = new ArrayList<Filter>();
-	private final Map<Filter,String> m_user_values  = new HashMap<Filter,String>();
+	private final Map<Filter,Object> m_user_values  = new HashMap<Filter,Object>();
 	private Vector<TableColumn>      cached_columns = null;
 
 
@@ -138,7 +138,7 @@ public class FilterTableModel extends AbstractTableModel implements TableModel {
 		case 4:
 			return f.getDependsOn();
 		case 5:
-			String val = m_user_values.get(f);
+			Object val = m_user_values.get(f);
 			if (val == null) {
 				StringBuilder sb = new StringBuilder();
 				for (FilterData fd : f.getValues().getValue()) {
@@ -164,10 +164,20 @@ public class FilterTableModel extends AbstractTableModel implements TableModel {
 			Logger.getAnonymousLogger().info("Set filter value to "+new_val.toString()+" for "+name+" rc="+r+","+c);
 
 			if (f != null) {
-				m_user_values.put(f, new_val.toString());
+				m_user_values.put(f, new_val);
 				fireTableDataChanged();
 			}
 		}
+	}
+
+	/*
+	 * Returns the user-specified value for a filter or null if there is no value for the chosen filter
+	 */
+	public Object getFilterUserValue(int r) {
+		assert(r >= 0 && r < getRowCount());
+		Filter f = m_user_filters.get(r);
+		Object val = m_user_values.get(f);
+		return (val != null) ? val.toString() : null;
 	}
 
 }
