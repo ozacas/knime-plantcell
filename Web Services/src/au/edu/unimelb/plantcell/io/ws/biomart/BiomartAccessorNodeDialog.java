@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -53,7 +54,7 @@ import com.sun.org.apache.xml.internal.security.utils.Base64;
 public class BiomartAccessorNodeDialog extends DefaultNodeSettingsPane {
 	private final static PortalServiceImpl port;
 	private final FilterTableModel ftm = new FilterTableModel();
-	private final JTable             p = new JTable(ftm);		// current user-defined filters
+	private final MyTable             p = new MyTable(ftm);		// current user-defined filters
 	
 	static {
     	port = BiomartAccessorNodeModel.getService().getPortalServiceImplPort();
@@ -153,9 +154,8 @@ public class BiomartAccessorNodeDialog extends DefaultNodeSettingsPane {
 		JPanel button_panel = new JPanel();
 		button_panel.setLayout(new BoxLayout(button_panel, BoxLayout.Y_AXIS));
 		JButton add_filter = new JButton("Add Filter >>");
-		
+		p.setRowEditorModel(ftm);
 		p.setPreferredSize(new Dimension(400,200));
-		p.getColumnModel().getColumn(5).setCellEditor(new FilterValueEditor());
 		
 		add_filter.addActionListener(new ActionListener() {
 
@@ -238,6 +238,7 @@ public class BiomartAccessorNodeDialog extends DefaultNodeSettingsPane {
 				String name = filters[i].substring(0, filters[i].indexOf('='));
 				Object o = SerializationUtils.deserialize(Base64.decode(filters[i].substring(filters[i].indexOf('=')+1)));
 				wanted_filters.put(name,o);
+				Logger.getAnonymousLogger().info("Loaded filter for "+name+" to "+o.toString());
 			}
 			
 			String db = settings.getString(BiomartAccessorNodeModel.CFGKEY_DB);
@@ -277,7 +278,10 @@ public class BiomartAccessorNodeDialog extends DefaultNodeSettingsPane {
 			Object val   = ftm.getFilterUserValue(i);
 			byte[] data = SerializationUtils.serialize((Serializable) val);
 			// NB: cannot use the f.getDisplayName() as this would cause parsing errors on load
-			user_filters.add(ftm.getFilter(i).getName()+"="+Base64.encode(data));
+			String name = ftm.getFilter(i).getName();
+			user_filters.add(name+"="+Base64.encode(data));
+			Logger.getAnonymousLogger().info("Saved filter for "+name+" to "+data);
+
 		}
 		settings.addStringArray(BiomartAccessorNodeModel.CFGKEY_WANTED_FILTER, user_filters.toArray(new String[0]));
 	}
