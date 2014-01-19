@@ -1,13 +1,22 @@
 package au.edu.unimelb.plantcell.io.ws.biomart;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import javax.swing.DefaultCellEditor;
+import javax.swing.JComboBox;
+import javax.swing.JList;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 
@@ -19,7 +28,7 @@ import au.edu.unimelb.plantcell.servers.biomart.FilterData;
  * @author andrew.cassin
  *
  */
-public class FilterTableModel extends AbstractTableModel implements TableModel {
+public class FilterTableModel extends AbstractTableModel implements TableModel,RowEditorModel {
 	/**
 	 * not used
 	 */
@@ -83,7 +92,6 @@ public class FilterTableModel extends AbstractTableModel implements TableModel {
 				break;
 			case 5:
 				tc.setHeaderValue("Value"); 
-				tc.setCellEditor(new FilterValueEditor());
 				break;
 			}
 			cols.add(tc);
@@ -178,6 +186,65 @@ public class FilterTableModel extends AbstractTableModel implements TableModel {
 		Filter f = m_user_filters.get(r);
 		Object val = m_user_values.get(f);
 		return (val != null) ? val.toString() : null;
+	}
+	
+	private List<String> getFilterValues(Filter v) {
+        ArrayList<String> values = new ArrayList<String>();
+        for (FilterData fd : ((Filter)v).getValues().getValue()) {
+                values.add(fd.getDisplayName());
+        }
+        Collections.sort(values);
+       
+        return values;
+	}
+
+
+	/*************************** RowEditorModel interface methods *****************************/
+	
+	@Override
+	public void addEditorForRow(int row, TableCellEditor e) {
+		// NO-OP for this class
+	}
+
+	@Override
+	public void removeEditorForRow(int row) {
+		// NO-OP for this class
+	}
+
+	@Override
+	public TableCellEditor getEditor(int row) {
+		Filter f = m_user_filters.get(row);
+		String type = f.getType();
+		// no biomart filter type defined? Ok... we hope default is good enough?
+		if (type == null)
+			return new DefaultCellEditor(new JTextField(m_user_values.get(f).toString()));
+		
+		// biomart filter suitable for a combobox?
+		if (type.equals("singleSelect")) {
+			List<String> values = getFilterValues(f);
+			JComboBox<String> cb = new JComboBox<String>(values.toArray(new String[0]));
+			return new DefaultCellEditor(cb);
+		} else if (type.equals("multiSelect")) {
+			// pop up a modal dialog box and get the desired list from the user
+			List<String> values = getFilterValues(f);
+            JList<String> list = new JList<String>();
+            list.setListData(values.toArray(new String[0]));
+            list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+            Object val = m_user_values.get(f);
+            if (val instanceof Collection) {
+            	for (String s : ((Collection<String>)val)) {
+                     list.setSelectedValue(s, false);
+                }
+            }
+            return new MyListEditor(list);
+		} else if (type.equals("upload")) {
+			// pop up a modal dialog box and get the uploaded text from the user
+			return new MyTextEditor(m_user_values.get(f));
+		} else /* assume JTextField is ok */ {
+			Object val = m_user_values.get(f);
+			JTextField tf = new JTextField(val.toString());
+			return new DefaultCellEditor(tf);
+		}
 	}
 
 }
