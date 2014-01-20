@@ -54,6 +54,27 @@ public class FilterTableModel extends AbstractTableModel implements TableModel,R
 		}
 	}
 	
+	/**
+	 * Same as per {@link append(Filter)} except that the value is also initialised.
+	 * Used to load user-configured settings during configure dialog
+	 * 
+	 * @param f
+	 * @param val
+	 */
+	public void appendWithValue(Filter f, Object val) {
+		assert(f != null && val != null);
+		m_user_values.put(f, val);
+		append(f);
+	}
+
+	public void remove(Collection<Filter> to_be_removed) {
+		for (Filter f : to_be_removed) {
+			m_user_filters.remove(f);
+			m_user_values.remove(f);
+		}
+		fireTableDataChanged();
+	}
+	
 	public void clear() {
 		m_user_filters.clear();
 		m_user_values.clear();
@@ -186,13 +207,16 @@ public class FilterTableModel extends AbstractTableModel implements TableModel,R
 		assert(r >= 0 && r < getRowCount());
 		Filter f = m_user_filters.get(r);
 		Object val = m_user_values.get(f);
-		return (val != null) ? val.toString() : null;
+		if (val != null) {
+			return val;
+		}
+		return null;
 	}
 	
 	private List<String> getFilterValues(Filter v) {
         ArrayList<String> values = new ArrayList<String>();
         for (FilterData fd : ((Filter)v).getValues().getValue()) {
-                values.add(fd.getDisplayName());
+                values.add(fd.getName());
         }
         Collections.sort(values);
        
@@ -262,4 +286,7 @@ public class FilterTableModel extends AbstractTableModel implements TableModel,R
 		return (m_user_filters.indexOf(f) >= 0);
 	}
 
+
+
+	
 }

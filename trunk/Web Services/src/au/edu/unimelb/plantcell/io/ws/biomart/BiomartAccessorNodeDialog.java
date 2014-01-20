@@ -52,7 +52,7 @@ import com.sun.org.apache.xml.internal.security.utils.Base64;
  */
 public class BiomartAccessorNodeDialog extends DefaultNodeSettingsPane {
 	private final static PortalServiceImpl port;
-	private final FilterTableModel ftm = new FilterTableModel();
+	private final FilterTableModel  ftm = new FilterTableModel();
 	private final MyTable             p = new MyTable(ftm);		// current user-defined filters
 	
 	static {
@@ -128,7 +128,7 @@ public class BiomartAccessorNodeDialog extends DefaultNodeSettingsPane {
 							Collections.sort(newItems);
 							dc_filters.replaceListItems(newItems, (String) null);
 							dc_filters.setSizeComponents(300, 300);
-							((FilterTableModel)p.getModel()).clear();
+							getFilterTableModel().clear();
 						}
 							
 					}
@@ -161,7 +161,7 @@ public class BiomartAccessorNodeDialog extends DefaultNodeSettingsPane {
 			@Override
 			public void actionPerformed(ActionEvent ev) {
 				String[] cur_filters = sms_filters.getStringArrayValue();
-				FilterTableModel ftm = ((FilterTableModel)p.getModel());
+				FilterTableModel ftm = getFilterTableModel();
 				if (cur_filters != null && cur_filters.length > 0) {
 					for (String filter_name: cur_filters) {
 						Filter f = BiomartAccessorNodeModel.getFilter(port, sms_db.getStringValue(), sms_dataset.getStringValue(), filter_name);
@@ -181,22 +181,14 @@ public class BiomartAccessorNodeDialog extends DefaultNodeSettingsPane {
 
 			@Override
 			public void actionPerformed(ActionEvent ev) {
-				FilterTableModel ftm = new FilterTableModel();
-				FilterTableModel old = (FilterTableModel) p.getModel();
+				FilterTableModel ftm = getFilterTableModel();
 				
 				int[] sel = p.getSelectedRows();
-				for (int i=0; i<old.getRowCount(); i++) {
-					boolean is_selected = false;
-					for (int j=0; j<sel.length; j++) {
-						if (i == sel[j]) {
-							is_selected = true; break;
-						}
-					}
-					if (!is_selected) {
-						ftm.append(old.getFilter(i));
-					}
+				ArrayList<Filter> to_be_removed = new ArrayList<Filter>();
+				for (int i=0; i<sel.length; i++) {
+					to_be_removed.add(ftm.getFilter(sel[i]));
 				}
-				p.setModel(ftm);
+				ftm.remove(to_be_removed);
 			}
 			
 		});
@@ -227,9 +219,14 @@ public class BiomartAccessorNodeDialog extends DefaultNodeSettingsPane {
 	}
 	
 	
+	private FilterTableModel getFilterTableModel() {
+		return ((FilterTableModel)p.getModel());
+	}
+
+
 	@Override
 	public void loadAdditionalSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] inSpecs) {
-		FilterTableModel              ftm = (FilterTableModel) p.getModel();
+		FilterTableModel              ftm = getFilterTableModel();
 		Map<String,Object> wanted_filters = new HashMap<String,Object>();
 		
 		try {
@@ -259,7 +256,7 @@ public class BiomartAccessorNodeDialog extends DefaultNodeSettingsPane {
 					Filter f = known_filter_map.get(filter_name);
 					if (f == null)
 						continue;
-					ftm.append(f);
+					ftm.appendWithValue(f, wanted_filters.get(f));
 					int r = ftm.getRowCount()-1;
 					ftm.setValueAt(wanted_filters.get(filter_name), r, 5);
 				}
@@ -273,16 +270,19 @@ public class BiomartAccessorNodeDialog extends DefaultNodeSettingsPane {
 	
 	@Override
 	public void saveAdditionalSettingsTo(final NodeSettingsWO settings) {
-		FilterTableModel ftm = (FilterTableModel) p.getModel();
+		FilterTableModel ftm = getFilterTableModel();
 		ArrayList<String> user_filters = new ArrayList<String>();
 		for (int i=0; i<ftm.getRowCount(); i++) {
 			Object val   = ftm.getFilterUserValue(i);
+			if (val == null) {
+				Logger.getAnonymousLogger().warning("No value for "+ftm.getFilter(i).getName());
+				continue;
+			}
 			byte[] data = SerializationUtils.serialize((Serializable) val);
 			// NB: cannot use the f.getDisplayName() as this would cause parsing errors on load
 			String name = ftm.getFilter(i).getName();
 			user_filters.add(name+"="+Base64.encode(data));
-			Logger.getAnonymousLogger().info("Saved filter for "+name+" to "+data);
-
+			//Logger.getAnonymousLogger().info("Saved filter for "+name+" to "+val.toString());
 		}
 		settings.addStringArray(BiomartAccessorNodeModel.CFGKEY_WANTED_FILTER, user_filters.toArray(new String[0]));
 	}
