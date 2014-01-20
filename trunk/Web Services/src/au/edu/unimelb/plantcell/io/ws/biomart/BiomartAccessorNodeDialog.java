@@ -18,7 +18,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -162,11 +161,13 @@ public class BiomartAccessorNodeDialog extends DefaultNodeSettingsPane {
 			@Override
 			public void actionPerformed(ActionEvent ev) {
 				String[] cur_filters = sms_filters.getStringArrayValue();
+				FilterTableModel ftm = ((FilterTableModel)p.getModel());
 				if (cur_filters != null && cur_filters.length > 0) {
 					for (String filter_name: cur_filters) {
 						Filter f = BiomartAccessorNodeModel.getFilter(port, sms_db.getStringValue(), sms_dataset.getStringValue(), filter_name);
-						if (f != null && !f.isIsHidden()) {
-							((FilterTableModel)p.getModel()).append(f);
+						
+						if (f != null && !f.isIsHidden() && !ftm.alreadyHasFilter(f)) {
+							ftm.append(f);
 						}
 					}
 				}
