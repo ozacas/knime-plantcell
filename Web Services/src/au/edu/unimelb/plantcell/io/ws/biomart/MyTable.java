@@ -53,6 +53,7 @@ public class MyTable extends JTable {
 		rm = null;
 	}
 	
+	@SuppressWarnings("rawtypes")
 	public MyTable(final Vector rowData, final Vector columnNames)
 	{
 		super(rowData, columnNames);

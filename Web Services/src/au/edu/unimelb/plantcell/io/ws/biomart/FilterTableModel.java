@@ -12,13 +12,14 @@ import java.util.logging.Logger;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
 import javax.swing.JList;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
+
+import org.apache.commons.lang.ArrayUtils;
 
 import au.edu.unimelb.plantcell.servers.biomart.Filter;
 import au.edu.unimelb.plantcell.servers.biomart.FilterData;
@@ -37,7 +38,7 @@ public class FilterTableModel extends AbstractTableModel implements TableModel,R
 	/**
 	 * data for the table: a list of user filters
 	 */
-	private final List<Filter>       m_user_filters = new ArrayList<Filter>();
+	private final List<Filter>       m_user_filters = new ArrayList<Filter>();			// index is row
 	private final Map<Filter,Object> m_user_values  = new HashMap<Filter,Object>();
 	private Vector<TableColumn>      cached_columns = null;
 
@@ -164,7 +165,7 @@ public class FilterTableModel extends AbstractTableModel implements TableModel,R
 
 	@Override
 	public void setValueAt(Object new_val, int r, int c) {
-		if (c == 5) {
+		if (c == 5 && r < getRowCount()) {
 			Filter f = m_user_filters.get(r);
 			String name = f.getName();
 			if (name == null)
@@ -211,8 +212,10 @@ public class FilterTableModel extends AbstractTableModel implements TableModel,R
 		// NO-OP for this class
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public TableCellEditor getEditor(int row) {
+		Logger.getAnonymousLogger().info("Filters: "+m_user_filters.size()+" "+row);
 		Filter f = m_user_filters.get(row);
 		String type = f.getType();
 		// no biomart filter type defined? Ok... we hope default is good enough?
@@ -221,7 +224,7 @@ public class FilterTableModel extends AbstractTableModel implements TableModel,R
 		
 		// biomart filter suitable for a combobox?
 		if (type.equals("singleSelect")) {
-			List<String> values = getFilterValues(f);
+			List<String>  values = getFilterValues(f);
 			JComboBox<String> cb = new JComboBox<String>(values.toArray(new String[0]));
 			return new DefaultCellEditor(cb);
 		} else if (type.equals("multiSelect")) {
@@ -232,9 +235,11 @@ public class FilterTableModel extends AbstractTableModel implements TableModel,R
             list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
             Object val = m_user_values.get(f);
             if (val instanceof Collection) {
+            	ArrayList<Integer> indices = new ArrayList<Integer>();
             	for (String s : ((Collection<String>)val)) {
-                     list.setSelectedValue(s, false);
+                     indices.add(values.indexOf(s));
                 }
+            	list.setSelectedIndices(ArrayUtils.toPrimitive(indices.toArray(new Integer[0])));
             }
             return new MyListEditor(list);
 		} else if (type.equals("upload")) {
@@ -245,6 +250,16 @@ public class FilterTableModel extends AbstractTableModel implements TableModel,R
 			JTextField tf = new JTextField(val.toString());
 			return new DefaultCellEditor(tf);
 		}
+	}
+
+	/**
+	 * Returns true if the specified filter is already present in the specified table model
+	 * @param f must not be null
+	 * @return true if found, false otherwise
+	 */
+	public boolean alreadyHasFilter(Filter f) {
+		assert(f != null);
+		return (m_user_filters.indexOf(f) >= 0);
 	}
 
 }
