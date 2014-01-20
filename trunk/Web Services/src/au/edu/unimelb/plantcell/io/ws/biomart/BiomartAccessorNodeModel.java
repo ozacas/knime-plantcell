@@ -251,6 +251,11 @@ public class BiomartAccessorNodeModel extends au.edu.unimelb.plantcell.io.ws.tmh
 				sb.append(s.trim());
 				sb.append(",");
 			}
+			
+			// remove trailing , (if any)
+			if (sb.length() > 0 && sb.charAt(sb.length()-1) == ',') {
+				sb.deleteCharAt(sb.length()-1);
+			}
 		} else {
 			sb.append(val.toString().trim());
 		}
