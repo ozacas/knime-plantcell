@@ -9,14 +9,31 @@
     
     <fullDescription>
         <intro> 
-        Provides access to Biomarts - see http://www.biomart.org for more details
+        Provides access to Biomarts - see http://www.biomart.org for more details. In essence, this enables
+        the user to get wholesale data access very quickly esp. UniProtKB and InterPro to aid with molecular
+        annotation.
+        
+        <p><b>WARNING: </b> dont overload the server - this node is meant to be used carefully. The default is
+        to fetch a maximum of 1000 rows to protect the server. Overuse of biomart server may result in
+        your organisation banned.
+        </p>
+        
         </intro>
         
-       
+        <option name="Available biomarts">Choose the database you wish to obtain data from (InterPRO or UniProtKB are frequently used)</option>
+        <option name="Dataset name">Some databases will provide multiple datasets (eg. one per experiment), you may need to choose one here,
+        depending on the mart you have chosen.</option>
+        
+        <option name="Filter">Email address is required by EBI should there be a problem with the jobs. This must be a valid email address or you risk being banned.</option>
+    	<option name="Attributes">All EBI WU-BLAST Databases will appear in this list. The entire UniProt (reviewed+not reviewed) is the default</option>
+    	<option name="Biomart Server (advanced users only)">Enter a biomart-compatible server (if you run one locally). Not currently supported.</option>
+    	<option name="Number of rows to fetch)">To avoid running endless queries, the node is configured to get a maximum of 1000 rows of data.
+    	This may be increased as required.</option>
+    
     </fullDescription>
     
     <ports>
-        <outPort index="0" name="Biomart data">Data as requested by query</outPort>
+        <outPort index="0" name="Biomart data">Data as provided by biomart</outPort>
     </ports>    
  
 </knimeNode>
