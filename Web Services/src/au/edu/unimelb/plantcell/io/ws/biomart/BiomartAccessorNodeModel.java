@@ -4,6 +4,8 @@ import java.io.StringReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -12,6 +14,7 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.SerializationUtils;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
@@ -90,7 +93,15 @@ public class BiomartAccessorNodeModel extends au.edu.unimelb.plantcell.io.ws.tmh
 		m_mru_filters_ds = null;
 	}
 	
-	 
+	/**
+	 * Construct and return a {@link DataTableSpec} as required for execute. The column names will be adjusted
+	 * if the database chosen doesn't guarantee unique names for each attribute according to a KNIME convention
+	 * to avoid KNIME throwing a duplicate column name exception.
+	 * 
+	 * @param inSpec
+	 * @return
+	 * @throws InvalidSettingsException
+	 */
 	public DataTableSpec make_output_spec(DataTableSpec inSpec) throws InvalidSettingsException {
 		String[] items = m_what.getStringArrayValue();
 		if (items.length < 1)
@@ -112,11 +123,16 @@ public class BiomartAccessorNodeModel extends au.edu.unimelb.plantcell.io.ws.tmh
 				// fall thru
 			}
 			cols[i] = new DataColumnSpecCreator(item, StringCell.TYPE).createSpec();
+			done.add(item);
 		}
 		
 		return new DataTableSpec(cols);
 	}
 	
+	/**
+	 * Returns a handle to the SOAP service
+	 * @return
+	 */
 	public static BioMartSoapService getService() {
 		try {
 			Bundle bundle = Platform.getBundle("au.edu.unimelb.plantcell.io.ws");
@@ -372,6 +388,16 @@ public class BiomartAccessorNodeModel extends au.edu.unimelb.plantcell.io.ws.tmh
 		return null;
 	}
 	
+	/**
+	 * Returns a list of filters for the specified biomart dataset. These filters are modified from the raw data to
+	 * have HTML entities (eg. &gt;) decoded in the getDisplayName() so that they present correctly in the configure dialog.
+	 * No other member of the Filter instances are modified.
+	 * 
+	 * @param port
+	 * @param m
+	 * @param ds
+	 * @return list of available filters sorted by displayname (never null but may be empty)
+	 */
 	public static List<Filter> getFilters(final PortalServiceImpl port, final Mart m, final Dataset ds) {
 		assert(m != null && ds != null);
 		
@@ -383,10 +409,28 @@ public class BiomartAccessorNodeModel extends au.edu.unimelb.plantcell.io.ws.tmh
 			m_mru_filters = ret;
 			m_mru_filters_mart = m;
 			m_mru_filters_ds = ds;
+			fixBadDisplayNames(ret);
+			Collections.sort(ret, new Comparator<Filter>() {
+
+				@Override
+				public int compare(Filter arg0, Filter arg1) {
+					assert(arg0 != null && arg1 != null);
+					return arg0.getDisplayName().compareTo(arg1.getDisplayName());
+				}
+				
+			});
 			return ret;
 		}
 	}
 	
+	private static List<Filter> fixBadDisplayNames(ArrayList<Filter> ret) {
+		assert(ret != null);
+		for (Filter f : ret) {
+			f.setDisplayName(StringEscapeUtils.unescapeHtml(f.getDisplayName()));
+		}
+		return ret;
+	}
+
 	public static List<Dataset> getDatasets(final PortalServiceImpl port, final Mart m) {
 		assert(m != null);
 		if (m_last_datasets != null && m.getName().equals(m_last_datasets_mart)) {
