@@ -27,8 +27,8 @@
         <option name="Filter">Email address is required by EBI should there be a problem with the jobs. This must be a valid email address or you risk being banned.</option>
     	<option name="Attributes">All EBI WU-BLAST Databases will appear in this list. The entire UniProt (reviewed+not reviewed) is the default</option>
     	<option name="Biomart Server (advanced users only)">Enter a biomart-compatible server (if you run one locally). Not currently supported.</option>
-    	<option name="Number of rows to fetch)">To avoid running endless queries, the node is configured to get a maximum of 1000 rows of data.
-    	This may be increased as required.</option>
+    	<option name="Number of rows to get">To avoid running endless queries, the node is configured to get a maximum of 1000 rows of data.
+    	This may be increased as required. Although not recommended you may also specify 0 (zero) to remove this limit.</option>
     
     </fullDescription>
     

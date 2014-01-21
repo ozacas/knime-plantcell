@@ -21,6 +21,7 @@ import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.table.TableColumn;
 
 import org.apache.commons.lang.SerializationUtils;
 import org.knime.core.data.DataTableSpec;
@@ -155,6 +156,9 @@ public class BiomartAccessorNodeDialog extends DefaultNodeSettingsPane {
 		JButton add_filter = new JButton("Add Filter >>");
 		p.setRowEditorModel(ftm);
 		p.setPreferredSize(new Dimension(400,200));
+		hide(p.getColumnModel().getColumn(1));
+		hide(p.getColumnModel().getColumn(3));
+		hide(p.getColumnModel().getColumn(4));
 		
 		add_filter.addActionListener(new ActionListener() {
 
@@ -213,12 +217,20 @@ public class BiomartAccessorNodeDialog extends DefaultNodeSettingsPane {
 		addDialogComponent(
 				new DialogComponentNumber(
 						new SettingsModelIntegerBounded(BiomartAccessorNodeModel.CFGKEY_ROWLIMIT, 1000, 0, Integer.MAX_VALUE),
-						"Maximum number of rows to fetch (0 unlimited)", 100
+						"Maximum number of rows to get (0 is unlimited)", 100
 				));
 		
 	}
 	
 	
+	private void hide(TableColumn column) {
+		assert(column != null);
+		column.setMaxWidth(0);
+		column.setMinWidth(0);
+		column.setPreferredWidth(0);
+	}
+
+
 	private FilterTableModel getFilterTableModel() {
 		return ((FilterTableModel)p.getModel());
 	}

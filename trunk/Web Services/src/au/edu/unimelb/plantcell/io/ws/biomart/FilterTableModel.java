@@ -103,14 +103,15 @@ public class FilterTableModel extends AbstractTableModel implements TableModel,R
 				tc.setHeaderValue("Name"); break;
 			case 1:
 				tc.setHeaderValue("Description"); 
-				tc.setMinWidth(0); tc.setMaxWidth(0); tc.setWidth(0); break;
+				break;
 			case 2:
-				tc.setHeaderValue("Type"); break;
+				tc.setHeaderValue("Type"); 
+				break;
 			case 3:
-				tc.setHeaderValue("Attribute"); break;
+				tc.setHeaderValue("Attribute"); 
+				break;
 			case 4:
 				tc.setHeaderValue("Depends on"); 
-				tc.setMinWidth(0); tc.setMaxWidth(0); tc.setWidth(0);
 				break;
 			case 5:
 				tc.setHeaderValue("Value"); 
@@ -271,7 +272,9 @@ public class FilterTableModel extends AbstractTableModel implements TableModel,R
 			return new MyTextEditor(m_user_values.get(f));
 		} else /* assume JTextField is ok */ {
 			Object val = m_user_values.get(f);
-			JTextField tf = new JTextField(val.toString());
+			JTextField tf = new JTextField();
+			if (val != null)
+				tf = new JTextField(val.toString());
 			return new DefaultCellEditor(tf);
 		}
 	}
