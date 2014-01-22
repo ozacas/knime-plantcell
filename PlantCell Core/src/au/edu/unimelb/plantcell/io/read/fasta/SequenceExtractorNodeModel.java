@@ -18,10 +18,8 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.RowIterator;
-import org.knime.core.data.def.DefaultRow;
-import org.knime.core.data.def.JoinedRow;
-import org.knime.core.data.def.StringCell;
-import org.knime.core.node.BufferedDataContainer;
+import org.knime.core.data.container.AbstractCellFactory;
+import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
@@ -31,6 +29,10 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
+
+import au.edu.unimelb.plantcell.core.cells.SequenceCell;
+import au.edu.unimelb.plantcell.core.cells.SequenceType;
+import au.edu.unimelb.plantcell.core.cells.SequenceUtilityFactory;
 
 
 /**
@@ -46,8 +48,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 public class SequenceExtractorNodeModel extends AbstractFastaNodeModel {
     
     // the logger instance
-    private static final NodeLogger logger = NodeLogger
-            .getLogger("Extract sequences");
+    private static final NodeLogger logger = NodeLogger.getLogger("Extract sequences");
  
     // settings for this node: regular expressions to process the ">" lines, and the fasta sequence filename
     private final SettingsModelStringArray m_fasta    = (SettingsModelStringArray) make(CFGKEY_FASTA);
@@ -82,9 +83,8 @@ public class SequenceExtractorNodeModel extends AbstractFastaNodeModel {
     protected DataTableSpec make_output_spec() {   
         // this node only adds the sequence to the existing input
         DataColumnSpec[] allColSpecs = new DataColumnSpec[1];
-        allColSpecs[0] = new DataColumnSpecCreator("Sequence", StringCell.TYPE).createSpec();
+        allColSpecs[0] = new DataColumnSpecCreator("Sequence", SequenceCell.TYPE).createSpec();
       
-        
         DataTableSpec outputSpec = new DataTableSpec(allColSpecs);
         return outputSpec;
     }
@@ -95,8 +95,6 @@ public class SequenceExtractorNodeModel extends AbstractFastaNodeModel {
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
-         
-    	DataTableSpec outputSpec = make_output_spec();
     	
     	ArrayList<String> filenames = new ArrayList<String>();
     	for (String f : m_fasta.getStringArrayValue()) {
@@ -108,17 +106,15 @@ public class SequenceExtractorNodeModel extends AbstractFastaNodeModel {
     	} else {
     		logger.info("Found "+filenames.size()+" FASTA files to process.");
     	}
-      
-        BufferedDataContainer container = exec.createDataContainer(new DataTableSpec(inData[0].getSpec(), outputSpec));
-        
+              
         long n_seq   = 0;
         long n_seq_rej = 0;
         Pattern accsn_matcher = Pattern.compile(m_accsn_re.getStringValue());
         Pattern descr_matcher = Pattern.compile(m_descr_re.getStringValue());
        
         // 0. build up a list of files and their accessions to be matched from the chosen columns of the input table
-        int file_idx = inData[0].getSpec().findColumnIndex(m_file_col.getStringValue());
-        int accsn_idx= inData[0].getSpec().findColumnIndex(m_accsn_col.getStringValue());
+        final int file_idx = inData[0].getSpec().findColumnIndex(m_file_col.getStringValue());
+        final int accsn_idx= inData[0].getSpec().findColumnIndex(m_accsn_col.getStringValue());
         if (file_idx < 0 || accsn_idx < 0) {
         	throw new InvalidSettingsException("Unable to locate key columns: re-configure the node?");
         }
@@ -152,16 +148,16 @@ public class SequenceExtractorNodeModel extends AbstractFastaNodeModel {
         	logger.info(map.get(file).size()+" unique accessions required from file "+file);
         }
         
-        // 1. let's add matching sequences from input file(s) into the output port
+        // 1. let's add matching sequences from input file(s) into the output port, storing into a map for later
+        //    appending to the input table. Note memory use, therefore, is proportional to the number of targets....
         String line  = null;
         String[] accsn = null;
-        @SuppressWarnings("unused")
 		String[] descr = null;
         StringBuffer seq = null;
       
         int files_done = 0;
         final double portion           = 1.0 / filenames.size();
-        HashMap<String,String> seqmap = new HashMap<String,String>(inData[0].getRowCount());
+        final HashMap<String,DataCell> seqmap = new HashMap<String,DataCell>(inData[0].getRowCount());
         int matched = 0;
         for (String fname : filenames) {
            logger.info("Processing FASTA file: "+fname);
@@ -250,7 +246,11 @@ public class SequenceExtractorNodeModel extends AbstractFastaNodeModel {
 	    	    if (!done) {
 	    	    	String matched_accsn = has_accession(accsn, required_accsns);
 		    	    if (matched_accsn != null) {
-		                	seqmap.put(fname + ":" + matched_accsn, seq.toString());
+		    	    	    // HACK BUG TODO FIXME: always uses first description even if it wasnt the first accession which matched...
+		    	    		DataCell sv = SequenceUtilityFactory.createSequenceCell(matched_accsn, 
+		    	    				descr[0], seq.toString(), SequenceType.UNKNOWN);
+		    	    		
+		                	seqmap.put(fname + ":" + matched_accsn, sv);
 		                	matched++;
 		                	exec.checkCanceled();
 		        	        exec.setProgress(((double) files_done) * portion, "Matched "+matched+" sequences so far");
@@ -268,26 +268,27 @@ public class SequenceExtractorNodeModel extends AbstractFastaNodeModel {
         
         // 2. read the input rows again, this time output'ing the match sequences (missing cells
         // where no match was found)
-        it = inData[0].iterator();
-        while (it.hasNext()) {
-        	DataRow r = it.next();
-        	DataCell[] cells = new DataCell[1];
-        	DataCell file_cell = r.getCell(file_idx);
-        	DataCell accsn_cell= r.getCell(accsn_idx);
+        ColumnRearranger outputTable = new ColumnRearranger(new DataTableSpec(inData[0].getDataTableSpec(), make_output_spec()));
+        outputTable.append(new AbstractCellFactory() {
+
+			@Override
+			public DataCell[] getCells(DataRow r) {
+				DataCell accsn_cell= r.getCell(accsn_idx);
+	        	DataCell file_cell = r.getCell(file_idx);
+	        	
+	        	if (file_cell == null || accsn_cell == null || file_cell.isMissing() || accsn_cell.isMissing()) {
+	        		return new DataCell[] { DataType.getMissingCell() };
+	        	} else {
+	        		String key = file_cell.toString() + ":" + accsn_cell.toString();
+	        		return new DataCell[] { seqmap.containsKey(key) ? seqmap.get(key) : DataType.getMissingCell() };
+	        	}
+			}
         	
-        	if (file_cell == null || accsn_cell == null || file_cell.isMissing() || accsn_cell.isMissing()) {
-        		cells[0] = DataType.getMissingCell();
-        	} else {
-        		String key = file_cell.toString() + ":" + accsn_cell.toString();
-        		cells[0] = seqmap.containsKey(key) ? new StringCell(seqmap.get(key)) : DataType.getMissingCell();
-        	}
-        	container.addRowToTable(new JoinedRow(r, new DefaultRow(r.getKey().getString(), cells)));	
-        }
+        });
+        
+        BufferedDataTable out = exec.createColumnRearrangeTable(inData[0], outputTable, null);
         
         // once we are done, we close the container and return its table
-        container.close();
-        BufferedDataTable out = container.getTable();
-        
         logger.info("Matched "+n_seq+ " sequences, failed to match "+n_seq_rej+" sequences.");
         return new BufferedDataTable[]{out};
     }

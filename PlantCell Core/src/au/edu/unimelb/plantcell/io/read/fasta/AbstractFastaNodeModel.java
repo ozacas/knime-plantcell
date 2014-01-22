@@ -28,6 +28,7 @@ public abstract class AbstractFastaNodeModel extends NodeModel {
           store the settings (from the dialog or from a settings file)    
           (package visibility to be usable from the dialog). */
 	 static final String CFGKEY_FASTA    = "fasta-file";
+	 static final String CFGKEY_ONESHOT_FASTA = "one-shot-fasta";		// for use by loops in KNIME
 	 static final String CFGKEY_ACCSN_RE = "accsn-regexp";
 	 static final String CFGKEY_DESCR_RE = "description-regexp";
 	 static final String CFGKEY_ENTRY_HANDLER = "entry-handler";
