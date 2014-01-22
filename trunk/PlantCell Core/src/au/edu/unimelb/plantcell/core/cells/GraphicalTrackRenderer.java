@@ -143,7 +143,7 @@ public class GraphicalTrackRenderer extends Canvas implements DataValueRenderer 
 
 	@Override
 	public void paint(Graphics g) {
-		if (hasSequence())
+		if (!hasSequence())
 			return;
 		Font oldFont = g.getFont();
 		g.setColor(Color.BLACK);
