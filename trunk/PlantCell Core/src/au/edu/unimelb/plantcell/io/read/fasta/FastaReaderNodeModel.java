@@ -6,6 +6,8 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
@@ -24,6 +26,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
+import org.knime.core.node.workflow.FlowVariable;
 
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.core.cells.SequenceCell;
@@ -46,12 +49,13 @@ public class FastaReaderNodeModel extends AbstractFastaNodeModel {
     private static final NodeLogger logger = NodeLogger.getLogger("FASTA Reader");
         
     // settings for this node: regular expressions to process the ">" lines, and the fasta sequence filename
-    private final SettingsModelStringArray m_fasta    = (SettingsModelStringArray) make(CFGKEY_FASTA);
-    private final SettingsModelString m_accsn_re = (SettingsModelString) make(CFGKEY_ACCSN_RE);
-    private final SettingsModelString m_descr_re = (SettingsModelString) make(CFGKEY_DESCR_RE);
-    private final SettingsModelString m_entry_handler = (SettingsModelString) make(CFGKEY_ENTRY_HANDLER);
-    private final SettingsModelBoolean m_stats   = new SettingsModelBoolean(CFGKEY_MAKESTATS, DEFAULT_MAKESTATS);
-    private final SettingsModelString m_seqtype  = new SettingsModelString(CFGKEY_SEQTYPE, SequenceType.AA.toString());
+    private final SettingsModelStringArray m_fasta          = (SettingsModelStringArray) make(CFGKEY_FASTA);
+    private final SettingsModelString m_oneshot_fasta       = (SettingsModelString) make(CFGKEY_ONESHOT_FASTA);
+    private final SettingsModelString  m_accsn_re           = (SettingsModelString) make(CFGKEY_ACCSN_RE);
+    private final SettingsModelString  m_descr_re           = (SettingsModelString) make(CFGKEY_DESCR_RE);
+    private final SettingsModelString  m_entry_handler      = (SettingsModelString) make(CFGKEY_ENTRY_HANDLER);
+    private final SettingsModelBoolean m_stats              = new SettingsModelBoolean(CFGKEY_MAKESTATS, DEFAULT_MAKESTATS);
+    private final SettingsModelString  m_seqtype            = new SettingsModelString(CFGKEY_SEQTYPE, SequenceType.AA.toString());
     private final SettingsModelBoolean m_use_accsn_as_rowid = (SettingsModelBoolean) make(CFGKEY_USE_ACCSN_AS_ROWID);
     
     /**
@@ -64,6 +68,8 @@ public class FastaReaderNodeModel extends AbstractFastaNodeModel {
     public static SettingsModel make(String k) {
     	if (k.equals(CFGKEY_FASTA)) {
     		return new SettingsModelStringArray(k, new String[] { });
+    	} else if (k.equals(CFGKEY_ONESHOT_FASTA)) {
+    		return new SettingsModelString(CFGKEY_ONESHOT_FASTA, "");
     	} else if (k.equals(CFGKEY_ACCSN_RE)) {
     		return new SettingsModelString(k, DEFAULT_ACCSN_RE);
     	} else if (k.equals(CFGKEY_DESCR_RE)) {
@@ -87,6 +93,34 @@ public class FastaReaderNodeModel extends AbstractFastaNodeModel {
         return new DataTableSpec(allColSpecs);
     }
     
+    private List<String> getFileList() throws InvalidSettingsException {
+    	List<String> ret = new ArrayList<String>();
+    	
+    	// 1. always add files in the file input box to the list to be loaded (EVEN if inside a loop)
+    	for (String f : m_fasta.getStringArrayValue()) {
+    		ret.add(f);
+    	}
+    	
+    	// 2. peek thru the available flow variables to find the one which overrides the appropriate
+    	//    fasta configuration setting
+    	Map<String,FlowVariable> fv_map = this.getAvailableInputFlowVariables();
+    	for (String k : fv_map.keySet()) {
+    		if (k.equals(CFGKEY_ONESHOT_FASTA)) {
+    			ret.add(fv_map.get(k).getValueAsString());
+    		} else {
+    			logger.warn("Flow variable override of: "+k);
+    		}
+    	}
+    	
+    	if (ret.size() < 1) {
+    		throw new InvalidSettingsException("No files to process!");
+    	} else {
+    		logger.info("Found "+ret.size()+" FASTA files to process.");
+    	}
+    	
+    	return ret;
+    }
+    
     /**
      * {@inheritDoc}
      */
@@ -97,16 +131,7 @@ public class FastaReaderNodeModel extends AbstractFastaNodeModel {
     	DataTableSpec outputSpec = make_output_spec();
     	DataTableSpec statSpec   = SequenceStatistics.getOutputSpec();
     	
-    	ArrayList<String> filenames = new ArrayList<String>();
-    	for (String f : m_fasta.getStringArrayValue()) {
-    		filenames.add(f);
-    	}
-    	
-    	if (filenames.size() < 1) {
-    		throw new InvalidSettingsException("No files to process!");
-    	} else {
-    		logger.info("Found "+filenames.size()+" FASTA files to process.");
-    	}
+    	List<String> filenames = getFileList();
       
     	MyDataContainer c1 = new MyDataContainer(exec.createDataContainer(outputSpec), "Seq");
         MyDataContainer c2 = new MyDataContainer(exec.createDataContainer(statSpec), "Row");
@@ -274,6 +299,7 @@ public class FastaReaderNodeModel extends AbstractFastaNodeModel {
         m_seqtype.saveSettingsTo(settings);
         m_stats.saveSettingsTo(settings);
         m_use_accsn_as_rowid.saveSettingsTo(settings);
+        m_oneshot_fasta.saveSettingsTo(settings);
     }
 
     /**
@@ -301,6 +327,9 @@ public class FastaReaderNodeModel extends AbstractFastaNodeModel {
         } else {
         	m_use_accsn_as_rowid.setBooleanValue(false);		// false for backward compatibility
         }
+        if (settings.containsKey(CFGKEY_ONESHOT_FASTA)) {
+        	m_oneshot_fasta.loadSettingsFrom(settings);
+        }
     }
 
     /**
@@ -322,6 +351,9 @@ public class FastaReaderNodeModel extends AbstractFastaNodeModel {
         }
         if (settings.containsKey(CFGKEY_USE_ACCSN_AS_ROWID)) {
         	m_use_accsn_as_rowid.validateSettings(settings);
+        }
+        if (settings.containsKey(CFGKEY_ONESHOT_FASTA)) {
+        	m_oneshot_fasta.validateSettings(settings);
         }
     }
    
