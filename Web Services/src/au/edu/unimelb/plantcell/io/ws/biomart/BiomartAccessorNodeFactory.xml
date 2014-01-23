@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="./default.png" type="Source">
-    <name>Biomart Query</name>
+    <name>Biomart Query (experimental)</name>
     
     <shortDescription>
         Provides access to Biomarts - see http://www.biomart.org for more details
@@ -15,7 +15,8 @@
         
         <p><b>WARNING: </b> dont overload the server - this node is meant to be used carefully. The default is
         to fetch a maximum of 1000 rows to protect the server. Overuse of biomart server may result in
-        your organisation banned.
+        your organisation banned. This node is currently under active development and will be improved over time
+        results may be misleading. Caveat emptor.
         </p>
         
         </intro>
