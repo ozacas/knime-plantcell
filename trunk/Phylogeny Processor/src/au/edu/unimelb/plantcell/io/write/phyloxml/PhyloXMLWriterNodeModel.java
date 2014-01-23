@@ -274,28 +274,34 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     				nd.setTaxonomy(t);
     				is_decorated = true;
     			}
-    			if (domain_map.containsKey(taxa)) {
-    				Sequence s = new Sequence();
-    				//s.setSymbol(taxa);
-    				//s.setName(taxa);
-    				if (m_save_sequence.getBooleanValue()) {
-    					SequenceValue sv = taxa_map.get(taxa);
-    					if (sv != null) {
-    						// only add an annotation to the phyloxml if a description for the sequence is available
-    						if (sv.hasDescription()) {
-    							Annotation annot = new Annotation();
-    							annot.setDesc(sv.getDescription());
-        						s.addAnnotation(annot);
-    						}
-    						// but all sequences objects should have sequence...
-    						s.setMolecularSequence(sv.getStringValue());
-    					}
-    				}
-    				s.setDomainArchitecture(domain_map.get(taxa));
-    				
-    				n.getNodeData().setSequence(s);
-    				is_decorated = true;
-    			}
+    			
+    			// we just build up s for now, and then decide later whether to use it with the annotation data
+    			Sequence s = new Sequence();
+				if (m_save_sequence.getBooleanValue()) {
+					SequenceValue sv = taxa_map.get(taxa);
+					if (sv != null) {
+						// only add an annotation to the phyloxml if a description for the sequence is available
+						if (sv.hasDescription()) {
+							Annotation annot = new Annotation();
+							annot.setDesc(sv.getDescription());
+    						s.addAnnotation(annot);
+						}
+						// but all sequences objects should have sequence...
+						s.setMolecularSequence(sv.getStringValue());
+					}
+				}
+				
+				// internal tree nodes cannot have sequence data (or domain architecture)
+				if (n.isExternal()) {
+	    			if (domain_map.containsKey(taxa)) {
+	    				s.setDomainArchitecture(domain_map.get(taxa));
+	    				n.getNodeData().setSequence(s);
+	    				is_decorated = true;
+	    			} else if (m_save_sequence.getBooleanValue()) {
+	    				n.getNodeData().setSequence(s);
+	    				is_decorated = true;
+	    			}
+				}
     			
     			if (is_decorated)
     				decorated++;
