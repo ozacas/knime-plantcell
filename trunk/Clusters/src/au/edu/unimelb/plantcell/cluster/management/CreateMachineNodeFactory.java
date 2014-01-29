@@ -5,20 +5,20 @@ import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
- * <code>NodeFactory</code> for the "MakeCluster" Node.
- * Support for jClouds API (and maybe apache whirr too) from within KNIME for analysis requiring a cluster. Intention is to support things like Hadoop, BLAST+ etc. on the cloud
+ * <code>NodeFactory</code> for the "CreateMachine" Node.
+ * Node which can create several machines and then run a chef wizard to initialise the nodes with a particular config.
  *
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
-public class MakeClusterNodeFactory 
-        extends NodeFactory<MakeClusterNodeModel> {
+public class CreateMachineNodeFactory 
+        extends NodeFactory<CreateMachineNodeModel> {
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public MakeClusterNodeModel createNodeModel() {
-        return new MakeClusterNodeModel();
+    public CreateMachineNodeModel createNodeModel() {
+        return new CreateMachineNodeModel();
     }
 
     /**
@@ -33,8 +33,8 @@ public class MakeClusterNodeFactory
      * {@inheritDoc}
      */
     @Override
-    public NodeView<MakeClusterNodeModel> createNodeView(final int viewIndex,
-            final MakeClusterNodeModel nodeModel) {
+    public NodeView<CreateMachineNodeModel> createNodeView(final int viewIndex,
+            final CreateMachineNodeModel nodeModel) {
         return null;
     }
 
@@ -51,7 +51,7 @@ public class MakeClusterNodeFactory
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new MakeClusterNodeDialog();
+        return new CreateMachineNodeDialog();
     }
 
 }

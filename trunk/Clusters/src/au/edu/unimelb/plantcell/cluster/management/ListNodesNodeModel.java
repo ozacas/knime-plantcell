@@ -84,9 +84,13 @@ public class ListNodesNodeModel extends NodeModel {
      * Constructor for the node model.
      */
     protected ListNodesNodeModel() {
-        super(0, 1);
+        this(0, 1);
     }
 
+    protected ListNodesNodeModel(final int in_ports, final int out_ports) {
+    	super(in_ports, out_ports);
+    }
+    
     /**
      * Side-effects name2metadata static member if not already initialised
      * @return
@@ -137,20 +141,12 @@ public class ListNodesNodeModel extends NodeModel {
     	MyDataContainer c = new MyDataContainer(exec.createDataContainer(outSpec), "Node"); 
     	
     	logger.info("Attempting to load configuration for provider: "+m_provider.getStringValue());
-    	ContextBuilder cb = make_context_builder();
-    	String endpoint = null;
-
-    	if (m_endpoint.getStringValue().trim().length() > 0) 
-    		endpoint = m_endpoint.getStringValue();
-    	logger.info("Using endpoint: "+endpoint+" for provider/API: "+m_provider.getStringValue());
     	
-   
     	// 1. get compute service instance
-    
-    	ComputeServiceContext context = init_builder(cb, endpoint, m_identity.getStringValue(), m_passwd.getStringValue())
-    										.buildView(ComputeServiceContext.class);
-   
-    	ApiMetadata api_metadata = cb.getApiMetadata();
+    	ContextBuilder             cb = make_context_builder();
+    	ComputeServiceContext context = getComputeService(cb);
+    	ApiMetadata      api_metadata = cb.getApiMetadata();
+    	
     	if (api_metadata == null)
     		throw new InvalidSettingsException("No API available!");
     	
@@ -255,7 +251,20 @@ public class ListNodesNodeModel extends NodeModel {
     	}
     	return new BufferedDataTable[] { c.close() };
     }
+    
+    protected ComputeServiceContext getComputeService(final ContextBuilder context) {
+    	String endpoint = null;
 
+    	if (m_endpoint.getStringValue().trim().length() > 0) 
+    		endpoint = m_endpoint.getStringValue();
+    	logger.info("Using endpoint: "+endpoint+" for provider/API: "+m_provider.getStringValue());
+    	return getComputeService(context);
+    }
+    
+    protected ComputeServiceContext getComputeService(final ContextBuilder context, final String endpoint) {
+    	return init_builder(context, endpoint, m_identity.getStringValue(), m_passwd.getStringValue()).buildView(ComputeServiceContext.class);
+    }
+    
     private ContextBuilder init_builder(final ContextBuilder cb, String endpoint, String username,
 			String passwd) {
     	Iterable<AbstractModule> modules = ImmutableSet.<AbstractModule> of(new JDKLoggingModule());
@@ -264,7 +273,7 @@ public class ListNodesNodeModel extends NodeModel {
 		.modules(modules);
 	}
 
-	private ContextBuilder make_context_builder() throws InvalidSettingsException {
+	protected ContextBuilder make_context_builder() throws InvalidSettingsException {
     	Object o = getMetadata(m_provider.getStringValue());
     	if (o instanceof ApiMetadata) {
     		return ContextBuilder.newBuilder((ApiMetadata) o);
