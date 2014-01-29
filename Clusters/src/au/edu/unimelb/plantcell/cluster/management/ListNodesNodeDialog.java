@@ -59,6 +59,15 @@ public class ListNodesNodeDialog extends DefaultNodeSettingsPane {
         addDialogComponent(new DialogComponentPasswordField(
     			new SettingsModelString(ListNodesNodeModel.CFGKEY_PASSWD, ""), "Password", 20
     		));
+        
+        init();
+    }
+    
+    /**
+     * hook to provide additional widgets for the dialog (subclasses override)
+     */
+    protected void init() {
+    	
     }
 }
 

@@ -1,8 +1,6 @@
 package au.edu.unimelb.plantcell.cluster.management;
 
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
-import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 
 /**
  * <code>NodeDialog</code> for the "MakeCluster" Node.
@@ -15,7 +13,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
  * 
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
-public class MakeClusterNodeDialog extends DefaultNodeSettingsPane {
+public class MakeClusterNodeDialog extends ListNodesNodeDialog {
 
     /**
      * New pane for configuring MakeCluster node dialog.
@@ -24,13 +22,6 @@ public class MakeClusterNodeDialog extends DefaultNodeSettingsPane {
      */
     protected MakeClusterNodeDialog() {
         super();
-        
-        addDialogComponent(new DialogComponentNumber(
-                new SettingsModelIntegerBounded(
-                    MakeClusterNodeModel.CFGKEY_COUNT,
-                    MakeClusterNodeModel.DEFAULT_COUNT,
-                    Integer.MIN_VALUE, Integer.MAX_VALUE),
-                    "Counter:", /*step*/ 1, /*componentwidth*/ 5));
                     
     }
 }
