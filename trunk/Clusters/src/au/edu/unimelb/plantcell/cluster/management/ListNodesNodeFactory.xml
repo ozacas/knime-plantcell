@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./default.png" type="Source" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.8 http://knime.org/node/v2.8.xsd">
+    <name>Show Cloud</name>
+    
+    <shortDescription>
+        Lists the nodes available via the chosen provider
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>Reports the available nodes, images and hardware configurations supported by the chosen cloud.
+        The user must then decide what they want ;-)</intro>
+        
+        
+        <option name="Provider/API">select the cloud provider you would like to use. Selecting this correctly
+        can be tricky, consult an expert if unsure.</option>
+        <option name="Endpoint">Specify the URL to use to access the compute service provided by the cloud.
+        Consult a cloud expert if unsure</option>
+        <option name="Identity">Specify a tenant and/or username here</option>
+        <option name="Credential">Enter the password to access the endpoint here. This should be different
+        to your username and password for your computer.</option>
+    </fullDescription>
+    
+    <ports>
+        <outPort index="0" name="Cloud features">This node current reports operating system images, locations, nodes (servers) and hardware configurations available in the cloud.</outPort>
+    </ports>    
+
+</knimeNode>
