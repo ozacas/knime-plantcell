@@ -119,7 +119,8 @@ Require-Bundle: org.eclipse.core.runtime,
  org.knime.workbench.core,
  org.knime.workbench.repository,
  org.knime.base,
- au.edu.unimelb.plantcell.core;bundle-version="1.2.29"
+ au.edu.unimelb.plantcell.core;bundle-version="1.2.29",
+ org.apache.log4j;bundle-version="1.2.15"
 Bundle-ActivationPolicy: lazy
 Export-Package: au.edu.unimelb.plantcell.cluster.management
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7,
