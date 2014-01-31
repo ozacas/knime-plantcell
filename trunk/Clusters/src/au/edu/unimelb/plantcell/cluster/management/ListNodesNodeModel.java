@@ -19,7 +19,7 @@ import org.jclouds.compute.domain.Hardware;
 import org.jclouds.compute.domain.Image;
 import org.jclouds.domain.Credentials;
 import org.jclouds.domain.Location;
-import org.jclouds.logging.jdk.config.JDKLoggingModule;
+import org.jclouds.logging.log4j.config.Log4JLoggingModule;
 import org.jclouds.openstack.keystone.v2_0.KeystoneApi;
 import org.jclouds.openstack.keystone.v2_0.domain.Access;
 import org.jclouds.openstack.keystone.v2_0.domain.Endpoint;
@@ -91,11 +91,15 @@ public class ListNodesNodeModel extends NodeModel {
     	super(in_ports, out_ports);
     }
     
+    public static String[] getCloudList() {
+    	return getCloudList(true);
+    }
+    
     /**
      * Side-effects name2metadata static member if not already initialised
      * @return
      */
-    public static String[] getCloudList() {
+    public static String[] getCloudList(boolean retry_if_temporary_failure) {
     	if (name2metadata.size() > 0)
     		return name2metadata.keySet().toArray(new String[0]);
     				
@@ -109,8 +113,8 @@ public class ListNodesNodeModel extends NodeModel {
     		name2metadata.put(pm.getName(), pm);
     	}
     	
-    	if (name2metadata.size() == 0)
-    		return getCloudList();		// for some reason (classloading?) need to do this twice at times?
+    	if (name2metadata.size() == 0 && retry_if_temporary_failure)
+    		return getCloudList(false);		// for some reason (classloading?) need to do this twice at times?
     	
     	ArrayList<String> ret = new ArrayList<String>();
     	ret.addAll(name2metadata.keySet());
@@ -144,7 +148,8 @@ public class ListNodesNodeModel extends NodeModel {
     	
     	// 1. get compute service instance
     	ContextBuilder             cb = make_context_builder();
-    	ComputeServiceContext context = getComputeService(cb);
+    	ComputeServiceContext context = getComputeServiceContext(cb, logger);
+    	ComputeService        compute = context.getComputeService();
     	ApiMetadata      api_metadata = cb.getApiMetadata();
     	
     	if (api_metadata == null)
@@ -173,9 +178,8 @@ public class ListNodesNodeModel extends NodeModel {
     	}
     	
     	 
-    	ComputeService compute = null;
+    	
     	try {
-	    	compute = context.getComputeService();
 	    	Set<? extends Location> locations = compute.listAssignableLocations();
 	    	for (Location l : locations) {
 	    		logger.info(l);
@@ -252,24 +256,38 @@ public class ListNodesNodeModel extends NodeModel {
     	return new BufferedDataTable[] { c.close() };
     }
     
-    protected ComputeServiceContext getComputeService(final ContextBuilder context) {
+ 
+    protected ComputeService getComputeService(final ContextBuilder context, final NodeLogger logger) {
+    	ComputeServiceContext ctx = getComputeServiceContext(context, logger);
+    	if (ctx == null)
+    			return null;
+    	
+    	return ctx.getComputeService();
+    }
+    
+    private ComputeServiceContext getComputeServiceContext(final ContextBuilder context, final NodeLogger logger) {
     	String endpoint = null;
 
     	if (m_endpoint.getStringValue().trim().length() > 0) 
     		endpoint = m_endpoint.getStringValue();
-    	logger.info("Using endpoint: "+endpoint+" for provider/API: "+m_provider.getStringValue());
-    	return getComputeService(context);
+    	if (logger != null)
+    		logger.info("Using endpoint: "+endpoint+" for provider/API: "+m_provider.getStringValue());
+    	return getComputeServiceContext(context, endpoint);
     }
-    
-    protected ComputeServiceContext getComputeService(final ContextBuilder context, final String endpoint) {
+   
+    private ComputeServiceContext getComputeServiceContext(final ContextBuilder context, final String endpoint) {
     	return init_builder(context, endpoint, m_identity.getStringValue(), m_passwd.getStringValue()).buildView(ComputeServiceContext.class);
     }
     
-    private ContextBuilder init_builder(final ContextBuilder cb, String endpoint, String username,
-			String passwd) {
-    	Iterable<AbstractModule> modules = ImmutableSet.<AbstractModule> of(new JDKLoggingModule());
+    private ContextBuilder init_builder(final ContextBuilder cb, final String endpoint, 
+    		final String username, final String passwd) {
+    	/**
+    	 * Depending on what modules you ask for, you might get classloading problems -- BE CAREFUL TO TEST!
+    	 */
+    	Iterable<AbstractModule> modules = ImmutableSet.<AbstractModule> of(
+    			new Log4JLoggingModule()/*, new EnterpriseConfigurationModule(), new SshjSshClientModule()*/);
     	return cb.endpoint(endpoint)
-		.credentials(m_identity.getStringValue(), m_passwd.getStringValue())
+		.credentials(username, passwd)
 		.modules(modules);
 	}
 
@@ -284,6 +302,10 @@ public class ListNodesNodeModel extends NodeModel {
     	}
     }
 
+	protected String getEndpoint() {
+		return m_endpoint.getStringValue();
+	}
+	
 	/**
      * Returns a set of status flags describing the object or missing cell if there aren't any
      * @param cm
