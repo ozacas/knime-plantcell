@@ -9,9 +9,16 @@ import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.def.StringCell;
 
+import au.edu.unimelb.plantcell.core.cells.SequenceType;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 
 
+/**
+ * Convert from DNA->RNA->Protein as requested by the user in several frames using BioJava
+ * 
+ * @author http://www.plantcell.unimelb.edu.au/bioinformatics
+ *
+ */
 public class FrameTranslationTask extends BioJavaProcessorTask {
 	private boolean m_incl_na_seqs;		// include NA frames for use by later processing steps
 	
@@ -20,7 +27,7 @@ public class FrameTranslationTask extends BioJavaProcessorTask {
 	
 	@Override
 	public String getCategory() {
-		return "Translation";
+		return "Conversion";
 	}
 	
 	public static BioJavaProcessorTask getInstance() {
@@ -75,17 +82,17 @@ public class FrameTranslationTask extends BioJavaProcessorTask {
             new DataColumnSpecCreator("Translation Frame +3", StringCell.TYPE).createSpec();
         if (m_incl_na_seqs) {
         	 allColSpecs[6] = 
-                 new DataColumnSpecCreator("NA Frame -3", StringCell.TYPE).createSpec();
+                 new DataColumnSpecCreator("Nucleic Acid Frame -3", StringCell.TYPE).createSpec();
              allColSpecs[7] = 
-                 new DataColumnSpecCreator("NA Frame -2", StringCell.TYPE).createSpec();
+                 new DataColumnSpecCreator("Nucleic Acid Frame -2", StringCell.TYPE).createSpec();
              allColSpecs[8] =
-             	new DataColumnSpecCreator("NA Frame -1", StringCell.TYPE).createSpec();
+             	new DataColumnSpecCreator("Nucleic Acid Frame -1", StringCell.TYPE).createSpec();
              allColSpecs[9] = 
-                 new DataColumnSpecCreator("NA Frame +1", StringCell.TYPE).createSpec();
+                 new DataColumnSpecCreator("Nucleic Acid Frame +1", StringCell.TYPE).createSpec();
              allColSpecs[10] =
-             	new DataColumnSpecCreator("NA Frame +2", StringCell.TYPE).createSpec();
+             	new DataColumnSpecCreator("Nucleic Acid Frame +2", StringCell.TYPE).createSpec();
              allColSpecs[11] = 
-                 new DataColumnSpecCreator("NA Frame +3", StringCell.TYPE).createSpec();
+                 new DataColumnSpecCreator("Nucleic Acid Frame +3", StringCell.TYPE).createSpec();
         }
         
         return allColSpecs;
@@ -103,8 +110,8 @@ public class FrameTranslationTask extends BioJavaProcessorTask {
 			if (sv == null) 
 				return missing_cells(ncols);
 			
-			boolean is_dna = sv.getSequenceType().isDNA();
-			SymbolList syms = asBioJava(sv);
+			boolean is_dna   = sv.getSequenceType().isDNA();
+			SymbolList syms  = asBioJava(sv, SequenceType.DNA);		// if ambiguous sequence input then assume DNA...
 			DataCell[] cells = new DataCell[ncols];
 		
 			for (int i=0; i<3; i++) {

@@ -23,7 +23,7 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 public class ReverseComplementTask extends BioJavaProcessorTask {
 	@Override
 	public String getCategory() {
-		return "Translation";
+		return "Conversion";
 	}
 	
 	public static BioJavaProcessorTask getInstance() {

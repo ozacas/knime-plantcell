@@ -23,7 +23,7 @@ public class SequenceTranslationTask extends BioJavaProcessorTask {
 	
 	@Override
 	public String getCategory() {
-		return "Translation";
+		return "Conversion";
 	}
 	
 	public static BioJavaProcessorTask getInstance() {

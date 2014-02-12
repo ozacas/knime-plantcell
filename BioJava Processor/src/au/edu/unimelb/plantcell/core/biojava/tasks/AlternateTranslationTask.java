@@ -25,7 +25,7 @@ public class AlternateTranslationTask extends BioJavaProcessorTask {
 	
 	@Override
 	public String getCategory() {
-		return "Translation";
+		return "Conversion";
 	}
 	
 	public void init(String task_name, int col) throws Exception {
