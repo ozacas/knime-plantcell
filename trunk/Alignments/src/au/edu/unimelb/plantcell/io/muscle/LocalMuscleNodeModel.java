@@ -52,16 +52,16 @@ import au.edu.unimelb.plantcell.io.ws.multialign.MultiAlignmentCell;
 public class LocalMuscleNodeModel extends NodeModel {
 	private final NodeLogger logger = NodeLogger.getLogger("MUSCLE Aligner (local)");
 	
-	public static final String CFGKEY_EXE = "muscle-exe";
+	public static final String CFGKEY_EXE       = "muscle-exe";
 	public static final String CFGKEY_SEQUENCES = "sequences-column";
 	public static final String CFGKEY_LOG_STDERR= "log-stderr";
 	public static final String CFGKEY_TRADEOFF  = "alignment-tradeoff";
 	
 	public static final String[] TRADEOFFS = new String[] { "Maximum accuracy", "Very fast", "Fastest possible" };
 	
-	private SettingsModelString m_exe = new SettingsModelString(CFGKEY_EXE, "");
-	private SettingsModelString m_input_sequences = new SettingsModelString(CFGKEY_SEQUENCES, "");
-	private SettingsModelBoolean m_log = new SettingsModelBoolean(CFGKEY_LOG_STDERR, Boolean.FALSE);
+	private SettingsModelString  m_exe         = new SettingsModelString(CFGKEY_EXE, "");
+	private SettingsModelString  m_input_sequences = new SettingsModelString(CFGKEY_SEQUENCES, "");
+	private SettingsModelBoolean m_log         = new SettingsModelBoolean(CFGKEY_LOG_STDERR, Boolean.FALSE);
 	private SettingsModelString  m_performance = new SettingsModelString(CFGKEY_TRADEOFF, TRADEOFFS[0]);
 	
 	
