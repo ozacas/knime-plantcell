@@ -45,7 +45,11 @@
    				  level-id="Nectar Cloud"
    				  name="Nectar Cloud"
    				  path="/Bioinformatics/Web Services" />
-   				  
+   		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
+   					icon="icons/cloud.png"
+   					level-id="Cloud"
+   					name="Cloud"
+   					path="/Bioinformatics" />
    		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
    				  icon="icons/read.png"
    				  level-id="Read"
