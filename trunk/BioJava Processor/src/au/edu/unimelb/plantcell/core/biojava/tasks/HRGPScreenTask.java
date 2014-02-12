@@ -42,7 +42,7 @@ public class HRGPScreenTask extends BioJavaProcessorTask {
 	
 	@Override
 	public String getCategory() {
-		return "Protein Sequence Metrics";
+		return "Protein Metrics";
 	}
 	
 	@Override
