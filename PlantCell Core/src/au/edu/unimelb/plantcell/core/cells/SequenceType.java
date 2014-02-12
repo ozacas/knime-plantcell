@@ -64,6 +64,10 @@ public enum SequenceType {
 		return seqtypes;
 	}
 
+	/**
+	 * Careful: this method returns true if it is explicitly specified as DNA *OR* if it is only nucleotides of unknown alphabet
+	 * @return
+	 */
 	public boolean isDNA() {
 		return (this.equals(DNA) || this.equals(Nucleotide));
 	}
