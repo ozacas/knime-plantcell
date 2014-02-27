@@ -7,7 +7,7 @@
       <node
             category-path="/Bioinformatics/Write"
             factory-class="au.edu.unimelb.plantcell.io.write.png.PNGImageWriterNodeFactory"
-            id="au.edu.unimelb.plantcell.io.write.png.PNGImageWriterNodeFactory"/>
+            id="au.edu.unimelb.plantcell.io.write.png.PNGImageWriterNodeFactory" deprecated="true" />
    </extension>
    
 </plugin>
