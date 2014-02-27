@@ -369,21 +369,6 @@ public class MassSpecSurfaceNodeView<T extends NodeModel> extends Plot3DBarNodeV
 		return ret;
 	}
 
-	@SuppressWarnings("restriction")
-	@Override
-	protected Quality getOpenGLQuality(final Logger logger, final GLCapabilities glc) {
-    	Quality q = Quality.Nicest;
-    	int transparent_bits = glc.getAlphaBits();
-    	if (transparent_bits < 1) {
-    		logger.warning("Your computer does not support transparency. Disabling.");
-    		q.setAlphaActivated(false);
-    	}
-    	q.setDepthActivated(true);
-    	q.setAlphaActivated(true);
-    	logger.info("Depth?"+q.isDepthActivated()+" Transparency? "+q.isAlphaActivated());
-        return q;
-	}
-	
 	@Override
 	protected ComboBoxModel<String> getShowAsOptions() {
 	    	return new DefaultComboBoxModel<String>(new String[] { "Scatter (fastest)", "Surface" });

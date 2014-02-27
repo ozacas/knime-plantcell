@@ -21,6 +21,7 @@ import org.jzy3d.plot3d.rendering.scene.Scene;
 import org.knime.core.node.ExternalApplicationNodeView;
 
 import au.edu.unimelb.plantcell.views.plot3d.MyCameraMouseController;
+import au.edu.unimelb.plantcell.views.plot3d.Plot3DCapabilities;
 
 
 /**
@@ -37,36 +38,8 @@ public class PeakHeatmapNodeView extends ExternalApplicationNodeView<SpectraRead
 	protected PeakHeatmapNodeView(SpectraReaderNodeModel model) {
 		super(model);
 
-		// always use hardware if possible
-        GLCapabilities glc = null;
-        try {
-        	Settings s = Settings.getInstance();
-        	if (s != null) {
-        		s.setHardwareAccelerated(true);
-        		glc = s.getGLCapabilities();
-        	}
-        } catch (Exception e) {
-        	e.printStackTrace();
-        }
-        Quality q = Quality.Intermediate;
-        boolean no_depth_if_transparency = q.isDisableDepthBufferWhenAlpha();
-        if (!no_depth_if_transparency) {
-        	q.setAlphaActivated(true);
-        	q.setDepthActivated(true);
-        	logger.info("View has "+glc.getAlphaBits()+" bits per pixel for transparency.");
-        } else {
-        	logger.warning("Disabling transparency as your computer doesnt support both depth and transparency at the same time.");
-        	q.setDepthActivated(true);
-        	q.setAlphaActivated(false);
-        }
-        c = new Chart(q, "swing");
-        c.addController(new MyCameraMouseController());
-        if (glc != null) {
-        	logger.info("View has "+glc.getDepthBits()+" bits per pixel for depth buffer.");
-        	if (glc.getHardwareAccelerated())
-        		logger.info("View is hardware accelerated.");
-        }
-        
+		c = Plot3DCapabilities.make3DChartInstance(logger);
+		
         JComponent chart = (JComponent) c.getCanvas();
         chart.setMinimumSize(new Dimension(300,300));
         chart.setPreferredSize(new Dimension(600,600));
