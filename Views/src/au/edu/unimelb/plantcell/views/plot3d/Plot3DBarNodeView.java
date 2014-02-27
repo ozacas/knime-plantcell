@@ -64,7 +64,7 @@ import org.knime.core.node.NodeModel;
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
 public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationNodeView<T> {
-	private Chart m_chart;
+	private MyChart m_chart;
 	private JFrame f;
 	private boolean wireframe = false;		// must match default for show wireframe checkbox
 	private float bar_radius = 0.0225f;
@@ -383,7 +383,7 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
     	return m_chart;
     }
     
-    protected void setChart(Chart c) {
+    protected void setChart(MyChart c) {
     	assert(c != null);
     	m_chart = c;
     }
@@ -408,26 +408,9 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
     protected JFrame setupOpenGL(String title) {
     	assert(title != null && status_panel != null);
     	
-    	// always use hardware if possible
-        GLCapabilities glc = null;
-        try {
-        	Settings s = Settings.getInstance();
-        	if (s != null) {
-        		s.setHardwareAccelerated(true);
-        		glc = s.getGLCapabilities();
-        	}
-        } catch (Exception e) {
-        	e.printStackTrace();
-        }
-        Quality q = getOpenGLQuality(logger, glc);
-        Chart   c = new Chart(q, "swing");
-        supports_transparency = q.isAlphaActivated();
+    	MyChart c = Plot3DCapabilities.make3DChartInstance(logger);
+    	
         c.addController(new MyCameraMouseController());
-        if (glc != null) {
-        	logger.info("View has "+glc.getDepthBits()+" bits per pixel for depth buffer.");
-        	if (glc.getHardwareAccelerated())
-        		logger.info("View is hardware accelerated.");
-        }
         setChart(c);
         
         JComponent canvas = (JComponent) getChart().getCanvas();
@@ -445,28 +428,7 @@ public class Plot3DBarNodeView<T extends NodeModel> extends ExternalApplicationN
         return f;
     }
     
-    /**
-     * Return the Quality instance which the canvas must use
-     * @param logger  the logger instance to use for hardware capabilities or null if no logging desired.
-     * @param the OpenGL capabilities for the KNIME instance
-     * @return must not be null
-     */
-    protected Quality getOpenGLQuality(final Logger logger, final GLCapabilities glc) {
-    	Quality q = Quality.Nicest;
-    	boolean no_depth_if_transparency = q.isDisableDepthBufferWhenAlpha();
-        if (!no_depth_if_transparency) {
-        	q.setAlphaActivated(true);
-        	q.setDepthActivated(true);
-        	if (logger != null)
-        		logger.info("View has "+glc.getAlphaBits()+" bits per pixel for transparency.");
-        } else {
-        	if (logger != null)
-        		logger.warning("Disabling transparency as your computer doesnt support both depth and transparency at the same time.");
-        	q.setDepthActivated(true);
-        	q.setAlphaActivated(false);
-        }
-        return q;
-	}
+ 
 
 	/**
      * Subclasses are expected to override this with whatever drawing is required.
