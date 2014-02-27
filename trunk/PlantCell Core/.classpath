@@ -20,7 +20,11 @@
 	<classpathentry exported="true" kind="lib" path="lib/servlet.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/wsdl4j-1.5.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/xercesImpl.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/commons-exec-1.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/commons-exec-1.1.jar">
+		<accessrules>
+			<accessrule kind="accessible" pattern="org/apache/**"/>
+		</accessrules>
+	</classpathentry>
 	<classpathentry exported="true" kind="lib" path="lib/jaxrpc.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/javamail-1.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-collections-3.2.1.jar"/>
