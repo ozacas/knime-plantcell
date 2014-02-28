@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: PNGImageWriter
 Bundle-SymbolicName: au.edu.unimelb.plantcell.io.write.png;singleton:=true
-Bundle-Version: 1.2.0
+Bundle-Version: 1.2.1
 Bundle-ClassPath: pngimagewriter.jar
 Bundle-Activator: au.edu.unimelb.plantcell.io.write.png.PNGImageWriterNodePlugin
 Bundle-Vendor: http://www.plantcell.unimelb.edu.au
