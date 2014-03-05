@@ -245,6 +245,17 @@ public class BLASTPlusNodeModel extends NodeModel {
            m.put("Query frame", "qframe");
            m.put("Subject frame", "sframe");
            m.put("Blast traceback operations (BTOP)", "btop");
+           m.put("Subject Taxonomy ID(s), separated by a ';'", "staxids");
+           m.put("Subject Scientific Name(s), separated by a ';'", "sscinames");
+           m.put("Subject Common Name(s), separated by a ';'", "scomnames");
+ 
+           m.put("Subject Blast Name(s), separated by a ';'", "sblastnames");
+           m.put("Subject Super Kingdom(s), separated by a ';'", "sskingdoms");
+           m.put("Subject Title", "stitle");
+           m.put("Subject Titles (all)", "salltitles");
+           m.put("Subject Strand", "sstrand");
+           m.put("Query Coverage Per Subject", "qcovs");
+           m.put("Query Coverage Per HSP", "qcovhsp");
            
            // _ denotes computed by node, not BLAST
            m.put("Annotated query sequence (best 20 evalue-hits)", "_annotations_e20");
