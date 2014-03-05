@@ -48,11 +48,6 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.osgi.framework.Bundle;
 
-import uk.ac.ebi.jdispatcher.soap.interpro.ArrayOfString;
-import uk.ac.ebi.jdispatcher.soap.interpro.InputParameters;
-import uk.ac.ebi.jdispatcher.soap.interpro.JDispatcherService;
-import uk.ac.ebi.jdispatcher.soap.interpro.JDispatcherService_Service;
-import uk.ac.ebi.jdispatcher.soap.interpro.ObjectFactory;
 import au.edu.unimelb.plantcell.core.Cache;
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.core.ProteinSequenceRowIterator;
@@ -63,11 +58,10 @@ import au.edu.unimelb.plantcell.core.cells.SequenceType;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 import au.edu.unimelb.plantcell.core.cells.Track;
 import au.edu.unimelb.plantcell.core.cells.TrackColumnPropertiesCreator;
-import au.edu.unimelb.plantcell.io.ws.interpro.results.EBIInterProScanResults;
-import au.edu.unimelb.plantcell.io.ws.interpro.results.TClassification;
-import au.edu.unimelb.plantcell.io.ws.interpro.results.TInterPro;
-import au.edu.unimelb.plantcell.io.ws.interpro.results.TMatch;
-import au.edu.unimelb.plantcell.io.ws.interpro.results.TProtein;
+import au.edu.unimelb.plantcell.io.ws.interproscan5.ArrayOfString;
+import au.edu.unimelb.plantcell.io.ws.interproscan5.InputParameters;
+import au.edu.unimelb.plantcell.io.ws.interproscan5.JDispatcherService;
+import au.edu.unimelb.plantcell.io.ws.interproscan5.ObjectFactory;
 import au.edu.unimelb.plantcore.core.regions.InterProRegion;
 import au.edu.unimelb.plantcore.core.regions.InterProRegionsAnnotation;
 
@@ -129,10 +123,10 @@ public class InterProNodeModel extends NodeModel {
 		 // NB: need to use the local WSDL copy rather than go online for it... so...
 		 try {
 			 Bundle bundle = Platform.getBundle("au.edu.unimelb.plantcell.io.ws");
-			 URL u = FileLocator.find(bundle, new Path("/wsdl/interpro.wsdl"), null);
+			 URL u = FileLocator.find(bundle, new Path("/wsdl/interproscan5.wsdl"), null);
 			 
 			 // must not call default constructor for local WSDL... so...
-			 JDispatcherService_Service cli = new JDispatcherService_Service(u,
+			 au.edu.unimelb.plantcell.io.ws.interproscan5.JDispatcherService_Service cli = new au.edu.unimelb.plantcell.io.ws.interproscan5.JDispatcherService_Service(u,
 					 new QName("http://soap.jdispatcher.ebi.ac.uk", "JDispatcherService"));
 			 return cli.getJDispatcherServiceHttpPort();
 		 } catch (Exception e) {
