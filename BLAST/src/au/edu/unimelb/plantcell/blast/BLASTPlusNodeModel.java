@@ -245,10 +245,12 @@ public class BLASTPlusNodeModel extends NodeModel {
            m.put("Query frame", "qframe");
            m.put("Subject frame", "sframe");
            m.put("Blast traceback operations (BTOP)", "btop");
+           
+           // new to blast's around v2.2.29
            m.put("Subject Taxonomy ID(s), separated by a ';'", "staxids");
            m.put("Subject Scientific Name(s), separated by a ';'", "sscinames");
            m.put("Subject Common Name(s), separated by a ';'", "scomnames");
- 
+
            m.put("Subject Blast Name(s), separated by a ';'", "sblastnames");
            m.put("Subject Super Kingdom(s), separated by a ';'", "sskingdoms");
            m.put("Subject Title", "stitle");
