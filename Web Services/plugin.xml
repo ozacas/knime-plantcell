@@ -70,11 +70,6 @@
             id="au.edu.unimelb.plantcell.io.ws.interpro"/>    
             
         <node
-            category-path="/Bioinformatics/Under Development/Deprecated"
-            factory-class="au.edu.unimelb.plantcell.io.ws.interproscan.InterProScanNodeFactory"
-            id="au.edu.unimelb.plantcell.io.ws.interproscan"/>    
-            
-        <node
             category-path="/Bioinformatics/Web Services"
             factory-class="au.edu.unimelb.plantcell.io.ws.blast.wublast.WUBlastNodeFactory"
             id="au.edu.unimelb.plantcell.io.ws.blast.wublast"/>
