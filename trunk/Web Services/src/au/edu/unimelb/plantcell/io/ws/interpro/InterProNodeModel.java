@@ -5,11 +5,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.logging.Logger;
 
 import javax.xml.bind.JAXBContext;
@@ -43,12 +44,18 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.osgi.framework.Bundle;
 
-import au.edu.unimelb.plantcell.core.Cache;
+import uk.ac.ebi.interpro.resources.schemas.interproscan5.BlastProDomMatchType;
+import uk.ac.ebi.interpro.resources.schemas.interproscan5.EntryType;
+import uk.ac.ebi.interpro.resources.schemas.interproscan5.MatchType;
+import uk.ac.ebi.interpro.resources.schemas.interproscan5.MatchesType;
+import uk.ac.ebi.interpro.resources.schemas.interproscan5.ProteinMatchesType;
+import uk.ac.ebi.interpro.resources.schemas.interproscan5.ProteinType;
+import uk.ac.ebi.interpro.resources.schemas.interproscan5.SuperMatchType;
+
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.core.ProteinSequenceRowIterator;
 import au.edu.unimelb.plantcell.core.SequenceProcessor;
@@ -59,10 +66,13 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 import au.edu.unimelb.plantcell.core.cells.Track;
 import au.edu.unimelb.plantcell.core.cells.TrackColumnPropertiesCreator;
 import au.edu.unimelb.plantcell.io.ws.interproscan5.ArrayOfString;
+import au.edu.unimelb.plantcell.io.ws.interproscan5.GetParameterDetails;
 import au.edu.unimelb.plantcell.io.ws.interproscan5.InputParameters;
 import au.edu.unimelb.plantcell.io.ws.interproscan5.JDispatcherService;
+import au.edu.unimelb.plantcell.io.ws.interproscan5.JDispatcherService_Service;
 import au.edu.unimelb.plantcell.io.ws.interproscan5.ObjectFactory;
-import au.edu.unimelb.plantcore.core.regions.InterProRegion;
+import au.edu.unimelb.plantcell.io.ws.interproscan5.WsParameterDetails;
+import au.edu.unimelb.plantcell.io.ws.interproscan5.WsParameterValue;
 import au.edu.unimelb.plantcore.core.regions.InterProRegionsAnnotation;
 
 /**
@@ -78,12 +88,6 @@ public class InterProNodeModel extends NodeModel {
 	 */
 	public static final int MIN_LIKELY_INTERPROSCAN_DB = 80;
 	
-	/**
-	 * maximum cached objects for interpro
-	 */
-	private static final int MAX_INTERPRO_CACHE_ELEMENTS = 100 * 1000;
-
-
     // the logger instance
     private static final NodeLogger logger = NodeLogger.getLogger("InterPro");
     
@@ -94,7 +98,6 @@ public class InterProNodeModel extends NodeModel {
   
     private static final String DEFAULT_EMAIL    = "who@what.ever.some.where";
     private static final String DEFAULT_SEQ      = "Sequence";
-    private static final boolean DEFAULT_USE_CRC = true;
     private static final String[] DEFAULT_USE_APPL = new String[] { "HMMPfam", "SignalP", "BlastProDom", "patternScan", "HMMSmart" };
 
     /**
@@ -108,7 +111,6 @@ public class InterProNodeModel extends NodeModel {
     // configure-dialog state which must be persistent
     private final SettingsModelString m_email = new SettingsModelString(CFGKEY_EMAIL, DEFAULT_EMAIL);
     private final SettingsModelString m_seq   = new SettingsModelString(CFGKEY_SEQ, DEFAULT_SEQ);
-    private final SettingsModelBoolean m_crc  = new SettingsModelBoolean(CFGKEY_USE_CRC, DEFAULT_USE_CRC);
     private final SettingsModelStringArray m_vec = new SettingsModelStringArray(CFGKEY_USE_APPL, DEFAULT_USE_APPL);
     private int m_seq_idx = -1;
 	
@@ -119,14 +121,37 @@ public class InterProNodeModel extends NodeModel {
             super(1, 3);
     }
     
-    public JDispatcherService getClientProxy() {
+    /**
+     * Return the list of available algorithms for use within the node. Note that the 
+     * value required by the web service is returned, rather than the label. Careful of backward compatibility
+     * of user configure settings here, so we use the values....
+     * 
+     * @return
+     */
+    public static List<String> getAvailableAlgorithms() {
+    	ArrayList<String> ret = new ArrayList<String>();
+    	
+    	WsParameterDetails resp = getClientProxy().getParameterDetails("appl");
+    	for (WsParameterValue v : resp.getValues().getValue()) {
+    		ret.add(v.getValue());
+    	}
+    	
+    	if (ret.size() == 0) {
+    		// make sure the user can choose something in the configure dialog...
+    		ret.add("PfamA");
+    		ret.add("SMART");
+    	}
+    	return ret;
+    }
+    
+    public static JDispatcherService getClientProxy() {
 		 // NB: need to use the local WSDL copy rather than go online for it... so...
 		 try {
 			 Bundle bundle = Platform.getBundle("au.edu.unimelb.plantcell.io.ws");
 			 URL u = FileLocator.find(bundle, new Path("/wsdl/interproscan5.wsdl"), null);
 			 
 			 // must not call default constructor for local WSDL... so...
-			 au.edu.unimelb.plantcell.io.ws.interproscan5.JDispatcherService_Service cli = new au.edu.unimelb.plantcell.io.ws.interproscan5.JDispatcherService_Service(u,
+			 JDispatcherService_Service cli = new JDispatcherService_Service(u,
 					 new QName("http://soap.jdispatcher.ebi.ac.uk", "JDispatcherService"));
 			 return cli.getJDispatcherServiceHttpPort();
 		 } catch (Exception e) {
@@ -150,24 +175,6 @@ public class InterProNodeModel extends NodeModel {
     		throw new Exception("You must provide a valid email address to use EBI. Re-configure the node.");
     	}
     	
-    	// setup cache
-    	Properties p = new Properties();
-    	p.setProperty(Cache.CACHE_MAX_SIZE, new Integer(MAX_INTERPRO_CACHE_ELEMENTS).toString());
-    	p.setProperty(Cache.CACHE_AUTO_COMMIT, "true");
-    	Cache cache = null;
-    	try {
-			cache = new Cache("interpro_4", p);
-    		cache.init();
-    		if (cache.isEnabled()) {
-    			logger.info("InterPro cache initialised.");
-    		} else {
-    			logger.warn("Cache disabled (freshness is "+cache.getFreshness()+" days)");
-    		}
-    	} catch (Exception e) {
-    		e.printStackTrace();
-    		cache = null;
-			logger.warn("Unable to initialise cache: "+e.getMessage()+" - cache disabled.");
-    	}
     	
     	// traversal over input sequences
     	ProteinSequenceRowIterator it = new ProteinSequenceRowIterator(inData[0].iterator(), m_seq_idx, logger, new SequenceProcessor() {
@@ -179,8 +186,10 @@ public class InterProNodeModel extends NodeModel {
 					return null;
 				}
 				
-				if (sv.getStringValue().indexOf('-') > 0) {
-					logger.warn("Gaps not suitable for InterPro in "+sv.getID());
+				
+				if (!sv.getStringValue().matches("^[A-Za-z]+$")) {
+					logger.warn("Punctuation symbols (gaps, stop codons etc.) not permitted by EBI InterPro in "+sv.getID());
+					logger.warn("Please clean your sequences using 'Sequence to Columns' node first.");
 					return null;
 				}
 				
@@ -219,28 +228,14 @@ public class InterProNodeModel extends NodeModel {
         	String rowid = r.getKey().getString();
         	String prot  = sv.getStringValue();
         	
-			logger.info("Looking for cache entry "+prot);
-        	if (cache != null && 
-        			cache.contains(prot)) {
-        		logger.info("Retrieving cached InterPro data for row "+rowid);
-        		String xml = cache.get(prot);
-        		
-        		// HACK BUG: use of create(String) is probably buggy for non-UTF encoded XML documents but thats not likely for interpro... ;)
-    			grokXML(sv, XMLCellFactory.create(xml), c3, c2, c1);
-    			done++;
-    			logger.info("Loaded cached result for "+prot);
-    			if (!it.hasNext() && outstanding_jobs.size() > 0 )
-    				; // fallthru to run last batch
-    			else
-    				continue;
-        	} else { // else...
-        		outstanding_jobs.put(rowid, sv);
-        	}
+		
+        	outstanding_jobs.put(rowid, sv);
+        	
 			done++;
 			if (outstanding_jobs.size() < limit && it.hasNext())
 				continue;
 			
-			process_jobs(cli, cache, outstanding_jobs, of, c3, c2, c1);
+			process_jobs(cli, outstanding_jobs, of, c3, c2, c1);
 			outstanding_jobs.clear();
 			
 			if (it.hasNext()) {
@@ -254,10 +249,19 @@ public class InterProNodeModel extends NodeModel {
 		if (outstanding_jobs.size() > 0)
 			throw new InvalidSettingsException("PROGRAMMER ERROR: jobs not run!");
     
-    	cache.shutdown();
     	return new BufferedDataTable[] {c3.close(), c2.close(), c1.close()};
     }
 
+    /**
+     * Processes XML from InterPro according to the schema at: http://www.ebi.ac.uk/interpro/resources/schemas/interproscan5/interproscan-model-1.1.xsd
+     * 
+     * @param prot
+     * @param xml
+     * @param c_site
+     * @param c_prot
+     * @param c_raw
+     * @throws InvalidSettingsException
+     */
     private void grokXML(SequenceValue prot, DataCell xml,
 			MyDataContainer c_site, MyDataContainer c_prot, MyDataContainer c_raw) throws InvalidSettingsException {
     	DataCell[] cells;
@@ -270,61 +274,30 @@ public class InterProNodeModel extends NodeModel {
 		if (xml instanceof XMLValue) {
 			XMLValue  c_xml = (XMLValue) xml;
 			try {
-			    // setup object mapper using the AppConfig class
-			    JAXBContext context = JAXBContext.newInstance(EBIInterProScanResults.class);
-			    // parse the XML and return an instance of the AppConfig class
-			    EBIInterProScanResults results = (EBIInterProScanResults) context.createUnmarshaller().unmarshal(new StringReader(c_xml.toString()));
-			    
-			    for (TProtein protein_hit : results.getInterproMatches().getProtein()) {
-			    	for (TInterPro intpro : protein_hit.getInterpro()) {
-			    		// 1. retrieve classification of proteins (eg. gene ontology) 
-			    		for (TClassification c : intpro.getClassification()) {
-			    			cells    = new DataCell[8];
-			    			cells[0] = new StringCell(prot.getID());
-			    			cells[1] = asInterproID(intpro);
-			    			cells[2] = new StringCell(intpro.getName());
-			    			cells[3] = new StringCell(intpro.getType());
-			    			cells[4] = new StringCell(c.getClassType());
-			    			cells[5] = new StringCell(c.getId());
-			    			cells[6] = new StringCell(c.getCategory());
-			    			cells[7] = new StringCell(c.getDescription());
-			    			c_prot.addRow(cells);
-			    		}
-			    		
-			    		// 2. matches from various interpro data sources
-			    		for (TMatch m : intpro.getMatch()) {
-			    			for (TMatch.Location l : m.getLocation()) {
-			    				cells    = new DataCell[10];
-			    				cells[0] = new StringCell(prot.getID());
-			    				cells[1] = new StringCell(m.getDbname());
-			    				cells[2] = new StringCell(m.getId());
-			    				cells[3] = new StringCell(l.getEvidence());
-			    				cells[4] = new StringCell(l.getStatus());
-			    				cells[5] = asDoubleCell(l.getScore());
-			    				cells[6] = asIntCell(l.getStart());
-			    				cells[7] = asIntCell(l.getEnd());
-			    				cells[8] = asNameCell(m.getName());
-			    				cells[9] = asInterproID(intpro);
-			    				
-			    				InterProRegion ipr = new InterProRegion(m.getDbname(), m.getId(), l.getStart(), l.getEnd());
-			    				ipr.setInterProID(cells[9].toString());
-			    				try {
-			    					ipr.setScore(Double.parseDouble(l.getScore()));
-			    				} catch (NumberFormatException nfe) {
-			    					ipr.setScore(Double.NaN);		// denotes "missing" score
-			    				}
-			    				ipr.setStatus(l.getStatus());
-			    				ipr.setEvidence(l.getEvidence());
-			    				ipr.setOffset(1);
-			    				ipra.addRegion(ipr);
-			    				c_site.addRow(cells);
-			    			}
-			    		}
-			    	}
-			    }
-			} catch(JAXBException e) {
+				JAXBContext ctx = JAXBContext.newInstance(ProteinMatchesType.class);
+				ProteinMatchesType pmt = (ProteinMatchesType) 
+						ctx.createUnmarshaller().unmarshal(new StringReader(c_xml.toString()));
+				for (ProteinType hit : pmt.getProtein()) {
+						MatchesType mt = hit.getMatches();
+						String id = prot.getID();
+						
+						report_hits(c_prot, mt.getBlastprodomMatch(), id);
+						report_hits(c_prot, mt.getCoilsMatch(), id);
+						report_hits(c_prot, mt.getFingerprintsMatch(), id);
+						report_hits(c_prot, mt.getHmmer2Match(), id);
+						report_hits(c_prot, mt.getHmmer3Match(), id);
+						report_hits(c_prot, mt.getPantherMatch(), id);
+						report_hits(c_prot, mt.getPatternscanMatch(),  id);
+						report_hits(c_prot, mt.getPhobiusMatch(),  id);
+						report_hits(c_prot, mt.getProfilescanMatch(), id);
+						report_hits(c_prot, mt.getSignalpMatch(),  id);
+						report_hits(c_prot, mt.getSuperfamilyhmmer3Match(), id);
+						report_hits(c_prot, mt.getTmhmmMatch(), id);
+				}
+				
+			} catch (JAXBException e) {
+				// TODO Auto-generated catch block
 				e.printStackTrace();
-			    logger.warn("Unable to process results (continuing anyway) for "+prot.getID());
 			}
 		}
 		
@@ -333,7 +306,25 @@ public class InterProNodeModel extends NodeModel {
 		cells[0]         = sc;
 		cells[1] = (xml == null) ? DataType.getMissingCell() : xml;
 		c_raw.addRow(cells);
-	
+	}
+
+	private void report_hits(MyDataContainer c_prot, List<? extends MatchType> matches, final String id) {
+		assert(id != null && id.length() > 0);
+		
+		if (matches == null || matches.size() < 1)
+				return;
+		DataCell[] cells = new DataCell[8];
+		for (int i=0; i<cells.length; i++) {
+			cells[i] = DataType.getMissingCell();
+		}
+		
+		for (MatchType mt : matches) {
+			String clazzName = mt.getClass().getName();
+			if (clazzName.endsWith("MatchType")) {
+				clazzName = clazzName.substring(0, clazzName.length()-"MatchType".length());
+			}
+			
+		}
 	}
 
     private DataCell asNameCell(String name) {
@@ -341,12 +332,6 @@ public class InterProNodeModel extends NodeModel {
 			return DataType.getMissingCell();
 		}
 		return new StringCell(name);
-	}
-
-	private DataCell asInterproID(TInterPro intpro) {
-		if (intpro == null || intpro.getId().length() < 1 || intpro.getId().toLowerCase().equals("noipr"))
-			return DataType.getMissingCell();
-		return new StringCell(intpro.getId());
 	}
 
 	private DataCell asDoubleCell(String val) {
@@ -365,7 +350,7 @@ public class InterProNodeModel extends NodeModel {
     	return new IntCell(val);
     }
     
-	private void process_jobs(JDispatcherService cli, Cache ip_cache,
+	private void process_jobs(JDispatcherService cli,
 			HashMap<String, SequenceValue> batch, ObjectFactory of,
 			final MyDataContainer c_raw, final MyDataContainer c_seq,
 			final MyDataContainer c_site) throws Exception {
@@ -387,11 +372,6 @@ public class InterProNodeModel extends NodeModel {
 			DataCell xml = getXMLResult(cli, key);
 			SequenceValue  prot = prots.get(key);
 			grokXML(prot, xml, c_raw, c_seq, c_site);
-			// cache only if grok'ing doesnt throw an Exception
-			if (ip_cache != null) {
-				ip_cache.put(prot.getStringValue(), xml.toString());
-				logger.info("Saved cache result for "+prot);
-			}
 		}
 	}
 
@@ -402,12 +382,12 @@ public class InterProNodeModel extends NodeModel {
 				// TODO BUG: why are the results from EBI the same despite m_vec changes?
 	    		ArrayOfString aos = new ArrayOfString();
 	    		for (String appl : m_vec.getStringArrayValue()) {
-	    			aos.getString().add(appl.toLowerCase());
+	    			aos.getString().add(appl);
 	    		}
 	    		job_params.setAppl(of.createInputParametersAppl(aos));
 	    		job_params.setSequence(of.createInputParametersSequence(seq));
 	    		job_params.setGoterms(of.createInputParametersGoterms(new Boolean(true)));
-	    		job_params.setNocrc(of.createInputParametersNocrc(new Boolean(!m_crc.getBooleanValue())));
+	    		job_params.setPathways(of.createInputParametersPathways(new Boolean(true)));
    	    		
 				String jid = cli.run(m_email.getStringValue(), rkey, job_params);
 				logger.info("Submitted job for row "+rkey+", got job-id: "+jid);
@@ -546,7 +526,6 @@ public class InterProNodeModel extends NodeModel {
     protected void saveSettingsTo(final NodeSettingsWO settings) {
     	m_email.saveSettingsTo(settings);
     	m_seq.saveSettingsTo(settings);
-    	m_crc.saveSettingsTo(settings);
     	m_vec.saveSettingsTo(settings);
     }
 
@@ -558,7 +537,6 @@ public class InterProNodeModel extends NodeModel {
             throws InvalidSettingsException {
     	m_email.loadSettingsFrom(settings);
     	m_seq.loadSettingsFrom(settings);
-    	m_crc.loadSettingsFrom(settings);
     	m_vec.loadSettingsFrom(settings);
     	
     }
@@ -571,7 +549,6 @@ public class InterProNodeModel extends NodeModel {
             throws InvalidSettingsException {
     	m_email.validateSettings(settings);
     	m_seq.validateSettings(settings);
-    	m_crc.validateSettings(settings);
     	m_vec.validateSettings(settings);
     }
     
