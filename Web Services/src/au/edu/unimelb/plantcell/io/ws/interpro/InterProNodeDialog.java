@@ -1,14 +1,13 @@
 package au.edu.unimelb.plantcell.io.ws.interpro;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringListSelection;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.core.node.util.ColumnFilter;
@@ -52,7 +51,7 @@ public class InterProNodeDialog extends DefaultNodeSettingsPane {
 
 							@Override
 							public String allFilteredMsg() {
-								return "No String compatible column to use for Protein Sequence column!";
+								return "No suitable column to use for Protein Sequence column!";
 							}
         			
         		}));
@@ -62,27 +61,11 @@ public class InterProNodeDialog extends DefaultNodeSettingsPane {
          // blastprodom, fprintscan, hmmpir, hmmpfam, hmmsmart, 
          // hmmtigr, profilescan, hamap, patternscan, superfamily, signalp, tmhmm, hmmpanther, gene3d
 
-         ArrayList<String> appl_list = new ArrayList<String>();
-         appl_list.add("BlastProDom");
-         appl_list.add("FPrintscan");
-         appl_list.add("HMMPIR");
-         appl_list.add("HMMPfam");
-         appl_list.add("HMMSmart");
-         appl_list.add("HMMTigr");
-         appl_list.add("ProfileScan");
-         appl_list.add("HAMAP");
-         appl_list.add("patternScan");
-         appl_list.add("SuperFamily");
-         appl_list.add("SignalP");
-         appl_list.add("TMHMM");
-         appl_list.add("HMMPanther");
-         appl_list.add("Gene3D");
+         List<String> appl_list = InterProNodeModel.getAvailableAlgorithms();
          addDialogComponent(new DialogComponentStringListSelection(
         		 					new SettingsModelStringArray(InterProNodeModel.CFGKEY_USE_APPL, 
         		 					appl_list.toArray(new String[0])), "Algorithms to search via: ", appl_list, true, 5));
-         // permit the use of CRC methods during scan? (If so, its faster)
-         addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(InterProNodeModel.CFGKEY_USE_CRC, true), "Use CRC methods?"));
-    
+       
     }
 }
 
