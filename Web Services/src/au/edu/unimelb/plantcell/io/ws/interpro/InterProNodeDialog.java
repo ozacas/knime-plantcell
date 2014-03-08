@@ -56,11 +56,7 @@ public class InterProNodeDialog extends DefaultNodeSettingsPane {
         			
         		}));
         
-         // algorithms to permit the user to select
-         // HACK: must correspond to EBI IPRScan list:
-         // blastprodom, fprintscan, hmmpir, hmmpfam, hmmsmart, 
-         // hmmtigr, profilescan, hamap, patternscan, superfamily, signalp, tmhmm, hmmpanther, gene3d
-
+         // let user select methods to use: will make interpro faster per user protein
          List<String> appl_list = InterProNodeModel.getAvailableAlgorithms();
          addDialogComponent(new DialogComponentStringListSelection(
         		 					new SettingsModelStringArray(InterProNodeModel.CFGKEY_USE_APPL, 
