@@ -12,6 +12,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -48,13 +50,29 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.osgi.framework.Bundle;
 
+import uk.ac.ebi.interpro.resources.schemas.interproscan5.BlastProDomLocationType;
 import uk.ac.ebi.interpro.resources.schemas.interproscan5.BlastProDomMatchType;
 import uk.ac.ebi.interpro.resources.schemas.interproscan5.EntryType;
+import uk.ac.ebi.interpro.resources.schemas.interproscan5.FingerPrintsLocationType;
+import uk.ac.ebi.interpro.resources.schemas.interproscan5.FingerPrintsMatchType;
+import uk.ac.ebi.interpro.resources.schemas.interproscan5.GoXrefType;
+import uk.ac.ebi.interpro.resources.schemas.interproscan5.Hmmer2MatchType;
+import uk.ac.ebi.interpro.resources.schemas.interproscan5.Hmmer3MatchType;
+import uk.ac.ebi.interpro.resources.schemas.interproscan5.HmmerLocationType;
+import uk.ac.ebi.interpro.resources.schemas.interproscan5.LocationType;
+import uk.ac.ebi.interpro.resources.schemas.interproscan5.LocationsType;
 import uk.ac.ebi.interpro.resources.schemas.interproscan5.MatchType;
 import uk.ac.ebi.interpro.resources.schemas.interproscan5.MatchesType;
+import uk.ac.ebi.interpro.resources.schemas.interproscan5.PantherMatchType;
+import uk.ac.ebi.interpro.resources.schemas.interproscan5.PathwayXrefType;
+import uk.ac.ebi.interpro.resources.schemas.interproscan5.ProfileScanLocationType;
 import uk.ac.ebi.interpro.resources.schemas.interproscan5.ProteinMatchesType;
 import uk.ac.ebi.interpro.resources.schemas.interproscan5.ProteinType;
+import uk.ac.ebi.interpro.resources.schemas.interproscan5.SignalPLocationType;
+import uk.ac.ebi.interpro.resources.schemas.interproscan5.SignatureType;
+import uk.ac.ebi.interpro.resources.schemas.interproscan5.SuperFamilyHmmer3MatchType;
 import uk.ac.ebi.interpro.resources.schemas.interproscan5.SuperMatchType;
+import uk.ac.ebi.interpro.resources.schemas.interproscan5.XrefType;
 
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.core.ProteinSequenceRowIterator;
@@ -137,9 +155,11 @@ public class InterProNodeModel extends NodeModel {
     	}
     	
     	if (ret.size() == 0) {
-    		// make sure the user can choose something in the configure dialog...
+    		// make sure the user can choose something in the configure dialog... even if Internet is down for
+    		// the above code
     		ret.add("PfamA");
     		ret.add("SMART");
+    		logger.warn("Internet connection is likely not available... node cannot work without one!");
     	}
     	return ret;
     }
@@ -194,8 +214,8 @@ public class InterProNodeModel extends NodeModel {
 				}
 				
 				SequenceType  st = sv.getSequenceType();
-				if (st.equals(SequenceType.DNA) || st.equals(SequenceType.RNA)) {
-					logger.warn("Skipping DNA/RNA sequence "+sv.getID());
+				if (!st.isProtein()) {
+					logger.warn("Skipping non-protein sequence "+sv.getID());
 					return null;
 				}
 				// else ok..
@@ -280,19 +300,18 @@ public class InterProNodeModel extends NodeModel {
 				for (ProteinType hit : pmt.getProtein()) {
 						MatchesType mt = hit.getMatches();
 						String id = prot.getID();
-						
-						report_hits(c_prot, mt.getBlastprodomMatch(), id);
-						report_hits(c_prot, mt.getCoilsMatch(), id);
-						report_hits(c_prot, mt.getFingerprintsMatch(), id);
-						report_hits(c_prot, mt.getHmmer2Match(), id);
-						report_hits(c_prot, mt.getHmmer3Match(), id);
-						report_hits(c_prot, mt.getPantherMatch(), id);
-						report_hits(c_prot, mt.getPatternscanMatch(),  id);
-						report_hits(c_prot, mt.getPhobiusMatch(),  id);
-						report_hits(c_prot, mt.getProfilescanMatch(), id);
-						report_hits(c_prot, mt.getSignalpMatch(),  id);
-						report_hits(c_prot, mt.getSuperfamilyhmmer3Match(), id);
-						report_hits(c_prot, mt.getTmhmmMatch(), id);
+						report_hits(c_prot, c_site, mt.getBlastprodomMatch(), id);
+						report_hits(c_prot, c_site, mt.getCoilsMatch(), id);
+						report_hits(c_prot, c_site, mt.getFingerprintsMatch(), id);
+						report_hits(c_prot, c_site, mt.getHmmer2Match(), id);
+						report_hits(c_prot, c_site, mt.getHmmer3Match(), id);
+						report_hits(c_prot, c_site, mt.getPantherMatch(), id);
+						report_hits(c_prot, c_site, mt.getPatternscanMatch(),  id);
+						report_hits(c_prot, c_site, mt.getPhobiusMatch(),  id);
+						report_hits(c_prot, c_site, mt.getProfilescanMatch(), id);
+						report_hits(c_prot, c_site, mt.getSignalpMatch(),  id);
+						report_hits(c_prot, c_site, mt.getSuperfamilyhmmer3Match(), id);
+						report_hits(c_prot, c_site, mt.getTmhmmMatch(), id);
 				}
 				
 			} catch (JAXBException e) {
@@ -308,25 +327,190 @@ public class InterProNodeModel extends NodeModel {
 		c_raw.addRow(cells);
 	}
 
-	private void report_hits(MyDataContainer c_prot, List<? extends MatchType> matches, final String id) {
+    private DataCell[] make_missing(int n_cells) {
+    	assert(n_cells > 0);
+    	DataCell[] cells = new DataCell[n_cells];
+		for (int i=0; i<cells.length; i++) {
+			cells[i] = DataType.getMissingCell();
+		}
+		return cells;
+    }
+  
+	private void report_hits(final MyDataContainer hit_table, final MyDataContainer sites_table,
+			List<? extends MatchType> matches, final String id) {
 		assert(id != null && id.length() > 0);
 		
 		if (matches == null || matches.size() < 1)
 				return;
-		DataCell[] cells = new DataCell[8];
-		for (int i=0; i<cells.length; i++) {
-			cells[i] = DataType.getMissingCell();
-		}
 		
 		for (MatchType mt : matches) {
-			String clazzName = mt.getClass().getName();
-			if (clazzName.endsWith("MatchType")) {
-				clazzName = clazzName.substring(0, clazzName.length()-"MatchType".length());
-			}
+			DataCell evalue = getEvalue(mt);
+			DataCell score  = getScore(mt);
 			
+			report_signature(hit_table, mt.getSignature(), evalue, score, id);
+			report_locations(sites_table, mt.getLocations(), evalue, score, id, mt.getSignature().getAc());
 		}
 	}
 
+	private void report_locations(final MyDataContainer sites, final LocationsType loc, 
+			final DataCell evalue, final DataCell score, final String input_prot_id, final String interpro_model_id) {
+		assert(sites != null && evalue != null && score != null);
+		if (loc == null)
+			return;
+		
+		report_single_location(sites, loc.getBlastprodomLocation(), evalue, score, input_prot_id, interpro_model_id);
+		report_single_location(sites, loc.getCoilsLocation(), evalue, score, input_prot_id, interpro_model_id);
+		report_single_location(sites, loc.getFingerprintsLocation(), evalue, score, input_prot_id, interpro_model_id);
+		report_single_location(sites, loc.getHmmer2Location(), evalue, score, input_prot_id, interpro_model_id);
+		report_single_location(sites, loc.getHmmer3Location(), evalue, score, input_prot_id, interpro_model_id);
+		report_single_location(sites, loc.getPantherLocation(), evalue, score, input_prot_id, interpro_model_id);
+		report_single_location(sites, loc.getPatternscanLocation(), evalue, score, input_prot_id, interpro_model_id);
+		report_single_location(sites, loc.getPhobiusLocation(), evalue, score, input_prot_id, interpro_model_id);
+		report_single_location(sites, loc.getProfilescanLocation(), evalue, score, input_prot_id, interpro_model_id);
+		report_single_location(sites, loc.getSignalpLocation(), evalue, score, input_prot_id, interpro_model_id);
+	}
+	
+	private void report_single_location(final MyDataContainer sites, final List<? extends LocationType> l, 
+			final DataCell evalue, final DataCell score, final String id, final String interpro_model_id) {
+		if (l == null || l.size() < 1)
+			return;
+	
+		for (LocationType lt : l) {
+			DataCell[] cells = make_missing(sites.getTableSpec().getNumColumns());
+			cells[0] = new StringCell(id);
+			cells[2] = asNameCell(interpro_model_id);
+			cells[3] = asClassNameCell(lt, "LocationType");
+			cells[5] = getLocationScore(lt);
+			cells[6] = new IntCell(lt.getStart());
+			cells[7] = new IntCell(lt.getEnd());
+			
+			sites.addRow(cells);
+		}
+	}
+	
+	public DataCell asClassNameCell(Object o, String suffix_to_remove) {
+		String name = o.getClass().getName();
+		int last_dot_position = name.lastIndexOf('.');
+		if (last_dot_position >= 0) {
+			String substr = name.substring(last_dot_position+1);
+			if (substr.endsWith(suffix_to_remove)) {
+				return new StringCell(substr.substring(0, substr.length() - suffix_to_remove.length()));
+			} else {
+				return new StringCell(substr);
+			}
+		}
+		return DataType.getMissingCell();
+	}
+	
+	/**
+	 * Note that not every algorithm provides score details when access thru interproscan. Those that do, as of the time of writing, are here.
+	 * @param lt must not be null
+	 * @return
+	 */
+	private DataCell getLocationScore(final LocationType lt) {
+		assert(lt != null);
+		if (lt instanceof BlastProDomLocationType) {
+			return new DoubleCell(((BlastProDomLocationType)lt).getScore());
+		} else if (lt instanceof FingerPrintsLocationType) {
+			return new DoubleCell(((FingerPrintsLocationType)lt).getScore());
+		} else if (lt instanceof HmmerLocationType) {
+			return new DoubleCell(((HmmerLocationType)lt).getScore());
+		} else if (lt instanceof ProfileScanLocationType) {
+			return new DoubleCell(((ProfileScanLocationType)lt).getScore());
+		} else if (lt instanceof SignalPLocationType) {
+			return new DoubleCell(((SignalPLocationType)lt).getScore());
+		}
+		
+		return DataType.getMissingCell();
+	}
+	
+	private void report_signature(final MyDataContainer hit_table, final SignatureType signature, 
+			final DataCell evalue, final DataCell score, final String id) {
+		assert(signature != null);
+		DataCell accession = asNameCell(signature.getAc());
+		DataCell name = asNameCell(signature.getName());
+		DataCell description = asNameCell(signature.getDesc());
+		report_entry(hit_table, signature.getEntry(), accession, name, description, evalue, score, id);
+	}
+	
+	private void report_entry(final MyDataContainer hit_table, final EntryType entry, final DataCell accession,
+			final DataCell name, final DataCell descr, final DataCell evalue, final DataCell score, final String id) {
+		assert(entry != null);
+		DataCell entry_type = asNameCell(entry.getType().name());
+		
+		/*
+		 * DataColumnSpec[] c2 = new DataColumnSpec[8];
+    	c2[0] = new DataColumnSpecCreator("Sequence ID", StringCell.TYPE).createSpec();
+    	c2[1] = new DataColumnSpecCreator("InterPro ID", StringCell.TYPE).createSpec();
+    	c2[2] = new DataColumnSpecCreator("InterPro Name", StringCell.TYPE).createSpec();
+    	c2[3] = new DataColumnSpecCreator("InterPro Type", StringCell.TYPE).createSpec();
+    	c2[4] = new DataColumnSpecCreator("Classification ID", StringCell.TYPE).createSpec();
+    	c2[5] = new DataColumnSpecCreator("Category", StringCell.TYPE).createSpec();
+    	c2[6] = new DataColumnSpecCreator("Field", StringCell.TYPE).createSpec();
+    	c2[7] = new DataColumnSpecCreator("Value", StringCell.TYPE).createSpec();
+    	 *
+		 */
+		
+		// 1. report each gene ontology entry (if any)
+		int n = hit_table.getTableSpec().getNumColumns();
+		for (GoXrefType go_record : entry.getGoXref()) {
+			DataCell[] cells = make_missing(n);
+			cells[0] = new StringCell(id);
+			cells[1] = asNameCell(entry.getAc());
+			cells[2] = name;
+			cells[3] = entry_type;
+			cells[6] = asNameCell(go_record.getId());
+			cells[5] = asNameCell(go_record.getCategory().name());
+			cells[4] = asNameCell(go_record.getDb());
+			cells[7] = asNameCell(go_record.getName());
+			hit_table.addRow(cells);
+		}
+		// 2. report each pathway entry (if any)
+		for (PathwayXrefType pathway : entry.getPathwayXref()) {
+			DataCell[] cells = make_missing(n);
+			cells[0] = new StringCell(id);
+			cells[1] = asNameCell(entry.getAc());
+			cells[2] = name;
+			cells[3] = entry_type;
+			cells[6] = asNameCell(pathway.getId());
+			// cells[5] is always missing for pathway assignments (for now)
+			cells[4] = asNameCell(pathway.getDb());
+			cells[7] = asNameCell(pathway.getName());
+			hit_table.addRow(cells);
+		}
+		
+	}
+
+	private DataCell getEvalue(final MatchType mt) {
+		assert(mt != null);
+		if (mt instanceof Hmmer3MatchType) {
+			return new DoubleCell(((Hmmer3MatchType)mt).getEvalue());
+		} else if (mt instanceof Hmmer2MatchType) {
+			return new DoubleCell(((Hmmer2MatchType)mt).getEvalue());
+		} else if (mt instanceof FingerPrintsMatchType) {
+			return new DoubleCell(((FingerPrintsMatchType)mt).getEvalue());
+		} else if (mt instanceof PantherMatchType) {
+			return new DoubleCell(((PantherMatchType)mt).getEvalue());
+		} else if (mt instanceof SuperFamilyHmmer3MatchType) {
+			return new DoubleCell(((SuperFamilyHmmer3MatchType)mt).getEvalue());
+		}
+		
+		return DataType.getMissingCell();
+	}
+	
+	private DataCell getScore(final MatchType mt) {
+		assert(mt != null);
+		if (mt instanceof Hmmer3MatchType) {
+			return new DoubleCell(((Hmmer3MatchType)mt).getScore());
+		} else if (mt instanceof Hmmer2MatchType) {
+			return new DoubleCell(((Hmmer2MatchType)mt).getScore());
+		} else if (mt instanceof PantherMatchType) {
+			return new DoubleCell(((PantherMatchType)mt).getScore());
+		} 
+		
+		return DataType.getMissingCell();
+	}
+	
     private DataCell asNameCell(String name) {
 		if (name == null || name.trim().length() < 1 || name.toLowerCase().equals("no description")) {
 			return DataType.getMissingCell();

@@ -17,12 +17,10 @@ import javax.xml.ws.WebServiceFeature;
  * Generated source version: 2.2
  * 
  */
-@WebServiceClient(name = "JDispatcherService", targetNamespace = "http://soap.jdispatcher.ebi.ac.uk", wsdlLocation = "file:/C:/Users/pcbrc.admin/AppData/Local/Temp/tempdir3411339935526925213.tmp/iprscan5_1.wsdl")
+@WebServiceClient(name = "JDispatcherService", targetNamespace = "http://soap.jdispatcher.ebi.ac.uk", wsdlLocation = "interproscan5.wsdl")
 public class JDispatcherService_Service
     extends Service
-{
-
-    private final static URL JDISPATCHERSERVICE_WSDL_LOCATION;
+{    private final static URL JDISPATCHERSERVICE_WSDL_LOCATION;
     private final static WebServiceException JDISPATCHERSERVICE_EXCEPTION;
     private final static QName JDISPATCHERSERVICE_QNAME = new QName("http://soap.jdispatcher.ebi.ac.uk", "JDispatcherService");
 
@@ -30,7 +28,7 @@ public class JDispatcherService_Service
         URL url = null;
         WebServiceException e = null;
         try {
-            url = new URL("file:/C:/Users/pcbrc.admin/AppData/Local/Temp/tempdir3411339935526925213.tmp/iprscan5_1.wsdl");
+            url = new URL("/wsdl/interproscan5.wsdl");
         } catch (MalformedURLException ex) {
             e = new WebServiceException(ex);
         }
