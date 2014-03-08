@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <wsdl:definitions
-	name="iprscan"
+	name="iprscan5"
 	targetNamespace="http://soap.jdispatcher.ebi.ac.uk"
 	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
 	xmlns:tns="http://soap.jdispatcher.ebi.ac.uk"
@@ -19,17 +19,17 @@
 				</xsd:annotation>
 				<xsd:sequence>
 					<xsd:element minOccurs="0"
-						maxOccurs="1" name="nocrc"
-						nillable="true" type="xsd:boolean">
-						<xsd:annotation>
-							<xsd:documentation xml:lang="en">nocrc [Does not perform a crc64 check on the protein sequence]</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-					<xsd:element minOccurs="0"
 						maxOccurs="1" name="goterms"
 						nillable="true" type="xsd:boolean">
 						<xsd:annotation>
 							<xsd:documentation xml:lang="en">GO terms [Switch on look-up of corresponding Gene Ontology annotations]</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element minOccurs="0"
+						maxOccurs="1" name="pathways"
+						nillable="true" type="xsd:boolean">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">Pathways [Switch on look-up of corresponding pathway annotations]</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
 					<xsd:element minOccurs="0"
@@ -359,7 +359,7 @@
 					<xsd:sequence>
 						<xsd:element minOccurs="1" maxOccurs="1" name="parameters" type="tns:wsParameters">
 							<xsd:annotation>
-								<xsd:documentation xml:lang="en">The list of parameter available for this tool</xsd:documentation>
+								<xsd:documentation xml:lang="en">The list of parameters available for this tool</xsd:documentation>
 							</xsd:annotation>
 						</xsd:element>
 					</xsd:sequence>
@@ -509,7 +509,7 @@
 		<wsdl:port name="JDispatcherServiceHttpPort"
 			binding="tns:JDispatcherServiceHttpBinding">
 			<soap:address
-				location="http://www.ebi.ac.uk/Tools/services/soap/iprscan" />
+				location="http://www.ebi.ac.uk/Tools/services/soap/iprscan5" />
 		</wsdl:port>
 	</wsdl:service>
 </wsdl:definitions>
