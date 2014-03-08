@@ -9,8 +9,9 @@
     </shortDescription>
     
     <fullDescription>
-        <intro>Accesses the InterPro v4 web service (provided by EBI) with the user-specified settings. This node
-        is a complete re-write of the original, now deprecated, node with greatly improved functionality.
+        <intro>Accesses the InterPro v5 web service (provided by www.ebi.ac.uk) with the user-specified settings. This node replaces
+        the version 4 service and is not backward compatible. But it does offer improved data compared to previous versions. This node
+        supports only protein sequences, nucleic acid sequences may be added in future. This node is slow as required by EBI.
         
         <p>
         <b>WARNING</b>: intellectual property may be exposed to the Internet by use of this node.  
@@ -30,18 +31,16 @@
         
         <option name="protein sequence">Select the compatible input column to use for the <b>protein</b> sequences with
         InterProScan</option>
-        
-        <option name="Use CRC?">If selected, CRC methods will be used by InterProScan. Selecting
-        this options makes the query faster, so it is strongly recommended.</option>
        
-        <option name="Algorithms to search via">Perform family identifications using the selected algorithms (all are recommended unless you have problems with some algorithms with your data)</option>
+        <option name="Algorithms to search via">Perform family identifications using the selected algorithms.
+        The default is to use all available algorithms, which is recommended if you are unsure of what you are doing.</option>
      
     </fullDescription>
     
     <ports>
         <inPort index="0" name="Protein sequence input">Input protein sequences for querying via InterPro</inPort>
     	<outPort index="0" name="Site identifications">eg. transmembrane helix predictions or PTM sites</outPort>
-        <outPort index="1" name="Classifications">Results of family classification eg. GO terms</outPort> 
+        <outPort index="1" name="Classifications">Results of family classification eg. gene ontology or pathway identifications</outPort> 
         <outPort index="2" name="Annotated sequences (incl. InterPro track)">XML output and annotated sequences for each query protein</outPort>
    
     </ports>    

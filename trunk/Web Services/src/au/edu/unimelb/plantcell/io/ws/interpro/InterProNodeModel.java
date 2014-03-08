@@ -12,8 +12,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -51,7 +49,6 @@ import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.osgi.framework.Bundle;
 
 import uk.ac.ebi.interpro.resources.schemas.interproscan5.BlastProDomLocationType;
-import uk.ac.ebi.interpro.resources.schemas.interproscan5.BlastProDomMatchType;
 import uk.ac.ebi.interpro.resources.schemas.interproscan5.EntryType;
 import uk.ac.ebi.interpro.resources.schemas.interproscan5.FingerPrintsLocationType;
 import uk.ac.ebi.interpro.resources.schemas.interproscan5.FingerPrintsMatchType;
@@ -71,9 +68,6 @@ import uk.ac.ebi.interpro.resources.schemas.interproscan5.ProteinType;
 import uk.ac.ebi.interpro.resources.schemas.interproscan5.SignalPLocationType;
 import uk.ac.ebi.interpro.resources.schemas.interproscan5.SignatureType;
 import uk.ac.ebi.interpro.resources.schemas.interproscan5.SuperFamilyHmmer3MatchType;
-import uk.ac.ebi.interpro.resources.schemas.interproscan5.SuperMatchType;
-import uk.ac.ebi.interpro.resources.schemas.interproscan5.XrefType;
-
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.core.ProteinSequenceRowIterator;
 import au.edu.unimelb.plantcell.core.SequenceProcessor;
@@ -84,7 +78,6 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 import au.edu.unimelb.plantcell.core.cells.Track;
 import au.edu.unimelb.plantcell.core.cells.TrackColumnPropertiesCreator;
 import au.edu.unimelb.plantcell.io.ws.interproscan5.ArrayOfString;
-import au.edu.unimelb.plantcell.io.ws.interproscan5.GetParameterDetails;
 import au.edu.unimelb.plantcell.io.ws.interproscan5.InputParameters;
 import au.edu.unimelb.plantcell.io.ws.interproscan5.JDispatcherService;
 import au.edu.unimelb.plantcell.io.ws.interproscan5.JDispatcherService_Service;
@@ -116,7 +109,6 @@ public class InterProNodeModel extends NodeModel {
   
     private static final String DEFAULT_EMAIL    = "who@what.ever.some.where";
     private static final String DEFAULT_SEQ      = "Sequence";
-    private static final String[] DEFAULT_USE_APPL = new String[] { "HMMPfam", "SignalP", "BlastProDom", "patternScan", "HMMSmart" };
 
     /**
      * The number of seconds to wait if a running job has not yet completed. 
@@ -129,7 +121,7 @@ public class InterProNodeModel extends NodeModel {
     // configure-dialog state which must be persistent
     private final SettingsModelString m_email = new SettingsModelString(CFGKEY_EMAIL, DEFAULT_EMAIL);
     private final SettingsModelString m_seq   = new SettingsModelString(CFGKEY_SEQ, DEFAULT_SEQ);
-    private final SettingsModelStringArray m_vec = new SettingsModelStringArray(CFGKEY_USE_APPL, DEFAULT_USE_APPL);
+    private final SettingsModelStringArray m_vec = new SettingsModelStringArray(CFGKEY_USE_APPL, new String[] {});
     private int m_seq_idx = -1;
 	
     /**
@@ -246,9 +238,7 @@ public class InterProNodeModel extends NodeModel {
 			SequenceValue sv = it.nextSequence();
 			DataRow r    = it.next();
         	String rowid = r.getKey().getString();
-        	String prot  = sv.getStringValue();
         	
-		
         	outstanding_jobs.put(rowid, sv);
         	
 			done++;
@@ -348,44 +338,55 @@ public class InterProNodeModel extends NodeModel {
 			DataCell score  = getScore(mt);
 			
 			report_signature(hit_table, mt.getSignature(), evalue, score, id);
-			report_locations(sites_table, mt.getLocations(), evalue, score, id, mt.getSignature().getAc());
+			report_locations(sites_table, mt.getLocations(), evalue, score, id, mt.getSignature());
 		}
 	}
 
 	private void report_locations(final MyDataContainer sites, final LocationsType loc, 
-			final DataCell evalue, final DataCell score, final String input_prot_id, final String interpro_model_id) {
-		assert(sites != null && evalue != null && score != null);
+			final DataCell evalue, final DataCell score, final String input_prot_id, final SignatureType s) {
+		assert(sites != null && evalue != null && score != null && s != null);
 		if (loc == null)
-			return;
+			return; 
 		
-		report_single_location(sites, loc.getBlastprodomLocation(), evalue, score, input_prot_id, interpro_model_id);
-		report_single_location(sites, loc.getCoilsLocation(), evalue, score, input_prot_id, interpro_model_id);
-		report_single_location(sites, loc.getFingerprintsLocation(), evalue, score, input_prot_id, interpro_model_id);
-		report_single_location(sites, loc.getHmmer2Location(), evalue, score, input_prot_id, interpro_model_id);
-		report_single_location(sites, loc.getHmmer3Location(), evalue, score, input_prot_id, interpro_model_id);
-		report_single_location(sites, loc.getPantherLocation(), evalue, score, input_prot_id, interpro_model_id);
-		report_single_location(sites, loc.getPatternscanLocation(), evalue, score, input_prot_id, interpro_model_id);
-		report_single_location(sites, loc.getPhobiusLocation(), evalue, score, input_prot_id, interpro_model_id);
-		report_single_location(sites, loc.getProfilescanLocation(), evalue, score, input_prot_id, interpro_model_id);
-		report_single_location(sites, loc.getSignalpLocation(), evalue, score, input_prot_id, interpro_model_id);
+		report_single_location(sites, loc.getBlastprodomLocation(), evalue, score, input_prot_id, s);
+		report_single_location(sites, loc.getCoilsLocation(), evalue, score, input_prot_id, s);
+		report_single_location(sites, loc.getFingerprintsLocation(), evalue, score, input_prot_id, s);
+		report_single_location(sites, loc.getHmmer2Location(), evalue, score, input_prot_id, s);
+		report_single_location(sites, loc.getHmmer3Location(), evalue, score, input_prot_id, s);
+		report_single_location(sites, loc.getPantherLocation(), evalue, score, input_prot_id, s);
+		report_single_location(sites, loc.getPatternscanLocation(), evalue, score, input_prot_id, s);
+		report_single_location(sites, loc.getPhobiusLocation(), evalue, score, input_prot_id, s);
+		report_single_location(sites, loc.getProfilescanLocation(), evalue, score, input_prot_id, s);
+		report_single_location(sites, loc.getSignalpLocation(), evalue, score, input_prot_id, s);
 	}
 	
 	private void report_single_location(final MyDataContainer sites, final List<? extends LocationType> l, 
-			final DataCell evalue, final DataCell score, final String id, final String interpro_model_id) {
-		if (l == null || l.size() < 1)
+			final DataCell evalue, final DataCell score, final String id, final SignatureType s) {
+		if (l == null || l.size() < 1 || s == null)
 			return;
 	
 		for (LocationType lt : l) {
 			DataCell[] cells = make_missing(sites.getTableSpec().getNumColumns());
 			cells[0] = new StringCell(id);
-			cells[2] = asNameCell(interpro_model_id);
+			cells[1] = asNameCell(s.getSignatureLibraryRelease().getLibrary().name()+" "+s.getSignatureLibraryRelease().getVersion());
+			cells[2] = asNameCell(s.getAc());
 			cells[3] = asClassNameCell(lt, "LocationType");
 			cells[5] = getLocationScore(lt);
 			cells[6] = new IntCell(lt.getStart());
 			cells[7] = new IntCell(lt.getEnd());
+			cells[8] = getLocationEValue(lt);
 			
 			sites.addRow(cells);
 		}
+	}
+	
+	private DataCell getLocationEValue(LocationType lt) {
+		if (lt instanceof BlastProDomLocationType) {
+			return new DoubleCell(((BlastProDomLocationType)lt).getEvalue());
+		} else if (lt instanceof HmmerLocationType) {
+			return new DoubleCell(((HmmerLocationType)lt).getEvalue());
+		}
+		return DataType.getMissingCell();
 	}
 	
 	public DataCell asClassNameCell(Object o, String suffix_to_remove) {
@@ -430,7 +431,9 @@ public class InterProNodeModel extends NodeModel {
 		DataCell accession = asNameCell(signature.getAc());
 		DataCell name = asNameCell(signature.getName());
 		DataCell description = asNameCell(signature.getDesc());
-		report_entry(hit_table, signature.getEntry(), accession, name, description, evalue, score, id);
+		EntryType entry = signature.getEntry();
+		if (entry != null)
+			report_entry(hit_table, entry, accession, name, description, evalue, score, id);
 	}
 	
 	private void report_entry(final MyDataContainer hit_table, final EntryType entry, final DataCell accession,
@@ -518,22 +521,6 @@ public class InterProNodeModel extends NodeModel {
 		return new StringCell(name);
 	}
 
-	private DataCell asDoubleCell(String val) {
-    	try {
-    		if (val.equals("?") || val.equals("NA") || val.trim().length() < 1)
-    			return DataType.getMissingCell();
-    		double d = Double.parseDouble(val);
-    		return new DoubleCell(d);
-    	} catch (NumberFormatException nfe) {
-    		logger.info("Unable to convert: "+val+" to a number, assuming missing value.");
-    		return DataType.getMissingCell();
-    	}
-    }
-
-    private DataCell asIntCell(int val) {
-    	return new IntCell(val);
-    }
-    
 	private void process_jobs(JDispatcherService cli,
 			HashMap<String, SequenceValue> batch, ObjectFactory of,
 			final MyDataContainer c_raw, final MyDataContainer c_seq,
@@ -685,7 +672,7 @@ public class InterProNodeModel extends NodeModel {
     	c2[6] = new DataColumnSpecCreator("Field", StringCell.TYPE).createSpec();
     	c2[7] = new DataColumnSpecCreator("Value", StringCell.TYPE).createSpec();
     	
-    	DataColumnSpec[] c3 = new DataColumnSpec[10];
+    	DataColumnSpec[] c3 = new DataColumnSpec[9];
     	c3[0] = new DataColumnSpecCreator("Sequence ID", StringCell.TYPE).createSpec();
     	c3[1] = new DataColumnSpecCreator("Database", StringCell.TYPE).createSpec();
     	c3[2] = new DataColumnSpecCreator("Database ID", StringCell.TYPE).createSpec();
@@ -694,8 +681,7 @@ public class InterProNodeModel extends NodeModel {
     	c3[5] = new DataColumnSpecCreator("Score", DoubleCell.TYPE).createSpec();
     	c3[6] = new DataColumnSpecCreator("Start", IntCell.TYPE).createSpec();
     	c3[7] = new DataColumnSpecCreator("End", IntCell.TYPE).createSpec();
-    	c3[8] = new DataColumnSpecCreator("Name", StringCell.TYPE).createSpec();
-    	c3[9] = new DataColumnSpecCreator("InterPro ID", StringCell.TYPE).createSpec();
+    	c3[8] = new DataColumnSpecCreator("E-Value", DoubleCell.TYPE).createSpec();
 	
     	return new DataTableSpec[] { new DataTableSpec(c3),
     			new DataTableSpec(c2),
