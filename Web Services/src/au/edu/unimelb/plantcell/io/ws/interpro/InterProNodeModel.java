@@ -84,6 +84,7 @@ import au.edu.unimelb.plantcell.io.ws.interproscan5.JDispatcherService_Service;
 import au.edu.unimelb.plantcell.io.ws.interproscan5.ObjectFactory;
 import au.edu.unimelb.plantcell.io.ws.interproscan5.WsParameterDetails;
 import au.edu.unimelb.plantcell.io.ws.interproscan5.WsParameterValue;
+import au.edu.unimelb.plantcore.core.regions.InterProRegion;
 import au.edu.unimelb.plantcore.core.regions.InterProRegionsAnnotation;
 
 /**
@@ -290,18 +291,18 @@ public class InterProNodeModel extends NodeModel {
 				for (ProteinType hit : pmt.getProtein()) {
 						MatchesType mt = hit.getMatches();
 						String id = prot.getID();
-						report_hits(c_prot, c_site, mt.getBlastprodomMatch(), id);
-						report_hits(c_prot, c_site, mt.getCoilsMatch(), id);
-						report_hits(c_prot, c_site, mt.getFingerprintsMatch(), id);
-						report_hits(c_prot, c_site, mt.getHmmer2Match(), id);
-						report_hits(c_prot, c_site, mt.getHmmer3Match(), id);
-						report_hits(c_prot, c_site, mt.getPantherMatch(), id);
-						report_hits(c_prot, c_site, mt.getPatternscanMatch(),  id);
-						report_hits(c_prot, c_site, mt.getPhobiusMatch(),  id);
-						report_hits(c_prot, c_site, mt.getProfilescanMatch(), id);
-						report_hits(c_prot, c_site, mt.getSignalpMatch(),  id);
-						report_hits(c_prot, c_site, mt.getSuperfamilyhmmer3Match(), id);
-						report_hits(c_prot, c_site, mt.getTmhmmMatch(), id);
+						report_hits(c_prot, c_site, mt.getBlastprodomMatch(), id, ipra);
+						report_hits(c_prot, c_site, mt.getCoilsMatch(), id, ipra);
+						report_hits(c_prot, c_site, mt.getFingerprintsMatch(), id, ipra);
+						report_hits(c_prot, c_site, mt.getHmmer2Match(), id, ipra);
+						report_hits(c_prot, c_site, mt.getHmmer3Match(), id, ipra);
+						report_hits(c_prot, c_site, mt.getPantherMatch(), id, ipra);
+						report_hits(c_prot, c_site, mt.getPatternscanMatch(),  id, ipra);
+						report_hits(c_prot, c_site, mt.getPhobiusMatch(),  id, ipra);
+						report_hits(c_prot, c_site, mt.getProfilescanMatch(), id, ipra);
+						report_hits(c_prot, c_site, mt.getSignalpMatch(),  id, ipra);
+						report_hits(c_prot, c_site, mt.getSuperfamilyhmmer3Match(), id, ipra);
+						report_hits(c_prot, c_site, mt.getTmhmmMatch(), id, ipra);
 				}
 				
 			} catch (JAXBException e) {
@@ -327,7 +328,7 @@ public class InterProNodeModel extends NodeModel {
     }
   
 	private void report_hits(final MyDataContainer hit_table, final MyDataContainer sites_table,
-			List<? extends MatchType> matches, final String id) {
+			List<? extends MatchType> matches, final String id, final InterProRegionsAnnotation ipra) {
 		assert(id != null && id.length() > 0);
 		
 		if (matches == null || matches.size() < 1)
@@ -338,44 +339,62 @@ public class InterProNodeModel extends NodeModel {
 			DataCell score  = getScore(mt);
 			
 			report_signature(hit_table, mt.getSignature(), evalue, score, id);
-			report_locations(sites_table, mt.getLocations(), evalue, score, id, mt.getSignature());
+			report_locations(sites_table, mt.getLocations(), evalue, score, id, mt.getSignature(), ipra);
 		}
 	}
 
 	private void report_locations(final MyDataContainer sites, final LocationsType loc, 
-			final DataCell evalue, final DataCell score, final String input_prot_id, final SignatureType s) {
+			final DataCell evalue, final DataCell score, final String input_prot_id, 
+			final SignatureType s, final InterProRegionsAnnotation ipra) {
 		assert(sites != null && evalue != null && score != null && s != null);
 		if (loc == null)
 			return; 
 		
-		report_single_location(sites, loc.getBlastprodomLocation(), evalue, score, input_prot_id, s);
-		report_single_location(sites, loc.getCoilsLocation(), evalue, score, input_prot_id, s);
-		report_single_location(sites, loc.getFingerprintsLocation(), evalue, score, input_prot_id, s);
-		report_single_location(sites, loc.getHmmer2Location(), evalue, score, input_prot_id, s);
-		report_single_location(sites, loc.getHmmer3Location(), evalue, score, input_prot_id, s);
-		report_single_location(sites, loc.getPantherLocation(), evalue, score, input_prot_id, s);
-		report_single_location(sites, loc.getPatternscanLocation(), evalue, score, input_prot_id, s);
-		report_single_location(sites, loc.getPhobiusLocation(), evalue, score, input_prot_id, s);
-		report_single_location(sites, loc.getProfilescanLocation(), evalue, score, input_prot_id, s);
-		report_single_location(sites, loc.getSignalpLocation(), evalue, score, input_prot_id, s);
+		report_single_location(sites, loc.getBlastprodomLocation(), evalue, score, input_prot_id, s, ipra);
+		report_single_location(sites, loc.getCoilsLocation(), evalue, score, input_prot_id, s, ipra);
+		report_single_location(sites, loc.getFingerprintsLocation(), evalue, score, input_prot_id, s, ipra);
+		report_single_location(sites, loc.getHmmer2Location(), evalue, score, input_prot_id, s, ipra);
+		report_single_location(sites, loc.getHmmer3Location(), evalue, score, input_prot_id, s, ipra);
+		report_single_location(sites, loc.getPantherLocation(), evalue, score, input_prot_id, s, ipra);
+		report_single_location(sites, loc.getPatternscanLocation(), evalue, score, input_prot_id, s, ipra);
+		report_single_location(sites, loc.getPhobiusLocation(), evalue, score, input_prot_id, s, ipra);
+		report_single_location(sites, loc.getProfilescanLocation(), evalue, score, input_prot_id, s, ipra);
+		report_single_location(sites, loc.getSignalpLocation(), evalue, score, input_prot_id, s, ipra);
 	}
 	
 	private void report_single_location(final MyDataContainer sites, final List<? extends LocationType> l, 
-			final DataCell evalue, final DataCell score, final String id, final SignatureType s) {
+			final DataCell evalue, final DataCell score, final String id, 
+			final SignatureType s, final InterProRegionsAnnotation ipra) {
 		if (l == null || l.size() < 1 || s == null)
 			return;
 	
 		for (LocationType lt : l) {
 			DataCell[] cells = make_missing(sites.getTableSpec().getNumColumns());
-			cells[0] = new StringCell(id);
-			cells[1] = asNameCell(s.getSignatureLibraryRelease().getLibrary().name()+" "+s.getSignatureLibraryRelease().getVersion());
-			cells[2] = asNameCell(s.getAc());
-			cells[3] = asClassNameCell(lt, "LocationType");
-			cells[5] = getLocationScore(lt);
-			cells[6] = new IntCell(lt.getStart());
-			cells[7] = new IntCell(lt.getEnd());
-			cells[8] = getLocationEValue(lt);
+			cells[0]  = new StringCell(id);
+			String dbname = s.getSignatureLibraryRelease().getLibrary().name();
+			String db = dbname+" "+s.getSignatureLibraryRelease().getVersion();
+			cells[1]  = asNameCell(db);
+			cells[2]  = asNameCell(s.getAc());
+			cells[3]  = asClassNameCell(lt, "LocationType");
+			cells[5]  = getLocationScore(lt);
+			cells[6]  = new IntCell(lt.getStart());
+			cells[7]  = new IntCell(lt.getEnd());
+			cells[8]  = getLocationEValue(lt);
 			
+			// add location to annotation of the sequence...
+			InterProRegion ipr = new InterProRegion(dbname, s.getAc(), lt.getStart(), lt.getEnd());
+            ipr.setInterProID("IPRxxxx");
+			if (cells[5] instanceof DoubleCell) {
+				 ipr.setScore(((DoubleCell)cells[5]).getDoubleValue());
+			}
+            
+            ipr.setStatus(s.getName());
+            ipr.setEvidence(cells[3].toString());
+            ipr.setOffset(1);
+            ipra.addRegion(ipr);
+
+             
+			// add row of cells to the table
 			sites.addRow(cells);
 		}
 	}

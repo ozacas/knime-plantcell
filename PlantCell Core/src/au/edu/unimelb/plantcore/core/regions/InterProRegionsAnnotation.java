@@ -99,7 +99,7 @@ public class InterProRegionsAnnotation extends RegionsAnnotation implements Trac
 		// each interpro region identifies the member database that gave rise to it. We
 		// render each member database in a separate line
 		HashMap<String,List<InterProRegion>> db2regions = new HashMap<String,List<InterProRegion>>();
-		
+		// HACK BUG TODO: not all colours for annotations are correctly matched to interpro v5, acassin@unimeb.edu.au, 7th march 2014
 		for (RegionInterface r : t.getAnnotation().getRegions()) {
 			InterProRegion ipr = (InterProRegion) r;
 			String db = ipr.getDatabase().toLowerCase().trim();
