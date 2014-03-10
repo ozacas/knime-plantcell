@@ -16,7 +16,6 @@ import java.util.logging.Logger;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
-import javax.xml.rpc.ServiceException;
 import javax.xml.ws.soap.SOAPFaultException;
 
 import org.eclipse.core.runtime.FileLocator;
@@ -41,7 +40,6 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
@@ -84,6 +82,7 @@ import au.edu.unimelb.plantcell.io.ws.interproscan5.JDispatcherService_Service;
 import au.edu.unimelb.plantcell.io.ws.interproscan5.ObjectFactory;
 import au.edu.unimelb.plantcell.io.ws.interproscan5.WsParameterDetails;
 import au.edu.unimelb.plantcell.io.ws.interproscan5.WsParameterValue;
+import au.edu.unimelb.plantcell.io.ws.tmhmm.AbstractWebServiceNodeModel;
 import au.edu.unimelb.plantcore.core.regions.InterProRegion;
 import au.edu.unimelb.plantcore.core.regions.InterProRegionsAnnotation;
 
@@ -93,7 +92,7 @@ import au.edu.unimelb.plantcore.core.regions.InterProRegionsAnnotation;
  *
  * @author Andrew Cassin
  */
-public class InterProNodeModel extends NodeModel {
+public class InterProNodeModel extends AbstractWebServiceNodeModel {
 	/**
 	 * Sequences shorter than 80aa are unlikely to match anything in InterProScan, so
 	 * we skip them to avoid upsetting EBI with useless jobs
@@ -110,14 +109,6 @@ public class InterProNodeModel extends NodeModel {
   
     private static final String DEFAULT_EMAIL    = "who@what.ever.some.where";
     private static final String DEFAULT_SEQ      = "Sequence";
-
-    /**
-     * The number of seconds to wait if a running job has not yet completed. 
-     * Scales linearly with the number of retries. Must be greater than zero
-     */
-	private static final int MANDATORY_DELAY = 20;
-
-
     
     // configure-dialog state which must be persistent
     private final SettingsModelString m_email = new SettingsModelString(CFGKEY_EMAIL, DEFAULT_EMAIL);
@@ -246,7 +237,7 @@ public class InterProNodeModel extends NodeModel {
 			if (outstanding_jobs.size() < limit && it.hasNext())
 				continue;
 			
-			process_jobs(cli, outstanding_jobs, of, c3, c2, c1);
+			process_jobs(cli, outstanding_jobs, of, exec, c3, c2, c1);
 			outstanding_jobs.clear();
 			
 			if (it.hasNext()) {
@@ -317,15 +308,6 @@ public class InterProNodeModel extends NodeModel {
 		cells[1] = (xml == null) ? DataType.getMissingCell() : xml;
 		c_raw.addRow(cells);
 	}
-
-    private DataCell[] make_missing(int n_cells) {
-    	assert(n_cells > 0);
-    	DataCell[] cells = new DataCell[n_cells];
-		for (int i=0; i<cells.length; i++) {
-			cells[i] = DataType.getMissingCell();
-		}
-		return cells;
-    }
   
 	private void report_hits(final MyDataContainer hit_table, final MyDataContainer sites_table,
 			List<? extends MatchType> matches, final String id, final InterProRegionsAnnotation ipra) {
@@ -369,7 +351,7 @@ public class InterProNodeModel extends NodeModel {
 			return;
 	
 		for (LocationType lt : l) {
-			DataCell[] cells = make_missing(sites.getTableSpec().getNumColumns());
+			DataCell[] cells = missing_cells(sites.getTableSpec().getNumColumns());
 			cells[0]  = new StringCell(id);
 			String dbname = s.getSignatureLibraryRelease().getLibrary().name();
 			String db = dbname+" "+s.getSignatureLibraryRelease().getVersion();
@@ -460,23 +442,10 @@ public class InterProNodeModel extends NodeModel {
 		assert(entry != null);
 		DataCell entry_type = asNameCell(entry.getType().name());
 		
-		/*
-		 * DataColumnSpec[] c2 = new DataColumnSpec[8];
-    	c2[0] = new DataColumnSpecCreator("Sequence ID", StringCell.TYPE).createSpec();
-    	c2[1] = new DataColumnSpecCreator("InterPro ID", StringCell.TYPE).createSpec();
-    	c2[2] = new DataColumnSpecCreator("InterPro Name", StringCell.TYPE).createSpec();
-    	c2[3] = new DataColumnSpecCreator("InterPro Type", StringCell.TYPE).createSpec();
-    	c2[4] = new DataColumnSpecCreator("Classification ID", StringCell.TYPE).createSpec();
-    	c2[5] = new DataColumnSpecCreator("Category", StringCell.TYPE).createSpec();
-    	c2[6] = new DataColumnSpecCreator("Field", StringCell.TYPE).createSpec();
-    	c2[7] = new DataColumnSpecCreator("Value", StringCell.TYPE).createSpec();
-    	 *
-		 */
-		
 		// 1. report each gene ontology entry (if any)
 		int n = hit_table.getTableSpec().getNumColumns();
 		for (GoXrefType go_record : entry.getGoXref()) {
-			DataCell[] cells = make_missing(n);
+			DataCell[] cells = missing_cells(n);
 			cells[0] = new StringCell(id);
 			cells[1] = asNameCell(entry.getAc());
 			cells[2] = name;
@@ -489,7 +458,7 @@ public class InterProNodeModel extends NodeModel {
 		}
 		// 2. report each pathway entry (if any)
 		for (PathwayXrefType pathway : entry.getPathwayXref()) {
-			DataCell[] cells = make_missing(n);
+			DataCell[] cells = missing_cells(n);
 			cells[0] = new StringCell(id);
 			cells[1] = asNameCell(entry.getAc());
 			cells[2] = name;
@@ -541,7 +510,7 @@ public class InterProNodeModel extends NodeModel {
 	}
 
 	private void process_jobs(JDispatcherService cli,
-			HashMap<String, SequenceValue> batch, ObjectFactory of,
+			HashMap<String, SequenceValue> batch, ObjectFactory of, final ExecutionContext exec,
 			final MyDataContainer c_raw, final MyDataContainer c_seq,
 			final MyDataContainer c_site) throws Exception {
     	Map<String,SequenceValue>     prots = new HashMap<String,SequenceValue>();
@@ -553,7 +522,7 @@ public class InterProNodeModel extends NodeModel {
 			outstanding_jobs.put(key, job_id);
 			prots.put(job_id, prot);
 		}
-		wait_for_completion(cli, outstanding_jobs.values());
+		wait_for_completion(logger, exec, outstanding_jobs.values());
 		
 		Collection<String> keys = new HashSet<String>();		
 		keys.addAll(outstanding_jobs.values());	// NB: careful to deep copy! we are about to clear the map...
@@ -565,8 +534,18 @@ public class InterProNodeModel extends NodeModel {
 		}
 	}
 
+	private void wait_for_completion(NodeLogger logger, final ExecutionContext exec, final Collection<String> job_ids) throws Exception {
+		if (job_ids == null || job_ids.size() < 1)
+			return;
+		
+		assert(exec != null);
+		for (String jid : job_ids) {
+			wait_for_completion(logger, exec, jid);
+		}
+	}
+	
 	private String submit_job_async(JDispatcherService cli, String email_address, String seq, String rkey, ObjectFactory of) throws Exception {
-		for (int retry=0; retry < 4; retry++) { 
+		for (int retry=0; retry < AbstractWebServiceNodeModel.MAX_RETRIES; retry++) { 
 			try {
 				InputParameters job_params = new InputParameters();
 				// TODO BUG: why are the results from EBI the same despite m_vec changes?
@@ -592,56 +571,34 @@ public class InterProNodeModel extends NodeModel {
 		}
 		throw new FailedJobException("Cannot submit job after four attempts... giving up on "+rkey+"!");
 	}
-
-	private void wait_for_completion(JDispatcherService cli, Collection<String> keySet) 
-    				throws ServiceException, InterruptedException, FailedJobException, IOException {
-    	boolean wait = true;	// mandatory wait for first job in batch
-    	for (String s : keySet) {
-    		for (int idx=0; idx < 1000; idx++) {
-    			if (wait) {
-    				int delay = (MANDATORY_DELAY+(idx*MANDATORY_DELAY));		// seconds
-    				logger.info("Pausing to meet EBI requirements: "+delay+" seconds.");
-    				Thread.sleep(delay*1000);
-    			}
-        		String status = cli.getStatus(s).toLowerCase();
-        		// completed or finished?
-        		if (status.startsWith("complete") || status.startsWith("finish")) {
-        			wait = false;	// check status without waiting for rest of batch
-        			break;		// wait for next job
-        		} else if (status.startsWith("fail") || status.startsWith("error")) {			// something go wrong?
-        			throw new FailedJobException("Job "+s+" has failed at EBI. Aborting run.");
-        		} else {
-        			// incomplete so just go around again...
-        			wait = true;
-        		}
-    		}
-    	}
-    	
-    	// once we get here the entire batch is done
-	}
 	
 	public DataCell getXMLResult(JDispatcherService cli, String jobID) throws Exception {
-		byte[] ret = null;
-		for (int retry=0; retry<4; retry++) {
-			try {
-				ret = cli.getResult(jobID, "xml", null);
-				if (ret != null)
-					break;
-			} catch (Exception e) {
-				logger.warn("Unable to fetch result for "+jobID+"!");
-				int delay = 300+((retry+1)*200);
-				logger.info("Delaying for "+delay+" seconds before retrying.");
-				Thread.sleep(delay*1000);	
+		ByteArrayInputStream bis = null;
+		try {
+			byte[] ret = null;
+			for (int retry=0; retry<4; retry++) {
+				try {
+					ret = cli.getResult(jobID, "xml", null);
+					if (ret != null)
+						break;
+				} catch (Exception e) {
+					logger.warn("Unable to fetch result for "+jobID+"!");
+					int delay = 300+((retry+1)*200);
+					logger.info("Delaying for "+delay+" seconds before retrying.");
+					Thread.sleep(delay*1000);	
+				}
 			}
+			if (ret == null) {
+				return DataType.getMissingCell();
+			}
+			bis = new ByteArrayInputStream(ret);
+			DataCell c = XMLCellFactory.create(bis);
+			logger.info("Got XML result for job "+jobID);
+			return c;
+		} finally {
+			if (bis != null) 	
+				bis.close();
 		}
-		if (ret == null) {
-			return DataType.getMissingCell();
-		}
-		ByteArrayInputStream bis = new ByteArrayInputStream(ret);
-		DataCell c = XMLCellFactory.create(bis);
-		logger.info("Got XML result for job "+jobID);
-		bis.close();
-		return c;
 	}
 	
 
@@ -762,6 +719,11 @@ public class InterProNodeModel extends NodeModel {
   
 
     }
+
+	@Override
+	public String getStatus(String jobID) throws Exception {
+		return getClientProxy().getStatus(jobID);
+	}
 
 }
 
