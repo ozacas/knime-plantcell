@@ -93,6 +93,18 @@ public abstract class AbstractWebServiceNodeModel extends NodeModel {
 	
 	public abstract String getStatus(String jobID) throws Exception;
 	
+	/**
+	 * Returns true if the status has any synonym for an EBI web service used in production. Otherwise false.
+	 * 
+	 * @param status
+	 * @return
+	 */
+	private boolean isFinished(final String status) {
+		if (status == null)
+			return false;
+		return (status.startsWith("COMPLETE") || status.startsWith("FINISH"));
+	}
+	
 	protected void wait_for_completion(NodeLogger logger, ExecutionContext exec, String jobid)
 						throws Exception {
     	String status = "QUEUED";
@@ -104,7 +116,8 @@ public abstract class AbstractWebServiceNodeModel extends NodeModel {
 			
 			status = getStatus(jobid);
 			logger.info("Got status "+status+" for job "+jobid);
-			if (!status.startsWith("COMPLETE")) {
+			
+			if (!isFinished(status)) {
 				incomplete_delay += 5;
 				if (incomplete_delay > 500)
 					throw new Exception("Job "+jobid+" not completed after excessive delay!");
@@ -115,7 +128,7 @@ public abstract class AbstractWebServiceNodeModel extends NodeModel {
 			}
 		}
 		
-		if (!status.startsWith("COMPLETE")) {
+		if (!isFinished(status)) {
 			throw new Exception("Job "+jobid+" failed, message: "+status);
 		}
 	}
