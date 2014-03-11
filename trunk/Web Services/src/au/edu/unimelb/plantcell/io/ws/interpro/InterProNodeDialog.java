@@ -1,6 +1,5 @@
 package au.edu.unimelb.plantcell.io.ws.interpro;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.knime.core.data.DataColumnSpec;
