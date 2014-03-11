@@ -27,7 +27,8 @@ import au.edu.unimelb.plantcell.core.cells.TrackRendererInterface;
 
 
 /**
- * 
+ * Render an interpro track on the current canvas by examination of the internal state
+ *  
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  *
  */
@@ -60,6 +61,12 @@ public class InterProRegionsAnnotation extends RegionsAnnotation implements Trac
 		interpro_colors.put("panther", new Color(153, 102, 51));
 		interpro_colors.put("profile", new Color(255,153,51));
 		interpro_colors.put("gene3d", new Color(119, 2, 221));
+		
+		// new methods with interproscan v5
+		interpro_colors.put("phobius", new Color(70, 70, 70));
+		interpro_colors.put("coils", new Color(110,110,110));
+		
+		// TODO: nor does coils need to update the interpro-legend as well...
 	};
 	
 	
@@ -117,12 +124,9 @@ public class InterProRegionsAnnotation extends RegionsAnnotation implements Trac
 		// display hits from each member database by line
 		g.drawImage(m_interpro_legend.getImage(), 605, offset-3, null);
 		for (String key : keys) {
-			Color c = interpro_colors.get(key);
-			if (c == null) {
-				//Logger.getAnonymousLogger().info(key);
-				c = Color.BLACK;
-			}
+			Color c = match_annotation_key_to_color(key);
 			g.setColor(c);
+			
 			for (InterProRegion ipr : db2regions.get(key)) {
 				int start = ipr.getZStart();
 				int end   = ipr.getZEnd();
@@ -138,6 +142,32 @@ public class InterProRegionsAnnotation extends RegionsAnnotation implements Trac
 		return new Dimension(0, height);
 	}
 	
+	/**
+	 * Uses the <code>interpro_colors</code> member to associate the annotation feature with a colour for the user to
+	 * get a sense of what databases are matching which protein and where.
+	 * 
+	 * @param key
+	 * @return {@link java.awt.Color} non-null unless interpro_colors has been butchered.... default colour is black.
+	 */
+	private Color match_annotation_key_to_color(String key) {
+		Color c = interpro_colors.get(key);
+		if (c != null)
+				return c;
+		if (key.startsWith("gene_3"))
+				return interpro_colors.get("gene3d");
+		if (key.startsWith("prosite"))
+				return interpro_colors.get("prosite");
+		if (key.startsWith("signalp"))
+				return interpro_colors.get("signalp");		
+		if (key.startsWith("coils")) 
+				return interpro_colors.get("coils");
+		if (key.startsWith("phobius"))
+				return interpro_colors.get("phobius");
+		
+		// default (for unknown method) is black
+		return Color.BLACK;
+	}
+
 	private void render_hit(Graphics g, int start, int end, int offset, double frac) {
 		g.fillRect(200+(int)(start * frac), offset, 
 				(int) ((end - start) * frac), 3);
