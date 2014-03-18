@@ -36,7 +36,6 @@
    
       <node category-path="/Bioinformatics/Views" factory-class="au.edu.unimelb.plantcell.views.surface.multi.MultiSurfaceNodeFactory" id="au.edu.unimelb.plantcell.views.surface.multi.MultiSurfaceNodeFactory"/>
    
-   <node category-path="/" factory-class="au.edu.unimelb.plantcell.proteomics.itraq.ITraqAnalyzerNodeFactory" id="au.edu.unimelb.plantcell.proteomics.itraq.ITraqAnalyzerNodeFactory"/>
 </extension>
    	
 </plugin>
