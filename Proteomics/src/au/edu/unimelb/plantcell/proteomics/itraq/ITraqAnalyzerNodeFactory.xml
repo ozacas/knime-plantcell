@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <knimeNode icon="./default.png" type="Manipulator" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.8 http://knime.org/node/v2.8.xsd">
-    <name>ITraqAnalyzer</name>
+    <name>ITraQ Analyzer</name>
     
     <shortDescription>
         Given a (set of) proteomics runs, with identified peptides, proteins and iTRAQ quantitation values this nodes performs an analysis and provides normalised results for the user in easy-to-read format. Based on method published in the scientific literature.
@@ -11,12 +11,21 @@
         data. This node requires R to be installed on the computer running KNIME and for the R extension ("HMisc")
         to be installed with the computer. The node will fail to execute unless this is the case.
         
+        The node expects a raw (non-normalised) data matrix with each row representing a single peptide identification over
+        all the itraq samples. Both 4-plex and 8-plex iTRAQ experiments are supported. This node requires that two channels
+        are technical replicates, the other channels can be biological or technical replicates as required. 
         
+        The node performs median normalisation of all channels, followed by weighted quantitation at the protein level based
+        on normalised peptide results as described by the Hultin Rosenberg paper above. 
+        The second output port contain plots produced by the node to help you understand the results of processing. 
+        
+        This node validates the input data and summarises validation to the KNIME console at the INFO level which
+        can be useful when debugging a dataset. The node will abort execution if severe data problems are present in the input data.
         </intro>
         
         
-        <option name="short name of first option (like in the dialog)">description of first option</option>
-        <option name="short name of second option (like in the dialog)">description of second option</option>
+        <option name="Technical replicate #1 iTRAQ channel">description of first option</option>
+        <option name="Technical replicate #2 iTRAQ channel">description of second option</option>
         <!-- possibly more options that can also be grouped by tabs -->
         <!--
         <tab name="Standard Options">
@@ -30,13 +39,11 @@
     </fullDescription>
     
     <ports>
-        <inPort index="0" name="In-Port name">Description of first input port...</inPort>
+        <inPort index="0" name="Peptide-level iTraq data matrix">Contains a row with: peptide, inferred protein, data matrix attributes (columns)</inPort>
         <!-- possibly more input ports here-->
-        <outPort index="0" name="Out-Port name">Description of first output port...</outPort>
+        <outPort index="0" name="Protein level quantitation">Quantitates each protein over the samples and reports the results</outPort>
+        <outPort index="1" name="iTRAQ Analysis QA plots">Contains various plots as produced by the scripts comprising the method. Check the paper for details.</outPort>
         <!-- possibly more output ports here-->
     </ports>    
-    <views>
-        <view index="0" name="name of first view">Description of first view...</view>
-        <!--view index="1" name="name of second view">Description of second view...</view-->
-    </views>
+  
 </knimeNode>
