@@ -1,29 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <knimeNode icon="./default.png" type="Manipulator" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.8 http://knime.org/node/v2.8.xsd">
-    <name>ITraQ Analyzer</name>
+    <name>iTRAQ&#174; Analyzer</name>	<!--  174 == registered trademark -->
     
     <shortDescription>
         Given a (set of) proteomics runs, with identified peptides, proteins and iTRAQ quantitation values this nodes performs an analysis and provides normalised results for the user in easy-to-read format. Based on method published in the scientific literature.
     </shortDescription>
     
     <fullDescription>
-        <intro>Implements the method, described at http://www.ncbi.nlm.nih.gov/pubmed/23471484, for analysis of iTRAQ quantitative proteomics
-        data. This node requires R to be installed on the computer running KNIME and for the R extension ("HMisc")
-        to be installed with the computer. The node will fail to execute unless this is the case.
-        
+        <intro>Implements the method, described <a href="http://www.ncbi.nlm.nih.gov/pubmed/23471484">this paper</a> for analysis of iTRAQ quantitative proteomics
+        data. This node requires R to be installed on the computer running KNIME and for the R extension ("Hmisc")
+        to be installed with the computer. The node <b>will fail to execute</b> unless these requirements are met.
+        <p>
         The node expects a raw (non-normalised) data matrix with each row representing a single peptide identification over
         all the itraq samples. Both 4-plex and 8-plex iTRAQ experiments are supported. This node requires that two channels
         are technical replicates, the other channels can be biological or technical replicates as required. 
-        
+        </p>
+        <p>
         The node performs median normalisation of all channels, followed by weighted quantitation at the protein level based
         on normalised peptide results as described by the Hultin Rosenberg paper above. 
         The second output port contain plots produced by the node to help you understand the results of processing. 
-        
+        </p>
+        <p>
         This node validates the input data and summarises validation to the KNIME console at the INFO level which
         can be useful when debugging a dataset. The node will abort execution if severe data problems are present in the input data.
+        </p>
         </intro>
         
-        
+       
         <option name="Technical replicate #1 iTRAQ channel">description of first option</option>
         <option name="Technical replicate #2 iTRAQ channel">description of second option</option>
         <!-- possibly more options that can also be grouped by tabs -->

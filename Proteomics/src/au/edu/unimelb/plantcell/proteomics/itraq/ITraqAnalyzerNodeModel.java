@@ -8,7 +8,6 @@ import java.io.PrintWriter;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteException;
-import org.apache.commons.exec.ExecuteWatchdog;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
@@ -34,7 +33,7 @@ import au.edu.unimelb.plantcell.core.TempDirectory;
  * This is the model implementation of ITraqAnalyzer.
  * Given a (set of) proteomics runs, with identified peptides, proteins and iTRAQ quantitation values this nodes performs an analysis and provides normalised results for the user in easy-to-read format. Based on method published in the scientific literature.
  *
- * @author http://www.plantcell.unimelb.edu.au/bioinformatic
+ * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
 public class ITraqAnalyzerNodeModel extends NodeModel {
     private final static NodeLogger logger = NodeLogger.getLogger("iTRaQ Analyzer");
@@ -134,7 +133,7 @@ public class ITraqAnalyzerNodeModel extends NodeModel {
 		assert(r != null);
 		File script = new File(td.asFile(), "check_hmisc.r");
 		PrintWriter pw = new PrintWriter(new FileWriter(script));
-		pw.write("if (\"hMisc\" %in% installed.packages()) quit(save=\"no\", status=11) else quit(save=\"no\", status=10)");
+		pw.write("if (\"Hmisc\" %in% installed.packages()) quit(save=\"no\", status=11) else quit(save=\"no\", status=10)");
 		pw.close();
 		
 		int exit_status = run_r(r, script);
