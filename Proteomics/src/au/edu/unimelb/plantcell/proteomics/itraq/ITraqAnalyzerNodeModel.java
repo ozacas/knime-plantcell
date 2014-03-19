@@ -24,6 +24,8 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelFilterString;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 import au.edu.unimelb.plantcell.core.ExternalProgram;
 import au.edu.unimelb.plantcell.core.MyDataContainer;
@@ -39,7 +41,15 @@ public class ITraqAnalyzerNodeModel extends NodeModel {
     private final static NodeLogger logger = NodeLogger.getLogger("iTRaQ Analyzer");
     
     // location of root of R installation (needed for finding the R executable)
-    public static final String CFGKEY_R_FOLDER_ROOT = "r-root-folder";
+    public static final String CFGKEY_R_FOLDER_ROOT     = "r-root-folder";
+    public static final String CFGKEY_SELECTED_CHANNELS = "itraq-channels";	// typically columns relating to either a 4-plex or 8-plex experiment
+    public static final String CFGKEY_REP1              = "replicate1-itraq-channel";
+    public static final String CFGKEY_REP2              = "replicate2-itraq-channel";
+    
+    private SettingsModelString m_r             = new SettingsModelString(CFGKEY_R_FOLDER_ROOT, "");
+    private SettingsModelFilterString m_channels= new SettingsModelFilterString(CFGKEY_SELECTED_CHANNELS);
+    private SettingsModelString m_rep1          = new SettingsModelString(CFGKEY_REP1, "113");
+    private SettingsModelString m_rep2          = new SettingsModelString(CFGKEY_REP2, "114");
     
     /**
      * Constructor for the node model
@@ -89,7 +99,7 @@ public class ITraqAnalyzerNodeModel extends NodeModel {
         return new BufferedDataTable[]{c1.close(), c2.close()};
     }
 
-    private File locateR() throws InvalidSettingsException {
+    public static File locateR() throws InvalidSettingsException {
     	File usr_folder        = new File("/usr");
     	File usr_local_folder  = new File("/usr/local");
     	File r_pref_folder     = null;
@@ -109,7 +119,7 @@ public class ITraqAnalyzerNodeModel extends NodeModel {
     	
 	}
 
-	private void normaliseInputData(final BufferedDataTable inData, final TempDirectory td) {
+	private void normaliseInputData(final BufferedDataTable inData, final TempDirectory td) throws IOException {
 		assert(inData != null && td != null);
 		// perform median normalisation so that all reporter ion channels have the same median quantitation value
 		// we dont do checking of the data here, we assume validateInputData() has done all that for us
@@ -123,14 +133,23 @@ public class ITraqAnalyzerNodeModel extends NodeModel {
 		// TODO...
 	}
 
-	private File saveDataMatrixToFile(final BufferedDataTable inData, final TempDirectory td) {
-		File out = new File(td.asFile(), "raw_data_before_normalisation.tsv");
-		// TODO...
+	private File saveDataMatrixToFile(final BufferedDataTable inData, final TempDirectory td) throws IOException {
+		File       out = new File(td.asFile(), "raw_data_before_normalisation.tsv");
+		PrintWriter pw = new PrintWriter(new FileWriter(out));
+		try {
+			
+		} finally {
+			if (pw != null) {
+				pw.close();
+			}
+		}
 		return out;
 	}
 
 	private void checkHMiscAvailable(final File r, final TempDirectory td) throws IOException,InvalidSettingsException {
 		assert(r != null);
+		logger.info("Checking that R has Hmisc extension available...");
+		
 		File script = new File(td.asFile(), "check_hmisc.r");
 		PrintWriter pw = new PrintWriter(new FileWriter(script));
 		pw.write("if (\"Hmisc\" %in% installed.packages()) quit(save=\"no\", status=11) else quit(save=\"no\", status=10)");
@@ -163,9 +182,10 @@ public class ITraqAnalyzerNodeModel extends NodeModel {
 		return exe.execute(cl);
 	}
 
-	private void validateInputData(BufferedDataTable[] inData) {
-		// TODO Auto-generated method stub
-		
+	private void validateInputData(BufferedDataTable[] inData) throws InvalidSettingsException {
+		logger.info("Validating input data");
+		// TODO...
+		logger.info("Validation complete.");
 	}
 
 	/**
@@ -210,7 +230,10 @@ public class ITraqAnalyzerNodeModel extends NodeModel {
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
-         // TODO: generated method stub
+        m_r.saveSettingsTo(settings);
+        m_channels.saveSettingsTo(settings);
+        m_rep1.saveSettingsTo(settings);
+        m_rep2.saveSettingsTo(settings);
     }
 
     /**
@@ -219,7 +242,10 @@ public class ITraqAnalyzerNodeModel extends NodeModel {
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
-        // TODO: generated method stub
+    	 m_r.loadSettingsFrom(settings);
+         m_channels.loadSettingsFrom(settings);
+         m_rep1.loadSettingsFrom(settings);
+         m_rep2.loadSettingsFrom(settings);
     }
 
     /**
@@ -228,7 +254,10 @@ public class ITraqAnalyzerNodeModel extends NodeModel {
     @Override
     protected void validateSettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
-        // TODO: generated method stub
+    	 m_r.validateSettings(settings);
+         m_channels.validateSettings(settings);
+         m_rep1.validateSettings(settings);
+         m_rep2.validateSettings(settings);
     }
     
     /**
@@ -238,7 +267,6 @@ public class ITraqAnalyzerNodeModel extends NodeModel {
     protected void loadInternals(final File internDir,
             final ExecutionMonitor exec) throws IOException,
             CanceledExecutionException {
-        // TODO: generated method stub
     }
     
     /**
@@ -248,7 +276,6 @@ public class ITraqAnalyzerNodeModel extends NodeModel {
     protected void saveInternals(final File internDir,
             final ExecutionMonitor exec) throws IOException,
             CanceledExecutionException {
-        // TODO: generated method stub
     }
 
 }
