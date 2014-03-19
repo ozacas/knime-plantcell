@@ -7,11 +7,11 @@
 library(Hmisc)
 
 #Load getWeight
-source("Path to R scripts/getWeight.r")
+source("@SCRIPT_PATH@@FILESEP@getWeight.r")
 
 #Specify folders, full path to data and weights
-folder.data = "Path to peptide intensity data folder"
-folder.weights = "Path to weights folder"
+folder.data    = "@DATA_PATH@"
+folder.weights = "@WEIGHTS_PATH@"
 
 #Dataset
 dataset.name = "test"
