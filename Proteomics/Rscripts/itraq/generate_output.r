@@ -7,23 +7,23 @@
 library(Hmisc)
 
 #Load getWeight
-source("Path to R scripts/getWeight.r")
+source("@SCRIPT_PATH@/getWeight.r")
 
 #Specify folders, full path to data, weights and results
-folder.data = "Path to peptide intensity data folder"
-folder.weights = "Path to weights folder"
-folder.results =  "Path to output folder"
+folder.data    = "@DATA_PATH@"
+folder.weights = "@WEIGHTS_PATH@"
+folder.results = "@OUTPUT_PATH@"
 
 #Dataset
 dataset.name = "test"
 
 #Parameters for calculating weighted quant
-channel.1 = "113"       #iTRAQ channel for weight calculation
-channel.2 = "114"       #iTRAQ channel for weight calculation
-den = "mean(113,114)"   #iTRAQ channel denominator used to calculate protein ratios
-den.1 = "113"
-den.2 = "114"
-num.list = c("113","114","115","116","117","118","119","121") #iTRAQ channel numerators for protein ratios
+channel.1 = "@REP1_CHANNEL@"       #iTRAQ channel for weight calculation
+channel.2 = "@REP2_CHANNEL@"       #iTRAQ channel for weight calculation
+den       = "mean(@REP1_CHANNEL@,@REP2_CHANNEL@)"   #iTRAQ channel denominator used to calculate protein ratios
+den.1     = "@REP1_CHANNEL@"
+den.2     = "@REP2_CHANNEL@"
+num.list  = c("113","114","115","116","117","118","119","121") #iTRAQ channel numerators for protein ratios
 
 #Number of peptides specified for plotting
 no.peptides.num = c(1,2,3,4,5,5,10)

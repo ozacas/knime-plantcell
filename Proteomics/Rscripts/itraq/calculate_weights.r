@@ -5,26 +5,26 @@
 ########################################################################
 
 #Load getWeight
-source("Path to R scripts/getWeight.r")
+source("@SCRIPT_PATH@/getWeight.r")
 
 #Specify folders, full path to data and weights
-folder.data = "Path to peptide intensity data folder"
-folder.weights = "Path to weights folder"
+folder.data    = "@DATA_PATH@"
+folder.weights = "@WEIGHTS_PATH@"
 
 #Dataset
 dataset.name = "test"
 
 #Parameters for weight calculation
-channel.1 = "113"   #iTRAQ channel for weight calculation, training data
-channel.2 = "114"   #iTRAQ channel for weight calculation, training data
+channel.1 = "@REP1_CHANNEL@"   #iTRAQ channel for weight calculation, training data
+channel.2 = "@REP2_CHANNEL@"   #iTRAQ channel for weight calculation, training data
 ratio = 1           #Expected ratio between duplicates
 bins = 8            #Number of bins for weight calculation
 
 #Load peptide data
-filename = paste(folder.data,dataset.name,"_norm_median_quant.txt",sep="")
+filename  = paste(folder.data,dataset.name,"_norm_median_quant.txt",sep="")
 pep.quant = read.delim(filename,header=TRUE,row.names=1,sep="\t")
 
-##Calculate weight-matrix for 113/114 ratio
+##Calculate weight-matrix for Rep1/Rep2 (eg. 113/114) ratio
   
 #Extract iTRAQ channels for weight calculation
 index.channel.1 = grep(channel.1,colnames(pep.quant))
