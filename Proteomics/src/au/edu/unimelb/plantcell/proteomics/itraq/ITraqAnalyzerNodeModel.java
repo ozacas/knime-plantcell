@@ -1,13 +1,23 @@
 package au.edu.unimelb.plantcell.proteomics.itraq;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteException;
+import org.eclipse.core.runtime.FileLocator;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
@@ -26,6 +36,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelFilterString;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.osgi.framework.Bundle;
 
 import au.edu.unimelb.plantcell.core.ExternalProgram;
 import au.edu.unimelb.plantcell.core.MyDataContainer;
@@ -70,6 +81,7 @@ public class ITraqAnalyzerNodeModel extends NodeModel {
     		throw new InvalidSettingsException("Unable to create temp directory: "+td);
     	
     	File Rexe = locateR();
+    	Map<String,String> map = setupRScriptSubstitutionMap(td);
     	
     	// 2. create output containers
     	DataTableSpec[] outSpec = make_output_specs(new DataTableSpec[] { inData[0].getSpec() });
@@ -99,7 +111,31 @@ public class ITraqAnalyzerNodeModel extends NodeModel {
         return new BufferedDataTable[]{c1.close(), c2.close()};
     }
 
-    public static File locateR() throws InvalidSettingsException {
+    private Map<String, String> setupRScriptSubstitutionMap(TempDirectory td) throws IOException {
+    	Map<String,String> ret = new HashMap<String,String>();
+		File td_file = td.asFile();
+		File script_folder = new File(td_file, "scripts");
+		if (!script_folder.mkdir()) {
+			throw new IOException("Cannot mkdir: "+script_folder.getAbsolutePath());
+		}
+		File data_folder = new File(td_file, "data");
+		if (!data_folder.mkdir()) {
+			throw new IOException("Cannot mkdir: "+data_folder.getAbsolutePath());
+		}
+		File output_folder = new File(td_file, "output");
+		if (!output_folder.mkdir()) {
+			throw new IOException("Cannot mkdir: "+output_folder.getAbsolutePath());
+		}
+		ret.put("SCRIPT_PATH", script_folder.getAbsolutePath());
+		ret.put("DATA_PATH", data_folder.getAbsolutePath());
+		ret.put("OUTPUT_PATH", output_folder.getAbsolutePath());
+		ret.put("REP1_CHANNEL", m_rep1.getStringValue());
+		ret.put("REP2_CHANNEL", m_rep2.getStringValue());
+		
+		return ret;
+	}
+
+	public static File locateR() throws InvalidSettingsException {
     	File usr_folder        = new File("/usr");
     	File usr_local_folder  = new File("/usr/local");
     	File r_pref_folder     = null;
@@ -119,6 +155,52 @@ public class ITraqAnalyzerNodeModel extends NodeModel {
     	
 	}
 
+	/**
+	 * Copies the specified template (<code>in</code>) from the Rscripts folder within this node into
+	 * the specified 
+	 * @param in
+	 * @param out_file  where to save the modified R script template to. This file will be overwritten or an exception thrown
+	 * @param key2value eg. { "SCRIPT_PATH" => "/tmp/itraq-r", "DATA_PATH" => "/tmp/itraq-input/" }
+	 * @throws InvalidSettingsException 
+	 */
+	private void instantiateRScript(final String script, final File out_file, 
+						final Map<String,String> key2value) throws IOException, InvalidSettingsException {
+		assert(script != null && out_file != null && key2value != null && key2value.size() > 0);
+		if (!out_file.isFile() || !out_file.canWrite())
+			throw new InvalidSettingsException("Cannot write/create: "+out_file.getAbsolutePath());
+		
+		Bundle bundle = Platform.getBundle("au.edu.unimelb.plantcell.proteomics");
+		if (bundle == null)
+			throw new InvalidSettingsException("Cannot find plugin bundle: au.edu.unimelb.plantcell.proteomics - programmer error?");
+		
+		URL u         = FileLocator.find(bundle, new Path("/Rscripts/itraq/"+script), null);
+		if (u == null)
+			throw new InvalidSettingsException("Unable to locate R script: "+script);
+		BufferedReader rdr = new BufferedReader(new InputStreamReader(u.openStream()));
+		PrintWriter     pw = new PrintWriter(new FileWriter(out_file));
+		try {
+			Pattern p = Pattern.compile("@(\\w+)@");
+			String line;
+			while ((line = rdr.readLine()) != null) {
+				Matcher m = p.matcher(line);
+				while (m.find()) {
+					String key = m.group(1);
+					String val = key2value.get(key);
+					if (val == null || val.length() < 1)
+						throw new InvalidSettingsException("No such key: "+key);
+					line.replaceAll("@"+key+"@", val);
+				}
+				pw.println(line);
+			}
+			
+		} finally {
+			if (rdr != null)
+				rdr.close();
+			if (pw != null)
+				pw.close();
+		}
+	}
+	
 	private void normaliseInputData(final BufferedDataTable inData, final TempDirectory td) throws IOException {
 		assert(inData != null && td != null);
 		// perform median normalisation so that all reporter ion channels have the same median quantitation value
