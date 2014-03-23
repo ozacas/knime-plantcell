@@ -1,4 +1,4 @@
-#summary Introduce the PlantCell bioinformatics extension to KNIME
+#summary Introducing the KNIME PlantCell bioinformatics extension
 
 = Introduction =
 
