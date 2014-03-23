@@ -1,35 +1,42 @@
 package au.edu.unimelb.plantcell.io.read.fasta;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.defaultnodesettings.*;
-
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.ListModel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.ListDataListener;
 import javax.swing.filechooser.FileFilter;
+
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
+import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
+import org.knime.core.node.defaultnodesettings.DialogComponentString;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
 /**
  * <code>NodeDialog</code> for the "FastaReader" Node.
@@ -44,8 +51,8 @@ import javax.swing.filechooser.FileFilter;
  */
 public class FastaReaderNodeDialog extends DefaultNodeSettingsPane {
 
-	private final SettingsModelStringArray file_list = new SettingsModelStringArray(FastaReaderNodeModel.CFGKEY_FASTA, new String[] { "c:/temp/crap.fasta" });
     private final JComboBox<String> seqtype_list = new JComboBox<String>(au.edu.unimelb.plantcell.core.cells.SequenceType.getSeqTypes());
+    final JList<URL> url_list = new JList<URL>();
 
     /**
      * Establish the configurable parameters associated with reading the FASTA file. Note how we can
@@ -54,40 +61,9 @@ public class FastaReaderNodeDialog extends DefaultNodeSettingsPane {
      */
     protected FastaReaderNodeDialog() {
         super();
-        final JList<String> flist = new JList<String>(file_list.getStringArrayValue());
-        file_list.addChangeListener( new ChangeListener() {
-
-			@Override
-			public void stateChanged(ChangeEvent arg0) {
-				final String[] cur_files = file_list.getStringArrayValue();
-				flist.setModel(new ListModel<String>() {
-					private ArrayList<ListDataListener> m_l = new ArrayList<ListDataListener>();
-					
-					@Override
-					public void addListDataListener(ListDataListener l) {
-						m_l.add(l);
-					}
-
-					@Override
-					public String getElementAt(int index) {
-						return cur_files[index];
-					}
-
-					@Override
-					public int getSize() {
-						return cur_files.length;
-					}
-
-					@Override
-					public void removeListDataListener(ListDataListener l) {
-						m_l.remove(l);
-					}
-					
-				});
-			}
-        	
-        });
-        
+    	
+        SettingsModelStringArray store = new SettingsModelStringArray(FastaReaderNodeModel.CFGKEY_FASTA, new String[] { "c:/temp/crap.fasta" });
+        url_list.setModel(new URLListModel(store));
         final JPanel fasta_file_panel = new JPanel();
         fasta_file_panel.setLayout(new BorderLayout());
        
@@ -100,10 +76,11 @@ public class FastaReaderNodeDialog extends DefaultNodeSettingsPane {
         seqtype_panel.add(seqtype_list);
         proc_panel.add(seqtype_panel);
         fasta_file_panel.add(proc_panel, BorderLayout.NORTH);
-        fasta_file_panel.add(new JScrollPane(flist), BorderLayout.CENTER);
+        fasta_file_panel.add(new JScrollPane(url_list), BorderLayout.CENTER);
         final JPanel button_panel = new JPanel();
-        button_panel.setLayout(new GridLayout(2, 1));
+        button_panel.setLayout(new GridLayout(5, 1));
         final JButton add_button = new JButton("Add FASTA files...");
+        final JButton add_url_button = new JButton("Add FASTA URL...");
         final JButton remove_button = new JButton("Remove Selected");
         add_button.addActionListener(new ActionListener() {
 
@@ -134,15 +111,21 @@ public class FastaReaderNodeDialog extends DefaultNodeSettingsPane {
 			    open_dialog.setFileFilter(filter);
 				int ret = open_dialog.showOpenDialog(null);
 				if (ret == JFileChooser.APPROVE_OPTION) {
-					HashSet<String> files = new HashSet<String>();
-					for (String f : file_list.getStringArrayValue()) {
-						files.add(f);
-					}
-					File[] new_files = open_dialog.getSelectedFiles();
-					for (File f : new_files) {
-						files.add(f.getAbsolutePath());
-					}
-					file_list.setStringArrayValue(files.toArray(new String[0]));
+					addURLIfNotAlreadyPresent(open_dialog);
+				}
+			}
+        	
+        });
+        
+        add_url_button.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String default_url = "http://www.uniprot.org/uniprot/B5X0I6.fasta";
+				String ret = (String) JOptionPane.showInputDialog(null, "What URL to load?", "Add FASTA URL...", 
+						JOptionPane.QUESTION_MESSAGE, null, null, default_url);
+				if (ret != null && ret.length() > 0) {
+					addURLIfNotAlreadyPresent(ret);
 				}
 			}
         	
@@ -152,23 +135,27 @@ public class FastaReaderNodeDialog extends DefaultNodeSettingsPane {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				List<String> sel_files = flist.getSelectedValuesList();
-				HashSet<String> sel_set = new HashSet<String>();
-				sel_set.addAll(sel_files);
+				URLListModel mdl = getListModel();
+				List<URL> sel_urls = url_list.getSelectedValuesList();
+				HashSet<URL> sel_set = new HashSet<URL>();
+				sel_set.addAll(sel_urls);
 			
-				HashSet<String> new_files = new HashSet<String>();
-				for (String o : file_list.getStringArrayValue()) {
+				HashSet<URL> new_urls = new HashSet<URL>();
+				for (URL o : mdl.getAll()) {
 					if (!sel_set.contains(o)) {
-						new_files.add(o);
+						new_urls.add(o);
 					}
 				}
 				
-				file_list.setStringArrayValue(new_files.toArray(new String[0]));
+				mdl.setAll(new_urls);
 			}
         	
         });
         
         button_panel.add(add_button);
+        button_panel.add(Box.createRigidArea(new Dimension(5,5)));
+        button_panel.add(add_url_button);
+        button_panel.add(Box.createRigidArea(new Dimension(5,5)));
         button_panel.add(remove_button);
         fasta_file_panel.add(button_panel, BorderLayout.EAST);
         
@@ -191,24 +178,87 @@ public class FastaReaderNodeDialog extends DefaultNodeSettingsPane {
         selectTab("FASTA Files");
     }
     
+    protected URLListModel getListModel() {
+    	return (URLListModel) url_list.getModel();
+    }
+    
+    protected void addURLIfNotAlreadyPresent(final String url_string_to_add) {
+		List<URL> urls = getListModel().getAll();
+		try {
+			urls.add(new URL(url_string_to_add));
+			getListModel().setAll(urls);
+		} catch (MalformedURLException mue) {
+			mue.printStackTrace();
+		}
+	}
+
+	private void addURLIfNotAlreadyPresent(final JFileChooser open_dialog) {
+    	try {
+	    	  List<URL> urls = getListModel().getAll();
+	        
+	          File[] new_files = open_dialog.getSelectedFiles();
+	          for (File f : new_files) {
+	                  urls.add(f.toURI().toURL());
+	          }
+	          getListModel().setAll(urls);
+    	} catch (MalformedURLException mfe) {
+    		mfe.printStackTrace();
+    	}
+
+	}
+    
     @Override
     public void loadAdditionalSettingsFrom(NodeSettingsRO settings, DataTableSpec[] specs) throws NotConfigurableException {
     	try {
-    		file_list.loadSettingsFrom(settings);
+    		URLListModel mdl = getListModel();
     		if (settings.containsKey(FastaReaderNodeModel.CFGKEY_SEQTYPE)) {
     			seqtype_list.setSelectedItem(settings.getString(FastaReaderNodeModel.CFGKEY_SEQTYPE));
+    		}
+    		
+    		// backward compatibility: URL list used to be a list of Files...
+    		if (!settings.containsKey(FastaReaderNodeModel.CFGKEY_INTERNAL_USE_URLS)) {
+    			// url list is File's not URL's - so convert and then load...
+    			convertFileToURLs(settings, mdl);
+    		} else {
+    			mdl.loadSettingsFrom(settings);
     		}
     	} catch (InvalidSettingsException ex) {
     		ex.printStackTrace();
     	}
     }
     
-    @Override
+    /**
+     * When the settings instance contains File paths rather than URLs we need to convert so the current codebase is happy.
+     * This is a backward compatibility feature for existing data analysis pipelines which will be removed in the future.
+     * @param settings
+     * @param ulist the object to be modified with URL counterparts for the specified files (may be bogus if File's dont exist)
+     * @throws InvalidSettingsException 
+     */
+    private void convertFileToURLs(final NodeSettingsRO settings,
+			final URLListModel mdl) throws InvalidSettingsException {
+		assert(settings != null && mdl != null);
+		SettingsModelStringArray arr = new SettingsModelStringArray(FastaReaderNodeModel.CFGKEY_FASTA, new String[] {});
+		arr.loadSettingsFrom(settings);
+		ArrayList<URL> new_url_list = new ArrayList<URL>();
+		for (String s : arr.getStringArrayValue()) {
+			File f = new File(s);
+			try {
+				new_url_list.add(f.toURI().toURL());
+			} catch (MalformedURLException mfe) {
+				mfe.printStackTrace();
+			}
+		}
+		mdl.setAll(new_url_list);
+	}
+
+	@Override
     public void saveAdditionalSettingsTo(NodeSettingsWO settings) {
-    	file_list.saveSettingsTo(settings);
+    	getListModel().saveSettingsTo(settings);
     	Object sel = seqtype_list.getSelectedItem();
     	if (sel != null) {
     		settings.addString(FastaReaderNodeModel.CFGKEY_SEQTYPE, sel.toString());
     	}
+    	SettingsModelBoolean use_urls = new SettingsModelBoolean(FastaReaderNodeModel.CFGKEY_INTERNAL_USE_URLS, Boolean.TRUE);
+    	use_urls.saveSettingsTo(settings);
     }
 }

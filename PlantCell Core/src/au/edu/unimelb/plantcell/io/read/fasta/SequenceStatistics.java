@@ -1,6 +1,6 @@
 package au.edu.unimelb.plantcell.io.read.fasta;
 
-import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -21,11 +21,11 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
  * This class assumes each sequence for a given file is presented as a block (which is fine for this node) to save
  * memory for the median/mean calculations.
  * 
- * @author andrew.cassin
+ * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  *
  */
 public class SequenceStatistics {
-	private final File m_for_file;
+	private final URL m_data_source;
 	private int m_min, m_max;
 	private int m_n, m_n_1kb, m_n_10kb, m_n_100kb;
 	private int m_total, m_total_1kb, m_total_10kb, m_total_100kb;
@@ -41,8 +41,8 @@ public class SequenceStatistics {
 	 * 
 	 * @param f
 	 */
-	public SequenceStatistics(File f) {
-		m_for_file  = f;
+	public SequenceStatistics(final URL u) {
+		m_data_source  = u;
 		m_min       = Integer.MAX_VALUE;
 		m_max       = Integer.MIN_VALUE;
 		m_n         = 0;
@@ -53,10 +53,6 @@ public class SequenceStatistics {
 		m_total_1kb = 0;	// total sequence length for all sequences at least 1kb
 		m_total_10kb= 0;
 		m_total_100kb=0;
-	}
-	
-	public boolean isFile(File f) {
-		return m_for_file.equals(f);
 	}
 	
 	public static DataTableSpec getOutputSpec() {
@@ -107,7 +103,7 @@ public class SequenceStatistics {
 		for (int i=0; i<cells.length; i++) {
 			cells[i] = DataType.getMissingCell();
 		}
-		cells[0] = new StringCell(m_for_file.getName());
+		cells[0] = new StringCell(m_data_source.toString());
 		cells[1] = new IntCell(m_n);
 		cells[2] = new IntCell(m_min);
 		cells[3] = new IntCell(m_max);

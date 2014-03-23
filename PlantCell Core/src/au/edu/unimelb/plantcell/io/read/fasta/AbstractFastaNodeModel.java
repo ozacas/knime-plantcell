@@ -2,6 +2,7 @@ package au.edu.unimelb.plantcell.io.read.fasta;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.regex.Matcher;
@@ -45,12 +46,12 @@ public abstract class AbstractFastaNodeModel extends NodeModel {
 
 	 private boolean m_single_entry_only;
 	 private boolean m_use_accession_as_rid;
-	 private String  m_filename;
+	 private URL  m_url;
 	 
 	protected AbstractFastaNodeModel(int nrInDataPorts, int nrOutDataPorts) {
 		super(nrInDataPorts, nrOutDataPorts);
 		setSingleEntry(true);
-		setFilename(null);
+		setCurrentURL(null);
 		setUseAccessionAsRowID(true);
 	}
 
@@ -99,19 +100,19 @@ public abstract class AbstractFastaNodeModel extends NodeModel {
 		m_single_entry_only = yes;
 	}
 	
-	protected void setFilename(String new_filename) {
-		m_filename = new_filename;
+	protected void setCurrentURL(final URL current_url) {
+		m_url = current_url;
 	}
 	
-	protected String getFilename() {
-		return m_filename;
+	protected URL getCurrentURL() {
+		return m_url;
 	}
 	
-	protected DataCell getFilenameCell() {
-		String fname = getFilename();
-		if (fname == null)
+	protected DataCell getDataSourceCell() {
+		URL u = getCurrentURL();
+		if (u == null)
 			return DataType.getMissingCell();
-		return new StringCell(fname);
+		return new StringCell(u.toString());
 	}
 	
 	protected boolean useAccessionAsRowID() {
@@ -141,7 +142,7 @@ public abstract class AbstractFastaNodeModel extends NodeModel {
         		 }
         	}
             
-        	DataCell[] cells = new DataCell[] { sc, getFilenameCell() };
+        	DataCell[] cells = new DataCell[] { sc, this.getDataSourceCell() };
         	if (useAccessionAsRowID()) {
         		c1.addRowWithID(accsn[0], cells);
         	} else {
