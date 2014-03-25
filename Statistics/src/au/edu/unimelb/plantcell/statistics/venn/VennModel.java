@@ -2,32 +2,31 @@ package au.edu.unimelb.plantcell.statistics.venn;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.def.DefaultRow;
-import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataContainer;
 
 /**
- * Implements a simple-mind venn diagram with <code>n</code> pies and the specified
+ * Implements a simple-minded venn diagram with <code>n</code> pies and the specified
  * set of values in the group-by column. 
  * 
  * @author andrew.cassin
  *
  */
 public class VennModel {
-	private final HashMap<String,Integer>            m_categories = new HashMap<String,Integer>();
-	private final HashMap<String, VennClassification> m_v = new HashMap<String, VennClassification>();
+	private final HashMap<String,Integer>             m_categories = new HashMap<String,Integer>();
+	private final HashMap<String, VennClassification> m_v          = new HashMap<String, VennClassification>();
 	private int   m_n;
-	private static int m_rowid;
-	private static HashMap<String,String> m_done_categories = new HashMap<String,String>();
 	
 	/**
 	 * Sole constructor. The set of permitted values in the group-by column is
 	 * required as is the number of pies (usually 3 or 4)
-	 * @param n
+	 * @param n the view can only display between 2 to five wedges so its recommended that 2 <= n <= 5
 	 * @param categories
 	 */
 	public VennModel(int n, Set<String> categories) {
@@ -38,7 +37,6 @@ public class VennModel {
 		for (String category : categories) {
 			m_categories.put(category, new Integer(i++));
 		}
-		m_rowid = 1;
 	}
 	
 	/**
@@ -59,28 +57,29 @@ public class VennModel {
 			} else {
 				VennClassification vc = new VennClassification(this, m_n);
 				vc.setCategory(i.intValue(), true);
-				m_v.put(v , vc);
+				m_v.put(v, vc);
 			}
 		}
 	}
 
 
+	
 	/**
 	 * NB: must correspond to output spec of node!
 	 */
-	public void outputToContainer(BufferedDataContainer container) {
+	public void outputToAdapter(final VennOutputAdapter adapter) {
+		assert(adapter != null);
 		VennClass bvec = new VennClass(m_n);
 		
-		m_done_categories.clear();
-		outputRecurse(1, bvec, container);
+		adapter.reset();
+		outputRecurse(1, bvec, adapter);
 		
 		bvec.setClass(0, true);
-		outputRecurse(1, bvec, container);
+		outputRecurse(1, bvec, adapter);
 	}
 
-
-	private void outputRecurse(int n, VennClass bvec,
-			BufferedDataContainer container) {
+	private void outputRecurse(int n, final VennClass bvec, final VennOutputAdapter adapter) {
+		assert(bvec != null && adapter != null);
 		if (n > m_n)
 			return;
 		
@@ -96,42 +95,35 @@ public class VennModel {
 					count++;
 				}
 			}
-			
-			DataCell[] cells = new DataCell[2];
-			String cat = VennClassification.asCategoryString(this, bvec);
-			cells[0]   = new StringCell(cat);
-			cells[1]   = new IntCell(count);
-			
-			if (!m_done_categories.containsKey(cat)) {
-				String cat_printable_name = "Category"+m_rowid++;
-				container.addRowToTable(new DefaultRow(cat_printable_name, cells));
-				m_done_categories.put(cat, cat_printable_name);
-			}
+			List<String> l = VennClassification.asCategoryList(this, bvec);
+			adapter.saveCategory(l, count);
 		}
 		
 		// recursion step
 		if (n < bvec.getNumClasses()) {
 			bvec.setClass(n, false);
-			outputRecurse(n+1, bvec, container);
+			outputRecurse(n+1, bvec, adapter);
 			
 			// NB: bvec[n] is true
 			bvec.setClass(n, true);
-			outputRecurse(n+1, bvec, container);
+			outputRecurse(n+1, bvec, adapter);
 		}
 	}
 
     /**
-     * Adds counts to the outport 1. 
+     * Adds classification for each value encountered so that the user can lookup values of interest to see where in the
+     * model they occur.
+     * 
      * @param c
      */
-	public void outputValuesToContainer(BufferedDataContainer c) {
-		//HashMap<VennClass, String> class2category = new HashMap<VennClass,String>();
+	public void outputValuesToContainer(final BufferedDataContainer c, final Map<List<String>, String> map) {
+		assert(c != null && map != null);
 		int row_id = 1;
 		
 		for (String v : m_v.keySet()) {
 			VennClassification vc = m_v.get(v);
-			String category = vc.getCategory();
-			String cat_printable_name = m_done_categories.get(category);
+			List<String> category = vc.getCategory();
+			String cat_printable_name = map.get(category);
 			DataCell[] cells = new DataCell[2];
 			cells[0] = new StringCell(cat_printable_name);
 			cells[1] = new StringCell(v);
@@ -143,11 +135,43 @@ public class VennModel {
 		return m_categories.keySet();
 	}
 
-
 	public int getCategoryIndex(String cat) {
 		Integer i = m_categories.get(cat);
 		if (i == null) 
 			return -1;
 		return i.intValue();
+	}
+	
+	
+	/**
+	 * Returns a map of the venn counts for each class:
+	 * { class1 => count1, class2 => count2, class3 => count3 ... }
+	 * 
+	 * The class names are determined by the user from supplied data. Should not be called until after the
+	 * data has been added to the model.
+	 */
+	public Map<List<String>,Integer> getVennMap() {
+		final HashMap<List<String>,Integer> ret = new HashMap<List<String>,Integer>();
+		VennOutputAdapter voa = new VennOutputAdapter() {
+			private final Map<List<String>,String> done_categories = new HashMap<List<String>,String>();
+			
+			@Override
+			public void saveCategory(final List<String> category, int count) {
+				ret.put(category, new Integer(count));
+			}
+
+			@Override
+			public Map<List<String>, String> getDoneCategories() {
+				return done_categories;
+			}
+
+			@Override
+			public void reset() {
+				done_categories.clear();
+			}
+			
+		};
+		outputToAdapter(voa);
+		return ret;
 	}
 }

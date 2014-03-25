@@ -39,27 +39,23 @@ public class VennClassification {
 		return m_b.isCategory(bvec);
 	}
 	
-	public static String asCategoryString(VennModel vm, VennClass vc) {
-		StringBuffer sb = new StringBuffer();
+	public static List<String> asCategoryList(final VennModel vm, final VennClass vc) {
+		ArrayList<String> ret = new ArrayList<String>();
 		for (int i=0; i<vc.getNumClasses(); i++) {
 			if (vc.isSet(i)) {
-				if (sb.length() > 0) {
-					sb.append(" AND ");
-				}
 				for (String cat : vm.getCategories()) {
 					if (i == vm.getCategoryIndex(cat)) {
-						sb.append(cat);
+						ret.add(cat);
 						break;
 					}
 				}
 			}
 		}
-		
-		return sb.toString();
+		return ret;
 	}
 	
-	public String getCategory() {
-		return asCategoryString(m_owner, m_b);
+	public List<String> getCategory() {
+		return asCategoryList(m_owner, m_b);
 	}
 
 	public VennClass getVennClass() {
