@@ -51,7 +51,11 @@ public class PairwiseHeatMatrix {
 		if (Math.abs(max) < 0.00000000000000000001)
 			throw new InvalidSettingsException("Maximum datapoint is too close to zero!");
 	}
-	
+	 
+	/**
+	 *  Always returns a value between [0,1] since it divides by the maximum value. Exception: Double.NaN
+	 *  is returned if a pair is specified which is not present in the matrix.
+	 */
 	public double getHeat(final Pair p) {
 		Double d = matrix.get(p);
 		if (d == null)
