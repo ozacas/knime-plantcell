@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Sink">
+    <name>Apply Heat to Tree</name>
+    
+    <shortDescription>
+        Modifies a phylogenetic tree by application of pairwise data to the treA branches, thereby placing colours on regions with the data of interest. 
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>This modifies the input tree configured to include heat: a numeric value translated via a colour gradient to colour the branches of the tree. Optionally, branch widths may be set by the number of valid pairwise datapoints for taxa below the branch in the tree.
+        </intro>
+        
+        
+        <option name="Input tree">The tree to apply heat to. It will not be modified in any way</option>
+
+        <option name="Output file">The tree, after decoration with your data, is saved to this location. Always <a href="http://www.phyloxml.org">PhyloXML format</a></option>
+
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input data to label taxa">Input table including (optional) species and domain architecture information.</inPort>
+        <outPort index="0" name="Heat statistics">What happened during application of heat: which taxa were used?</outPort>
+    </ports>
+ 
+</knimeNode>
