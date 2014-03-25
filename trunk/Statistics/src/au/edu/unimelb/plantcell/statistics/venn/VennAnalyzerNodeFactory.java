@@ -26,7 +26,7 @@ public class VennAnalyzerNodeFactory
      */
     @Override
     public int getNrNodeViews() {
-        return 0;
+        return 1;
     }
 
     /**
@@ -35,7 +35,13 @@ public class VennAnalyzerNodeFactory
     @Override
     public NodeView<VennAnalyzerNodeModel> createNodeView(final int viewIndex,
             final VennAnalyzerNodeModel nodeModel) {
-        return null;
+    	try {
+    		return new VennAnalyzerNodeView(nodeModel);
+    	} catch (Exception e) {
+    		// probably NoClassDef... since KNIME SVG is not installed
+    		e.printStackTrace();
+    		return null;
+    	}
     }
 
     /**

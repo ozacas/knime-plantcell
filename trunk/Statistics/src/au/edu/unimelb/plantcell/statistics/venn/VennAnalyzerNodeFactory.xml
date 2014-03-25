@@ -38,4 +38,8 @@
        	<outPort index="1" name="Venn values">Values for each category: category names correspond to first output port</outPort>
     </ports>    
    
+   <views>
+   		<view index="1" name="Venn diagram">Displays an SVG render of the venn diagram, only supports up to five-way diagrams</view>
+   </views>
+   
 </knimeNode>

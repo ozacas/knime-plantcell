@@ -31,15 +31,14 @@ import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
 /**
  * This is the model implementation of VennAnalyzer.
- * Performs an n-way (3 or 4 recommended) venn analysis based over the values in chosen columns based on a group-by column.
+ * Performs an n-way (n<=4 recommended) venn analysis based over the values in chosen columns based on a group-by column.
  *
  * @author Andrew Cassin
  */
 public class VennAnalyzerNodeModel extends NodeModel {
     
     // the logger instance
-    private static final NodeLogger logger = NodeLogger
-            .getLogger(VennAnalyzerNodeModel.class);
+    private static final NodeLogger logger = NodeLogger.getLogger("Venn Diagram");
         
   
     static final String CFGKEY_GROUPBY = "groupby-column";
@@ -47,7 +46,7 @@ public class VennAnalyzerNodeModel extends NodeModel {
     static final String CFGKEY_N = "max-n";
     
     /**
-     * persistent members of the node
+     * persistent user configured state
      */
     private final SettingsModelString m_groupby = new SettingsModelString(CFGKEY_GROUPBY, "");
     private final SettingsModelStringArray m_value_columns = new SettingsModelStringArray(CFGKEY_VALUE_COLUMNS, new String[] {""} );
@@ -55,10 +54,16 @@ public class VennAnalyzerNodeModel extends NodeModel {
     
 
     /**
+     * results of last analysis (TODO: not currently persisted)
+     */
+    private VennModel m_venn;
+    
+    /**
      * Constructor for the node model.
      */
     protected VennAnalyzerNodeModel() {
         super(1, 2);
+        m_venn = null;
     }
 
     /**
@@ -75,6 +80,7 @@ public class VennAnalyzerNodeModel extends NodeModel {
     	BufferedDataContainer container = exec.createDataContainer(specs[0]);
     	BufferedDataContainer c2        = exec.createDataContainer(specs[1]);
     	
+    	reset();	// discard old model to save memory when computing new one...
     	
     	// 1. search group-by column for required number of up-to N categories
     	RowIterator it = inData[0].iterator();
@@ -146,8 +152,10 @@ public class VennAnalyzerNodeModel extends NodeModel {
     	}
     	
     	// 3. save results
-    	venn.outputToContainer(container);
-    	venn.outputValuesToContainer(c2);
+    	VennDataContainerAdapter adapter = new VennDataContainerAdapter(container);
+    	venn.outputToAdapter(adapter);
+    	venn.outputValuesToContainer(c2, adapter.getDoneCategories());
+    	m_venn = venn;
     	
     	// 4. done!
         container.close();
@@ -162,6 +170,7 @@ public class VennAnalyzerNodeModel extends NodeModel {
      */
     @Override
     protected void reset() {
+    	m_venn = null;
     }
 
     /**
@@ -226,6 +235,14 @@ public class VennAnalyzerNodeModel extends NodeModel {
             final ExecutionMonitor exec) throws IOException,
             CanceledExecutionException {
 
+    }
+    
+    /**
+     * Returns the model computed by last successful execute()
+     * @return
+     */
+    public VennModel getVennModel() {
+    	return m_venn;
     }
     
     /**
