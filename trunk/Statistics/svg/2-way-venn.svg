@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   version="1.2"
+   width="744.09448"
+   height="1052.3622"
+   id="svg2">
+  <defs
+     id="defs4">
+    <linearGradient
+       id="linearGradient3771">
+      <stop
+         id="stop3773"
+         style="stop-color:#00ff4d;stop-opacity:1"
+         offset="0" />
+      <stop
+         id="stop3775"
+         style="stop-color:#00ff4d;stop-opacity:0"
+         offset="1" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3765">
+      <stop
+         id="stop3767"
+         style="stop-color:#990000;stop-opacity:1"
+         offset="0" />
+      <stop
+         id="stop3769"
+         style="stop-color:#000000;stop-opacity:0"
+         offset="1" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3757">
+      <stop
+         id="stop3759"
+         style="stop-color:#990000;stop-opacity:1"
+         offset="0" />
+      <stop
+         id="stop3761"
+         style="stop-color:#000000;stop-opacity:0"
+         offset="1" />
+    </linearGradient>
+    <linearGradient
+       x1="96.47464"
+       y1="385.6615"
+       x2="442.94681"
+       y2="385.6615"
+       id="linearGradient3777-8"
+       xlink:href="#linearGradient3771-2"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       id="linearGradient3771-2">
+      <stop
+         id="stop3773-4"
+         style="stop-color:#d200ff;stop-opacity:1"
+         offset="0" />
+      <stop
+         id="stop3831"
+         style="stop-color:#7f8926;stop-opacity:0.49803922"
+         offset="0.5" />
+      <stop
+         id="stop3775-3"
+         style="stop-color:#00ff4d;stop-opacity:0"
+         offset="1" />
+    </linearGradient>
+    <linearGradient
+       x1="96.47464"
+       y1="385.6615"
+       x2="442.94681"
+       y2="385.6615"
+       id="linearGradient3763-9"
+       xlink:href="#linearGradient3765-4"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       id="linearGradient3765-4">
+      <stop
+         id="stop3767-0"
+         style="stop-color:#990000;stop-opacity:1"
+         offset="0" />
+      <stop
+         id="stop3769-1"
+         style="stop-color:#000000;stop-opacity:0"
+         offset="1" />
+    </linearGradient>
+    <linearGradient
+       x1="96.47464"
+       y1="385.6615"
+       x2="442.94681"
+       y2="385.6615"
+       id="linearGradient3798"
+       xlink:href="#linearGradient3771-2"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       x1="96.47464"
+       y1="385.6615"
+       x2="442.94681"
+       y2="385.6615"
+       id="linearGradient3800"
+       xlink:href="#linearGradient3765-4"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       x1="96.47464"
+       y1="385.6615"
+       x2="442.94681"
+       y2="385.6615"
+       id="linearGradient3836"
+       xlink:href="#linearGradient3771"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(18.182746,2.0202969)" />
+  </defs>
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     id="layer1">
+    <path
+       d="m 460.62956,387.6818 c 0,91.49427 -77.33658,165.66502 -172.73609,165.66502 -95.3995,0 -172.73608,-74.17075 -172.73608,-165.66502 0,-91.49427 77.33658,-165.66502 172.73608,-165.66502 95.39951,0 172.73609,74.17075 172.73609,165.66502 z"
+       id="path2985"
+       style="fill:url(#linearGradient3836);fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:3;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+    <path
+       d="m 442.44681,385.6615 a 172.73608,165.66502 0 1 1 -345.47217,0 172.73608,165.66502 0 1 1 345.47217,0 z"
+       transform="matrix(-1,0,0,1,772.7667,4.0406114)"
+       id="path2985-3"
+       style="fill:url(#linearGradient3798);fill-opacity:1;fill-rule:evenodd;stroke:url(#linearGradient3800);stroke-width:3;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+    <flowRoot
+       id="flowRoot3840"
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"><flowRegion
+         id="flowRegion3842"><rect
+           width="256.57874"
+           height="56.568523"
+           x="90.913727"
+           y="585.67169"
+           id="rect3844" /></flowRegion><flowPara
+         id="flowPara3846">@A@</flowPara></flowRoot>    <flowRoot
+       transform="translate(463.61183,-8.547943)"
+       id="flowRoot3840-4"
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"><flowRegion
+         id="flowRegion3842-0"><rect
+           width="256.57874"
+           height="56.568523"
+           x="90.913727"
+           y="585.67169"
+           id="rect3844-9" /></flowRegion><flowPara
+         id="flowPara3846-8">@B@</flowPara></flowRoot>    <flowRoot
+       transform="translate(32.061327,-169.96569)"
+       id="flowRoot3840-0"
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"><flowRegion
+         id="flowRegion3842-1"><rect
+           width="256.57874"
+           height="56.568523"
+           x="90.913727"
+           y="585.67169"
+           id="rect3844-3" /></flowRegion><flowPara
+         id="flowPara3846-6">@CNT_A@</flowPara></flowRoot>    <flowRoot
+       transform="translate(185.04242,-233.75137)"
+       id="flowRoot3840-0-1"
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"><flowRegion
+         id="flowRegion3842-1-2"><rect
+           width="256.57874"
+           height="56.568523"
+           x="90.913727"
+           y="585.67169"
+           id="rect3844-3-2" /></flowRegion><flowPara
+         id="flowPara3846-6-4"
+         style="text-align:center;text-anchor:middle">@CNT_AB@</flowPara></flowRoot>    <flowRoot
+       transform="translate(316.47098,-168.75137)"
+       id="flowRoot3840-0-6"
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"><flowRegion
+         id="flowRegion3842-1-3"><rect
+           width="256.57874"
+           height="56.568523"
+           x="90.913727"
+           y="585.67169"
+           id="rect3844-3-24" /></flowRegion><flowPara
+         id="flowPara3846-6-1"
+         style="text-align:end;text-anchor:end">@CNT_B@</flowPara></flowRoot>  </g>
+</svg>
