@@ -15,6 +15,11 @@
             id="au.edu.unimelb.plantcell.io.write.phyloxml.PhyloXMLWriterNodeFactory"/>
             
       <node
+            category-path="/Bioinformatics/Write"
+            factory-class="au.edu.unimelb.plantcell.io.write.phyloxml.heat.ApplyHeatNodeFactory"
+            id="au.edu.unimelb.plantcell.io.write.phyloxml.heat.ApplyHeatNodeFactory"/>
+            
+      <node
             category-path="/Bioinformatics/Phylogenetics"
             factory-class="au.edu.unimelb.plantcell.io.pruner.TreePruneNodeFactory"
             id="au.edu.unimelb.plantcell.io.pruner.TreePruneNodeFactory"/>

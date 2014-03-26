@@ -42,6 +42,14 @@
         <option name="End positions">A list of values which describe the end position of each feature. GroupBy "list" aggregation function can be used to create the required cell</option>
         </tab>
         
+        <tab name="Vector Data">
+        	<option name="Collection of numeric values">This column (which must be a collection of numeric cells) is mapped
+        	onto the clade owning the given taxa in the tree. The result in the phyloxml is a series of heatmaps one per taxa
+        	of the collection. Collections may be omitted (ie. missing values) but all items in the collection should be valid
+        	numeric values. Set collections are not recommended as the order will be indeterminate in the heatmap. An example
+        	of this type of display can be <a href="https://sites.google.com/site/cmzmasek/home/software/archaeopteryx/documentation#TOC-Reading-and-Displaying-of-Expression-and-Other-Vector-Data">found here</a>
+        	</option>
+        </tab>
     </fullDescription>
     
     <ports>
