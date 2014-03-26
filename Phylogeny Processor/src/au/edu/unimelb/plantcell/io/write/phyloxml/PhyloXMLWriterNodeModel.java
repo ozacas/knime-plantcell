@@ -80,6 +80,7 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
 	static final String CFGKEY_WANT_IMAGES   = "image-url";
 	static final String CFGKEY_ASSUME_SUPPORT= "assume-internal-node-names-are-support?";
 	static final String CFGKEY_BRANCH_WIDTHS = "branch-width-column";
+	static final String CFGKEY_VECTOR_DATA   = "vector-data-column";
     
 	// persisted state
 	private final SettingsModelString m_infile = new SettingsModelString(CFGKEY_INFILE, "");
@@ -96,6 +97,7 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
 	private final SettingsModelString m_image_url = new SettingsModelString(CFGKEY_WANT_IMAGES, "");
 	private final SettingsModelBoolean m_assume_support = new SettingsModelBoolean(CFGKEY_ASSUME_SUPPORT, Boolean.FALSE);
 	private final SettingsModelString m_branch_widths = new SettingsModelString(CFGKEY_BRANCH_WIDTHS, "");
+	private final SettingsModelString m_vector_data = new SettingsModelString(CFGKEY_VECTOR_DATA, "");	// some workflows wont have this setting saved: backward compatibility
 	
    
 	// not persisted -- used during execute()
@@ -120,12 +122,13 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     	// 0. find the various columns, some are mandatory others not
     	int taxa_idx = inData[0].getSpec().findColumnIndex(m_taxa.getStringValue());
     	if (taxa_idx < 0)
-    		throw new InvalidSettingsException("Cannot find column of taxa labels: "+m_taxa.getStringValue());
+    		throw new InvalidSettingsException("Cannot find column of sequences to decorate onto tree (reconfigure?): "+m_taxa.getStringValue());
     	int species_idx    = inData[0].getSpec().findColumnIndex(m_species.getStringValue());
     	int dom_labels_idx = inData[0].getSpec().findColumnIndex(m_domain_labels.getStringValue());
     	int dom_start_idx  = inData[0].getSpec().findColumnIndex(m_domain_starts.getStringValue());
     	int dom_end_idx    = inData[0].getSpec().findColumnIndex(m_domain_ends.getStringValue());
     	int image_idx      = inData[0].getSpec().findColumnIndex(m_image_url.getStringValue());
+    	int vector_idx     = inData[0].getSpec().findColumnIndex(m_vector_data.getStringValue());
     	logger.info("Using taxa column '"+m_taxa.getStringValue()+"' to map onto tree");
     	if (species_idx >= 0) {
     		logger.info("Using species column: "+m_species.getStringValue());
@@ -506,6 +509,7 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     	m_image_url.saveSettingsTo(settings);
     	m_assume_support.saveSettingsTo(settings);
     	m_branch_widths.saveSettingsTo(settings);
+    	m_vector_data.saveSettingsTo(settings);
     }
 
     /**
@@ -536,6 +540,11 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     	} else {
     		m_branch_widths.setStringValue("");
     	}
+    	if (settings.containsKey(CFGKEY_VECTOR_DATA)) {
+    		m_vector_data.loadSettingsFrom(settings);
+    	} else {
+    		m_vector_data.setStringValue("");
+    	}
     }
 
     /**
@@ -557,9 +566,10 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     	m_save_sequence.validateSettings(settings);
     	m_image_url.validateSettings(settings);
     	
-    	// left out for backward compatibility
+    	// the settings have been left out for backward compatibility (as some saved workflows may not have the data)
     	//m_assume_support.validateSettings(settings);
     	//m_branch_widths.validateSettings(settings);
+    	//m_vector_data.validateSettings(settings);
     }
     
     /**

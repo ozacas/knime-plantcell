@@ -1,12 +1,16 @@
 package au.edu.unimelb.plantcell.io.write.phyloxml;
 
 import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataType;
 import org.knime.core.data.IntValue;
 import org.knime.core.data.StringValue;
+import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.IntCell;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
 import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
+import org.knime.core.node.defaultnodesettings.DialogComponentLabel;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
@@ -116,6 +120,34 @@ public class PhyloXMLWriterNodeDialog extends DefaultNodeSettingsPane {
         		new SettingsModelString(PhyloXMLWriterNodeModel.CFGKEY_DOMAIN_ENDS, ""), "End positions for domains (collection) from... ",
         		0, false, true, cf
         		));
+        
+        createNewTab("Vector Data");
+        addDialogComponent(new DialogComponentLabel("Please select a collection of numeric values to be displayed as a numeric" +
+        		"vector for each taxa (related to the node) in the tree. Vectors can be omitted (missing values are supported)."));
+        addDialogComponent(new DialogComponentColumnNameSelection(
+        		new SettingsModelString(PhyloXMLWriterNodeModel.CFGKEY_VECTOR_DATA, ""),
+        		"Collection column with numeric data (consider scaling it)", 
+        		0, false, true, new ColumnFilter() {
+
+					@Override
+					public boolean includeColumn(DataColumnSpec colSpec) {
+						assert(colSpec != null);
+						if (colSpec.getType().isCollectionType()) {
+							DataType dt = colSpec.getType().getCollectionElementType();
+							if (dt.equals(DoubleCell.TYPE) || dt.equals(IntCell.TYPE)) {
+								return true;
+							}
+							// else fallthru...
+						}
+						return false;
+					}
+
+					@Override
+					public String allFilteredMsg() {
+						return "No suitable column with a list of numeric values!";
+					}
+        			
+        		}));
     }
 }
 
