@@ -39,7 +39,7 @@
     </ports>    
    
    <views>
-   		<view index="1" name="Venn diagram">Displays an SVG render of the venn diagram, only supports up to five-way diagrams</view>
+   		<view index="0" name="Venn diagram">Displays an SVG render of the venn diagram, only supports up to five-way diagrams</view>
    </views>
    
 </knimeNode>
