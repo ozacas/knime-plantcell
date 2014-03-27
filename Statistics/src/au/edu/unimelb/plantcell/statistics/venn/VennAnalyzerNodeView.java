@@ -1,10 +1,9 @@
 package au.edu.unimelb.plantcell.statistics.venn;
 
 import java.awt.Dimension;
+import java.awt.geom.AffineTransform;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -20,6 +19,7 @@ import java.util.logging.Logger;
 import javax.swing.JScrollPane;
 
 import org.apache.batik.swing.JSVGCanvas;
+import org.apache.batik.swing.JSVGScrollPane;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
@@ -38,10 +38,13 @@ public class VennAnalyzerNodeView extends NodeView<VennAnalyzerNodeModel> {
 	
 	protected VennAnalyzerNodeView(VennAnalyzerNodeModel nodeModel) {
 		super(nodeModel);
-		canvas.setPreferredSize(new Dimension(600,600));
-		this.setComponent(new JScrollPane(canvas));
+		JSVGScrollPane sp = new JSVGScrollPane(canvas);
+		
+		sp.setPreferredSize(new Dimension(600,600));
+		//sp.getViewport().setPreferredSize(new Dimension(600,600));
+		this.setComponent(sp);
 	}
-
+	
 	@Override
 	protected void onClose() {
 		// NO-OP: maybe cleanup batik?
