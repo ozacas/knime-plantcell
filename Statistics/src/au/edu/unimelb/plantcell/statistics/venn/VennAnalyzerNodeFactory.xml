@@ -9,15 +9,18 @@
     
     <fullDescription>
         <intro>This node constructs the necessary data for a Venn Diagram based on the input to the node.
-        It groups into each "pie" of the venn diagram on the distinct values present in the group-by column,
-        up to a maximum number of values as specified by the configuration of the node. Values are
-        extracted from individual collection column values or string columns.
+        It groups into each "pie" of the venn diagram on the <b>distinct values</b> present in the group-by column,
+        up to a maximum number of pies as specified by the configuration of the node. Distinc values are
+        processed from the chosen value columns: which may be a list/set cell or string columns.
+        <p>
         This node has two output ports: 
         <ol>
         <li>the first with the counts in each pie of the venn diagram</li>
         <li>the second with the values in each category</li>
         </ol>
-        This node calculates in terms of set semantics (multiple occurences of a given value count as one).
+        This node calculates in terms of set semantics (ie. multiple occurences of a given value count as one).
+        </p>
+        
         <p>
         More details about venn analyses can be found at <a href="http://en.wikipedia.org/wiki/Venn_diagram">wikipedia</a>.
         Although the node does not currently visualise the venn dataset, enough begs to the author may change that <tt>;-)</tt>.
@@ -39,7 +42,7 @@
     </ports>    
    
    <views>
-   		<view index="0" name="Venn diagram">Displays an SVG render of the venn diagram, only supports up to five-way diagrams</view>
+   		<view index="0" name="Venn diagram">Displays an SVG render of the venn diagram, only supports up to four-way diagrams</view>
    </views>
    
 </knimeNode>
