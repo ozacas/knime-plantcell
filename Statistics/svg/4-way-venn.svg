@@ -7,38 +7,12 @@
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="588.86041"
-   height="391.2063"
-   id="svg2"
    version="1.1"
-   inkscape:version="0.48.4 r9939"
-   sodipodi:docname="4-way-venn.svg">
+   width="563.13281"
+   height="387.23001"
+   id="svg2">
   <defs
      id="defs4" />
-  <sodipodi:namedview
-     id="base"
-     pagecolor="#ffffff"
-     bordercolor="#666666"
-     borderopacity="1.0"
-     inkscape:pageopacity="0.0"
-     inkscape:pageshadow="2"
-     inkscape:zoom="2.8"
-     inkscape:cx="183.81718"
-     inkscape:cy="67.166184"
-     inkscape:document-units="px"
-     inkscape:current-layer="layer1"
-     showgrid="false"
-     fit-margin-top="0"
-     fit-margin-left="0"
-     fit-margin-right="0"
-     fit-margin-bottom="0"
-     inkscape:window-width="1317"
-     inkscape:window-height="744"
-     inkscape:window-x="49"
-     inkscape:window-y="24"
-     inkscape:window-maximized="1" />
   <metadata
      id="metadata7">
     <rdf:RDF>
@@ -47,236 +21,233 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
   <g
-     inkscape:label="Layer 1"
-     inkscape:groupmode="layer"
-     id="layer1"
-     transform="translate(-97.610193,-392.13964)">
+     transform="translate(-52.610188,-418.92609)"
+     id="layer1">
     <path
-       sodipodi:type="arc"
-       style="fill:none;stroke:#d20000;stroke-width:2;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
-       id="path2985"
-       sodipodi:cx="407.14285"
-       sodipodi:cy="592.36218"
-       sodipodi:rx="61.42857"
-       sodipodi:ry="200"
-       d="m 468.57142,592.36218 c 0,110.45695 -27.5025,200 -61.42857,200 -33.92606,0 -61.42857,-89.54305 -61.42857,-200 0,-110.45695 27.50251,-200 61.42857,-200 33.92607,0 61.42857,89.54305 61.42857,200 z"
-       transform="matrix(0.6691306,-0.74314483,0.74314483,0.6691306,-459.7855,544.27492)" />
-    <path
-       sodipodi:type="arc"
-       style="opacity:0.8330041;fill:none;stroke:#000000;stroke-width:3;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
-       id="path2985-6"
-       sodipodi:cx="407.14285"
-       sodipodi:cy="592.36218"
-       sodipodi:rx="61.42857"
-       sodipodi:ry="200"
-       d="m 468.57142,592.36218 c 0,110.45695 -27.5025,200 -61.42857,200 -33.92606,0 -61.42857,-89.54305 -61.42857,-200 0,-110.45695 27.50251,-200 61.42857,-200 33.92607,0 61.42857,89.54305 61.42857,200 z"
-       transform="matrix(-0.61566148,-0.78801076,-0.78801076,0.61566148,1240.3071,605.64342)" />
-    <path
-       sodipodi:type="arc"
-       style="opacity:0.47736631;fill:none;stroke:#0000b6;stroke-width:3;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
-       id="path2985-6-8"
-       sodipodi:cx="407.14285"
-       sodipodi:cy="592.36218"
-       sodipodi:rx="61.42857"
-       sodipodi:ry="200"
-       d="m 468.57142,592.36218 c 0,110.45695 -27.5025,200 -61.42857,200 -33.92606,0 -61.42857,-89.54305 -61.42857,-200 0,-110.45695 27.50251,-200 61.42857,-200 33.92607,0 61.42857,89.54305 61.42857,200 z"
-       transform="matrix(-1.1824353,-0.27540467,-0.33905789,0.9604502,1119.2294,131.98543)" />
-    <path
-       sodipodi:type="arc"
-       style="fill:none;stroke:#00ba00;stroke-width:3;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="m 468.57142,592.36218 a 61.42857,200 0 1 1 -122.85714,0 61.42857,200 0 1 1 122.85714,0 z"
+       transform="matrix(1.6209318,-0.22933856,0.46479464,0.79979852,-697.42041,259.82244)"
        id="path2985-6-8-3"
-       sodipodi:cx="407.14285"
-       sodipodi:cy="592.36218"
-       sodipodi:rx="61.42857"
-       sodipodi:ry="200"
-       d="m 468.57142,592.36218 c 0,110.45695 -27.5025,200 -61.42857,200 -33.92606,0 -61.42857,-89.54305 -61.42857,-200 0,-110.45695 27.50251,-200 61.42857,-200 33.92607,0 61.42857,89.54305 61.42857,200 z"
-       transform="matrix(1.1634702,-0.27542371,0.33361967,0.9605166,-340.60794,129.81099)" />
+       style="fill:none;stroke:#00ba00;stroke-width:3;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
     <text
-       xml:space="preserve"
-       style="font-size:71.8536911px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
        x="211.71179"
        y="-351.69943"
+       transform="scale(0.55668676,-1.7963424)"
        id="text5253"
-       sodipodi:linespacing="125%"
-       transform="scale(0.55668676,-1.7963424)"><tspan
-         sodipodi:role="line"
-         id="tspan5255"
+       xml:space="preserve"
+       style="font-size:71.8536911px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"><tspan
          x="211.71179"
          y="-351.69943"
+         id="tspan5255"
          style="font-size:16.16708183px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:Sans;-inkscape-font-specification:Sans" /></text>
     <text
-       xml:space="preserve"
-       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
-       x="106.18162"
-       y="490.84595"
+       x="79.753044"
+       y="694.41742"
        id="text5276"
-       sodipodi:linespacing="125%"><tspan
-         sodipodi:role="line"
-         id="tspan5278"
-         x="106.18162"
-         y="490.84595"
-         style="font-size:9px">@A@</tspan></text>
-    <text
        xml:space="preserve"
-       style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:end;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:end;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
-       x="243.05159"
-       y="401.91568"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"><tspan
+         x="79.753044"
+         y="694.41742"
+         id="tspan5278"
+         style="font-size:9px">             @A@</tspan></text>
+    <text
+       x="231.62302"
+       y="425.48712"
        id="text5276-8"
-       sodipodi:linespacing="125%"><tspan
-         sodipodi:role="line"
+       xml:space="preserve"
+       style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:end;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:end;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"><tspan
+         x="231.62302"
+         y="425.48712"
          id="tspan5278-5"
-         x="243.05159"
-         y="401.91568"
          style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:end;line-height:125%;writing-mode:lr-tb;text-anchor:end;font-family:Sans;-inkscape-font-specification:Sans">@B@</tspan></text>
     <text
-       xml:space="preserve"
-       style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:end;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:end;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
-       x="463.40875"
-       y="403.34424"
+       x="470.55161"
+       y="429.05853"
        id="text5276-9"
-       sodipodi:linespacing="125%"
-       inkscape:transform-center-x="20.357143"><tspan
-         sodipodi:role="line"
+       xml:space="preserve"
+       style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:end;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:end;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"><tspan
+         x="470.55161"
+         y="429.05853"
          id="tspan5278-1"
-         x="463.40875"
-         y="403.34424"
          style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:end;line-height:125%;writing-mode:lr-tb;text-anchor:end;font-family:Sans;-inkscape-font-specification:Sans">@C@</tspan></text>
     <text
-       xml:space="preserve"
-       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
-       x="604.83734"
-       y="511.5585"
+       x="506.98019"
+       y="677.98706"
        id="text5276-7"
-       sodipodi:linespacing="125%"><tspan
-         sodipodi:role="line"
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"><tspan
+         x="506.98019"
+         y="677.98706"
          id="tspan5278-10"
-         x="604.83734"
-         y="511.5585"
          style="font-size:9px">@D@</tspan></text>
     <text
-       xml:space="preserve"
-       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
-       x="162.73206"
-       y="562.63165"
+       x="149.16064"
+       y="600.48883"
        id="text5337"
-       sodipodi:linespacing="125%"><tspan
-         sodipodi:role="line"
-         id="tspan5339"
-         x="139.75305"
-         y="562.63165"
-         style="font-size:9px;text-anchor:middle;text-align:center">@CNT_A@</tspan></text>
-    <text
        xml:space="preserve"
-       style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
-       x="290.82446"
-       y="483.34592"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"><tspan
+         x="149.16064"
+         y="600.48883"
+         id="tspan5339"
+         style="font-size:9px;text-align:center;text-anchor:middle">@CNT_A@</tspan></text>
+    <text
+       x="214.39589"
+       y="477.63162"
        id="text5341"
-       sodipodi:linespacing="125%"><tspan
-         sodipodi:role="line"
+       xml:space="preserve"
+       style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"><tspan
+         x="214.39589"
+         y="477.63162"
          id="tspan5343"
-         x="290.82446"
-         y="483.34592"
          style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans">@CNT_B@</tspan></text>
     <text
-       xml:space="preserve"
-       style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
-       x="473.31488"
-       y="485.26736"
+       x="416.17203"
+       y="473.83881"
        id="text5341-3"
-       sodipodi:linespacing="125%"><tspan
-         sodipodi:role="line"
+       xml:space="preserve"
+       style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"><tspan
+         x="416.17203"
+         y="473.83881"
          id="tspan5343-8"
-         x="473.31488"
-         y="485.26736"
          style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans">@CNT_C@</tspan></text>
     <text
-       xml:space="preserve"
-       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;text-anchor:middle;text-align:center"
-       x="592.39484"
-       y="589.19592"
+       x="506.68051"
+       y="610.62445"
        id="text5341-37"
-       sodipodi:linespacing="125%"><tspan
-         sodipodi:role="line"
-         id="tspan5343-6"
-         x="569.02911"
-         y="589.19592"
-         style="font-size:9px;text-anchor:middle;text-align:center">@CNT_D@</tspan></text>
-    <text
        xml:space="preserve"
-       style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
-       x="459.02914"
-       y="657.0531"
+       style="font-size:40px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"><tspan
+         x="506.68051"
+         y="610.62445"
+         id="tspan5343-6"
+         style="font-size:9px;text-align:center;text-anchor:middle">@CNT_D@</tspan></text>
+    <text
+       x="447.60059"
+       y="542.7674"
        id="text5341-7"
-       sodipodi:linespacing="125%"><tspan
-         sodipodi:role="line"
+       xml:space="preserve"
+       style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"><tspan
+         x="447.60059"
+         y="542.7674"
          id="tspan5343-1"
-         x="459.02914"
-         y="657.0531"
          style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans">@CNT_CD@</tspan></text>
     <text
-       xml:space="preserve"
-       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;text-anchor:middle;text-align:center"
-       x="382.2272"
-       y="639.19592"
+       x="327.2272"
+       y="557.0531"
        id="text5341-4"
-       sodipodi:linespacing="125%"><tspan
-         sodipodi:role="line"
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"><tspan
+         x="327.2272"
+         y="557.0531"
          id="tspan5343-7"
-         x="356.17203"
-         y="639.19592"
-         style="font-size:9px;text-anchor:middle;text-align:center">@CNT_BC@</tspan></text>
+         style="font-size:9px;text-align:center;text-anchor:middle">@CNT_BC@</tspan></text>
     <text
-       xml:space="preserve"
-       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;text-anchor:middle;text-align:center"
-       x="313.66455"
-       y="654.91022"
+       x="219.37883"
+       y="572.76733"
        id="text5341-1"
-       sodipodi:linespacing="125%"><tspan
-         sodipodi:role="line"
-         id="tspan5343-4"
-         x="287.60059"
-         y="654.91022"
-         style="font-size:9px;text-anchor:middle;text-align:center">@CNT_AB@</tspan></text>
-    <text
        xml:space="preserve"
-       style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
-       x="360.81485"
-       y="703.12445"
+       style="font-size:40px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"><tspan
+         x="219.37883"
+         y="572.76733"
+         id="tspan5343-4"
+         style="font-size:9px;text-align:center;text-anchor:middle">@CNT_AB@</tspan></text>
+    <text
+       x="283.672"
+       y="642.41016"
        id="text5341-8"
-       sodipodi:linespacing="125%"><tspan
-         sodipodi:role="line"
+       xml:space="preserve"
+       style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"><tspan
+         x="283.672"
+         y="642.41016"
          id="tspan5343-0"
-         x="360.81485"
-         y="703.12445"
          style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans">@CNT_ABC@</tspan></text>
     <text
-       xml:space="preserve"
-       style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
-       x="386.88626"
-       y="754.55316"
+       x="334.02911"
+       y="702.41028"
        id="text5341-11"
-       sodipodi:linespacing="125%"><tspan
-         sodipodi:role="line"
+       xml:space="preserve"
+       style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"><tspan
+         x="334.02911"
+         y="702.41028"
          id="tspan5343-45"
-         x="386.88626"
-         y="754.55316"
          style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans">@CNT_ABCD@</tspan></text>
     <text
-       xml:space="preserve"
-       style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
-       x="409.02914"
-       y="709.5531"
+       x="371.172"
+       y="630.2674"
        id="text5341-72"
-       sodipodi:linespacing="125%"><tspan
-         sodipodi:role="line"
+       xml:space="preserve"
+       style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"><tspan
+         x="371.172"
+         y="630.2674"
          id="tspan5343-64"
-         x="409.02914"
-         y="709.5531"
          style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans">@CNT_BCD@</tspan></text>
+    <path
+       d="m 468.57142,592.36218 a 61.42857,200 0 1 1 -122.85714,0 61.42857,200 0 1 1 122.85714,0 z"
+       transform="matrix(1.5409639,-0.22382144,0.44186421,0.78055804,-602.24018,220.67161)"
+       id="path2985-6-8-3-4"
+       style="fill:none;stroke:#c20000;stroke-width:3;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+    <path
+       d="m 468.57142,592.36218 a 61.42857,200 0 1 1 -122.85714,0 61.42857,200 0 1 1 122.85714,0 z"
+       transform="matrix(-1.5409639,-0.22382144,-0.44186421,0.78055804,1258.8891,223.52874)"
+       id="path2985-6-8-3-4-2"
+       style="fill:none;stroke:#0000ca;stroke-width:3;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+    <path
+       d="m 468.57142,592.36218 a 61.42857,200 0 1 1 -122.85714,0 61.42857,200 0 1 1 122.85714,0 z"
+       transform="matrix(-1.5409639,-0.22382144,-0.44186421,0.78055804,1313.1749,252.81446)"
+       id="path2985-6-8-3-4-27"
+       style="fill:none;stroke:#000000;stroke-width:3;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+    <text
+       x="266.91345"
+       y="722.7204"
+       id="text5341-11-8"
+       xml:space="preserve"
+       style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"><tspan
+         x="266.91345"
+         y="722.7204"
+         id="tspan5343-45-0"
+         style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans">@CNT_AC@</tspan></text>
+    <text
+       x="340.48489"
+       y="766.29181"
+       id="text5341-11-5"
+       xml:space="preserve"
+       style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"><tspan
+         x="340.48489"
+         y="766.29181"
+         id="tspan5343-45-00"
+         style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans">@CNT_AD@</tspan></text>
+    <text
+       x="315.48489"
+       y="743.43463"
+       id="text5341-11-8-7"
+       xml:space="preserve"
+       style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"><tspan
+         x="315.48489"
+         y="743.43463"
+         id="tspan5343-45-0-7"
+         style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans">@CNT_ACD@</tspan></text>
+    <text
+       x="361.19919"
+       y="740.57751"
+       id="text5341-11-8-8"
+       xml:space="preserve"
+       style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"><tspan
+         x="361.19919"
+         y="740.57751"
+         id="tspan5343-45-0-79"
+         style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans">@CNT_ABD@</tspan></text>
+    <text
+       x="394.05634"
+       y="719.86322"
+       id="text5341-11-8-9"
+       xml:space="preserve"
+       style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"><tspan
+         x="394.05634"
+         y="719.86322"
+         id="tspan5343-45-0-5"
+         style="font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans">@CNT_BD@</tspan></text>
   </g>
 </svg>
