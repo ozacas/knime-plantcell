@@ -1,7 +1,6 @@
 package au.edu.unimelb.plantcell.statistics.venn;
 
 import java.awt.Dimension;
-import java.awt.geom.AffineTransform;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
@@ -15,8 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-
-import javax.swing.JScrollPane;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.batik.swing.JSVGCanvas;
 import org.apache.batik.swing.JSVGScrollPane;
@@ -41,7 +40,6 @@ public class VennAnalyzerNodeView extends NodeView<VennAnalyzerNodeModel> {
 		JSVGScrollPane sp = new JSVGScrollPane(canvas);
 		
 		sp.setPreferredSize(new Dimension(600,600));
-		//sp.getViewport().setPreferredSize(new Dimension(600,600));
 		this.setComponent(sp);
 	}
 	
@@ -185,6 +183,7 @@ public class VennAnalyzerNodeView extends NodeView<VennAnalyzerNodeModel> {
 			pw = new PrintWriter(new FileWriter(ret));
 			String line;
 			while ((line = rdr.readLine()) != null) {
+				line = makeLineWithSafeSubstitutions(substitution_map, line);
 				pw.println(line);
 			}
 			pw.close();
@@ -204,6 +203,37 @@ public class VennAnalyzerNodeView extends NodeView<VennAnalyzerNodeModel> {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Replace the markers in the SVG input line (as specified by line) with the
+	 * corresponding data points (and titles) from the model as specified by the <code>substitution_map</code>
+	 * 
+	 * @param substitution_map must not be NULL and should not be empty
+	 * @param line must not be null
+	 * @return the substituted line (if any are present on the line)
+	 */
+	private String makeLineWithSafeSubstitutions(
+			Map<String, String> substitution_map, String line) {
+		assert(substitution_map != null && line != null);
+		
+		// performance optimisation
+		if (line.indexOf('@') < 0)
+			return line;
+		
+		// otherwise we regex...
+		Pattern p = Pattern.compile("@(\\w+)@");
+		Matcher m = p.matcher(line);
+		String ret = new String(line);
+		while (m.find()) {
+			String key = m.group(1);
+			if (substitution_map.containsKey(key)) {
+				ret = ret.replaceAll("@"+key+"@", StringEscapeUtils.escapeXml(substitution_map.get(key)));
+			} else {
+				// KEY not in map... we could throw but for now we are silent in case the SVG has @'s in them...
+			}
+		}
+		return ret;
 	}
 	
 }
