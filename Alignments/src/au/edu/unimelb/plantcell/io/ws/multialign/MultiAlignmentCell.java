@@ -39,6 +39,11 @@ public class MultiAlignmentCell extends DataCell implements AlignmentValue, Seri
 
 	private Alignment             m_a;
   
+	/**
+	 * Constructs a multiple alignment instance from the aligned FASTA format input eg. output from Muscle/Mafft
+	 * @param fasta
+	 * @throws IOException
+	 */
 	public MultiAlignmentCell(String fasta) throws IOException {
 		this(fasta, AlignmentType.AL_AA);
 	}
