@@ -152,6 +152,7 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     	HashMap<String,DomainArchitecture> domain_map = new HashMap<String,DomainArchitecture>();
     	HashMap<String,SequenceValue> taxa_map = new HashMap<String,SequenceValue>();
     	HashMap<String,String> taxa2bwval = new HashMap<String,String>();	// only populated if want_branch_widths
+    	HashMap<String,VectorDataList> taxa2vectordata = new HashMap<String,VectorDataList>();
     	int not_decorated = 0;
     	int bw_idx = inData[0].getSpec().findColumnIndex(m_branch_widths.getStringValue());
     	boolean want_branch_widths = (bw_idx >= 0);
@@ -211,12 +212,19 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     			if (branch_value != null && !branch_value.isMissing())
     				taxa2bwval.put(taxa, branch_value.toString());
     		}
+    		
+    		if (vector_idx >= 0) {
+    			DataCell vector_data_cell = r.getCell(vector_idx);
+    			if (!vector_data_cell.isMissing())
+    				taxa2vectordata.put(taxa, new VectorDataList(vector_data_cell));
+    		}
     	}
     	logger.info("Colour map has "+colour_map.size()+" taxa.");
     	logger.info("Species map has "+species_map.size()+" taxa.");
     	logger.info("Domain map has "+domain_map.size()+" taxa.");
     	logger.info("Taxa map has "+taxa_map.size()+" taxa.");
     	logger.info("Branch width value map has "+taxa2bwval.size()+" taxa.");
+    	logger.info("Vector data map has "+taxa2vectordata.size()+ " taxa.");
     	
     	MyDataContainer c = new MyDataContainer(exec.createDataContainer(make_output_spec()), "Row");
     	
@@ -278,6 +286,12 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     				is_decorated = true;
     			}
     			
+    			if (taxa2vectordata.containsKey(taxa)) {
+    				VectorDataList vdl = taxa2vectordata.get(taxa);
+    				assert(vdl != null);
+    				vdl.setNodeVector(n);
+    			}
+    			
     			// we just build up s for now, and then decide later whether to use it with the annotation data
     			Sequence s = new Sequence();
 				if (m_save_sequence.getBooleanValue()) {
@@ -327,6 +341,8 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
     		}
     		
 	    	HashMap<String,List<String>> missing_widths = new HashMap<String,List<String>>();
+	    	int min_bw = Integer.MAX_VALUE;
+	    	int max_bw = Integer.MIN_VALUE;
 	    	for (Phylogeny phy : phys) {
 	    		for (final PhylogenyNodeIterator it = phy.iteratorPostorder(); it.hasNext(); ) {
 	    			final PhylogenyNode n = it.next();
@@ -342,11 +358,17 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
 	    			} else {
 	    				BranchData bd = n.getBranchData();
 	    				assert(bd != null);
-	    				BranchWidth bw = new BranchWidth(want_sqrt ? Math.sqrt(set.size()) : set.size());
+	    				int size = set.size();
+	    				if (size > max_bw) 
+	    					max_bw = size;
+	    				if (size < min_bw)
+	    					min_bw = size;
+	    				BranchWidth bw = new BranchWidth(want_sqrt ? Math.sqrt(size) : size);
 	    				bd.setBranchWidth(bw);
 	    			}
 	    		}
 	    	}
+	    	logger.info("Minimum branch width decorated onto tree was "+min_bw+", maximum was "+max_bw);
 	    	
 	    	if (missing_widths.size() > 0) {
 	    		logger.warn(""+missing_widths.size()+" tree nodes do not have branch widths set (input taxa table is incomplete?). These correspond to nodes with the following descendants:");
