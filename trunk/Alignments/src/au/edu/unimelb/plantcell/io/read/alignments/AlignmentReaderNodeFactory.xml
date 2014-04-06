@@ -10,9 +10,7 @@
     <fullDescription>
         <intro>
       		Supports reading a single alignment file into the KNIME platform
-        </intro>
-        
-        
+        </intro> 
     </fullDescription>
     
     <ports>
@@ -20,4 +18,8 @@
         <!-- possibly more output ports here-->
     </ports>    
   
+  	<views>
+  		<view index="0" name="JalView">Opens the chosen alignment with jalview (see http://www.jalview.org for more details)</view>
+  	</views>
+  	
 </knimeNode>

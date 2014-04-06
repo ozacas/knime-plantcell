@@ -47,8 +47,8 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
  *
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
-public class MultiAlignerNodeModel extends NodeModel {
-	private static final NodeLogger logger = NodeLogger.getLogger(MultiAlignerNodeModel.class);
+public class MultiAlignerNodeModel extends NodeModel implements AlignmentViewDataModel {
+	private static final NodeLogger logger = NodeLogger.getLogger("Multiple Sequence Alignment");
 	  
     public static final String CFGKEY_EMAIL = "email";
 	public static final String CFGKEY_SEQ_COL = "sequence-column";
@@ -331,13 +331,16 @@ public class MultiAlignerNodeModel extends NodeModel {
 			 FileOutputStream fos = new FileOutputStream(file);
 			 modelContent.saveToXML(fos);
     }
-
-	public String[] getRowIDs() {
-		return m_alignment_map.keySet().toArray(new String[0]);
-	}
 	
 	public AlignmentValue getAlignment(String row_id) {
 		return m_alignment_map.get(row_id);
+	}
+
+	@Override
+	public List<String> getAlignmentRowIDs() {
+		ArrayList<String> ret = new ArrayList<String>(m_alignment_map.size());
+		ret.addAll(m_alignment_map.keySet());
+		return ret;
 	}
 
 }

@@ -2,8 +2,10 @@ package au.edu.unimelb.plantcell.io.muscle;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.exec.CommandLine;
@@ -39,7 +41,9 @@ import au.edu.unimelb.plantcell.core.cells.SequenceType;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 import au.edu.unimelb.plantcell.io.write.fasta.FastaWriter;
 import au.edu.unimelb.plantcell.io.ws.multialign.AlignmentCellFactory;
+import au.edu.unimelb.plantcell.io.ws.multialign.AlignmentValue;
 import au.edu.unimelb.plantcell.io.ws.multialign.AlignmentValue.AlignmentType;
+import au.edu.unimelb.plantcell.io.ws.multialign.AlignmentViewDataModel;
 import au.edu.unimelb.plantcell.io.ws.multialign.MultiAlignmentCell;
 
 
@@ -49,7 +53,7 @@ import au.edu.unimelb.plantcell.io.ws.multialign.MultiAlignmentCell;
  *
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
-public class LocalMuscleNodeModel extends NodeModel {
+public class LocalMuscleNodeModel extends NodeModel implements AlignmentViewDataModel {
 	private final NodeLogger logger = NodeLogger.getLogger("MUSCLE Aligner (local)");
 	
 	public static final String CFGKEY_EXE       = "muscle-exe";
@@ -59,11 +63,16 @@ public class LocalMuscleNodeModel extends NodeModel {
 	
 	public static final String[] TRADEOFFS = new String[] { "Maximum accuracy", "Very fast", "Fastest possible" };
 	
+	/**
+	 * user-configured node persisted state
+	 */
 	private SettingsModelString  m_exe         = new SettingsModelString(CFGKEY_EXE, "");
 	private SettingsModelString  m_input_sequences = new SettingsModelString(CFGKEY_SEQUENCES, "");
 	private SettingsModelBoolean m_log         = new SettingsModelBoolean(CFGKEY_LOG_STDERR, Boolean.FALSE);
 	private SettingsModelString  m_performance = new SettingsModelString(CFGKEY_TRADEOFF, TRADEOFFS[0]);
 	
+	// not persisted (yet) but is intended for the node views
+	private final Map<String,AlignmentValue> m_view_model = new HashMap<String,AlignmentValue>();
 	
     /**
      * Constructor for the node model.
@@ -79,12 +88,14 @@ public class LocalMuscleNodeModel extends NodeModel {
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
     	logger.info("Performing alignments on "+inData[0].getRowCount()+" input rows.");
+    	logger.info("Using "+m_exe.getStringValue()+" to align input sequences.");
     	
     	ColumnRearranger rearranger = new ColumnRearranger(inData[0].getSpec());
     	BufferedDataTable out = null;
     	final int seqs_idx = inData[0].getDataTableSpec().findColumnIndex(m_input_sequences.getStringValue());
     	if (seqs_idx < 0)
     		throw new InvalidSettingsException("Cannot find input sequences - re-configure?");
+    	reset();
     	
 		final SingleCellFactory appender = new SingleCellFactory(make_output_spec()) {
 			boolean warned_small_seqs = false;
@@ -200,10 +211,7 @@ public class LocalMuscleNodeModel extends NodeModel {
 	            		return DataType.getMissingCell();
 	            	}
 	            	
-					if (st.isProtein())
-						return AlignmentCellFactory.createCell(tsv.toString(), AlignmentType.AL_AA);
-					else
-						return AlignmentCellFactory.createCell(tsv.toString(), AlignmentType.AL_NA);
+	            	return makeAlignmentCellAndPopulateResultsMap(tsv, st, r.getKey().getString());
 				} catch (IOException ioe) {
 					ioe.printStackTrace();
 					return DataType.getMissingCell();
@@ -221,11 +229,29 @@ public class LocalMuscleNodeModel extends NodeModel {
         return new BufferedDataTable[]{out};
     }
 
+
+	private DataCell makeAlignmentCellAndPopulateResultsMap(final LogOutputStream tsv, 
+			final SequenceType st, final String row_id) throws IOException {
+		assert(st != null && tsv != null && row_id != null);
+		DataCell alignment_cell;
+		if (st.isProtein())
+               alignment_cell = AlignmentCellFactory.createCell(tsv.toString(), AlignmentType.AL_AA);
+		else
+               alignment_cell = AlignmentCellFactory.createCell(tsv.toString(), AlignmentType.AL_NA);
+		if (alignment_cell != null && alignment_cell instanceof AlignmentValue) {
+			// since a row_id must be unique, something is very wrong if the row_id is already in the map
+			assert(!m_view_model.containsKey(row_id));
+			m_view_model.put(row_id, (AlignmentValue) alignment_cell);
+		}
+		return alignment_cell;
+	}
+	
     /**
      * {@inheritDoc}
      */
     @Override
     protected void reset() {
+    	m_view_model.clear();
     }
 
     private DataColumnSpec make_output_spec() {
@@ -300,6 +326,18 @@ public class LocalMuscleNodeModel extends NodeModel {
             CanceledExecutionException {
         // TODO: generated method stub
     }
+
+	@Override
+	public List<String> getAlignmentRowIDs() {
+		ArrayList<String> ret = new ArrayList<String>();
+		ret.addAll(m_view_model.keySet());
+		return ret;
+	}
+
+	@Override
+	public AlignmentValue getAlignment(final String row_id) {
+		return m_view_model.get(row_id);
+	}
 
 }
 

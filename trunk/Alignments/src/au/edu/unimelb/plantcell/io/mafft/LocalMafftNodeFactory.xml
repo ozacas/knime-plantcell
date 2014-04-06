@@ -29,4 +29,7 @@
         <!-- possibly more output ports here-->
     </ports>    
   
+  	<views>
+  		<view index="0" name="JalView">Opens the chosen alignment with jalview (see http://www.jalview.org for more details)</view>
+  	</views>
 </knimeNode>

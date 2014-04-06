@@ -1,8 +1,12 @@
 package au.edu.unimelb.plantcell.io.mafft;
 
+import org.knime.core.node.AbstractNodeView;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
+
+import au.edu.unimelb.plantcell.io.ws.multialign.AlignmentNodeView;
 
 /**
  * <code>NodeFactory</code> for the "LocalMafft" Node.
@@ -11,13 +15,13 @@ import org.knime.core.node.NodeView;
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
 public class LocalMafftNodeFactory 
-        extends NodeFactory<LocalMafftNodeModel> {
+        extends NodeFactory<NodeModel> {
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public LocalMafftNodeModel createNodeModel() {
+    public NodeModel createNodeModel() {
         return new LocalMafftNodeModel();
     }
 
@@ -26,17 +30,27 @@ public class LocalMafftNodeFactory
      */
     @Override
     public int getNrNodeViews() {
-        return 0;
+        return 1;
     }
 
     /**
-     * {@inheritDoc}
+     * Since this view is an external application (jalview) we override this method to ensure the view
+     * works correctly with the KNIME platform, rather than the normal <code>createNodeView()</code>
      */
     @Override
-    public NodeView<LocalMafftNodeModel> createNodeView(final int viewIndex,
-            final LocalMafftNodeModel nodeModel) {
-        return null;
+    public AbstractNodeView<NodeModel> createAbstractNodeView(final int viewIndex, final NodeModel mdl) {
+    	return new AlignmentNodeView(mdl);
     }
+    
+    /**
+     * Not used by this view, hence always returns null.
+     */
+	@Override
+	public NodeView<NodeModel> createNodeView(int viewIndex,NodeModel nodeModel) {
+		// the only view for this node is an external application view, so this method...
+		return null;
+	}
+	
 
     /**
      * {@inheritDoc}

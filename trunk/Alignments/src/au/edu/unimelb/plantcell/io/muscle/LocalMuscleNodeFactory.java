@@ -1,8 +1,12 @@
 package au.edu.unimelb.plantcell.io.muscle;
 
+import org.knime.core.node.AbstractNodeView;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
+
+import au.edu.unimelb.plantcell.io.ws.multialign.AlignmentNodeView;
 
 /**
  * <code>NodeFactory</code> for the "LocalMuscle" Node.
@@ -11,13 +15,13 @@ import org.knime.core.node.NodeView;
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
 public class LocalMuscleNodeFactory 
-        extends NodeFactory<LocalMuscleNodeModel> {
+        extends NodeFactory<NodeModel> {
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public LocalMuscleNodeModel createNodeModel() {
+    public NodeModel createNodeModel() {
         return new LocalMuscleNodeModel();
     }
 
@@ -26,18 +30,27 @@ public class LocalMuscleNodeFactory
      */
     @Override
     public int getNrNodeViews() {
-        return 0;
+        return 1;
     }
 
     /**
-     * {@inheritDoc}
+     * Since this view is an external application (jalview) we override this method to ensure the view
+     * works correctly with the KNIME platform, rather than the normal <code>createNodeView()</code>
      */
     @Override
-    public NodeView<LocalMuscleNodeModel> createNodeView(final int viewIndex,
-            final LocalMuscleNodeModel nodeModel) {
-        return null;
+    public AbstractNodeView<NodeModel> createAbstractNodeView(final int viewIndex, final NodeModel mdl) {
+    	return new AlignmentNodeView(mdl);
     }
-
+    
+    /**
+     * Not used by this view, hence always returns null.
+     */
+	@Override
+	public NodeView<NodeModel> createNodeView(int viewIndex,NodeModel nodeModel) {
+		// the only view for this node is an external application view, so this method...
+		return null;
+	}
+	
     /**
      * {@inheritDoc}
      */
