@@ -1,6 +1,7 @@
 package au.edu.unimelb.plantcell.io.read.fasta;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -15,6 +16,7 @@ import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
@@ -23,6 +25,7 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.ListCellRenderer;
 import javax.swing.filechooser.FileFilter;
 
 import org.knime.core.data.DataTableSpec;
@@ -64,6 +67,27 @@ public class FastaReaderNodeDialog extends DefaultNodeSettingsPane {
     	
         SettingsModelStringArray store = new SettingsModelStringArray(FastaReaderNodeModel.CFGKEY_FASTA, new String[] { "c:/temp/crap.fasta" });
         url_list.setModel(new URLListModel(store));
+        
+        /**
+         * Remove 'file:' from local files in this to present the data for backward compatibility. Non-file URLs
+         * will be presented with the protocol scheme as per user expectations.
+         */
+        url_list.setCellRenderer(new DefaultListCellRenderer() {
+
+			@Override
+			public Component getListCellRendererComponent(JList l,
+					Object val, int idx, boolean arg3, boolean arg4) {
+				if (val instanceof URL) {
+					String text = ((URL)val).toString();
+					if (text.startsWith("file:")) {
+						text = text.substring(5);
+					}
+					return super.getListCellRendererComponent(l, text, idx, arg3, arg4);
+				}
+				return null;
+			}
+        	
+        });
         final JPanel fasta_file_panel = new JPanel();
         fasta_file_panel.setLayout(new BorderLayout());
        
@@ -178,10 +202,20 @@ public class FastaReaderNodeDialog extends DefaultNodeSettingsPane {
         selectTab("FASTA Files");
     }
     
+    /**
+     * Convenience wrapper to avoid list model casting all over the codebase
+     * @return
+     */
     protected URLListModel getListModel() {
     	return (URLListModel) url_list.getModel();
     }
     
+    /**
+     * Add the selected URL to the current list model. The list model will not be updated
+     * (but a stacktrace printed) if any user input is not a valid URL.
+     * 
+     * @param url_string_to_add
+     */
     protected void addURLIfNotAlreadyPresent(final String url_string_to_add) {
 		List<URL> urls = getListModel().getAll();
 		try {
@@ -192,6 +226,12 @@ public class FastaReaderNodeDialog extends DefaultNodeSettingsPane {
 		}
 	}
 
+    /**
+     * Add the selected files from the chosen dialog to the current list model. Errors will
+     * cause the list model to be updated.
+     * 
+     * @param open_dialog
+     */
 	private void addURLIfNotAlreadyPresent(final JFileChooser open_dialog) {
     	try {
 	    	  List<URL> urls = getListModel().getAll();
@@ -230,6 +270,7 @@ public class FastaReaderNodeDialog extends DefaultNodeSettingsPane {
     /**
      * When the settings instance contains File paths rather than URLs we need to convert so the current codebase is happy.
      * This is a backward compatibility feature for existing data analysis pipelines which will be removed in the future.
+     * 
      * @param settings
      * @param ulist the object to be modified with URL counterparts for the specified files (may be bogus if File's dont exist)
      * @throws InvalidSettingsException 

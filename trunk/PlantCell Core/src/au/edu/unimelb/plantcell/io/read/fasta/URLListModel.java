@@ -17,7 +17,8 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
 /**
- * Implements a URL list model for Java/Swing. A {@link SettingsModelStringArray}
+ * Implements a URL list model for Java/Swing. A {@link SettingsModelStringArray}. The model
+ * only keeps a single string representation for each URL and duplicates are automagically removed.
  * 
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  *
@@ -27,14 +28,27 @@ public class URLListModel extends AbstractListModel<URL> implements ChangeListen
 	 * 
 	 */
 	private static final long serialVersionUID = 9199419562876356502L;
+	
+	/**
+	 * Used to implement the backing store to the list, with additional methods as required to implement the dialog
+	 */
 	private SettingsModelStringArray m_store;
 	
+	/**
+	 * Sole constructor which requires the backing store to be specified. Registers the instance with
+	 * the store so that if the store is changed directly, the model listeners are notified as per the contract.
+	 * 
+	 * @param store
+	 */
 	public URLListModel(final SettingsModelStringArray store) {
 		assert(store != null);
 		m_store = store;
 		m_store.addChangeListener(this);
 	}
 	
+	/**
+	 * Return the URL for the specified list index
+	 */
 	@Override
 	public URL getElementAt(int index) {
 		try {
@@ -51,10 +65,18 @@ public class URLListModel extends AbstractListModel<URL> implements ChangeListen
 		return  m_store.getStringArrayValue().length;
 	}
 
-	public void setAll(Collection<URL> new_urls_to_store) {
+	/**
+	 * Replace all current urls in the model with the specified list (which may be empty or null).
+	 * URL's whose string representation is identical will be automatically de-duped.
+	 * 
+	 * @param new_urls_to_store
+	 */
+	public void setAll(final Collection<URL> new_urls_to_store) {
 		HashSet<String> str = new HashSet<String>();
-		for (URL u: new_urls_to_store) {
-			str.add(u.toString());
+		if (new_urls_to_store != null) {
+			for (URL u: new_urls_to_store) {
+				str.add(u.toString());
+			}
 		}
 		m_store.setStringArrayValue(str.toArray(new String[0]));
 	}
@@ -66,6 +88,8 @@ public class URLListModel extends AbstractListModel<URL> implements ChangeListen
 	}
 
 	/**
+	 * Returns a copy of the URL form of each element in the current model. Note that modification
+	 * of the returned list (or URL's) will have no effect on the model.
 	 * 
 	 * @return NB: a copy of the current list
 	 */
