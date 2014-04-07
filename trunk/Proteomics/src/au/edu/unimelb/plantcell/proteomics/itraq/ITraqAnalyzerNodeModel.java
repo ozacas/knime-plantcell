@@ -126,9 +126,14 @@ public class ITraqAnalyzerNodeModel extends NodeModel {
 		if (!output_folder.mkdir()) {
 			throw new IOException("Cannot mkdir: "+output_folder.getAbsolutePath());
 		}
+		File weights_folder = new File(output_folder, "weights");
+		if (!weights_folder.mkdir()) {
+			throw new IOException("Cannot mkdir: "+weights_folder.getAbsolutePath());
+		}
 		ret.put("SCRIPT_PATH", script_folder.getAbsolutePath());
 		ret.put("DATA_PATH", data_folder.getAbsolutePath());
 		ret.put("OUTPUT_PATH", output_folder.getAbsolutePath());
+		ret.put("WEIGHTS_PATH", weights_folder.getAbsolutePath());
 		ret.put("REP1_CHANNEL", m_rep1.getStringValue());
 		ret.put("REP2_CHANNEL", m_rep2.getStringValue());
 		
@@ -239,7 +244,7 @@ public class ITraqAnalyzerNodeModel extends NodeModel {
 		
 		int exit_status = run_r(r, script);
 		if (exit_status != 11)
-			throw new InvalidSettingsException("You must install HMisc into your R installation for this node to work! (see node documentation) : exit status "+exit_status);
+			throw new InvalidSettingsException("You must install Hmisc into your R installation for this node to work! (see node documentation) : exit status "+exit_status);
 	}
 
 	/**
