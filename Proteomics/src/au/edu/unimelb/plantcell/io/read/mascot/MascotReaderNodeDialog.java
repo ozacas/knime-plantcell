@@ -178,20 +178,24 @@ public class MascotReaderNodeDialog extends DefaultNodeSettingsPane {
         file_panel.add(button_panel, BorderLayout.EAST);
         
         this.addTab("Mascot DAT files", file_panel);
-        
-        DialogComponentButtonGroup bg = new DialogComponentButtonGroup(f_resulttype, true, "Report which peptide hits per query?", 
-        		new String[] { "all hits", "best hit only", "confident hits only (identity threshold)", "confident hits only (above homology threshold)"});
-        bg.setToolTipText("Which peptide identifications per spectra do you want to see?");
-        addDialogComponent(bg);
-        f_resulttype.addChangeListener(new ChangeListener() {
-        	public void stateChanged(ChangeEvent ce) {
-        		set_controls();
-        	}
-        });
-        
-        addDialogComponent(new DialogComponentNumberEdit(f_ci,"Identity Threshold Confidence", 5));
-        
-        addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(MascotReaderNodeModel.CFGKEY_WANT_SPECTRA, true), "Want MS/MS spectra?"));
+        addMascotProcessingSettings();
+       
+    }
+    
+    protected void addMascotProcessingSettings() {
+    	 DialogComponentButtonGroup bg = new DialogComponentButtonGroup(f_resulttype, true, "Report which peptide hits per query?", 
+         		new String[] { "all hits", "best hit only", "confident hits only (identity threshold)", "confident hits only (above homology threshold)"});
+         bg.setToolTipText("Which peptide identifications per spectra do you want to see?");
+         addDialogComponent(bg);
+         f_resulttype.addChangeListener(new ChangeListener() {
+         	public void stateChanged(ChangeEvent ce) {
+         		set_controls();
+         	}
+         });
+         
+         addDialogComponent(new DialogComponentNumberEdit(f_ci,"Identity Threshold Confidence", 5));
+         
+         addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(MascotReaderNodeModel.CFGKEY_WANT_SPECTRA, true), "Want MS/MS spectra?"));
     }
     
     @Override

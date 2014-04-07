@@ -71,18 +71,16 @@ public class MascotReaderNodeModel extends NodeModel {
     /** the settings key which is used to retrieve and 
         store the settings (from the dialog or from a settings file)    
        (package visibility to be usable from the dialog). */
-	static final String CFGKEY_FILES      = "mascot-files-to-load";
-	static final String CFGKEY_CONFIDENCE = "confidence";
-	static final String CFGKEY_RESULTTYPE = "results-selection";
-	static final String CFGKEY_WANT_SPECTRA = "want-spectra?";
+	public static final String CFGKEY_FILES      = "mascot-files-to-load";
+	public static final String CFGKEY_CONFIDENCE = "confidence";
+	public static final String CFGKEY_RESULTTYPE = "results-selection";
+	public static final String CFGKEY_WANT_SPECTRA = "want-spectra?";
 
     /** initial default count value. */
     private static final double DEFAULT_CONFIDENCE = 0.05;		// 95% CI
     private static final String DEFAULT_RESULTTYPE = "all";		// all hits for all spectra: one of ("all", "best" or "confident")
 
-    // example value: the models count variable filled from the dialog 
-    // and used in the models execution method. The default components of the
-    // dialog work with "SettingsModels".
+    // persisted user-configured state
     private final SettingsModelStringArray        m_files = new SettingsModelStringArray(CFGKEY_FILES, new String[] {});
     private final SettingsModelDoubleBounded m_confidence = (SettingsModelDoubleBounded) make(CFGKEY_CONFIDENCE);
     private final SettingsModelString        m_resulttype = make_as_string(CFGKEY_RESULTTYPE);
@@ -545,6 +543,15 @@ public class MascotReaderNodeModel extends NodeModel {
     	
     	return SpectraUtilityFactory.createCell(mgf);	
     }
+
+	public void setFiles(final List<File> downloaded_files) {
+		assert(downloaded_files != null && downloaded_files.size() > 0);
+		ArrayList<String> s = new ArrayList<String>();
+		for (File f : downloaded_files) {
+			s.add(f.getAbsolutePath());
+		}
+		m_files.setStringArrayValue(s.toArray(new String[0]));
+	}
 
 }
 
