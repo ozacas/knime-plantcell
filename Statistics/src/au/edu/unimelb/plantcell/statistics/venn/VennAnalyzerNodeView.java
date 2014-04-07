@@ -1,6 +1,7 @@
 package au.edu.unimelb.plantcell.statistics.venn;
 
 import java.awt.Dimension;
+import java.awt.geom.Rectangle2D;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
@@ -17,14 +18,22 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.batik.bridge.BridgeContext;
+import org.apache.batik.bridge.GVTBuilder;
+import org.apache.batik.bridge.UserAgentAdapter;
+import org.apache.batik.dom.svg.SAXSVGDocumentFactory;
+import org.apache.batik.gvt.GraphicsNode;
 import org.apache.batik.swing.JSVGCanvas;
 import org.apache.batik.swing.JSVGScrollPane;
+import org.apache.batik.util.SVGConstants;
+import org.apache.batik.util.XMLResourceDescriptor;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.knime.core.node.NodeView;
 import org.osgi.framework.Bundle;
+import org.w3c.dom.svg.SVGDocument;
 
 /**
  * Renders the node model state (venn summary results) using Apache Batik
@@ -37,7 +46,8 @@ public class VennAnalyzerNodeView extends NodeView<VennAnalyzerNodeModel> {
 	
 	protected VennAnalyzerNodeView(VennAnalyzerNodeModel nodeModel) {
 		super(nodeModel);
-		JSVGScrollPane sp = new JSVGScrollPane(canvas);
+		canvas.setDocumentState(JSVGCanvas.ALWAYS_STATIC);
+		final JSVGScrollPane sp = new JSVGScrollPane(canvas);
 		
 		sp.setPreferredSize(new Dimension(600,600));
 		this.setComponent(sp);
@@ -82,11 +92,19 @@ public class VennAnalyzerNodeView extends NodeView<VennAnalyzerNodeModel> {
 				Bundle bundle = Platform.getBundle("au.edu.unimelb.plantcell.statistics");
 				URL u = FileLocator.find(bundle, new Path("/svg/"+n_pies+"-way-venn.svg"), null);
 				if (u != null) {			// is there a template for this size of venn diagram?
-					File venn_svg = saveSVGTemplateWithMap(u, substitution_map);
-					Logger.getAnonymousLogger().info("Loading SVG template: "+venn_svg.getAbsolutePath());
-					canvas.setURI(venn_svg.toURI().toString());
-					venn_svg.deleteOnExit();
-					return;
+					try {
+						File venn_svg = saveSVGTemplateWithMap(u, substitution_map);
+						Logger.getAnonymousLogger().info("Loading SVG template: "+venn_svg.getAbsolutePath());
+						String parser = XMLResourceDescriptor.getXMLParserClassName();
+					    SAXSVGDocumentFactory f = new SAXSVGDocumentFactory(parser);						
+						SVGDocument doc = f.createSVGDocument(venn_svg.toURI().toString());
+						canvas.setSVGDocument(doc);
+						venn_svg.deleteOnExit();
+						return;
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 			}
 		}
@@ -211,7 +229,7 @@ public class VennAnalyzerNodeView extends NodeView<VennAnalyzerNodeModel> {
 	 * 
 	 * @param substitution_map must not be NULL and should not be empty
 	 * @param line must not be null
-	 * @return the substituted line (if any are present on the line)
+	 * @return the substituted line (if any are present on the line) or the original line if not substitutions are made
 	 */
 	private String makeLineWithSafeSubstitutions(
 			Map<String, String> substitution_map, String line) {
@@ -235,5 +253,5 @@ public class VennAnalyzerNodeView extends NodeView<VennAnalyzerNodeModel> {
 		}
 		return ret;
 	}
-	
+
 }
