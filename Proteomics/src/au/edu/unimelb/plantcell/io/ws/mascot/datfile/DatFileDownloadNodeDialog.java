@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.ListSelectionModel;
@@ -108,14 +109,17 @@ public class DatFileDownloadNodeDialog extends DefaultNodeSettingsPane {
 		Calendar since = makeStartingDateOfInterest(method);
 		assert(since != null);
 		SimpleDateFormat df = new SimpleDateFormat();
-		NodeLogger.getLogger("Dat File Downloader").info("Obtaining list of dat files since: "+df.format(since.getTime()));
+		NodeLogger logger = NodeLogger.getLogger("Dat File Downloader");
+		logger.info("Obtaining list of dat files since: "+df.format(since.getTime()));
 		
 		try {
 			List<String> newItems = DatFileDownloadNodeModel.getDatFilesSince(since, mascotws_url);
 			if (newItems.size() == 0) {
 				newItems.add("No DAT files available.");
 			}
+			Collections.sort(newItems);
 			list.replaceListItems(newItems, new String[] {});
+			logger.info("Sorted and updated "+newItems.size()+" dat files.");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}		
@@ -129,9 +133,10 @@ public class DatFileDownloadNodeDialog extends DefaultNodeSettingsPane {
 		} else if (method.startsWith("Last 24 hours")) {
 			ret.add(Calendar.HOUR_OF_DAY, -24);
 		} else if (method.startsWith("Current month")) {
-			ret.add(Calendar.DAY_OF_MONTH, 1);
+			ret.set(Calendar.DAY_OF_MONTH, 1);
 		} else if (method.startsWith("Current year")) {
-			ret.add(Calendar.MONTH, 0);
+			ret.set(Calendar.MONTH, 0);
+			ret.set(Calendar.DAY_OF_MONTH, 1);
 		} else {
 			ret.set(Calendar.YEAR, 1970);
 		}
