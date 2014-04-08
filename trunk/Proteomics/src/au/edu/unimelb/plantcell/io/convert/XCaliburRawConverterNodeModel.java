@@ -32,8 +32,6 @@ import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
-import com.sun.xml.ws.developer.StreamingDataHandler;
-
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.io.read.spectra.AbstractDataProcessor;
 import au.edu.unimelb.plantcell.io.read.spectra.MGFDataProcessor;
@@ -315,9 +313,9 @@ public class XCaliburRawConverterNodeModel extends NodeModel {
 	                              outfiles.add(tmp_file);
                     	  	  } finally {
                     	  		  // HACK BUG TODO FIXME: need better code than this to cleanup the download attachment temp file!
-	                              if (dh != null && dh instanceof StreamingDataHandler) {
-	                            	  ((StreamingDataHandler) dh).close();
-	                              }
+	                              //if (dh != null && dh instanceof StreamingDataHandler) {
+	                            	//  ((StreamingDataHandler) dh).close();
+	                              //}
                     	  	  }
                           }
                           

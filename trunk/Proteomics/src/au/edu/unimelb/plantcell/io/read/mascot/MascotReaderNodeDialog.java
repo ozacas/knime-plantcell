@@ -184,7 +184,7 @@ public class MascotReaderNodeDialog extends DefaultNodeSettingsPane {
     
     protected void addMascotProcessingSettings() {
     	 DialogComponentButtonGroup bg = new DialogComponentButtonGroup(f_resulttype, true, "Report which peptide hits per query?", 
-         		new String[] { "all hits", "best hit only", "confident hits only (identity threshold)", "confident hits only (above homology threshold)"});
+         		MascotReaderNodeModel.RESULT_TYPES);
          bg.setToolTipText("Which peptide identifications per spectra do you want to see?");
          addDialogComponent(bg);
          f_resulttype.addChangeListener(new ChangeListener() {

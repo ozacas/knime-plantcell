@@ -57,7 +57,7 @@ public class DatFileDownloadNodeModel extends MascotReaderNodeModel {
 	private final SettingsModelString            m_url = new SettingsModelString(CFGKEY_MASCOT_SERVICE_URL, DEFAULT_MASCOT_SERVICE_URL);
 	private final SettingsModelString       m_strategy = new SettingsModelString(CFGKEY_DAT_FILES_SINCE, SINCE_METHODS[0]);
 	private final SettingsModelStringArray m_dat_files = new SettingsModelStringArray(CFGKEY_DAT_FILES, new String[0]);
-	private final SettingsModelString      m_saveto    = new SettingsModelString(CFGKEY_SAVETO_FOLDER, "");
+	private final SettingsModelString         m_saveto = new SettingsModelString(CFGKEY_SAVETO_FOLDER, "");
 	
     /**
      * Constructor for the node model.
@@ -91,7 +91,7 @@ public class DatFileDownloadNodeModel extends MascotReaderNodeModel {
         ArrayList<File> downloaded_files = new ArrayList<File>();
         for (String s : wanted_dat_files) {
         	logger.info("Saving mascot dat file: "+s);
-        	File   dat_out = new File(out, s.replaceAll("[^A-Z0-9]", "_"));
+        	File   dat_out = new File(out, s.replaceAll("[^A-Z0-9a-z\\.]", "_"));
         	DataHandler dh = datFileService.getDatFile(s);
         	FileOutputStream fos = new FileOutputStream(dat_out);
         	InputStream is = dh.getInputStream();
@@ -158,7 +158,7 @@ public class DatFileDownloadNodeModel extends MascotReaderNodeModel {
        	if (srv == null)
        		throw new InvalidSettingsException("Unable to connect to "+url);
         DatFileService datFileService = srv.getPort(DatFileService.class);
-        
+         
         StringBuilder str = new StringBuilder();
         str.append(since.get(Calendar.YEAR));
         int month = since.get(Calendar.MONTH)+1;
@@ -172,7 +172,7 @@ public class DatFileDownloadNodeModel extends MascotReaderNodeModel {
         else
         	str.append(day_of_month);
         String[] s = datFileService.getDatFilesSince(str.toString());
-        ArrayList<String> ret = new ArrayList(s.length);
+        ArrayList<String> ret = new ArrayList<String>(s.length);
         for (String dat_file : s) {
         	ret.add(dat_file);
         }

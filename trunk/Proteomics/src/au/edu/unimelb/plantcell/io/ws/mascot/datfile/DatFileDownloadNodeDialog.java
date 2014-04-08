@@ -2,24 +2,29 @@ package au.edu.unimelb.plantcell.io.ws.mascot.datfile;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.net.MalformedURLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-import javax.xml.soap.SOAPException;
+import javax.swing.ListSelectionModel;
 
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentButton;
+import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
+import org.knime.core.node.defaultnodesettings.DialogComponentNumberEdit;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringListSelection;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
@@ -42,12 +47,13 @@ public class DatFileDownloadNodeDialog extends DefaultNodeSettingsPane {
      * New pane for configuring the DatFileDownload node.
      */
     protected DatFileDownloadNodeDialog() {
-    	final SettingsModelStringArray dat_files = new SettingsModelStringArray(DatFileDownloadNodeModel.CFGKEY_DAT_FILES, new String[0]);
+    	final SettingsModelStringArray dat_files = new SettingsModelStringArray(DatFileDownloadNodeModel.CFGKEY_DAT_FILES, new String[] {});
     	final SettingsModelString method = new SettingsModelString(DatFileDownloadNodeModel.CFGKEY_DAT_FILES_SINCE, DatFileDownloadNodeModel.SINCE_METHODS[0]);
+    	final SettingsModelString result_type = new SettingsModelString(MascotReaderNodeModel.CFGKEY_RESULTTYPE, MascotReaderNodeModel.DEFAULT_RESULTTYPE);
     	
     	final DialogComponentStringListSelection dat_file_list = new DialogComponentStringListSelection(
-    			dat_files, ""
-    			);
+    			dat_files, "Select the DAT Files to Load...", new ArrayList<String>(), ListSelectionModel.MULTIPLE_INTERVAL_SELECTION, false, 5
+    	);
     	
     	// where to save the DAT files to...
     	createNewGroup("Save DAT files to...");
@@ -67,14 +73,30 @@ public class DatFileDownloadNodeDialog extends DefaultNodeSettingsPane {
 			}
     		
     	});
-    	addDialogComponent(refresh_button);
+    	
     	
     	// which server to run the DAT files from...
     	createNewGroup("Select the dat files to load...");
+    	this.setHorizontalPlacement(true);
     	addDialogComponent(new DialogComponentStringSelection(
     			method, "What dat files to show below?", DatFileDownloadNodeModel.SINCE_METHODS));
+    	addDialogComponent(refresh_button);
+    	this.setHorizontalPlacement(false);
+    	addDialogComponent(dat_file_list);
     	
     	createNewTab("Mascot DAT Processing");
+    	DialogComponentButtonGroup bg = new DialogComponentButtonGroup(result_type, true, "Report which peptide hits per query?", 
+    			MascotReaderNodeModel.RESULT_TYPES);
+    	
+        bg.setToolTipText("Which peptide identifications per spectra do you want to see?");
+        addDialogComponent(bg);
+        
+        SettingsModelDoubleBounded ci = new SettingsModelDoubleBounded(MascotReaderNodeModel.CFGKEY_CONFIDENCE, 
+        																MascotReaderNodeModel.DEFAULT_CONFIDENCE, 0.0, 1.0);
+        ci.setEnabled(false);
+        addDialogComponent(new DialogComponentNumberEdit(ci,"Identity Threshold Confidence", 5));
+        
+        addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(MascotReaderNodeModel.CFGKEY_WANT_SPECTRA, true), "Want MS/MS spectra?"));
     }
     
     /**
@@ -85,11 +107,14 @@ public class DatFileDownloadNodeDialog extends DefaultNodeSettingsPane {
 		assert(list != null);
 		Calendar since = makeStartingDateOfInterest(method);
 		assert(since != null);
+		SimpleDateFormat df = new SimpleDateFormat();
+		NodeLogger.getLogger("Dat File Downloader").info("Obtaining list of dat files since: "+df.format(since.getTime()));
 		
-		
-		List<String> newItems;
 		try {
-			newItems = DatFileDownloadNodeModel.getDatFilesSince(since, mascotws_url);
+			List<String> newItems = DatFileDownloadNodeModel.getDatFilesSince(since, mascotws_url);
+			if (newItems.size() == 0) {
+				newItems.add("No DAT files available.");
+			}
 			list.replaceListItems(newItems, new String[] {});
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -99,6 +124,21 @@ public class DatFileDownloadNodeDialog extends DefaultNodeSettingsPane {
 	private Calendar makeStartingDateOfInterest(final String method) {
 		Calendar ret = Calendar.getInstance();
 		
+		if (method.startsWith("Last 7 days")) {
+			ret.add(Calendar.DAY_OF_MONTH, -7);
+		} else if (method.startsWith("Last 24 hours")) {
+			ret.add(Calendar.HOUR_OF_DAY, -24);
+		} else if (method.startsWith("Current month")) {
+			ret.add(Calendar.DAY_OF_MONTH, 1);
+		} else if (method.startsWith("Current year")) {
+			ret.add(Calendar.MONTH, 0);
+		} else {
+			ret.set(Calendar.YEAR, 1970);
+		}
+		
+		ret.set(Calendar.HOUR_OF_DAY, 0);
+		ret.set(Calendar.MINUTE,0);
+		ret.set(Calendar.SECOND, 0);
 		return ret;
 	}
 
