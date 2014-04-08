@@ -68,17 +68,16 @@ public class MascotReaderNodeModel extends NodeModel {
     private static final NodeLogger logger = NodeLogger.getLogger("Mascot Reader");
     private static int N_COLS = 15;		// number of output columns for the node
         
-    /** the settings key which is used to retrieve and 
-        store the settings (from the dialog or from a settings file)    
-       (package visibility to be usable from the dialog). */
 	public static final String CFGKEY_FILES      = "mascot-files-to-load";
 	public static final String CFGKEY_CONFIDENCE = "confidence";
 	public static final String CFGKEY_RESULTTYPE = "results-selection";
 	public static final String CFGKEY_WANT_SPECTRA = "want-spectra?";
 
-    /** initial default count value. */
-    private static final double DEFAULT_CONFIDENCE = 0.05;		// 95% CI
-    private static final String DEFAULT_RESULTTYPE = "all";		// all hits for all spectra: one of ("all", "best" or "confident")
+    /** Made public as two different nodes (MascotReader and DatDownloader) use these defaults */
+    public static final double DEFAULT_CONFIDENCE = 0.05;		// 95% CI
+    public static final String[] RESULT_TYPES = new String[] { "all hits", "best hit only", 
+    	"confident hits only (identity threshold)", "confident hits only (above homology threshold)"};
+    public static final String DEFAULT_RESULTTYPE = RESULT_TYPES[0];		// all hits for all spectra: one of ("all", "best" or "confident")
 
     // persisted user-configured state
     private final SettingsModelStringArray        m_files = new SettingsModelStringArray(CFGKEY_FILES, new String[] {});
