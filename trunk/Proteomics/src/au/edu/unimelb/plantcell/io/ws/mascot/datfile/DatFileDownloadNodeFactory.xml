@@ -37,10 +37,8 @@
     </fullDescription>
     
     <ports>
-        <inPort index="0" name="In-Port name">Description of first input port...</inPort>
-        <!-- possibly more input ports here-->
-        <outPort index="0" name="Out-Port name">Description of first output port...</outPort>
-        <!-- possibly more output ports here-->
+        <outPort index="0" name="Peptide->Spectra match data">Table of reported peptide hits to spectra searched</outPort>
+       	<outPort index="1" name="Mascot search parameters">The search parameters of each .DAT file downloaded are here for reference.</outPort>
     </ports>    
   
 </knimeNode>
