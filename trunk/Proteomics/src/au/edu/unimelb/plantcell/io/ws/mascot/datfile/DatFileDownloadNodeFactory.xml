@@ -30,9 +30,9 @@
 		
         <!-- possibly more options that can also be grouped by tabs -->
      
-        <tab name="Mascot DAT File Processing">
-           <option name="Method">As per mascot reader node</option>
-        </tab>
+        <option name="Mascot DAT File Processing">the second tab contains the same options as per the Mascot DAT file reader node.
+        Please refer to that documentation for a more detailed description</option>
+           
     
     </fullDescription>
     
