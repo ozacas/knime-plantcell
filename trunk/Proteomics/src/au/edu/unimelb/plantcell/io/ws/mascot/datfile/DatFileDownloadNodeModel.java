@@ -3,6 +3,7 @@ package au.edu.unimelb.plantcell.io.ws.mascot.datfile;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.net.Authenticator;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -40,6 +41,9 @@ public class DatFileDownloadNodeModel extends MascotReaderNodeModel {
 	public final static String CFGKEY_DAT_FILES_SINCE    = "since-when";
 	public final static String CFGKEY_DAT_FILES          = "available-dat-files";
 	public final static String CFGKEY_SAVETO_FOLDER      = "save-dat-files-to";
+	public static final String CFGKEY_USERNAME           = "username";
+	public static final String CFGKEY_PASSWORD           = "password";
+
 	
 	// default values for the dialog
 	public final static String DEFAULT_MASCOT_SERVICE_URL = "http://mascot.plantcell.unimelb.edu.au:8080/mascot/DatFileService?wsdl";
@@ -52,12 +56,16 @@ public class DatFileDownloadNodeModel extends MascotReaderNodeModel {
 		"Current year",
 		"Since the dawn of time (will take a long time)"
 	};
+
+	
 	
 	// persisted state within this class (note that superclass state is also persisted!)
 	private final SettingsModelString            m_url = new SettingsModelString(CFGKEY_MASCOT_SERVICE_URL, DEFAULT_MASCOT_SERVICE_URL);
 	private final SettingsModelString       m_strategy = new SettingsModelString(CFGKEY_DAT_FILES_SINCE, SINCE_METHODS[0]);
 	private final SettingsModelStringArray m_dat_files = new SettingsModelStringArray(CFGKEY_DAT_FILES, new String[0]);
 	private final SettingsModelString         m_saveto = new SettingsModelString(CFGKEY_SAVETO_FOLDER, "");
+	private final SettingsModelString       m_username = new SettingsModelString(CFGKEY_USERNAME, "");
+	private final SettingsModelString       m_password = new SettingsModelString(CFGKEY_PASSWORD, "");
 	
     /**
      * Constructor for the node model.
@@ -65,6 +73,8 @@ public class DatFileDownloadNodeModel extends MascotReaderNodeModel {
     protected DatFileDownloadNodeModel() {
     	// this node has the same outputs and inputs as the superclass, so...
         super();
+        m_username.setEnabled(false);
+        m_password.setEnabled(false);
     }
 
     /**
@@ -123,6 +133,8 @@ public class DatFileDownloadNodeModel extends MascotReaderNodeModel {
     	m_strategy.saveSettingsTo(settings);
     	m_dat_files.saveSettingsTo(settings);
     	m_saveto.saveSettingsTo(settings);
+    	m_username.saveSettingsTo(settings);
+    	m_password.saveSettingsTo(settings);
     }
 
     /**
@@ -136,6 +148,8 @@ public class DatFileDownloadNodeModel extends MascotReaderNodeModel {
     	m_strategy.loadSettingsFrom(settings);
     	m_dat_files.loadSettingsFrom(settings);
     	m_saveto.loadSettingsFrom(settings);
+    	m_username.loadSettingsFrom(settings);
+    	m_password.loadSettingsFrom(settings);
     }
    
     /**
@@ -149,12 +163,26 @@ public class DatFileDownloadNodeModel extends MascotReaderNodeModel {
        m_strategy.validateSettings(settings);
        m_dat_files.validateSettings(settings);
        m_saveto.validateSettings(settings);
+       m_username.validateSettings(settings);
+       m_password.validateSettings(settings);
     }
 
-	public static List<String> getDatFilesSince(Calendar since, String url) throws MalformedURLException, InvalidSettingsException, SOAPException {
+    public static Service getMascotService(final String url, final Authenticator auth) throws MalformedURLException {
+    	if (auth != null) {
+    		Authenticator.setDefault(auth);
+    	}
+    	return getMascotService(url);
+    }
+    
+    public static Service getMascotService(final String url) throws MalformedURLException {
+    	logger.info("Connecting to "+url);
+    	return Service.create(new URL(url), MASCOT_SERVICE_NAMESPACE);
+    }
+    
+	public static List<String> getDatFilesSince(final Calendar since, final String url, final Authenticator auth) 
+					throws MalformedURLException, InvalidSettingsException, SOAPException {
 		assert(url != null && since != null);
-		Service srv = Service.create(new URL(url), MASCOT_SERVICE_NAMESPACE);
-
+		Service srv = getMascotService(url, auth);
        	if (srv == null)
        		throw new InvalidSettingsException("Unable to connect to "+url);
         DatFileService datFileService = srv.getPort(DatFileService.class);
