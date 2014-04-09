@@ -2,6 +2,8 @@ package au.edu.unimelb.plantcell.io.ws.mascot.datfile;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -9,6 +11,8 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.swing.ListSelectionModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.NodeLogger;
@@ -21,6 +25,7 @@ import org.knime.core.node.defaultnodesettings.DialogComponentButton;
 import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumberEdit;
+import org.knime.core.node.defaultnodesettings.DialogComponentPasswordField;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringListSelection;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
@@ -43,7 +48,12 @@ import au.edu.unimelb.plantcell.io.read.mascot.MascotReaderNodeModel;
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
 public class DatFileDownloadNodeDialog extends DefaultNodeSettingsPane {
-
+	public static void set_controls(final SettingsModelDoubleBounded ci, final String current_method) {
+		assert(ci != null && current_method != null);
+		ci.setEnabled(current_method.trim().toLowerCase().startsWith("confident"));
+	}
+	
+	
     /**
      * New pane for configuring the DatFileDownload node.
      */
@@ -51,10 +61,15 @@ public class DatFileDownloadNodeDialog extends DefaultNodeSettingsPane {
     	final SettingsModelStringArray dat_files = new SettingsModelStringArray(DatFileDownloadNodeModel.CFGKEY_DAT_FILES, new String[] {});
     	final SettingsModelString method = new SettingsModelString(DatFileDownloadNodeModel.CFGKEY_DAT_FILES_SINCE, DatFileDownloadNodeModel.SINCE_METHODS[0]);
     	final SettingsModelString result_type = new SettingsModelString(MascotReaderNodeModel.CFGKEY_RESULTTYPE, MascotReaderNodeModel.DEFAULT_RESULTTYPE);
-    	
+    	final SettingsModelString user = new SettingsModelString(DatFileDownloadNodeModel.CFGKEY_USERNAME, "");
+    	final SettingsModelString passwd = new SettingsModelString(DatFileDownloadNodeModel.CFGKEY_PASSWORD, "");
+    	final SettingsModelDoubleBounded ci = new SettingsModelDoubleBounded(MascotReaderNodeModel.CFGKEY_CONFIDENCE, 
+					MascotReaderNodeModel.DEFAULT_CONFIDENCE, 0.0, 1.0);
     	final DialogComponentStringListSelection dat_file_list = new DialogComponentStringListSelection(
     			dat_files, "Select the DAT Files to Load...", new ArrayList<String>(), ListSelectionModel.MULTIPLE_INTERVAL_SELECTION, false, 5
     	);
+    	
+    	set_controls(ci, result_type.getStringValue());
     	
     	// where to save the DAT files to...
     	createNewGroup("Save DAT files to...");
@@ -70,11 +85,15 @@ public class DatFileDownloadNodeDialog extends DefaultNodeSettingsPane {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				refresh_dat_files(dat_file_list, method.getStringValue(), url.getStringValue());
+				refresh_dat_files(dat_file_list, method.getStringValue(), url.getStringValue(), user.getStringValue(), passwd.getStringValue());
 			}
     		
     	});
     	
+    	this.setHorizontalPlacement(true);
+    	addDialogComponent(new DialogComponentString(user, "Username"));
+    	addDialogComponent(new DialogComponentPasswordField(passwd, "Password"));
+    	this.setHorizontalPlacement(false);
     	
     	// which server to run the DAT files from...
     	createNewGroup("Select the dat files to load...");
@@ -88,32 +107,56 @@ public class DatFileDownloadNodeDialog extends DefaultNodeSettingsPane {
     	createNewTab("Mascot DAT Processing");
     	DialogComponentButtonGroup bg = new DialogComponentButtonGroup(result_type, true, "Report which peptide hits per query?", 
     			MascotReaderNodeModel.RESULT_TYPES);
+    	result_type.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				set_controls(ci, result_type.getStringValue());
+			}
+    		
+    	});
     	
         bg.setToolTipText("Which peptide identifications per spectra do you want to see?");
         addDialogComponent(bg);
         
-        SettingsModelDoubleBounded ci = new SettingsModelDoubleBounded(MascotReaderNodeModel.CFGKEY_CONFIDENCE, 
-        																MascotReaderNodeModel.DEFAULT_CONFIDENCE, 0.0, 1.0);
-        ci.setEnabled(false);
         addDialogComponent(new DialogComponentNumberEdit(ci,"Identity Threshold Confidence", 5));
         
         addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(MascotReaderNodeModel.CFGKEY_WANT_SPECTRA, true), "Want MS/MS spectra?"));
+        
+        method.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				refresh_dat_files(dat_file_list, method.getStringValue(), url.getStringValue(), user.getStringValue(), passwd.getStringValue());
+			}
+        	
+        });
     }
     
     /**
      * reload from the current MascotWS server
      * @param m_dat_files
      */
-    protected void refresh_dat_files(final DialogComponentStringListSelection list, final String method, final String mascotws_url) {
-		assert(list != null);
+    protected void refresh_dat_files(final DialogComponentStringListSelection list, 
+    					final String method, final String mascotws_url, final String user, final String passwd) {
+		assert(list != null && user != null && passwd != null);
+		Authenticator auth = null;
+		if (user.length() > 0) {
+			auth = new Authenticator() {
+		    		@Override
+		    		protected PasswordAuthentication getPasswordAuthentication() {
+		    			return new PasswordAuthentication(user, passwd.toCharArray());
+		    		}
+			};
+		}
 		Calendar since = makeStartingDateOfInterest(method);
 		assert(since != null);
 		SimpleDateFormat df = new SimpleDateFormat();
-		NodeLogger logger = NodeLogger.getLogger("Dat File Downloader");
+		NodeLogger   logger = NodeLogger.getLogger("Dat File Downloader");
 		logger.info("Obtaining list of dat files since: "+df.format(since.getTime()));
 		
 		try {
-			List<String> newItems = DatFileDownloadNodeModel.getDatFilesSince(since, mascotws_url);
+			List<String> newItems = DatFileDownloadNodeModel.getDatFilesSince(since, mascotws_url, auth);
 			if (newItems.size() == 0) {
 				newItems.add("No DAT files available.");
 			}
