@@ -25,7 +25,6 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.ListCellRenderer;
 import javax.swing.filechooser.FileFilter;
 
 import org.knime.core.data.DataTableSpec;
@@ -54,7 +53,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
  */
 public class FastaReaderNodeDialog extends DefaultNodeSettingsPane {
 
-    private final JComboBox<String> seqtype_list = new JComboBox<String>(au.edu.unimelb.plantcell.core.cells.SequenceType.getSeqTypes());
+    private final JComboBox<String>     seqtype_list = new JComboBox<String>(au.edu.unimelb.plantcell.core.cells.SequenceType.getSeqTypes());
     final JList<URL> url_list = new JList<URL>();
 
     /**
@@ -74,6 +73,12 @@ public class FastaReaderNodeDialog extends DefaultNodeSettingsPane {
          */
         url_list.setCellRenderer(new DefaultListCellRenderer() {
 
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = -6379690728958799339L;
+
+			@SuppressWarnings("rawtypes")
 			@Override
 			public Component getListCellRendererComponent(JList l,
 					Object val, int idx, boolean arg3, boolean arg4) {
