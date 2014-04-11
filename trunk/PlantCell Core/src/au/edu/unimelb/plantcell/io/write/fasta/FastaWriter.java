@@ -23,13 +23,11 @@ public class FastaWriter {
 	
 	public FastaWriter(File fasta_file_to_create, Iterator<SequenceValue> seqs) {
 		m_file = fasta_file_to_create;
-		int id = 1;
 		m_seqs = new HashMap<UniqueID,SequenceValue>();
 		boolean first = true;
 		while (seqs.hasNext()) {
 			SequenceValue sv = seqs.next();
 			m_seqs.put(new UniqueID(first), sv);
-			id++;
 			first = false;
 		}
 	}
