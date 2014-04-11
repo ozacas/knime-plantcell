@@ -8,7 +8,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -26,6 +25,7 @@ import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.knime.core.node.ExternalApplicationNodeView;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 
 import au.edu.unimelb.plantcell.core.CorePlugin;
@@ -39,7 +39,7 @@ import au.edu.unimelb.plantcell.core.Preferences;
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
 public class AlignmentNodeView extends ExternalApplicationNodeView<NodeModel>{
-
+	private final NodeLogger logger = NodeLogger.getLogger("Alignment View");
 	private final AlignmentViewDataModel m_model;
 	
     /**
@@ -77,9 +77,9 @@ public class AlignmentNodeView extends ExternalApplicationNodeView<NodeModel>{
 
 	@Override
 	protected void onOpen(String title) {
-		
 		// nothing to do if no alignments are available...
 		if (hasNoOrEmptyModel()) {
+			logger.warn("No available data - re-execute node?");
 			return;
 		}
 		List<String>       rows= getAlignmentRowIDs();
@@ -169,9 +169,10 @@ public class AlignmentNodeView extends ExternalApplicationNodeView<NodeModel>{
 			File f = makeTemporaryAlignmentFile(av);
 			addJalViewOpenArguments(cl, f);
 			DefaultExecutor de = new DefaultExecutor();
-			Logger.getLogger("Alignment View").info("Running jalview: "+cl.toString());
+			logger.info("Running jalview: "+cl.toString());
 			de.execute(cl);
 		} catch (Exception ex) {
+			logger.warn(ex.getMessage());
 			ex.printStackTrace();
 		} finally {
 			// NO-OP for now...
