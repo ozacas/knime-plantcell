@@ -118,9 +118,6 @@ public class MascotReaderNodeModel extends NodeModel {
 	@Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
-
-        logger.info("MascotReader: about to load "+m_files.getStringArrayValue().length+" .DAT files...");
-
         // the data table spec of the single output table, 
         // the table will have three columns:
         DataTableSpec[] outputs = make_output_spec(null);
@@ -150,6 +147,18 @@ public class MascotReaderNodeModel extends NodeModel {
 		boolean is_confidence_identity = m_resulttype.getStringValue().indexOf("identity threshold") >= 0;
 		boolean is_confidence_homology = m_resulttype.getStringValue().indexOf("homology threshold") >= 0;
 		
+		// these logger statements are important for debugging both this class and subclasses, so please leave them
+		logger.info("Got "+dat_files.size()+" files to process.");
+		if (is_all)
+			logger.info("Reporting all peptide<->spectra identifications.");
+		if (is_best)
+			logger.info("Reporting only the best peptide identification of each spectra.");
+		if (is_confidence_identity) 
+			logger.info("Using identity threshold for reporting identifications.");
+		if (is_confidence_homology)
+			logger.info("Using homology threshold for reporting identifications.");
+		
+		// process the dat files
         for (File f : dat_files) {
         	if (f.getName().toLowerCase().endsWith(".dat")) {
         		logger.info("Processing Mascot DAT file: "+f.getName());
