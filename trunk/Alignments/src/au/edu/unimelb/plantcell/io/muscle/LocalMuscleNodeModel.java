@@ -97,6 +97,9 @@ public class LocalMuscleNodeModel extends NodeModel implements AlignmentViewData
     		throw new InvalidSettingsException("Cannot find input sequences - re-configure?");
     	reset();
     	
+    	final File muscle_exe = validateMuscle(m_exe.getStringValue());
+    
+    	
 		final SingleCellFactory appender = new SingleCellFactory(make_output_spec()) {
 			boolean warned_small_seqs = false;
 			
@@ -183,7 +186,8 @@ public class LocalMuscleNodeModel extends NodeModel implements AlignmentViewData
 	    	    	exe.setStreamHandler(new PumpStreamHandler(tsv, errors));
 	    	    	exe.setWorkingDirectory(f.getParentFile());		// must match addQueryDatabase() semantics
 	    	    	exe.setWatchdog(new ExecuteWatchdog(ExecuteWatchdog.INFINITE_TIMEOUT));
-	    	    	CommandLine cmdLine = new CommandLine(m_exe.getStringValue());
+	    	    	
+	    	    	CommandLine cmdLine = new CommandLine(muscle_exe);
 	    	    	cmdLine.addArgument("-in");
 	    	    	cmdLine.addArgument(f.getName());
 	    	    	if (m_performance.getStringValue().equals(TRADEOFFS[0])) {
@@ -229,6 +233,14 @@ public class LocalMuscleNodeModel extends NodeModel implements AlignmentViewData
         return new BufferedDataTable[]{out};
     }
 
+
+	private File validateMuscle(String stringValue) throws IOException {
+		final File muscle_exe = new File(m_exe.getStringValue());
+    	if (!muscle_exe.exists() || !muscle_exe.canExecute()) {
+    		throw new IOException("Muscle aligner not executable: "+m_exe.getStringValue());
+    	}
+    	return muscle_exe;
+	}
 
 	private DataCell makeAlignmentCellAndPopulateResultsMap(final LogOutputStream tsv, 
 			final SequenceType st, final String row_id) throws IOException {
