@@ -16,11 +16,6 @@
 	<classpathentry exported="true" kind="lib" path="lib/http.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/itext-2.0.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jargs-1.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/jaxb-api.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/jaxb-impl.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/jaxws-api.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/jaxws-rt.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/jaxws-tools.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jmzml-1.6.7.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jpl-commons-app-1.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jpl-commons-base-1.0.jar"/>

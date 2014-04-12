@@ -9,11 +9,14 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Map;
 
 import javax.activation.DataHandler;
 import javax.xml.namespace.QName;
 import javax.xml.soap.SOAPException;
+import javax.xml.ws.BindingProvider;
 import javax.xml.ws.Service;
+import javax.xml.ws.soap.SOAPBinding;
 
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
@@ -36,6 +39,9 @@ import au.edu.unimelb.plantcell.servers.mascotws.DatFile.DatFileService;
 public class DatFileDownloadNodeModel extends MascotReaderNodeModel {
 	private static final NodeLogger logger = NodeLogger.getLogger("Mascot Dat Downloader");
 	
+    // rather than import an entire 1.2MB jar... its really a JAXWSProperties key...
+    private final static String HTTP_CLIENT_STREAMING_CHUNK_SIZE = "com.sun.xml.ws.transport.http.client.streaming.chunk.size";
+
     // configuration parameters which the dialog also uses (superclass also has state)
 	public final static String CFGKEY_MASCOT_SERVICE_URL = "mascot-service-url";
 	public final static String CFGKEY_DAT_FILES_SINCE    = "since-when";
@@ -88,6 +94,11 @@ public class DatFileDownloadNodeModel extends MascotReaderNodeModel {
        	if (srv == null)
        		throw new InvalidSettingsException("Unable to connect to "+m_url.getStringValue());
         DatFileService datFileService = srv.getPort(DatFileService.class);
+        BindingProvider bp = (BindingProvider) datFileService;
+        Map<String,Object> ctx = bp.getRequestContext();
+        ctx.put(HTTP_CLIENT_STREAMING_CHUNK_SIZE, 8192);
+        SOAPBinding binding = (SOAPBinding) bp.getBinding();
+        binding.setMTOMEnabled(true);
         
         // first retrieve all the desired dat files into the chosen folder
         String[] wanted_dat_files = m_dat_files.getStringArrayValue();

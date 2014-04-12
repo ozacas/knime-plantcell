@@ -67,7 +67,8 @@ Require-Bundle: org.eclipse.core.runtime,
  org.apache.log4j;bundle-version="1.2.15",
  au.edu.unimelb.plantcell.statistics;bundle-version="1.2.23",
  au.edu.unimelb.plantcell.core,
- au.edu.unimelb.plantcell.views;bundle-version="1.0.3"
+ au.edu.unimelb.plantcell.views;bundle-version="1.0.3",
+ com.knime.enterprise.client.glassfish;bundle-version="4.1.1"
 Bundle-ActivationPolicy: lazy
 Export-Package: au.edu.unimelb.plantcell.io.read.mascot,
  au.edu.unimelb.plantcell.io.read.pepxml,
