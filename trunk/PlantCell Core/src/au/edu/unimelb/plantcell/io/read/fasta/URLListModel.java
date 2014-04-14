@@ -1,5 +1,6 @@
 package au.edu.unimelb.plantcell.io.read.fasta;
 
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -12,8 +13,10 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
 /**
@@ -55,6 +58,7 @@ public class URLListModel extends AbstractListModel<URL> implements ChangeListen
 			String s = m_store.getStringArrayValue()[index];
 			return new URL(s);
 		} catch (MalformedURLException mfe) {
+			mfe.printStackTrace();
 			// since this is called from dialog code we are silent about bad URL's until execute()
 			return null;
 		}
@@ -101,13 +105,44 @@ public class URLListModel extends AbstractListModel<URL> implements ChangeListen
 		return ret;
 	}
 
+	  
+    /**
+     * When the settings instance contains File paths rather than URLs we need to convert so the current codebase is happy.
+     * This is a backward compatibility feature for existing data analysis pipelines which will be removed in the future.
+     * 
+     * @param settings
+     * @param ulist the object to be modified with URL counterparts for the specified files (may be bogus if File's dont exist)
+     * @throws InvalidSettingsException 
+     */
+    private void convertFileToURLs(final NodeSettingsRO settings) throws InvalidSettingsException {
+		assert(settings != null);
+		SettingsModelStringArray arr = new SettingsModelStringArray(FastaReaderNodeModel.CFGKEY_FASTA, new String[] {});
+		arr.loadSettingsFrom(settings);
+		ArrayList<URL> new_url_list = new ArrayList<URL>();
+		for (String s : arr.getStringArrayValue()) {
+			File f = new File(s);
+			try {
+				new_url_list.add(f.toURI().toURL());
+			} catch (MalformedURLException mfe) {
+				mfe.printStackTrace();
+			}
+		}
+		setAll(new_url_list);
+	}
+    
 	/**
 	 * Loads internal state from KNIME settings instance
 	 * @param settings
 	 * @throws InvalidSettingsException
 	 */
 	public void loadSettingsFrom(NodeSettingsRO settings) throws InvalidSettingsException {
-		m_store.loadSettingsFrom(settings);
+		// for backward compatibility we handle File's by converting to URL form
+		if (!settings.containsKey(FastaReaderNodeModel.CFGKEY_INTERNAL_USE_URLS) || 
+				!settings.getBoolean(FastaReaderNodeModel.CFGKEY_INTERNAL_USE_URLS)) {
+			convertFileToURLs(settings);
+		} else {
+			m_store.loadSettingsFrom(settings);
+		}
 		stateChanged(new ChangeEvent(this));
 	}
 
@@ -116,7 +151,26 @@ public class URLListModel extends AbstractListModel<URL> implements ChangeListen
 	 * @param settings
 	 */
 	public void saveSettingsTo(NodeSettingsWO settings) {
+		// validate model and issue warning if bogus URL's detected for save (user may wish to correct or report bug etc...)
+		validateCurrentModel();
+		
+		// save!
+		SettingsModelBoolean use_urls = new SettingsModelBoolean(FastaReaderNodeModel.CFGKEY_INTERNAL_USE_URLS, Boolean.TRUE);
+    	use_urls.saveSettingsTo(settings);
 		m_store.saveSettingsTo(settings);
+	}
+
+	/**
+	 * Checks the current model to see if there are any malformed URL's (issues a warning if there are). 
+	 */
+	private void validateCurrentModel() {
+		for (String url : m_store.getStringArrayValue()) {
+			try {
+				URL u = new URL(url);
+			} catch (MalformedURLException mfe) {
+				NodeLogger.getLogger("URL List").warn("Encountered invalid URL during save: "+url);
+			}
+		}
 	}
 	
 	
