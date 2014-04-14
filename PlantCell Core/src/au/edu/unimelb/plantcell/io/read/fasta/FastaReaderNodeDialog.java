@@ -9,7 +9,6 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -52,16 +51,20 @@ import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
  * @author Andrew Cassin
  */
 public class FastaReaderNodeDialog extends DefaultNodeSettingsPane {
-
-    private final JComboBox<String>     seqtype_list = new JComboBox<String>(au.edu.unimelb.plantcell.core.cells.SequenceType.getSeqTypes());
-    final JList<URL> url_list = new JList<URL>();
+	private final JComboBox<String>     seqtype_list = new JComboBox<String>(au.edu.unimelb.plantcell.core.cells.SequenceType.getSeqTypes());
+	/**
+	 * this cannot be generic since backward compatibility requires file support as well and URL's...
+	 */
+	@SuppressWarnings("rawtypes")
+	final JList url_list = new JList();
 
     /**
      * Establish the configurable parameters associated with reading the FASTA file. Note how we can
      * tailor the regular expressions to match the description line as we see fit. If any fail to match,
      * no sequence will be output - so you can use this to select just sequences of interest.
      */
-    protected FastaReaderNodeDialog() {
+    @SuppressWarnings("unchecked")
+	protected FastaReaderNodeDialog() {
         super();
     	
         SettingsModelStringArray store = new SettingsModelStringArray(FastaReaderNodeModel.CFGKEY_FASTA, new String[] { "c:/temp/crap.fasta" });
@@ -85,11 +88,11 @@ public class FastaReaderNodeDialog extends DefaultNodeSettingsPane {
 				if (val instanceof URL) {
 					String text = ((URL)val).toString();
 					if (text.startsWith("file:")) {
-						text = text.substring(5);
+						text = text.substring(6);
 					}
 					return super.getListCellRendererComponent(l, text, idx, arg3, arg4);
 				}
-				return null;
+				return (val != null) ? new JLabel(val.toString()) : new JLabel();
 			}
         	
         });
@@ -260,42 +263,12 @@ public class FastaReaderNodeDialog extends DefaultNodeSettingsPane {
     			seqtype_list.setSelectedItem(settings.getString(FastaReaderNodeModel.CFGKEY_SEQTYPE));
     		}
     		
-    		// backward compatibility: URL list used to be a list of Files...
-    		if (!settings.containsKey(FastaReaderNodeModel.CFGKEY_INTERNAL_USE_URLS)) {
-    			// url list is File's not URL's - so convert and then load...
-    			convertFileToURLs(settings, mdl);
-    		} else {
-    			mdl.loadSettingsFrom(settings);
-    		}
+    		mdl.loadSettingsFrom(settings);
     	} catch (InvalidSettingsException ex) {
     		ex.printStackTrace();
     	}
     }
-    
-    /**
-     * When the settings instance contains File paths rather than URLs we need to convert so the current codebase is happy.
-     * This is a backward compatibility feature for existing data analysis pipelines which will be removed in the future.
-     * 
-     * @param settings
-     * @param ulist the object to be modified with URL counterparts for the specified files (may be bogus if File's dont exist)
-     * @throws InvalidSettingsException 
-     */
-    private void convertFileToURLs(final NodeSettingsRO settings,
-			final URLListModel mdl) throws InvalidSettingsException {
-		assert(settings != null && mdl != null);
-		SettingsModelStringArray arr = new SettingsModelStringArray(FastaReaderNodeModel.CFGKEY_FASTA, new String[] {});
-		arr.loadSettingsFrom(settings);
-		ArrayList<URL> new_url_list = new ArrayList<URL>();
-		for (String s : arr.getStringArrayValue()) {
-			File f = new File(s);
-			try {
-				new_url_list.add(f.toURI().toURL());
-			} catch (MalformedURLException mfe) {
-				mfe.printStackTrace();
-			}
-		}
-		mdl.setAll(new_url_list);
-	}
+  
 
 	@Override
     public void saveAdditionalSettingsTo(NodeSettingsWO settings) {
@@ -304,7 +277,5 @@ public class FastaReaderNodeDialog extends DefaultNodeSettingsPane {
     	if (sel != null) {
     		settings.addString(FastaReaderNodeModel.CFGKEY_SEQTYPE, sel.toString());
     	}
-    	SettingsModelBoolean use_urls = new SettingsModelBoolean(FastaReaderNodeModel.CFGKEY_INTERNAL_USE_URLS, Boolean.TRUE);
-    	use_urls.saveSettingsTo(settings);
     }
 }

@@ -126,16 +126,25 @@
    				  level-id="mzML"
    				  name="mzML"
    				  path="/Bioinformatics/Mass Spectrometry/Proteomics" />
+   				  
    		<category description="Nodes written to support JavaProtLib http://javaprotlib.sourceforge.net/"
    				  icon="icons/javaprotlib.png"
    				  level-id="JavaProtLib"
    				  name="JavaProtLib"
    				  path="/Bioinformatics/Mass Spectrometry/Proteomics" />
+   				  
+   		<category description="Nodes written to support Mascot (www.matrixscience.com) and MascotWS" 
+   					icon="icons/mascot.png"
+   					level-id="Mascot"
+   					name="Mascot"
+   					path="/Bioinformatics/Mass Spectrometry/Proteomics"/>
+   					
    		<category description="Nodes written to support jEMBOSS http://emboss.sourceforge.net/Jemboss/"
    				  icon="icons/default.png"
    				  level-id="JEmboss"
    				  name="JEmboss"
    				  path="/Bioinformatics/Sequence Analysis" />
+   				  
    		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
    				  icon="icons/default.png"
    				  level-id="Protein Inference"
