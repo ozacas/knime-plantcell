@@ -86,10 +86,7 @@ public class FastaReaderNodeDialog extends DefaultNodeSettingsPane {
 			public Component getListCellRendererComponent(JList l,
 					Object val, int idx, boolean arg3, boolean arg4) {
 				if (val instanceof URL) {
-					String text = ((URL)val).toString();
-					if (text.startsWith("file:")) {
-						text = text.substring(6);
-					}
+					String text = FastaReaderNodeModel.shortenURLForDisplay((URL)val);
 					return super.getListCellRendererComponent(l, text, idx, arg3, arg4);
 				}
 				return (val != null) ? new JLabel(val.toString()) : new JLabel();
@@ -209,7 +206,7 @@ public class FastaReaderNodeDialog extends DefaultNodeSettingsPane {
         addTabAt(0, "FASTA Files", fasta_file_panel);
         selectTab("FASTA Files");
     }
-    
+ 
     /**
      * Convenience wrapper to avoid list model casting all over the codebase
      * @return

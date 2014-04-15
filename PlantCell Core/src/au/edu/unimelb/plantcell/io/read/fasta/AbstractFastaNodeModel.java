@@ -207,4 +207,25 @@ public abstract class AbstractFastaNodeModel extends NodeModel {
     	return (cnt > 0) ? descrs : null;
     }
   
+    
+ 	/**
+ 	 * If the specified url represents a file, without a host part, we can shorten the URL for
+ 	 * user convenience. The url is not modified, but the short string version is returned for display purposes.
+ 	 * 
+ 	 * @param u must not be null
+ 	 * @return never null
+ 	 */
+ 	public static String shortenURLForDisplay(final URL u) {
+ 		assert(u != null);
+ 		String host = u.getHost();
+ 		if (host != null && host.length() > 0)
+ 			return u.toString();
+ 		String proto = u.getProtocol();
+ 		if (proto.startsWith("file")) {
+ 			return u.getPath();
+ 		}
+ 		else
+ 			return u.toString();
+ 	}
+ 	
 }
