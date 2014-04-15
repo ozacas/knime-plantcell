@@ -214,7 +214,7 @@ public class AlignmentNodeView extends ExternalApplicationNodeView<NodeModel>{
 	 * This method tries two different ways to invoke jalview (and sets up the return result accordingly):
 	 * 1) tries to locate a program jalview (or jalview.exe) in various locations in common use
 	 * 2) if (1) fails, then it tries to locate jalview.jar and invoke java.exe on it
-	 * In either case the command line is return for a -open <filename> argument to be added just prior to execution
+	 * In either case the command line is ready for a -open <filename> argument to be added just prior to execution
 	 */
 	public CommandLine makeCommandLine() throws IOException {
 		List<File> paths = new ArrayList<File>();
