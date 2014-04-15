@@ -1,16 +1,22 @@
 package au.edu.unimelb.plantcell.io.read.alignments;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.net.MalformedURLException;
+
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
+import org.knime.core.node.defaultnodesettings.DialogComponentButton;
 import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
-import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
+import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 /**
- * <code>NodeDialog</code> for the "LocalMuscle" Node.
- * Supports running a local muscle executable and integration into the KNIME-PlantCell platform
+ * Supports reading alignment files/URLs into the KNIME PlantCell platform
  *
  * This node dialog derives from {@link DefaultNodeSettingsPane} which allows
  * creation of a simple dialog with standard components. If you need a more 
@@ -21,25 +27,61 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
  */
 public class AlignmentReaderNodeDialog extends DefaultNodeSettingsPane {
 
-    /**
-     * New pane for configuring the LocalMuscle node.
-     */
     protected AlignmentReaderNodeDialog() {
-    	addDialogComponent(new DialogComponentFileChooser(
-    			new SettingsModelString(AlignmentReaderNodeModel.CFGKEY_FILE, ""), 
-    			"alignment-input-file", JFileChooser.OPEN_DIALOG, false, ".aln|.fasta|.fa|.phy|.phylip|.clustal|clustalw"
-    	));
+    	this.createNewGroup("How to fetch and interpret the alignment... ");
+    	this.setHorizontalPlacement(true);
+    	final SettingsModelString url = new SettingsModelString(AlignmentReaderNodeModel.CFGKEY_URL, "");
+    	addDialogComponent(new DialogComponentString(url,
+    			"Read from..."));
+    	DialogComponentButton set_file_button = new DialogComponentButton("File...");
+    	DialogComponentButton set_url_button  = new DialogComponentButton("URL...");
     	
-    	// HACK: must match NodeModel.execute()!
-    	String[] labels = new String[] { "AA", "NA" };
-    	addDialogComponent(new DialogComponentButtonGroup(
-    			new SettingsModelString(AlignmentReaderNodeModel.CFGKEY_TYPE, "AA"), "Amino acids or nucleotides?", 
-    			false, labels, labels
-    			));
+    	set_file_button.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				JFileChooser fc = new JFileChooser();
+				FileNameExtensionFilter filter = new FileNameExtensionFilter(
+				        "Alignment files", "aln", "clustal", "muscle", "clustalw", "phylip", "fasta", "fa", "fsa", "msa");
+				fc.setFileFilter(filter);
+				int returnVal = fc.showOpenDialog(null);
+				if (returnVal == JFileChooser.APPROVE_OPTION) {
+				    try {
+						url.setStringValue(fc.getSelectedFile().toURI().toURL().toString());
+					} catch (MalformedURLException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+    		
+    	});
+    	addDialogComponent(set_file_button);
+    	set_url_button.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String ret = JOptionPane.showInputDialog("Enter the URL here:");
+				if (ret != null) {
+					url.setStringValue(ret);
+				}
+			}
+    		
+    	});
+    	addDialogComponent(set_url_button);
+    	this.setHorizontalPlacement(false);
+
     	addDialogComponent(new DialogComponentStringSelection(
     			new SettingsModelString(AlignmentReaderNodeModel.CFGKEY_FORMAT, ""), 
-    			"alignment-format", AlignmentReaderNodeModel.FILE_FORMATS
-    			));
+    			"Interpret data as (file format)... ", AlignmentReaderNodeModel.FILE_FORMATS
+    	));
+    	this.closeCurrentGroup();
+   
+    	addDialogComponent(new DialogComponentButtonGroup(
+    			new SettingsModelString(AlignmentReaderNodeModel.CFGKEY_TYPE, AlignmentReaderNodeModel.SEQTYPES[0]), 
+    			"Amino acids or nucleotides?", 
+    			false, AlignmentReaderNodeModel.SEQTYPES, AlignmentReaderNodeModel.SEQTYPES
+    	));
+    	
     	
     }
 }
