@@ -38,13 +38,18 @@ public class LocalMuscleNodeDialog extends DefaultNodeSettingsPane {
 
 					@Override
 					public String allFilteredMsg() {
-						return "No suitable list or set of sequences available!";
+						return "No suitable set/list/column of sequences available!";
 					}
 
 					@Override
 					public boolean includeColumn(DataColumnSpec arg0) {
+						// collection cell?
 						if (arg0.getType().isCollectionType() && arg0.getType().getCollectionElementType().isCompatible(SequenceValue.class))
 							return true;
+						// sequence cell?
+						if (arg0.getType().isCompatible(SequenceValue.class)) 
+							return true;
+						
 						return false;
 					}
     		
