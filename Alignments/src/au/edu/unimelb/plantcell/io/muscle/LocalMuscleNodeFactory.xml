@@ -21,8 +21,13 @@
         
         <option name="Path to MUSCLE executable">To use this node you must download the MUSCLE program from: <a href="http://www.drive5.com/muscle/downloads.htm">http://www.drive5.com/muscle/downloads.htm</a>
         and then configure this node to the installed program.</option>
-        <option name="Sequences Column">List or set of sequence cells to perform alignment on. A separate alignment is performed for each row.</option>
-        <option name="Tradeoff">Select the desired performance and accuracy tradeoff. The default is the best quality.</option>
+        
+        <option name="Sequences Column">You have a choice for this column: it can be a collection (list or set) or a sequence column. If the latter,
+        all sequences will be aligned together. If its a collection column, each collection cell (ie. row) will be aligned separately.</option>
+        
+        <option name="Tradeoff">Select the desired performance and accuracy tradeoff. The default is the best quality at the
+        expense of performance.</option>
+        
         <option name="Report log messages to KNIME console">Report MUSCLE log/debug messages to the KNIME console? Default is off as it can lead to large amount of output and slow performance.</option>
     </fullDescription>
     
