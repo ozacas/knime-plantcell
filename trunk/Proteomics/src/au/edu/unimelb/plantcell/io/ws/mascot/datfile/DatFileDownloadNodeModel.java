@@ -131,6 +131,10 @@ public class DatFileDownloadNodeModel extends MascotReaderNodeModel {
         	}
         }
         
+        if (downloaded_files.size() < 1) {
+        	throw new InvalidSettingsException("No downloaded files available! Nothing to load.");
+        }
+        
         // now that the files are downloaded we need to initialise the superclass with the chosen files...
         super.setFiles(downloaded_files);
         
