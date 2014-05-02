@@ -87,6 +87,7 @@ public class FastaReaderNodeDialog extends DefaultNodeSettingsPane {
 					Object val, int idx, boolean arg3, boolean arg4) {
 				if (val instanceof URL) {
 					String text = FastaReaderNodeModel.shortenURLForDisplay((URL)val);
+
 					return super.getListCellRendererComponent(l, text, idx, arg3, arg4);
 				}
 				return (val != null) ? new JLabel(val.toString()) : new JLabel();
@@ -208,6 +209,25 @@ public class FastaReaderNodeDialog extends DefaultNodeSettingsPane {
     }
  
     /**
+     * For visual clarity and backward compatibility, remove the junk portion of the textual form of the URL for 
+     * user-convenience. This is only done for file: protocol URLs. Nothing is done otherwise.
+     * 
+     * @param url_in_text_form
+     * @return
+     */
+    protected String trimFileProtocol(final String url_in_text_form) {
+		assert(url_in_text_form != null);
+		if (!url_in_text_form.startsWith("file:"))
+			return url_in_text_form;
+		
+		String ret = url_in_text_form.substring("file:".length());
+		while (ret.startsWith("/") || ret.startsWith("\\")) {
+			ret = ret.substring(1);
+		}
+		return ret;
+	}
+
+	/**
      * Convenience wrapper to avoid list model casting all over the codebase
      * @return
      */
