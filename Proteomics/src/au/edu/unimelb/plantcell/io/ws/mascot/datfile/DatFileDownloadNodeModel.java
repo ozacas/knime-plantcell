@@ -124,7 +124,11 @@ public class DatFileDownloadNodeModel extends MascotReaderNodeModel {
         	}
         	fos.close();
         	is.close();
-        	downloaded_files.add(dat_out);
+        	if (dat_out.length() < 1) {
+        		logger.warn("Zero-sized file for downloaded DAT file: "+dat_out.getAbsolutePath()+": file ignored!");
+        	} else {
+        		downloaded_files.add(dat_out);
+        	}
         }
         
         // now that the files are downloaded we need to initialise the superclass with the chosen files...
