@@ -2,45 +2,35 @@ package au.edu.unimelb.plantcell.io.mafft;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.exec.CommandLine;
-import org.apache.commons.exec.DefaultExecutor;
-import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.LogOutputStream;
-import org.apache.commons.exec.PumpStreamHandler;
 import org.knime.core.data.DataCell;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataType;
-import org.knime.core.data.collection.ListCell;
-import org.knime.core.data.collection.SetCell;
 import org.knime.core.data.container.ColumnRearranger;
-import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
-import au.edu.unimelb.plantcell.core.ErrorLogger;
-import au.edu.unimelb.plantcell.core.NullLogger;
+import au.edu.unimelb.plantcell.core.ExternalProgram;
+import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.core.UniqueID;
 import au.edu.unimelb.plantcell.core.cells.SequenceType;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
-import au.edu.unimelb.plantcell.io.write.fasta.FastaWriter;
+import au.edu.unimelb.plantcell.io.muscle.AbstractAlignerNodeModel;
+import au.edu.unimelb.plantcell.io.muscle.AppendAlignmentCellFactory;
 import au.edu.unimelb.plantcell.io.ws.multialign.AlignmentCellFactory;
-import au.edu.unimelb.plantcell.io.ws.multialign.MultiAlignmentCell;
+import au.edu.unimelb.plantcell.io.ws.multialign.AlignmentValue;
 import au.edu.unimelb.plantcell.io.ws.multialign.AlignmentValue.AlignmentType;
 
 /**
@@ -49,9 +39,7 @@ import au.edu.unimelb.plantcell.io.ws.multialign.AlignmentValue.AlignmentType;
  * @author andrew.cassin
  *
  */
-public class LocalMafftNodeModel extends NodeModel {
-    private final NodeLogger logger = NodeLogger.getLogger("MAFFT Aligner (local)");
-	
+public class LocalMafftNodeModel extends AbstractAlignerNodeModel {	
 	public static final String CFGKEY_ROOT         = "mafft root folder";
 	public static final String CFGKEY_SEQUENCES    = "sequences-column";
 	public static final String CFGKEY_LOG_STDERR   = "log-stderr";
@@ -59,18 +47,24 @@ public class LocalMafftNodeModel extends NodeModel {
 	public static final String CFGKEY_USER_DEFINED = "user-defined-options";
 	
 	// order is VERY important and cannot be changed without care!
-	public static final String[] TRADEOFFS = new String[] { "Auto", "User-defined", "FFT-NS-1", "FFT-NS-2", "FFT-NS-i (max 1000 cycles)", "L-INS-i", "G-INS-i", "E-INS-i" };
+	public static final String[] TRADEOFFS = new String[] { "Auto", "User-defined", "FFT-NS-1", "FFT-NS-2", 
+													"FFT-NS-i (max 1000 cycles)", "L-INS-i", "G-INS-i", "E-INS-i" };
 	
-	private SettingsModelString m_root = new SettingsModelString(CFGKEY_ROOT, "");
+	// user configured and persisted state
+	private SettingsModelString m_root            = new SettingsModelString(CFGKEY_ROOT, "");
 	private SettingsModelString m_input_sequences = new SettingsModelString(CFGKEY_SEQUENCES, "");
-	private SettingsModelBoolean m_log = new SettingsModelBoolean(CFGKEY_LOG_STDERR, Boolean.FALSE);
-	private SettingsModelString  m_algo = new SettingsModelString(CFGKEY_ALGO, TRADEOFFS[0]);
-	private SettingsModelString m_user_defined = new SettingsModelString(CFGKEY_USER_DEFINED, "");
+	private SettingsModelBoolean m_log            = new SettingsModelBoolean(CFGKEY_LOG_STDERR, Boolean.FALSE);
+	private SettingsModelString  m_algo           = new SettingsModelString(CFGKEY_ALGO, TRADEOFFS[0]);
+	private SettingsModelString m_user_defined    = new SettingsModelString(CFGKEY_USER_DEFINED, "");
+	// state which is used during execute()
+	private File prog;		// mafft executable path or null on error
+	private final Map<String,AlignmentValue> m_view_model = new HashMap<String,AlignmentValue>();
 	
 	
 	protected LocalMafftNodeModel() {
 		super(1,1);
 		m_user_defined.setEnabled(m_algo.getStringValue().equals(TRADEOFFS[1]));
+		reset();
 	}
 	
 	@Override
@@ -78,129 +72,63 @@ public class LocalMafftNodeModel extends NodeModel {
             final ExecutionContext exec) throws Exception {
 		logger.info("Performing alignments on "+inData[0].getRowCount()+" input rows.");
 		
-		ColumnRearranger rearranger = new ColumnRearranger(inData[0].getSpec());
-		BufferedDataTable out = null;
 		final int seqs_idx = inData[0].getDataTableSpec().findColumnIndex(m_input_sequences.getStringValue());
 		if (seqs_idx < 0)
 			throw new InvalidSettingsException("Cannot find input sequences - re-configure?");
+		DataTableSpec outSpec = make_output_spec(inData[0].getSpec(), seqs_idx);
 		
-		final SingleCellFactory appender = new SingleCellFactory(make_output_spec()) {
-			boolean warned_small_seqs = false;
-			
-			@Override
-			public DataCell getCell(DataRow r) {
-				DataCell seqs_cell = r.getCell(seqs_idx);
-				if (seqs_cell == null || !(seqs_cell instanceof ListCell || seqs_cell instanceof SetCell)) 
-					return DataType.getMissingCell();
-				
-				Iterator<DataCell> it = null;
-				if (seqs_cell instanceof ListCell) {
-					it = ((ListCell)seqs_cell).iterator();
-				} else { // must be set cell
-					it = ((SetCell)seqs_cell).iterator();
-				}
-				
-				// validate input sequences and create set of sequences to align...
-				SequenceType st = SequenceType.UNKNOWN;
-				final Map<UniqueID,SequenceValue> seq_map = new HashMap<UniqueID,SequenceValue>();
-				while (it.hasNext()) {
-					DataCell c = it.next();
-					if (c instanceof SequenceValue) {
-						SequenceValue sv = (SequenceValue)c;
-						if (st != SequenceType.UNKNOWN && st != sv.getSequenceType()) {
-							logger.error("Cannot mix sequence types (eg. AA versus NA) in alignment for row: "+r.getKey().getString());
-							return DataType.getMissingCell();
-						} else {
-							st = sv.getSequenceType();
-						}
-						seq_map.put(new UniqueID(), sv);
+		prog = findMafft();
+    	if (prog == null)
+    		throw new InvalidSettingsException("Unable to locate/run "+getAlignmentLogName()+": is installation correct?");
+    	logger.info("Using mafft program: "+prog.getAbsolutePath());
+    	
+		// if the input sequences are groupby'ed then we do the calculation this way...
+    	if (isCollectionOfSequencesColumn(inData[0].getDataTableSpec().getColumnSpec(seqs_idx))) {
+    		ColumnRearranger rearranger = new ColumnRearranger(inData[0].getSpec());    		
+    		rearranger.append(new AppendAlignmentCellFactory(outSpec, seqs_idx, this));
+    		BufferedDataTable out = exec.createColumnRearrangeTable(inData[0], rearranger, exec.createSubProgress(1.0));
+    		
+            return new BufferedDataTable[]{out};
+    	} else {
+    		// otherwise we do the groupby and then create a single-cell table as output from the alignment
+    		MyDataContainer c = new MyDataContainer(exec.createDataContainer(make_output_spec(inData[0].getSpec(), seqs_idx)), "Aln");
+    		SequenceType   st = SequenceType.UNKNOWN;
+			final Map<UniqueID,SequenceValue> seq_map = new HashMap<UniqueID,SequenceValue>();
+			for (DataRow r : inData[0]) {
+				DataCell cell = r.getCell(seqs_idx);
+				if (cell instanceof SequenceValue) {
+					SequenceValue sv = (SequenceValue)cell;
+					if (st != SequenceType.UNKNOWN && st != sv.getSequenceType()) {
+						throw new InvalidSettingsException("Cannot mix sequence types (eg. AA versus NA) in sequence column on row: "+r.getKey().getString());
+					} else {
+						st = sv.getSequenceType();
 					}
-				}
-				
-				if (seq_map.size() < 3 && !warned_small_seqs) {
-					logger.warn("Use of multiple aligners for less than three sequences is NOT recommended, continuing anyway...");
-					warned_small_seqs = true;
-				}
-				
-				logger.info("Aligning "+seq_map.size()+ " "+st+" sequences for row "+r.getKey().getString());
-				
-				File f = null;
-				
-				
-				// run mafft and return result if run went ok, else log errors
-				try {
-					f = File.createTempFile("input_mafft", ".fasta");
-					FastaWriter fw = new FastaWriter(f, seq_map);
-					fw.write();
-					
-					DefaultExecutor exe = new DefaultExecutor();
-	    	    	exe.setExitValues(new int[] {0});
-	    	    	LogOutputStream tsv = new LogOutputStream() {
-	    	    		private StringBuffer sb = new StringBuffer(1024 * 1024);
-	    	    		
-						@Override
-						protected void processLine(String arg0, int arg1) {
-							if (arg0.startsWith(">")) {
-								String id = arg0.substring(1);
-								try {
-									SequenceValue sv = seq_map.get(new UniqueID(id));
-									sb.append(">"+sv.getID());
-								} catch (InvalidSettingsException ise) {
-									ise.printStackTrace();
-									sb.append(arg0);
-								}
-							} else {
-								sb.append(arg0);
-							}
-							sb.append("\n");
-						}
-	    	    		
-						@Override
-						public String toString() {
-							return sb.toString();
-						}
-	    	    	};
-	    	    	LogOutputStream errors = m_log.getBooleanValue() ? new ErrorLogger(logger, true) : new NullLogger();
-	    	    	exe.setStreamHandler(new PumpStreamHandler(tsv, errors));
-	    	    	exe.setWorkingDirectory(f.getParentFile());		// must match addQueryDatabase() semantics
-	    	    	exe.setWatchdog(new ExecuteWatchdog(ExecuteWatchdog.INFINITE_TIMEOUT));
-	    	    	File prog = new File(getMafftFolder(), "mafft.bat");
-	    	    	CommandLine cmdLine = new CommandLine(prog);
-	    	    	
-	    	    	addAlgoOptions(cmdLine, m_algo.getStringValue());
-	    	    	
-	    	    	cmdLine.addArgument(f.getName());
-	    	    	
-	    	    	exe.setWorkingDirectory(f.getParentFile());
-	    	    	logger.info("Running MAFFT, command line: "+cmdLine.toString());
-	            	int exitCode = exe.execute(cmdLine);
-	            	logger.info("got exit code: "+exitCode+" from MAFFT");
-	            	
-	            	if (exe.isFailure(exitCode)) {
-	            		logger.error("MAFFT failed to align sequences in row "+r.getKey().getString()+" - check console messages and input data");
-	            		return DataType.getMissingCell();
-	            	}
-	            	
-					return AlignmentCellFactory.createCell(tsv.toString(), st.isProtein() ? AlignmentType.AL_AA : AlignmentType.AL_NA);
-				} catch (IOException|InvalidSettingsException ioe) {
-					logger.error("Cannot mafft!", ioe);
-					return DataType.getMissingCell();
-				} finally {
-					if (f != null)
-						f.delete();
+					seq_map.put(new UniqueID(), sv);
 				}
 			}
-
-		
 			
-		};
-	
-		rearranger.append(appender);
-		out = exec.createColumnRearrangeTable(inData[0], rearranger, exec.createSubProgress(1.0));
-		
-	    return new BufferedDataTable[]{out};
+			final String rowid = "Alignment1";
+			logWarningAboutAlignments(seq_map, st, rowid);
+    		c.addRow(new DataCell[] { runAlignmentProgram(seq_map, rowid, st)} );
+    		return new BufferedDataTable[] {c.close()};
+    	}
 	}
     
+	private File findMafft() throws InvalidSettingsException {
+		String[] attempts = new String[] { "mafft.bat", "mafft", "mafft.exe" };
+		// first attempt failed, so now try ExternalProgram to see if it can find it!
+		File mafft_folder = getMafftFolder();
+		Collection<File> folders_to_try = ExternalProgram.addSystemPathExecutablePaths();
+		List<String> strs_to_try = new ArrayList<String>();
+		if (mafft_folder != null)
+			strs_to_try.add(mafft_folder.getAbsolutePath());
+		for (File f : folders_to_try) {
+			strs_to_try.add(f.getAbsolutePath());
+		}
+		File mafft = ExternalProgram.findReallyHard(attempts, strs_to_try.toArray(new String[0]));
+		return mafft;
+	}
+
 	/**
 	 * Append the relevant arguments to the chosen command line for the MAFFT algorithm chosen by user configuration
 	 * 
@@ -242,7 +170,7 @@ public class LocalMafftNodeModel extends NodeModel {
 		}
 	}
 	
-	private File getMafftFolder() throws InvalidSettingsException {
+	private File getMafftFolder() {
 		File root = new File(m_root.getStringValue());
 	
 		File[] paths =  new File[] { root, new File(root, "mafft-win") };
@@ -254,14 +182,7 @@ public class LocalMafftNodeModel extends NodeModel {
 			}
 		}
 		
-		throw new InvalidSettingsException("Cannot locate MAFFT folder: check configuration!");
-	}
-	
-	private DataColumnSpec make_output_spec() {
-    	DataColumnSpec[] cols = new DataColumnSpec[1];
-    	cols[0] = new DataColumnSpecCreator("Alignment of input sequences (MAFFT)", MultiAlignmentCell.TYPE).createSpec();
-    	
-    	return cols[0];
+		return null;
 	}
 	
 	 /**
@@ -271,19 +192,10 @@ public class LocalMafftNodeModel extends NodeModel {
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
             throws InvalidSettingsException {
 
-    	DataColumnSpec  col = make_output_spec();
-        return new DataTableSpec[]{new DataTableSpec(inSpecs[0], new DataTableSpec(new DataColumnSpec[] {col}))};
+    	final int seq_idx = inSpecs[0].findColumnIndex(m_input_sequences.getStringValue());
+    	DataTableSpec  outSpec = make_output_spec(inSpecs[0], seq_idx);
+        return new DataTableSpec[]{outSpec};
     }
-    
-	@Override
-	protected void loadInternals(File nodeInternDir, ExecutionMonitor exec)
-			throws IOException, CanceledExecutionException {
-	}
-
-	@Override
-	protected void saveInternals(File nodeInternDir, ExecutionMonitor exec)
-			throws IOException, CanceledExecutionException {
-	}
 
 	@Override
 	protected void saveSettingsTo(NodeSettingsWO settings) {
@@ -316,6 +228,55 @@ public class LocalMafftNodeModel extends NodeModel {
 
 	@Override
 	protected void reset() {
+		super.reset();
+	}
+
+	@Override
+	public List<String> getAlignmentRowIDs() {
+		ArrayList<String> ret = new ArrayList<String>();
+		ret.addAll(m_view_model.keySet());
+		return ret;
+	}
+
+	@Override
+	public AlignmentValue getAlignment(String row_id) {
+		return m_view_model.get(row_id);
+	}
+
+	@Override
+	protected File getAlignmentProgram() {
+		return prog;
+	}
+
+	@Override
+	protected String getAlignmentLogName() {
+		return "Mafft";
+	}
+
+	@Override
+	public CommandLine makeCommandLineArguments(final File fasta_file,
+			final SequenceType alignment_sequence_type) throws Exception {
+		CommandLine cmdLine = new CommandLine(prog);
+    	addAlgoOptions(cmdLine, m_algo.getStringValue());
+    	cmdLine.addArgument(fasta_file.getName());
+    	return cmdLine;
+	}
+
+	@Override
+	public DataCell makeAlignmentCellAndPopulateResultsMap(LogOutputStream tsv,
+			SequenceType st, String row_id) throws IOException {
+		assert(st != null && tsv != null && row_id != null);
+		DataCell alignment_cell;
+		if (st.isProtein())
+               alignment_cell = AlignmentCellFactory.createCell(tsv.toString(), AlignmentType.AL_AA);
+		else
+               alignment_cell = AlignmentCellFactory.createCell(tsv.toString(), AlignmentType.AL_NA);
+		if (alignment_cell != null && alignment_cell instanceof AlignmentValue) {
+			// since a row_id must be unique, something is very wrong if the row_id is already in the map
+			assert(!m_view_model.containsKey(row_id));
+			m_view_model.put(row_id, (AlignmentValue) alignment_cell);
+		}
+		return alignment_cell;
 	}
 
 }

@@ -17,7 +17,8 @@
         
         <option name="MAFFT Root Folder">
         Choose the folder which contains the install MAFFT program you would like to use. Only Windows systems are supported at the moment.</option>
-        <option name="Sequences Column">List or set of sequence cells to perform alignment on. A separate alignment is performed for each row.</option>
+        <option name="Sequences to align">Column of sequences to perform alignment on. If the chosen column is a collection cell (list or set)
+        a separate alignment is performed for each row, otherwise all sequences (from the chosen column) are aligned as one.</option>
         <option name="Algorithm">Only automatic is supported at the moment</option>
         <option name="Report log messages to KNIME console">Report log/debug messages to the KNIME console? Default is off as it can lead to large amount of output and slow performance.</option>
     </fullDescription>

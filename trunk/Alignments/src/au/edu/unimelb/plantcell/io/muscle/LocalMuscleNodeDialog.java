@@ -1,6 +1,5 @@
 package au.edu.unimelb.plantcell.io.muscle;
 
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
@@ -8,9 +7,6 @@ import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelectio
 import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.core.node.util.ColumnFilter;
-
-import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 
 /**
  * <code>NodeDialog</code> for the "LocalMuscle" Node.
@@ -34,27 +30,7 @@ public class LocalMuscleNodeDialog extends DefaultNodeSettingsPane {
     			));
     	
     	addDialogComponent(new DialogComponentColumnNameSelection(new SettingsModelString(LocalMuscleNodeModel.CFGKEY_SEQUENCES, ""), 
-    			"Collection column of sequences", 0, true, new ColumnFilter() {
-
-					@Override
-					public String allFilteredMsg() {
-						return "No suitable set/list/column of sequences available!";
-					}
-
-					@Override
-					public boolean includeColumn(DataColumnSpec arg0) {
-						// collection cell?
-						if (arg0.getType().isCollectionType() && arg0.getType().getCollectionElementType().isCompatible(SequenceValue.class))
-							return true;
-						// sequence cell?
-						if (arg0.getType().isCompatible(SequenceValue.class)) 
-							return true;
-						
-						return false;
-					}
-    		
-    	}
-    			));
+    			"Sequences to align...", 0, true, new SequenceColumn4AlignmentFilter()));
     	
     	addDialogComponent(new DialogComponentButtonGroup(
     			new SettingsModelString(LocalMuscleNodeModel.CFGKEY_TRADEOFF, LocalMuscleNodeModel.TRADEOFFS[0]), 
