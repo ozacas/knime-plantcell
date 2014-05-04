@@ -1,6 +1,7 @@
 package au.edu.unimelb.plantcell.core;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -89,7 +90,7 @@ public class ExternalProgram {
 		}
 	}
 
-	public static Collection<? extends File> addSystemPathExecutablePaths() {
+	public static Collection<File> addSystemPathExecutablePaths() {
 		String[] try_paths;
 		ArrayList<File> ret = new ArrayList<File>();
 		
@@ -102,5 +103,38 @@ public class ExternalProgram {
 			makeFolderWithSuffix(s, null, ret);
 		}
 		return ret;
+	}
+
+	public static File findReallyHard(final String[] attempts, final String[] folders_to_try) {
+		Collection<File> final_folders_to_try = addSystemPathExecutablePaths();
+		for (String folder : folders_to_try) {
+			final File f = new File(folder);
+			if (f.exists() && f.isDirectory()) {
+				final_folders_to_try.add(f);
+			} else if (f.getParentFile().exists() && f.getParentFile().isDirectory()) {
+				File[] tmp_list = f.getParentFile().listFiles(new FileFilter() {
+
+					@Override
+					public boolean accept(final File arg0) {
+						String name = arg0.getName().toLowerCase();
+						String original_name = f.getName().toLowerCase();
+						if (name.indexOf(original_name) >= 0) 
+							return true;
+						for (String attempt : attempts) {
+							if (name.indexOf(attempt.toLowerCase()) >= 0)
+								return true;
+						}
+						return false;
+					}
+					
+				});
+				
+				for (File tmp : tmp_list) {
+					final_folders_to_try.add(tmp);
+				}
+			}
+		}
+		
+		return ExternalProgram.find(attempts, final_folders_to_try.toArray(new File[0]));
 	}
 }
