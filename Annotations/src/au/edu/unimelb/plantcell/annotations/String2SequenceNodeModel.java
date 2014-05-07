@@ -3,6 +3,7 @@ package au.edu.unimelb.plantcell.annotations;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.commons.lang.StringUtils;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -108,12 +109,12 @@ public class String2SequenceNodeModel extends NodeModel {
 					return DataType.getMissingCell();
 				String accsn = "";
 				if (use_rowid) {
-	        		accsn = row.getKey().getString();
+	        		accsn = StringUtils.trim(row.getKey().getString());
 	        	} else {
 	        		DataCell c_accsn = row.getCell(accsn_idx);
 	        		if (c_accsn.isMissing()) 
 	        			return DataType.getMissingCell();
-	        		accsn = c_accsn.toString();
+	        		accsn = StringUtils.trim(c_accsn.toString());
 	        	}
 	        	
 				try {
