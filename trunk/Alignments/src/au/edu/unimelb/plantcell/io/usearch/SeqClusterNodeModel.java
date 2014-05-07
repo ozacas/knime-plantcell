@@ -11,6 +11,7 @@ import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.PumpStreamHandler;
+import org.apache.commons.lang.StringUtils;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -42,7 +43,9 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 import au.edu.unimelb.plantcell.io.read.fasta.BatchFastaIterator;
 
 /**
- * Performs a local mafft alignment (only supported on windows for now)
+ * Performs a local sequence clustering as performed by usearch: http://www.drive5.com/usearch/
+ * This node only supports the clustering options of this program, other nodes (in future) may support the
+ * other functionality.
  * 
  * @author andrew.cassin
  *
@@ -141,7 +144,11 @@ public class SeqClusterNodeModel extends NodeModel {
 	    	cmdLine.addArgument("-uc");
 	    	cmdLine.addArgument(uc_results.getName());
 	    	for (String s: m_user_defined.getStringValue().split("\\s+")) {
-	    		cmdLine.addArgument(s);
+	    		String trimmed = StringUtils.trim(s);
+	    		// do not add any blank options as usearch is sensitive to this and will fail
+	    		if (trimmed.length() > 0) {
+	    			cmdLine.addArgument(s);
+	    		}
 	    	}
 	    	
 	    	logger.info("Running USEARCH, command line: "+cmdLine.toString());
