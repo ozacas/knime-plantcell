@@ -137,6 +137,7 @@ public class URLListModel extends AbstractListModel<URL> implements ChangeListen
 	 */
 	public void loadSettingsFrom(NodeSettingsRO settings) throws InvalidSettingsException {
 		// for backward compatibility we handle File's by converting to URL form
+		// this code is tricky: consider the case where someone save's/exports a workflow on one platform and then loads on another...
 		if (!settings.containsKey(FastaReaderNodeModel.CFGKEY_INTERNAL_USE_URLS) || 
 				!settings.getBoolean(FastaReaderNodeModel.CFGKEY_INTERNAL_USE_URLS)) {
 			convertFileToURLs(settings);
