@@ -27,7 +27,7 @@ import au.edu.unimelb.plantcell.core.cells.CoordinateSystem;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 import au.edu.unimelb.plantcell.core.cells.Track;
 import au.edu.unimelb.plantcell.core.cells.TrackCreator;
-import au.edu.unimelb.plantcore.core.regions.RegionsAnnotation;
+import au.edu.unimelb.plantcell.core.regions.RegionsAnnotation;
 
 /**
  * Common baseclass to many of the webservice nodes with methods commonly used by all services. Some services

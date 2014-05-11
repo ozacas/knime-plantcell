@@ -12,7 +12,7 @@ import org.knime.core.data.DataCellDataOutput;
 import org.knime.core.data.DataColumnProperties;
 import org.knime.core.node.InvalidSettingsException;
 
-import au.edu.unimelb.plantcore.core.regions.RegionInterface;
+import au.edu.unimelb.plantcell.core.regions.RegionInterface;
 
 /**
  * Represents a set of annotations sharing a key property eg. from same source (eg. TMHMM)

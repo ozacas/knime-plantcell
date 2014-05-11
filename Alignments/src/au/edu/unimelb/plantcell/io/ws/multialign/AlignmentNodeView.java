@@ -22,13 +22,13 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.apache.commons.exec.CommandLine;
-import org.apache.commons.exec.DefaultExecutor;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.knime.core.node.ExternalApplicationNodeView;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 
 import au.edu.unimelb.plantcell.core.CorePlugin;
+import au.edu.unimelb.plantcell.core.ExecutorUtils;
 import au.edu.unimelb.plantcell.core.ExternalProgram;
 import au.edu.unimelb.plantcell.core.Preferences;
 
@@ -64,7 +64,7 @@ public class AlignmentNodeView extends ExternalApplicationNodeView<NodeModel>{
      */
     @Override
     protected void modelChanged() {
-    	// HACK: jalview isnt notified of a change in data...
+    	// TODO FIXME: jalview isnt notified of a change in data...
     }
 
     /**
@@ -168,9 +168,8 @@ public class AlignmentNodeView extends ExternalApplicationNodeView<NodeModel>{
 			CommandLine cl = makeCommandLine();
 			File f = makeTemporaryAlignmentFile(av);
 			addJalViewOpenArguments(cl, f);
-			DefaultExecutor de = new DefaultExecutor();
-			logger.info("Running jalview: "+cl.toString());
-			de.execute(cl);
+			@SuppressWarnings("unused")
+			int exitStatus = new ExecutorUtils(logger).run(cl);
 		} catch (Exception ex) {
 			logger.warn(ex.getMessage());
 			ex.printStackTrace();

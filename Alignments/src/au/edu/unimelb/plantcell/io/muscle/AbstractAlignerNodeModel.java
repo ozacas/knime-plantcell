@@ -23,6 +23,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 
 import au.edu.unimelb.plantcell.core.ErrorLogger;
+import au.edu.unimelb.plantcell.core.ExecutorUtils;
 import au.edu.unimelb.plantcell.core.UniqueID;
 import au.edu.unimelb.plantcell.core.cells.SequenceType;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
@@ -280,10 +281,8 @@ public abstract class AbstractAlignerNodeModel extends NodeModel implements Alig
 	    	CommandLine cmdLine = makeCommandLineArguments(f, st);
 	    	exe.setWorkingDirectory(f.getParentFile());
 	    	String logname = getAlignmentLogName();
-	    	logger.info("Running "+logname+", command line: "+cmdLine.toString());
-        	int exitCode = exe.execute(cmdLine);
-        	logger.info("got exit code: "+exitCode+" from "+logname);
-        	
+	    	
+	    	int exitCode = new ExecutorUtils(exe, logger).run(cmdLine);
         	if (exe.isFailure(exitCode)) {
         		logger.error(logname+" failed to align sequences in row "+rowid+" - check console messages and input data");
         		return DataType.getMissingCell();

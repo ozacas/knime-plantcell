@@ -31,6 +31,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
+import au.edu.unimelb.plantcell.core.ExecutorUtils;
 import au.edu.unimelb.plantcell.core.ExternalProgram;
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.core.SequenceProcessor;
@@ -42,9 +43,9 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 import au.edu.unimelb.plantcell.core.cells.Track;
 import au.edu.unimelb.plantcell.core.cells.TrackColumnPropertiesCreator;
 import au.edu.unimelb.plantcell.core.cells.TrackCreator;
+import au.edu.unimelb.plantcell.core.regions.RegionsAnnotation;
 import au.edu.unimelb.plantcell.io.read.fasta.BatchSequenceRowIterator;
 import au.edu.unimelb.plantcell.io.write.fasta.FastaWriter;
-import au.edu.unimelb.plantcore.core.regions.RegionsAnnotation;
 
 
 /**
@@ -196,10 +197,7 @@ public class EmbossPredictorNodeModel extends NodeModel {
 	    	exe.setWorkingDirectory(td.asFile());
 	    	exe.setWatchdog(new ExecuteWatchdog(ExecuteWatchdog.INFINITE_TIMEOUT));
 	    	
-	    	logger.info("Running: "+cl.toString());
-	    	int exitCode = exe.execute(cl);
-	    	logger.info("got exit code: "+exitCode+" from "+program);
-	    	
+	    	int exitCode = new ExecutorUtils(exe, logger).run(cl);
 	    	td.deleteRecursive();
 	    	
 	    	if (exe.isFailure(exitCode)) {

@@ -22,8 +22,8 @@ import au.edu.unimelb.plantcell.core.cells.SequenceCell;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 import au.edu.unimelb.plantcell.core.cells.Track;
 import au.edu.unimelb.plantcell.core.cells.TrackCreator;
-import au.edu.unimelb.plantcore.core.regions.RegionsAnnotation;
-import au.edu.unimelb.plantcore.core.regions.ScoredRegion;
+import au.edu.unimelb.plantcell.core.regions.RegionsAnnotation;
+import au.edu.unimelb.plantcell.core.regions.ScoredRegion;
 
 public class GFFReader extends LogOutputStream {
 	private boolean is_cancelled = false;

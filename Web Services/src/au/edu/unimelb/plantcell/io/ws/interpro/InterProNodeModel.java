@@ -75,6 +75,8 @@ import au.edu.unimelb.plantcell.core.cells.SequenceType;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 import au.edu.unimelb.plantcell.core.cells.Track;
 import au.edu.unimelb.plantcell.core.cells.TrackColumnPropertiesCreator;
+import au.edu.unimelb.plantcell.core.regions.InterProRegion;
+import au.edu.unimelb.plantcell.core.regions.InterProRegionsAnnotation;
 import au.edu.unimelb.plantcell.io.ws.interproscan5.ArrayOfString;
 import au.edu.unimelb.plantcell.io.ws.interproscan5.InputParameters;
 import au.edu.unimelb.plantcell.io.ws.interproscan5.JDispatcherService;
@@ -83,8 +85,6 @@ import au.edu.unimelb.plantcell.io.ws.interproscan5.ObjectFactory;
 import au.edu.unimelb.plantcell.io.ws.interproscan5.WsParameterDetails;
 import au.edu.unimelb.plantcell.io.ws.interproscan5.WsParameterValue;
 import au.edu.unimelb.plantcell.io.ws.tmhmm.AbstractWebServiceNodeModel;
-import au.edu.unimelb.plantcore.core.regions.InterProRegion;
-import au.edu.unimelb.plantcore.core.regions.InterProRegionsAnnotation;
 
 /**
  * This is the model implementation of InterProScan.

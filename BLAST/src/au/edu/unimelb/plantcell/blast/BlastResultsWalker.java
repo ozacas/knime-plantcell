@@ -3,7 +3,7 @@ package au.edu.unimelb.plantcell.blast;
 import java.util.List;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
-import au.edu.unimelb.plantcore.core.regions.BlastHitRegion;
+import au.edu.unimelb.plantcell.core.regions.BlastHitRegion;
 
 public interface BlastResultsWalker {
 	/**

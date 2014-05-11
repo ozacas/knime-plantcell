@@ -85,7 +85,7 @@ public class GroupXMLReaderNodeModel extends NodeModel {
         peptide_cols[11]= new DataColumnSpecCreator("Filename", StringCell.TYPE).createSpec();
         peptide_cols[12]= new DataColumnSpecCreator("Type of peptide match (advanced users only)", IntCell.TYPE).createSpec();
         
-        DataColumnSpec[] protein_cols = new DataColumnSpec[10];
+        DataColumnSpec[] protein_cols = new DataColumnSpec[12];
         protein_cols[0] = new DataColumnSpecCreator("Name", StringCell.TYPE).createSpec();
         protein_cols[1] = new DataColumnSpecCreator("Coverage@0% confidence", DoubleCell.TYPE).createSpec();
         protein_cols[2] = new DataColumnSpecCreator("Coverage@95% confidence", DoubleCell.TYPE).createSpec();
@@ -96,6 +96,8 @@ public class GroupXMLReaderNodeModel extends NodeModel {
         protein_cols[7] = new DataColumnSpecCreator("Peptide IDs", ListCell.getCollectionType(StringCell.TYPE)).createSpec();
         protein_cols[8] = new DataColumnSpecCreator("Unique peptides", SetCell.getCollectionType(StringCell.TYPE)).createSpec();
         protein_cols[9] = new DataColumnSpecCreator("Filename", StringCell.TYPE).createSpec();
+        protein_cols[10]= new DataColumnSpecCreator("Use Quant?", StringCell.TYPE).createSpec();	// perhaps boolean would be better?
+        protein_cols[11]= new DataColumnSpecCreator("Use Type", StringCell.TYPE).createSpec();
 
         DataColumnSpec[] quant_cols = new DataColumnSpec[4];
         quant_cols[0] = new DataColumnSpecCreator("Spectrum ID", StringCell.TYPE).createSpec();
@@ -159,6 +161,9 @@ public class GroupXMLReaderNodeModel extends NodeModel {
       end_map.add("COVERAGE");
       end_map.add("ITRAQPEAKS");
 
+      if (input_files.size() < 1) {
+    	  throw new InvalidSettingsException("No valid input XML files from ProteinPilot to read!");
+      }
       
       for (File f : input_files) {
     	  logger.info("Processing file: "+f.getAbsolutePath());

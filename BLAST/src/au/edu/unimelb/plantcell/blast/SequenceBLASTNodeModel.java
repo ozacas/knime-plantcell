@@ -24,14 +24,15 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 import au.edu.unimelb.plantcell.core.ErrorLogger;
+import au.edu.unimelb.plantcell.core.ExecutorUtils;
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.core.UniqueID;
 import au.edu.unimelb.plantcell.core.cells.SequenceCell;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 import au.edu.unimelb.plantcell.core.cells.Track;
+import au.edu.unimelb.plantcell.core.regions.BlastHitRegion;
 import au.edu.unimelb.plantcell.io.read.fasta.BatchSequenceRowIterator;
 import au.edu.unimelb.plantcell.io.write.fasta.FastaWriter;
-import au.edu.unimelb.plantcore.core.regions.BlastHitRegion;
 
 
 /**
@@ -127,9 +128,7 @@ public class SequenceBLASTNodeModel extends BLASTPlusNodeModel {
     	    	exe.setWorkingDirectory(m_tmp_fasta.getParentFile());		// must match addQueryDatabase() semantics
     	    	exe.setWatchdog(new ExecuteWatchdog(ExecuteWatchdog.INFINITE_TIMEOUT));
     	    	
-            	int exitCode = exe.execute(cmdLine);
-            	logger.info("got exit code: "+exitCode+" from BLAST");
-            	
+            	int exitCode = new ExecutorUtils(exe, logger).run(cmdLine);
             	if (exe.isFailure(exitCode)) {
             		if (exe.getWatchdog().killedProcess())
             			throw new Exception("BLAST failed - watchdog says no...");

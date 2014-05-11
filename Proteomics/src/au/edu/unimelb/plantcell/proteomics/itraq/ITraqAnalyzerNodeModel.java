@@ -38,6 +38,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelFilterString;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.osgi.framework.Bundle;
 
+import au.edu.unimelb.plantcell.core.ExecutorUtils;
 import au.edu.unimelb.plantcell.core.ExternalProgram;
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.core.TempDirectory;
@@ -265,8 +266,7 @@ public class ITraqAnalyzerNodeModel extends NodeModel {
 		} else {
 			cl.addArgument(script.getAbsolutePath());
 		}
-		DefaultExecutor exe = new DefaultExecutor();
-		return exe.execute(cl);
+		return new ExecutorUtils(logger).run(cl);
 	}
 
 	private void validateInputData(BufferedDataTable[] inData) throws InvalidSettingsException {

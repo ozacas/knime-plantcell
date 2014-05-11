@@ -32,9 +32,9 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 import au.edu.unimelb.plantcell.core.cells.Track;
 import au.edu.unimelb.plantcell.core.cells.TrackColumnPropertiesCreator;
 import au.edu.unimelb.plantcell.core.cells.TrackCreator;
+import au.edu.unimelb.plantcell.core.regions.PFAMHitRegion;
+import au.edu.unimelb.plantcell.core.regions.PFAMRegionsAnnotation;
 import au.edu.unimelb.plantcell.io.ws.tmhmm.AbstractWebServiceNodeModel;
-import au.edu.unimelb.plantcore.core.regions.PFAMHitRegion;
-import au.edu.unimelb.plantcore.core.regions.PFAMRegionsAnnotation;
 
 /**
  * given a column of {@link SequenceCell}'s this task iterates thru them on the public server.

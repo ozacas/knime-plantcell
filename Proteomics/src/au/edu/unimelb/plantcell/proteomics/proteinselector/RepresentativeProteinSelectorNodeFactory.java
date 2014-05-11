@@ -35,7 +35,7 @@ public class RepresentativeProteinSelectorNodeFactory
     @Override
     public NodeView<RepresentativeProteinSelectorNodeModel> createNodeView(final int viewIndex,
             final RepresentativeProteinSelectorNodeModel nodeModel) {
-        return new RepresentativeProteinSelectorNodeView(nodeModel);
+        return null;
     }
 
     /**

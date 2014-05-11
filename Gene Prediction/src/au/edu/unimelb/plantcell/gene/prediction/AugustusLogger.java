@@ -18,9 +18,9 @@ import au.edu.unimelb.plantcell.core.cells.SequenceCell;
 import au.edu.unimelb.plantcell.core.cells.SequenceType;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 import au.edu.unimelb.plantcell.core.cells.Track;
-import au.edu.unimelb.plantcore.core.regions.FramedScoredRegion;
-import au.edu.unimelb.plantcore.core.regions.RegionsAnnotation;
-import au.edu.unimelb.plantcore.core.regions.ScoredRegion;
+import au.edu.unimelb.plantcell.core.regions.FramedScoredRegion;
+import au.edu.unimelb.plantcell.core.regions.RegionsAnnotation;
+import au.edu.unimelb.plantcell.core.regions.ScoredRegion;
 
 /**
  * Logs the lines from augustus (standard output only) to the KNIME table. It is assumed

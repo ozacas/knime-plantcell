@@ -33,6 +33,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 import au.edu.unimelb.plantcell.core.ErrorLogger;
+import au.edu.unimelb.plantcell.core.ExecutorUtils;
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.core.NullLogger;
 import au.edu.unimelb.plantcell.core.TempDirectory;
@@ -158,7 +159,7 @@ public class SeqClusterNodeModel extends NodeModel {
 	    	exe.setWatchdog(new ExecuteWatchdog(ExecuteWatchdog.INFINITE_TIMEOUT));
 	    
 	    	exec.checkCanceled();
-	    	int status = exe.execute(cmdLine);
+	    	int status = new ExecutorUtils(exe, logger).run(cmdLine);
 	    	
 	    	if (exe.isFailure(status))
 	    		throw new Exception("USearch failed: exit status "+status);

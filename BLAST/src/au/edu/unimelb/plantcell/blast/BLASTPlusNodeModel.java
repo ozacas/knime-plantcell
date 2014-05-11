@@ -38,6 +38,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
 import au.edu.unimelb.plantcell.core.CorePlugin;
 import au.edu.unimelb.plantcell.core.ErrorLogger;
+import au.edu.unimelb.plantcell.core.ExecutorUtils;
 import au.edu.unimelb.plantcell.core.ExternalProgram;
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.core.Preferences;
@@ -50,10 +51,10 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 import au.edu.unimelb.plantcell.core.cells.Track;
 import au.edu.unimelb.plantcell.core.cells.TrackColumnPropertiesCreator;
 import au.edu.unimelb.plantcell.core.cells.TrackCreator;
+import au.edu.unimelb.plantcell.core.regions.AlignedRegionsAnnotation;
+import au.edu.unimelb.plantcell.core.regions.BlastHitRegion;
 import au.edu.unimelb.plantcell.io.read.fasta.BatchFastaIterator;
 import au.edu.unimelb.plantcell.io.write.fasta.FastaWriter;
-import au.edu.unimelb.plantcore.core.regions.AlignedRegionsAnnotation;
-import au.edu.unimelb.plantcore.core.regions.BlastHitRegion;
 
 
 /**
@@ -354,9 +355,8 @@ public class BLASTPlusNodeModel extends NodeModel {
 	    	exe.setWorkingDirectory(getQueryDatabaseFile().getParentFile());		// arbitrary choice
 	    	exe.setWatchdog(new ExecuteWatchdog(ExecuteWatchdog.INFINITE_TIMEOUT));
 	    	
-	    	logger.info("Running: "+cmdLine.toString());
-	    	int exitCode = exe.execute(cmdLine);
-	    	logger.info("got exit code: "+exitCode+" from BLAST");
+	    	int exitCode = new ExecutorUtils(exe, logger).run(cmdLine);
+	    	
 	    	if (exe.isFailure(exitCode)) {
 	    		if (exe.getWatchdog().killedProcess())
 	    			throw new Exception("BLAST failed - watchdog says no...");
@@ -633,9 +633,7 @@ public class BLASTPlusNodeModel extends NodeModel {
     	logger.info("Setting current directory to: "+cwd.getAbsolutePath());
     	exe.setWorkingDirectory(cwd);		// arbitrary choice
     	
-    	logger.info("Running: "+cmdLine.toString());
-    	int exitCode = exe.execute(cmdLine);
-    	logger.info("got exit code: "+exitCode+" from makeblastdb");
+    	new ExecutorUtils(exe, logger).run(cmdLine);
 	}
 
 	protected boolean find_file(File[] in) {

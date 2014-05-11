@@ -32,9 +32,9 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 import au.edu.unimelb.plantcell.core.cells.Track;
 import au.edu.unimelb.plantcell.core.cells.TrackColumnPropertiesCreator;
 import au.edu.unimelb.plantcell.core.cells.TrackCreator;
+import au.edu.unimelb.plantcell.core.regions.PredGPIRegionsAnnotation;
+import au.edu.unimelb.plantcell.core.regions.ScoredRegion;
 import au.edu.unimelb.plantcell.io.read.fasta.BatchSequenceRowIterator;
-import au.edu.unimelb.plantcore.core.regions.PredGPIRegionsAnnotation;
-import au.edu.unimelb.plantcore.core.regions.ScoredRegion;
 
 public class PredGPINodeModel extends NodeModel {
 	 // the logger instance

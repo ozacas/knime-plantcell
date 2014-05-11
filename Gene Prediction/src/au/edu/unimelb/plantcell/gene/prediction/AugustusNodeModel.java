@@ -34,6 +34,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
 import au.edu.unimelb.plantcell.core.CorePlugin;
 import au.edu.unimelb.plantcell.core.ErrorLogger;
+import au.edu.unimelb.plantcell.core.ExecutorUtils;
 import au.edu.unimelb.plantcell.core.ExternalProgram;
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.core.Preferences;
@@ -46,9 +47,9 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 import au.edu.unimelb.plantcell.core.cells.Track;
 import au.edu.unimelb.plantcell.core.cells.TrackColumnPropertiesCreator;
 import au.edu.unimelb.plantcell.core.cells.TrackCreator;
+import au.edu.unimelb.plantcell.core.regions.GeneRegionsAnnotation;
 import au.edu.unimelb.plantcell.io.read.fasta.BatchSequenceRowIterator;
 import au.edu.unimelb.plantcell.io.write.fasta.FastaWriter;
-import au.edu.unimelb.plantcore.core.regions.GeneRegionsAnnotation;
 
 /**
  * This is the model implementation of AugustusNodeModel.
@@ -218,9 +219,7 @@ public class AugustusNodeModel extends NodeModel {
         	exe.setWorkingDirectory(tmp_fasta.getParentFile());		// arbitrary choice
         	exe.setWatchdog(new ExecuteWatchdog(ExecuteWatchdog.INFINITE_TIMEOUT));
         	
-        	logger.info("Running: "+cmdLine.toString());
-        	int exitCode = exe.execute(cmdLine, env);
-        	logger.info("got exit code: "+exitCode);
+        	int exitCode = new ExecutorUtils(exe, logger).run(cmdLine);
         	if (exe.isFailure(exitCode)) {
         		if (exe.getWatchdog().killedProcess())
         			throw new Exception("Augustus failed - watchdog says no...");
