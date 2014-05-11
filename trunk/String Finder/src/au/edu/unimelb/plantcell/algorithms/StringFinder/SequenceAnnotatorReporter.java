@@ -9,8 +9,8 @@ import au.edu.unimelb.plantcell.core.cells.CoordinateSystem;
 import au.edu.unimelb.plantcell.core.cells.SequenceAnnotation;
 import au.edu.unimelb.plantcell.core.cells.SequenceCell;
 import au.edu.unimelb.plantcell.core.cells.Track;
-import au.edu.unimelb.plantcore.core.regions.Region;
-import au.edu.unimelb.plantcore.core.regions.RegionsAnnotation;
+import au.edu.unimelb.plantcell.core.regions.Region;
+import au.edu.unimelb.plantcell.core.regions.RegionsAnnotation;
 
 
 public class SequenceAnnotatorReporter implements MatchReporter {

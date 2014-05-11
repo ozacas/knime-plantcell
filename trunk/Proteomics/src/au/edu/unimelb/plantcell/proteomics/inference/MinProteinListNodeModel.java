@@ -45,6 +45,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 import au.edu.unimelb.plantcell.core.CorePlugin;
+import au.edu.unimelb.plantcell.core.ExecutorUtils;
 import au.edu.unimelb.plantcell.core.ExternalProgram;
 import au.edu.unimelb.plantcell.core.Preferences;
 
@@ -313,8 +314,7 @@ public class MinProteinListNodeModel extends NodeModel {
     		
     	};
     	
-    	exe.execute(cmdLine, erh);
-    	erh.waitFor();
+    	new ExecutorUtils(exe, logger).run(cmdLine, erh);
     	
     	// 3. output TRUE for those rows which are part of the minimum set, FALSE otherwise
     	if (results_prot2cnt.size() > 0 && results_pep2cnt.size() > 0) {

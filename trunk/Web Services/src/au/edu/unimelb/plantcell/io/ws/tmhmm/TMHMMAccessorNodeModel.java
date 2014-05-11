@@ -39,12 +39,12 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 import au.edu.unimelb.plantcell.core.cells.Track;
 import au.edu.unimelb.plantcell.core.cells.TrackColumnPropertiesCreator;
 import au.edu.unimelb.plantcell.core.cells.TrackCreator;
+import au.edu.unimelb.plantcell.core.regions.Region;
+import au.edu.unimelb.plantcell.core.regions.RegionsAnnotation;
+import au.edu.unimelb.plantcell.core.regions.TMHMMRegionsAnnotation;
 import au.edu.unimelb.plantcell.io.read.fasta.BatchSequenceRowIterator;
 import au.edu.unimelb.plantcell.servers.tmhmm.TMHMMService;
 import au.edu.unimelb.plantcell.servers.tmhmm.TMHMMServicePortType;
-import au.edu.unimelb.plantcore.core.regions.Region;
-import au.edu.unimelb.plantcore.core.regions.RegionsAnnotation;
-import au.edu.unimelb.plantcore.core.regions.TMHMMRegionsAnnotation;
 
 
 

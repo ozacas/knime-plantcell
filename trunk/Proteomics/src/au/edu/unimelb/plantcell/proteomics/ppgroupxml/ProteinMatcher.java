@@ -87,8 +87,28 @@ public class ProteinMatcher implements ProteinPilotMatcher {
 			cells[4] = getSequenceCell(cells[0].toString());
 			cells[5] = getScoreCell();
 			cells[9] = new StringCell(xml_file.getAbsolutePath());
+			cells[10]= getUseQuantCell();
+			cells[11]= getUseTypeCell();
 			c_proteins.addRow(cells);
 		}
+	}
+
+	// known to exist with PP v4.5
+	private DataCell getUseQuantCell() {
+		String use_quant = m_attrs.get("use_quant");
+		if (use_quant != null) {
+			return new StringCell(use_quant);
+		}
+		return DataType.getMissingCell();
+	}
+	
+	// known to exist with PP v4.5
+	private DataCell getUseTypeCell() {
+		String use_type = m_attrs.get("use_type");
+		if (use_type != null) {
+			return new StringCell(use_type);
+		}
+		return DataType.getMissingCell();
 	}
 
 	private DataCell getCoverageCell(double dbl) {

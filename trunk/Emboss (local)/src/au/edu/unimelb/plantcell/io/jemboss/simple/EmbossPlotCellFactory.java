@@ -20,6 +20,7 @@ import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.data.image.png.PNGImageContent;
 import org.knime.core.node.NodeLogger;
 
+import au.edu.unimelb.plantcell.core.ExecutorUtils;
 import au.edu.unimelb.plantcell.core.TempDirectory;
 import au.edu.unimelb.plantcell.core.UniqueID;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
@@ -112,10 +113,7 @@ public class EmbossPlotCellFactory extends SingleCellFactory {
 	    	exe.setWorkingDirectory(td.asFile());
 	    	exe.setWatchdog(new ExecuteWatchdog(ExecuteWatchdog.INFINITE_TIMEOUT));
 	    	
-	    	m_logger.info("Running: "+cl.toString());
-	    	int exitCode = exe.execute(cl);
-	    	m_logger.info("got exit code: "+exitCode);
-	    	
+	    	int exitCode = new ExecutorUtils(exe, m_logger).run(cl);
 	    	if (exe.isFailure(exitCode)) {
 	    		throw new IOException("Execution of EMBOSS program failed: exit code "+exitCode);
 	    	}

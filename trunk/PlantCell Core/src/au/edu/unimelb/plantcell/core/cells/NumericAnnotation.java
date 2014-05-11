@@ -23,7 +23,7 @@ import org.knime.core.data.def.IntCell;
 import org.knime.core.data.vector.bitvector.DenseBitVector;
 import org.knime.core.node.InvalidSettingsException;
 
-import au.edu.unimelb.plantcore.core.regions.RegionInterface;
+import au.edu.unimelb.plantcell.core.regions.RegionInterface;
 
 /**
  * A track of quantitative data for the sequence (eg. probabilities along the sequence).

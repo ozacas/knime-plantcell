@@ -12,15 +12,15 @@ import org.knime.core.data.DataCellDataOutput;
 import org.knime.core.data.DataColumnProperties;
 import org.knime.core.data.DataColumnSpec;
 
-import au.edu.unimelb.plantcore.core.regions.AlignedRegionsAnnotation;
-import au.edu.unimelb.plantcore.core.regions.GeneRegionsAnnotation;
-import au.edu.unimelb.plantcore.core.regions.InterProRegionsAnnotation;
-import au.edu.unimelb.plantcore.core.regions.PFAMRegionsAnnotation;
-import au.edu.unimelb.plantcore.core.regions.PhobiusRegionsAnnotation;
-import au.edu.unimelb.plantcore.core.regions.PredGPIRegionsAnnotation;
-import au.edu.unimelb.plantcore.core.regions.RegionInterface;
-import au.edu.unimelb.plantcore.core.regions.RegionsAnnotation;
-import au.edu.unimelb.plantcore.core.regions.TMHMMRegionsAnnotation;
+import au.edu.unimelb.plantcell.core.regions.AlignedRegionsAnnotation;
+import au.edu.unimelb.plantcell.core.regions.GeneRegionsAnnotation;
+import au.edu.unimelb.plantcell.core.regions.InterProRegionsAnnotation;
+import au.edu.unimelb.plantcell.core.regions.PFAMRegionsAnnotation;
+import au.edu.unimelb.plantcell.core.regions.PhobiusRegionsAnnotation;
+import au.edu.unimelb.plantcell.core.regions.PredGPIRegionsAnnotation;
+import au.edu.unimelb.plantcell.core.regions.RegionInterface;
+import au.edu.unimelb.plantcell.core.regions.RegionsAnnotation;
+import au.edu.unimelb.plantcell.core.regions.TMHMMRegionsAnnotation;
 
 /**
  * Represents a single annotation object. A single object can represent annotations

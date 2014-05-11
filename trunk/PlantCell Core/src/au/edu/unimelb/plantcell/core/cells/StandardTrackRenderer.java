@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import au.edu.unimelb.plantcore.core.regions.RegionInterface;
+import au.edu.unimelb.plantcell.core.regions.RegionInterface;
 
 /**
  * Renders regions as boxes of height 20 using the 

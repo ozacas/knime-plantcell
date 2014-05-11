@@ -27,6 +27,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
+import au.edu.unimelb.plantcell.core.ExecutorUtils;
 import au.edu.unimelb.plantcell.core.ExternalProgram;
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.core.SequenceProcessor;
@@ -166,9 +167,7 @@ public class EmbossSequenceNodeModel extends EmbossPredictorNodeModel {
     	    	exe.setWorkingDirectory(td.asFile());
     	    	exe.setWatchdog(new ExecuteWatchdog(ExecuteWatchdog.INFINITE_TIMEOUT));
     	    	
-    	    	logger.info("Running: "+cl.toString());
-    	    	int exitCode = exe.execute(cl);
-    	    	logger.info("got exit code: "+exitCode);
+    	    	int exitCode = new ExecutorUtils(exe, logger).run(cl);
     	    	
     	    	if (exe.isFailure(exitCode)) {
     	    		throw new IOException("Aborting run. Got failed exit code "+exitCode);

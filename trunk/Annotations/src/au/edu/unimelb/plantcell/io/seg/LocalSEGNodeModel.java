@@ -28,6 +28,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 import au.edu.unimelb.plantcell.core.ErrorLogger;
+import au.edu.unimelb.plantcell.core.ExecutorUtils;
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.core.NullLogger;
 import au.edu.unimelb.plantcell.core.TempDirectory;
@@ -132,9 +133,7 @@ public class LocalSEGNodeModel extends NodeModel {
     	    		cmdLine.addArgument("-x");
     	    	
     	    	exe.setWorkingDirectory(f.getParentFile());
-    	    	logger.info("Running SEG, command line: "+cmdLine.toString());
-            	int exitCode = exe.execute(cmdLine);
-            	logger.info("got exit code: "+exitCode+" from SEG");
+    	    	int exitCode = new ExecutorUtils(exe, logger).run(cmdLine);
             	pw_out.close();
             	
             	if (exe.isFailure(exitCode)) {

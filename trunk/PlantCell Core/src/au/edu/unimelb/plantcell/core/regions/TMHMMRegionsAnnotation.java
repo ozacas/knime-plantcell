@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcore.core.regions;
+package au.edu.unimelb.plantcell.core.regions;
 
 import java.awt.Color;
 import java.awt.Dimension;

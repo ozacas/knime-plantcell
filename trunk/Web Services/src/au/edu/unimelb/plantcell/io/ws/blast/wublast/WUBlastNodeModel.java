@@ -80,10 +80,10 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 import au.edu.unimelb.plantcell.core.cells.Track;
 import au.edu.unimelb.plantcell.core.cells.TrackColumnPropertiesCreator;
 import au.edu.unimelb.plantcell.core.cells.TrackCreator;
+import au.edu.unimelb.plantcell.core.regions.AlignedRegionsAnnotation;
+import au.edu.unimelb.plantcell.core.regions.BlastHitRegion;
 import au.edu.unimelb.plantcell.io.read.fasta.BatchFastaIterator;
 import au.edu.unimelb.plantcell.io.read.fasta.BatchSequenceRowIterator;
-import au.edu.unimelb.plantcore.core.regions.AlignedRegionsAnnotation;
-import au.edu.unimelb.plantcore.core.regions.BlastHitRegion;
 
 
 /**

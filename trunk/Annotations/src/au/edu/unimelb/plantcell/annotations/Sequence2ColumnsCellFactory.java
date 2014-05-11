@@ -23,7 +23,7 @@ import au.edu.unimelb.plantcell.core.cells.SequenceAnnotation;
 import au.edu.unimelb.plantcell.core.cells.SequenceCell;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 import au.edu.unimelb.plantcell.core.cells.Track;
-import au.edu.unimelb.plantcore.core.regions.RegionInterface;
+import au.edu.unimelb.plantcell.core.regions.RegionInterface;
 
 /**
  * 

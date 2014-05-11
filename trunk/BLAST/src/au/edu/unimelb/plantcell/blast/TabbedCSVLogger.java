@@ -22,7 +22,7 @@ import org.knime.core.node.NodeLogger;
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.core.UniqueID;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
-import au.edu.unimelb.plantcore.core.regions.BlastHitRegion;
+import au.edu.unimelb.plantcell.core.regions.BlastHitRegion;
 
 /**
  * Processes "-outfmt 7" blast-style output into the KNIME table. Other formats not supported at this time.

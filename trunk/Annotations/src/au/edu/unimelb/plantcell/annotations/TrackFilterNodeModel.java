@@ -36,8 +36,8 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 import au.edu.unimelb.plantcell.core.cells.Track;
 import au.edu.unimelb.plantcell.core.cells.TrackColumnPropertiesCreator;
 import au.edu.unimelb.plantcell.core.cells.TrackCreator;
-import au.edu.unimelb.plantcore.core.regions.RegionInterface;
-import au.edu.unimelb.plantcore.core.regions.RegionsAnnotation;
+import au.edu.unimelb.plantcell.core.regions.RegionInterface;
+import au.edu.unimelb.plantcell.core.regions.RegionsAnnotation;
 
 
 

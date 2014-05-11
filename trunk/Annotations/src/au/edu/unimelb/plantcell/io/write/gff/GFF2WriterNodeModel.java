@@ -23,8 +23,8 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 import au.edu.unimelb.plantcell.core.cells.Track;
+import au.edu.unimelb.plantcell.core.regions.RegionInterface;
 import au.edu.unimelb.plantcell.io.read.fasta.BatchSequenceRowIterator;
-import au.edu.unimelb.plantcore.core.regions.RegionInterface;
 
 
 /**
