@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="./default.png" type="Sink">
-    <name>Apply Heat to Tree</name>
+    <name>add heat to Tree</name>
     
     <shortDescription>
-        Modifies a phylogenetic tree by application of pairwise data to the treA branches, thereby placing colours on regions with the data of interest. 
+        Modifies a phylogenetic tree by application of pairwise data to the tree branches, thereby placing colours on regions with the data of interest. 
     </shortDescription>
     
     <fullDescription>
@@ -12,7 +12,7 @@
         </intro>
         
         
-        <option name="Input tree">The tree to apply heat to. It will not be modified in any way</option>
+        <option name="Input tree">The tree to apply heat to. Ths node always creates a new tree: the input is not modified in any way</option>
 
         <option name="Output file">The tree, after decoration with your data, is saved to this location. Always <a href="http://www.phyloxml.org">PhyloXML format</a></option>
 

@@ -35,16 +35,12 @@ public class ApplyHeatNodeDialog extends DefaultNodeSettingsPane {
         		new SettingsModelBoolean(ApplyHeatNodeModel.CFGKEY_OVERWRITE, false), "Overwrite output file?"
         		));
         		
+        createNewTab("Data");
         createNewGroup("Heat data columns (from input, pairwise)");
         addDialogComponent(
         		new DialogComponentColumnNameSelection(
         				new SettingsModelString(ApplyHeatNodeModel.CFGKEY_A, ""), 
-        				"A", 0, true, false, StringValue.class)
-        		);
-        addDialogComponent(
-        		new DialogComponentColumnNameSelection(
-        				new SettingsModelString(ApplyHeatNodeModel.CFGKEY_B, ""), 
-        				"B", 0, true, false, StringValue.class)
+        				"Taxa (leaf node) name", 0, true, false, StringValue.class)
         		);
         addDialogComponent(
         		new DialogComponentColumnNameSelection(
