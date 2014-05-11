@@ -1,7 +1,9 @@
 package au.edu.unimelb.plantcell.io.read.phyloxml;
 
+import org.knime.core.node.AbstractNodeView;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
 
 /**
@@ -10,7 +12,7 @@ import org.knime.core.node.NodeView;
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
 public class PhyloXMLReaderNodeFactory
-        extends NodeFactory<PhyloXMLReaderNodeModel> {
+        extends NodeFactory<NodeModel> {
 
     /**
      * {@inheritDoc}
@@ -25,18 +27,17 @@ public class PhyloXMLReaderNodeFactory
      */
     @Override
     public int getNrNodeViews() {
-        return 0;
+        return 1;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public NodeView<PhyloXMLReaderNodeModel> createNodeView(final int viewIndex,
-            final PhyloXMLReaderNodeModel nodeModel) {
-        return null;
+    public AbstractNodeView<NodeModel> createAbstractNodeView(final int viewIndex, final NodeModel mdl) {
+    	return new PhylogeneticTreeView(mdl, ((FileTreeViewInterface)mdl).getTreeFileForDisplay());
     }
-
+    
     /**
      * {@inheritDoc}
      */
@@ -52,6 +53,14 @@ public class PhyloXMLReaderNodeFactory
     public NodeDialogPane createNodeDialogPane() {
         return new PhyloXMLReaderNodeDialog();
     }
+
+    /**
+     * We dont use this method, since running Archaeopteryx is an external view application so...
+     */
+	@Override
+	public NodeView<NodeModel> createNodeView(int viewIndex, NodeModel nodeModel) {
+		return null;
+	}
 
 }
 

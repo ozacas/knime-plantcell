@@ -21,4 +21,7 @@
         <outPort index="0" name="Tree as table">The loaded tree topology and annotation</outPort>
     </ports>
  
+ 	<views>
+ 		<view index="0" name="Archaeopteryx">Load the tree view into Archaeopteryx. See www.phyloxml.org for details.</view>
+ 	</views>
 </knimeNode>

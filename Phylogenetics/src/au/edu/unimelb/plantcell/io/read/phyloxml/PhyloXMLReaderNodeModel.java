@@ -44,7 +44,7 @@ import au.edu.unimelb.plantcell.core.MyDataContainer;
  * 
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
-public class PhyloXMLReaderNodeModel extends NodeModel {
+public class PhyloXMLReaderNodeModel extends NodeModel implements FileTreeViewInterface {
     
     // the logger instance
     private static final NodeLogger logger = NodeLogger.getLogger("Phylo Reader");
@@ -55,7 +55,7 @@ public class PhyloXMLReaderNodeModel extends NodeModel {
 	static final String CFGKEY_MISSING_NN_IS_1 = "empty-node-name-is_1?";
     
 	// persisted state
-	private final SettingsModelString m_infile = new SettingsModelString(CFGKEY_INFILE, "");
+	private final SettingsModelString  m_infile = new SettingsModelString(CFGKEY_INFILE, "");
 	private final SettingsModelBoolean m_internal_nn_as_support = new SettingsModelBoolean(CFGKEY_NN_AS_SUPPORT, Boolean.FALSE);
 	private final SettingsModelBoolean m_treat_missing_nn_as_perfect_support  = new SettingsModelBoolean(CFGKEY_MISSING_NN_IS_1, Boolean.FALSE);
 	
@@ -287,9 +287,12 @@ public class PhyloXMLReaderNodeModel extends NodeModel {
     protected void saveInternals(final File internDir,
             final ExecutionMonitor exec) throws IOException,
             CanceledExecutionException {
-       
-
     }
+
+    @Override
+	public File getTreeFileForDisplay() {
+		return new File(m_infile.getStringValue());
+	}
 
 }
 
