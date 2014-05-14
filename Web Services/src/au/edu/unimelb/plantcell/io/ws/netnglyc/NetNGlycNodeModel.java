@@ -150,7 +150,13 @@ public class NetNGlycNodeModel extends AbstractWebServiceNodeModel {
 			String line;
 			GlycResults.reset();
 			while ((line = rdr.readLine()) != null) {
-				GlycResults.grokLine(line);
+				/*
+				 * interactive test that the node is not missing reported hits. Logs suspicious lines which could be hits
+				 * but the regexp has failed to match...
+				 */
+				if (GlycResults.grokLine(line) == null && line.matches("^\\s*S\\d+\\b")) {
+					logger.warn("Possible missing hit: programmer error? Line: "+line);
+				}
 			}
 			Map<String,UniqueID> rev_lookup = new HashMap<String,UniqueID>();
 			for (UniqueID uid : batch.keySet()) {

@@ -19,7 +19,8 @@
         <p>
         <b>Note: </b> this node is only workable for University of Melbourne staff/students and collaborators as it
         uses a server only accessible from on-campus. To use this node you will need a working Internet connection
-        to the NECTAR eResearch cloud.
+        to the NECTAR eResearch cloud. It does not support SignalP or other optional features, so results must be interpreted
+        with this in mind.
         </p>
        
         </intro>
