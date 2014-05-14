@@ -67,8 +67,14 @@ public class AppendAlignmentCellFactory extends SingleCellFactory {
 		}
 		
 		String rowid = r.getKey().getString();
-		mdl.logWarningAboutAlignments(seq_map, st, rowid);
-		return mdl.runAlignmentProgram(seq_map, rowid, st);
+		
+		try {
+			mdl.validateSequencesToBeAligned(seq_map);
+			return mdl.runAlignmentProgram(seq_map, rowid, st);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return DataType.getMissingCell();
+		}
 	}
 
 }

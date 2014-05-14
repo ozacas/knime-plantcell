@@ -32,7 +32,7 @@ public class MultiAlignerNodeDialog extends DefaultNodeSettingsPane {
         ColumnFilter cf = new ColumnFilter() {
             @Override
             public String allFilteredMsg() {
-                    return "No list/set columns - multiple alignment needs a set of Sequences (see Columns 2 Seq node)";
+                    return "No suitable list, seq or sequence column available: check input data!";
             }
 
             @Override
@@ -40,7 +40,10 @@ public class MultiAlignerNodeDialog extends DefaultNodeSettingsPane {
                             DataColumnSpec colSpec) {
                     DataType dt = colSpec.getType();
                     if (dt.isCollectionType() && dt.getCollectionElementType().isCompatible(SequenceValue.class)) {
-                            return true;
+                        return true;
+                    }
+                    if (dt.isCompatible(SequenceValue.class)) {
+                    	return true;
                     }
                     return false;
             }

@@ -6,24 +6,17 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
+import org.apache.commons.exec.CommandLine;
+import org.apache.commons.exec.LogOutputStream;
 import org.knime.core.data.DataCell;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.RowIterator;
-import org.knime.core.data.StringValue;
-import org.knime.core.data.collection.ListCell;
-import org.knime.core.data.collection.SetCell;
-import org.knime.core.data.def.DefaultRow;
-import org.knime.core.data.def.JoinedRow;
-import org.knime.core.data.def.StringCell;
-import org.knime.core.node.BufferedDataContainer;
+import org.knime.core.data.DataType;
+import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -32,14 +25,16 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.ModelContent;
 import org.knime.core.node.ModelContentRO;
 import org.knime.core.node.ModelContentWO;
-import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
+import au.edu.unimelb.plantcell.core.MyDataContainer;
+import au.edu.unimelb.plantcell.core.UniqueID;
 import au.edu.unimelb.plantcell.core.cells.SequenceType;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
+import au.edu.unimelb.plantcell.io.muscle.AbstractAlignerNodeModel;
+import au.edu.unimelb.plantcell.io.muscle.AppendAlignmentCellFactory;
 
 /**
  * This is the model implementation of MuscleAligner.
@@ -47,22 +42,23 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
  *
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
-public class MultiAlignerNodeModel extends NodeModel implements AlignmentViewDataModel {
-	private static final NodeLogger logger = NodeLogger.getLogger("Multiple Sequence Alignment");
-	  
-    public static final String CFGKEY_EMAIL = "email";
+public class MultiAlignerNodeModel extends AbstractAlignerNodeModel {	  
+    public static final String CFGKEY_EMAIL   = "email";
 	public static final String CFGKEY_SEQ_COL = "sequence-column";
-	public static final String CFGKEY_ALGO = "alignment-algorithm";
+	public static final String CFGKEY_ALGO    = "alignment-algorithm";
 	
 	public static final String DEFAULT_EMAIL = "must.set.this@to.use.this.node";
 
 	
-	private SettingsModelString m_email = new SettingsModelString(CFGKEY_EMAIL, DEFAULT_EMAIL);
+	private SettingsModelString m_email   = new SettingsModelString(CFGKEY_EMAIL, DEFAULT_EMAIL);
 	private SettingsModelString m_seq_col = new SettingsModelString(CFGKEY_SEQ_COL, "Sequence");
-	private SettingsModelString m_algo = new SettingsModelString(CFGKEY_ALGO, "MUSCLE");
+	private SettingsModelString m_algo    = new SettingsModelString(CFGKEY_ALGO, "MUSCLE");
 	
 	/* internal model state -- persisted */
     private final HashMap<String,AlignmentValue> m_alignment_map = new HashMap<String,AlignmentValue>();
+    /* not persisted */
+    private ExecutionContext m_exec;	// only valid during execute()
+    private long last_call;
     
 	/**
      * Constructor for the node model.
@@ -75,155 +71,50 @@ public class MultiAlignerNodeModel extends NodeModel implements AlignmentViewDat
      * {@inheritDoc}
      */
     @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
-            final ExecutionContext exec) throws Exception {
-    	  if (m_email.getStringValue().equals(DEFAULT_EMAIL)) {
-              throw new Exception("You must set a valid E-Mail for EBI to contact you in the event of problems with the service!");
+    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec) throws Exception {
+      if (m_email.getStringValue().equals(DEFAULT_EMAIL)) {
+              throw new InvalidSettingsException("You must set a valid E-Mail for EBI to contact you in the event of problems with the service!");
       }
-      int n_rows   = inData[0].getRowCount();
-      int seq_idx  = inData[0].getSpec().findColumnIndex(((SettingsModelString)m_seq_col).getStringValue());
+      int seq_idx  = inData[0].getSpec().findColumnIndex(m_seq_col.getStringValue());
       if (seq_idx < 0) {
-              throw new Exception("Cannot find columns... valid data?");
+              throw new Exception("Cannot find sequence column... valid data?");
       }
-      int done = 0;
-
-      // create the output columns (raw format for use with R)
-      DataTableSpec outputSpec = new DataTableSpec(inData[0].getDataTableSpec(), make_output_spec());
-      BufferedDataContainer container = exec.createDataContainer(outputSpec, false, 0);
-
-      // each row is a separate MUSCLE job, the sequences are in one collection cell, the accessions (IDs) in the other
-      RowIterator it = inData[0].iterator();
-      m_alignment_map.clear();
-      while (it.hasNext()) {
-    	  DataRow r = it.next();
-    	  	
-          exec.setProgress(((double)done) / n_rows);
-
-          List<SequenceValue> seqs   = new ArrayList<SequenceValue>();
-
-          if (!grok_sequences(r.getCell(seq_idx), seqs)) {
-                  logger.warn("Skipping invalid sequence data in row: "+r.getKey().getString());
-                  done++;
-                  continue;
-          }
-
-          if (seqs.size() < 1) {
-                  throw new Exception("Cannot MUSCLE zero sequences: error at row "+r.getKey().getString());
-          }
-          if (seqs.size() > 1000) {
-                  throw new Exception("Too many sequences in row "+r.getKey().getString());
-          }
-          // ensure no two sequences have the same ID
-          HashSet<String> dup_accsns = new HashSet<String>();
-          boolean skip = false;
-          SequenceType must_be = seqs.get(0).getSequenceType();
-          for (SequenceValue sv : seqs) {
-        	  if (dup_accsns.contains(sv.getID())) {
-        		  logger.warn("Skipping row: "+r.getKey().getString()+" as it contains the same accession multiple times!");
-        		  skip = true;
-        		  break;
-        	  }
-        	  if (!must_be.equals(sv.getSequenceType())) {
-        		  logger.warn("Skipping row: "+r.getKey().getString()+" as not all sequences are of the same type: "+must_be);
-        		  skip = true;
-        		  break;
-        	  }
-        	  dup_accsns.add(sv.getID());
-          }
-          if (skip)
-        	  continue;
-          
-          // dummy a fake "FASTA" file (in memory) and then submit that to EBI along with other necessary parameters
-          StringBuffer seq_as_fasta = new StringBuffer();
-          for (SequenceValue sv : seqs) {
-                  seq_as_fasta.append(">");
-                  seq_as_fasta.append(sv.getID());
-                  seq_as_fasta.append("\n");
-                  seq_as_fasta.append(sv.getStringValue());
-                  seq_as_fasta.append("\n");
-          }
-          
-          // 1. submit job for current row
-          AbstractProxy proxy = AbstractProxy.makeProxy(logger, m_algo.getStringValue());
-        
-          Properties props = new Properties();
-          props.put("id", r.getKey().getString());
-          props.put("email", m_email.getStringValue());
-          props.put("sequences", seq_as_fasta.toString());
-          
-          logger.info("Submitting job to EBI using "+m_algo.getStringValue());
-          String jobid = proxy.run(props);
-          logger.info("Sent job to EBI for row "+r.getKey().getString()+ ", got job id: "+jobid);
-          
-          // 2. wait for completion (or failure)
-          if (!proxy.wait_for_completion(exec, jobid)) {
-        	  logger.warn("EBI job failed for row "+r.getKey().getString()+"... continuing with remaining rows.");
-        	  done++;
-        	  continue;
-          }
-          
-          // 3. process the result into the output port
-          DataCell[] cells = proxy.get_results(exec, jobid);
-          container.addRowToTable(new JoinedRow(r, new DefaultRow(r.getKey().getString(), cells)));
-          
-          if (cells[1] instanceof AlignmentValue) {
-        	  m_alignment_map.put(r.getKey().getString(), (AlignmentValue) cells[1]);
-          }
-          
-          // 4.
-          if (it.hasNext()) {
-	          logger.info("Delaying to 30sec. to be nice to EBI servers");
-	          for (int i=0; i<10; i++) {
-	        	  Thread.sleep(3 * 1000);
-	        	  exec.checkCanceled();
-	          }
-          }
-          done++;
-      }
-      container.close();
-      
-      return new BufferedDataTable[]{container.getTable()};
-    }
     
-  
-	private boolean grok_sequences(DataCell seq_cell, List<SequenceValue> seqs) throws InvalidSettingsException {
-        assert(seqs != null);
-
-        if (seq_cell == null || seq_cell.isMissing()) {
-                return false;
-        }
-
-        add_seqs(seq_cell, seqs);
-
-        return (seqs.size() > 0);
-	}
-
-	private void add_seqs(DataCell cell, List<SequenceValue> l) {
-        assert(cell != null && l != null);
-
-        // if its not a collection of strings, not much we can do
-        if (!cell.getType().isCollectionType() || !cell.getType().getCollectionElementType().isCompatible(StringValue.class))
-                return;
-
-        Iterator<DataCell> i = null;
-        if (cell instanceof SetCell) {
-                SetCell sc = (SetCell) cell;
-                i = sc.iterator();
-        } else if (cell instanceof ListCell) {
-                ListCell lc = (ListCell) cell;
-                i = lc.iterator();
-        }
-
-        if (i != null) {
-                while (i.hasNext()) {
-                        DataCell dc = i.next();
-                        if (dc.getType().isCompatible(SequenceValue.class) && !dc.isMissing()) {
-                                l.add(((SequenceValue)dc));
-                        }
-                }
-        }
-	}
-
+      m_exec    = exec;
+      last_call = -1;
+      DataTableSpec outSpec = make_output_spec(inData[0].getSpec(), seq_idx);
+  	
+		// if the input sequences are groupby'ed then we do the calculation this way...
+		if (isCollectionOfSequencesColumn(inData[0].getDataTableSpec().getColumnSpec(seq_idx))) {
+			ColumnRearranger rearranger = new ColumnRearranger(inData[0].getSpec());    		
+			rearranger.append(new AppendAlignmentCellFactory(outSpec, seq_idx, this));
+			BufferedDataTable out = exec.createColumnRearrangeTable(inData[0], rearranger, exec.createSubProgress(1.0));
+			
+		    return new BufferedDataTable[]{out};
+		} else {
+			// otherwise we do the groupby and then create a single-cell table as output from the alignment
+			MyDataContainer c = new MyDataContainer(exec.createDataContainer(make_output_spec(inData[0].getSpec(), seq_idx)), "Aln");
+			SequenceType   st = SequenceType.UNKNOWN;
+				final Map<UniqueID,SequenceValue> seq_map = new HashMap<UniqueID,SequenceValue>();
+				for (DataRow r : inData[0]) {
+					DataCell cell = r.getCell(seq_idx);
+					if (cell instanceof SequenceValue) {
+						SequenceValue sv = (SequenceValue)cell;
+						if (st != SequenceType.UNKNOWN && st != sv.getSequenceType()) {
+							throw new InvalidSettingsException("Cannot mix sequence types (eg. AA versus NA) in sequence column on row: "+r.getKey().getString());
+						} else {
+							st = sv.getSequenceType();
+						}
+						seq_map.put(new UniqueID(), sv);
+					}
+				}
+				
+			final String rowid = "Alignment1";
+			validateSequencesToBeAligned(seq_map);
+			c.addRow(new DataCell[] { runAlignmentProgram(seq_map, rowid, st)} );
+			return new BufferedDataTable[] {c.close()};
+		}
+    }
 
     /**
      * {@inheritDoc}
@@ -232,15 +123,6 @@ public class MultiAlignerNodeModel extends NodeModel implements AlignmentViewDat
     protected void reset() {
     	m_alignment_map.clear();
     }
-
-    
-    protected DataTableSpec make_output_spec() {   
-    	DataColumnSpec[] cols = new DataColumnSpec[3];
-		cols[0] = new DataColumnSpecCreator("EBI JobID", StringCell.TYPE).createSpec();
-		cols[1] = new DataColumnSpecCreator("Aligned Sequences", MultiAlignmentCell.TYPE).createSpec();
-		cols[2] = new DataColumnSpecCreator("Aligner debug output", StringCell.TYPE).createSpec();
-		return new DataTableSpec(cols);
-    }
     
     /**
      * {@inheritDoc}
@@ -248,8 +130,9 @@ public class MultiAlignerNodeModel extends NodeModel implements AlignmentViewDat
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
             throws InvalidSettingsException {
-
-        return new DataTableSpec[] { new DataTableSpec(inSpecs[0], make_output_spec()) };
+    	final int seq_idx = inSpecs[0].findColumnIndex(m_seq_col.getStringValue());
+    	DataTableSpec outSpec = make_output_spec(inSpecs[0], seq_idx);
+    	return new DataTableSpec[] { outSpec };
     }
 
     /**
@@ -343,5 +226,98 @@ public class MultiAlignerNodeModel extends NodeModel implements AlignmentViewDat
 		return ret;
 	}
 
+	@Override
+	protected File getAlignmentProgram() {
+		/* not a local executable so... */
+		return null;
+	}
+	
+	@Override
+	public CommandLine makeCommandLineArguments(File fasta_file,
+			SequenceType alignment_sequence_type) throws Exception {
+		// not implemented: programs not run locally but at EBI...
+		return null;
+	}
+
+	@Override
+	protected String getAlignmentLogName() {
+		String ret = m_algo.getStringValue();
+		if (ret == null || ret.trim().length() < 1)
+			return "Web Service Aligner";
+		return ret;
+	}
+
+	@Override
+	public DataCell makeAlignmentCellAndPopulateResultsMap(LogOutputStream tsv,
+			SequenceType st, String row_id) throws IOException {
+		return null;
+	}
+	
+	@Override
+	public void validateSequencesToBeAligned(final Map<UniqueID, SequenceValue> seqs) throws InvalidSettingsException {
+		super.validateSequencesToBeAligned(seqs);
+		if (seqs.size() > 1000) {
+			throw new InvalidSettingsException("Refusing to do an online alignment of more than 1000 sequences as per EBI terms of service!");
+		}
+		
+		long cur = System.currentTimeMillis();
+		/*
+		 * Each successive call must be not less than 30secs. This is to prevent overloading EBI services and may not be configured for this reason.
+		 */
+		if (last_call > 0 && (cur - last_call) < 30 * 1000) {
+			try {
+				Thread.sleep(30 * 1000);
+			} catch (InterruptedException e) {
+				// be silent...
+			}
+		}
+		last_call = cur;
+	}
+
+	private ExecutionContext getCurrentExecutionContext() {
+		return m_exec;
+	}
+	
+	@Override
+	public DataCell runAlignmentProgram(final Map<UniqueID, SequenceValue> seqs, final String rowid, final SequenceType st) {
+		try {
+			 StringBuffer seq_as_fasta = new StringBuffer();
+	         for (SequenceValue sv : seqs.values()) {
+	              seq_as_fasta.append(">");
+	              seq_as_fasta.append(sv.getID());
+	              seq_as_fasta.append("\n");
+	              seq_as_fasta.append(sv.getStringValue());
+	              seq_as_fasta.append("\n");
+	         }
+	         
+	         AbstractProxy proxy = AbstractProxy.makeProxy(logger, m_algo.getStringValue());
+	         Properties props = new Properties();
+	         props.put("id", rowid);
+	         props.put("email", m_email.getStringValue());
+	         props.put("sequences", seq_as_fasta.toString());
+	          
+	         logger.info("Submitting job to EBI using "+m_algo.getStringValue());
+	         String jobid = proxy.run(props);
+	         logger.info("Sent job to EBI for row "+rowid+ ", got job id: "+jobid);
+	          
+	         // 2. wait for completion (or failure)
+	         if (!proxy.wait_for_completion(getCurrentExecutionContext(), jobid)) {
+	        	  logger.warn("EBI job failed for row "+rowid+"... continuing with remaining rows.");
+	        	  return DataType.getMissingCell();
+	         }
+	          
+	          // 3. process the result into the output port
+	         DataCell[] cells = proxy.get_results(getCurrentExecutionContext(), jobid);
+	          
+	         if (cells[1] instanceof AlignmentValue) {
+	        	  m_alignment_map.put(rowid, (AlignmentValue) cells[1]);
+	         }
+	         return cells[1];
+		} catch (Exception e) {
+			e.printStackTrace();
+			// fallthru
+		}
+		return DataType.getMissingCell();
+	}
 }
 

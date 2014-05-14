@@ -16,7 +16,7 @@ import org.knime.core.node.NodeLogger;
  *
  */
 public abstract class AbstractProxy {
-	private static NodeLogger m_logger;
+	private NodeLogger m_logger;
 	
 	public AbstractProxy(NodeLogger l) {
 		assert(l != null);
@@ -33,14 +33,13 @@ public abstract class AbstractProxy {
 	 * @return
 	 * @throws InvalidSettingsException if the alignment algorithm is unknown
 	 */
-	public static AbstractProxy makeProxy(NodeLogger logger, String algorithm) throws InvalidSettingsException {
-		m_logger = logger;
+	public static AbstractProxy makeProxy(final NodeLogger logger, final String algorithm) throws InvalidSettingsException {
 		if (algorithm.toLowerCase().indexOf("muscle") >= 0) {
-			return new MUSCLEProxy(m_logger);
+			return new MUSCLEProxy(logger);
 		} else if (algorithm.toLowerCase().indexOf("omega") >= 0) {
-			return new ClustalOProxy(m_logger);
+			return new ClustalOProxy(logger);
 		} else if (algorithm.toLowerCase().indexOf("coffee") >= 0) {
-			return new TCoffeeProxy(m_logger);
+			return new TCoffeeProxy(logger);
 		}
 		throw new InvalidSettingsException("unknown algorithm: "+algorithm);
 	}

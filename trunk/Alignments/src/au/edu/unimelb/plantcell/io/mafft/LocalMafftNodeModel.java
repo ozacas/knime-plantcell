@@ -108,7 +108,7 @@ public class LocalMafftNodeModel extends AbstractAlignerNodeModel {
 			}
 			
 			final String rowid = "Alignment1";
-			logWarningAboutAlignments(seq_map, st, rowid);
+			validateSequencesToBeAligned(seq_map);
     		c.addRow(new DataCell[] { runAlignmentProgram(seq_map, rowid, st)} );
     		return new BufferedDataTable[] {c.close()};
     	}
