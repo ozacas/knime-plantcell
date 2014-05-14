@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Manipulator">
+    <name>NetNGlyc@Nectar</name>
+    
+    <shortDescription>
+        Provides a KNIME interface to glycosylation predictions via CBS' algorithms
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+        <p>
+        Uses a local server in the Nectar Research cloud to provide much improved throughput compared to the 
+        <a href="http://www.cbs.dtu.dk/services/NetNGlyc/">CBS server in Denmark</a>. 
+        This server provides access to v1.0 of NetNGlyc. Please note that this service is intended for
+        mammalian systems (esp. human) and results may be unpredictable for other species. 
+        </p>
+        
+        <p>
+        <b>Note: </b> this node is only workable for University of Melbourne staff/students and collaborators as it
+        uses a server only accessible from on-campus. To use this node you will need a working Internet connection
+        to the NECTAR eResearch cloud.
+        </p>
+       
+        </intro>
+        
+        <option name="Protein sequences from">the input must column a protein sequence column (eg. as created by the FASTA Reader), choose the column here</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Protein Sequences">Input table with a protein sequence column</inPort>
+       	
+        <outPort index="0" name="NetNGlyc">Predictions of glycosylation sites from NetNGlyc</outPort>
+    </ports>    
+ 
+</knimeNode>
