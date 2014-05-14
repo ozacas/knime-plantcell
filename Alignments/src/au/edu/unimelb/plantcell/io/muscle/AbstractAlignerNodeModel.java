@@ -2,6 +2,7 @@ package au.edu.unimelb.plantcell.io.muscle;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Map;
 
 import org.apache.commons.exec.CommandLine;
@@ -163,42 +164,19 @@ public abstract class AbstractAlignerNodeModel extends NodeModel implements Alig
 	}
 
 	    
-	  /**
-	     * Verify that the input executable path is valid on this system and can be run. Will throw an exception if not.
-	     * 
-	     * @param exe path to muscle executable (must not be null)
-	     * @return a File instance to the specified executable
-	     * @throws IOException thrown if the path does not exist or cannot be executed
-	     */
+   /**
+     * Verify that the input executable path is valid on this system and can be run. Will throw an exception if not.
+     * 
+     * @param exe path to muscle executable (must not be null)
+     * @return a File instance to the specified executable
+     * @throws IOException thrown if the path does not exist or cannot be executed
+     */
 	protected File validateAlignmentProgram(final String exe) throws IOException {
 		final File f = new File(exe);
     	if (!f.exists() || !f.canExecute()) {
     		throw new IOException("Alignment program not executable: "+exe);
     	}
     	return f;
-	}
-	
-	/**
-     * Report appropriate warnings for the data in the specified map. Idea is to check the sequences and decide if there are
-     * data problems before doing the alignment. At the moment, not much checking of the input sequences is done.
-     * 
-     * @param seq_map
-     * @param st
-     * @param rowid
-     */
-    public void logWarningAboutAlignments(
-				Map<UniqueID, SequenceValue> seq_map, 
-				SequenceType st,
-				final String rowid) {
-    	assert(rowid != null);
-    	
-    	if (seq_map == null || seq_map.size() < 3) {
-    		if (!warned_small_seqs) {
-    			logger.warn("Too few sequences (less than three) for alignment: not recommended!");
-    			warned_small_seqs = true;
-    		}
-    	}
-    	logger.info("Aligning "+seq_map.size()+ " "+st+" sequences for "+rowid);
 	}
     
     /**
@@ -213,7 +191,10 @@ public abstract class AbstractAlignerNodeModel extends NodeModel implements Alig
     public abstract CommandLine makeCommandLineArguments(final File fasta_file, SequenceType alignment_sequence_type) throws Exception;
     
     /**
-     * Responsible for returning a new DataCell for the KNIME output table from the output of the alignment program
+     * Responsible for returning a new DataCell for the KNIME output table from the output of the alignment program. Called
+     * during runAlignmentProgram() so if you override that there is no need to do anything with this method. But the local alignment
+     * nodes (muscle, mafft) use this to process the stdout of the local process into the alignment cell.
+     * 
      * @param tsv the aligned output
      * @param st the type of alignment sequences (AA or NA)
      * @param row_id the row_id of the current row (which may be a little bogus if all sequence rows are being aligned at once)
@@ -221,6 +202,48 @@ public abstract class AbstractAlignerNodeModel extends NodeModel implements Alig
     public abstract DataCell makeAlignmentCellAndPopulateResultsMap(final LogOutputStream tsv, 
 			final SequenceType st, final String row_id) throws IOException;
     	
+    /**
+     * Called immediately prior to runAlignmentProgram() this method is responsible for ensuring that the sequence map is valid. Must
+     * throw an exception if not.
+     */
+    public void validateSequencesToBeAligned(final Map<UniqueID, SequenceValue> seqs) throws InvalidSettingsException {
+    	if (seqs == null || seqs.size() < 1)
+    		throw new InvalidSettingsException("No sequences to align!");
+    	
+    	// ensure no two sequences have the same ID and that all sequences to be aligned are of the same type eg. all protein
+        HashSet<String> dup_accsns = new HashSet<String>();
+        SequenceType must_be = SequenceType.UNKNOWN;
+        boolean is_first = true;
+        for (SequenceValue sv : seqs.values()) {
+      	  if (dup_accsns.contains(sv.getID())) {
+      		  throw new InvalidSettingsException("Refusing to align two sequences with the same ID: "+sv.getID());
+      	  }
+      	  if (is_first) {
+      		  must_be  = sv.getSequenceType();
+      		  is_first = false;
+      	  }
+      	  if (!must_be.equals(sv.getSequenceType())) {
+      		  throw new InvalidSettingsException("Refusing to align a mixture of sequences types: must be all AA or NA!");
+      	  }
+      	  dup_accsns.add(sv.getID());
+        }
+        dup_accsns = null;
+        HashSet<UniqueID> dup_uid = new HashSet<UniqueID>();
+        for (UniqueID uid : seqs.keySet()) {
+        	if (dup_uid.contains(uid)) {
+        		throw new InvalidSettingsException("Encountered duplicate short sequence ID! Programmer error! Should never happen!");
+        	}
+        }
+        
+        // log a warning in some cases so the user can fix their input data
+        if (seqs.size() < 3) {
+    		if (!warned_small_seqs) {
+    			logger.warn("Too few sequences (less than three) for multiple sequence alignment: not recommended!");
+    			warned_small_seqs = true;
+    		}
+    	}
+    	logger.info("Aligning "+seqs.size()+ " "+must_be+" sequences.");
+    }
     
 	/**
      * Run muscle on the sequences specified in <code>seq_map</code> (which should be at least 3) using the specified muscle executable.
@@ -240,9 +263,9 @@ public abstract class AbstractAlignerNodeModel extends NodeModel implements Alig
 			FastaWriter fw = new FastaWriter(f, seq_map);
 			fw.write();
 			
-			DefaultExecutor exe = new DefaultExecutor();
+			final DefaultExecutor exe = new DefaultExecutor();
 	    	exe.setExitValues(new int[] {0});
-	    	LogOutputStream tsv = new LogOutputStream() {
+	    	final LogOutputStream tsv = new LogOutputStream() {
 	    		private StringBuffer sb = new StringBuffer(1024 * 1024);
 	    		
 				@Override
@@ -280,15 +303,14 @@ public abstract class AbstractAlignerNodeModel extends NodeModel implements Alig
 	    	
 	    	CommandLine cmdLine = makeCommandLineArguments(f, st);
 	    	exe.setWorkingDirectory(f.getParentFile());
-	    	String logname = getAlignmentLogName();
+	    	final String logname = getAlignmentLogName();
 	    	
-	    	int exitCode = new ExecutorUtils(exe, logger).run(cmdLine);
-        	if (exe.isFailure(exitCode)) {
-        		logger.error(logname+" failed to align sequences in row "+rowid+" - check console messages and input data");
-        		return DataType.getMissingCell();
-        	}
-        	
-        	return makeAlignmentCellAndPopulateResultsMap(tsv, st, rowid);
+	    	int exitStatus = new ExecutorUtils(exe,logger).run(cmdLine);
+	    	if (exe.isFailure(exitStatus)) {
+	    		logger.error(logname+" failed to align sequences in row "+rowid+" - check console messages and input data");
+	    		return DataType.getMissingCell();
+	    	} 
+	    	return makeAlignmentCellAndPopulateResultsMap(tsv, st, rowid);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return DataType.getMissingCell();

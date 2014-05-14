@@ -31,7 +31,6 @@ import au.edu.unimelb.plantcell.io.ws.multialign.AlignmentValue.AlignmentType;
 
 
 /**
- * This is the model implementation of LocalMuscle.
  * Supports running a local muscle executable and integration into the KNIME-PlantCell platform
  *
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
@@ -106,13 +105,10 @@ public class LocalMuscleNodeModel extends AbstractAlignerNodeModel {
 			}
 			
 			final String rowid = "Alignment1";
-			logWarningAboutAlignments(seq_map, st, rowid);
+			validateSequencesToBeAligned(seq_map);
     		c.addRow(new DataCell[] { runAlignmentProgram(seq_map, rowid, st)} );
     		return new BufferedDataTable[] {c.close()};
     	}
-    
-    	
-		
     }
 
     public File getAlignmentProgram() {

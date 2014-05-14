@@ -69,8 +69,7 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
 public class SequenceAlignerNodeModel extends NodeModel {
     
     // the logger instance
-    private static final NodeLogger logger = NodeLogger
-            .getLogger(SequenceAlignerNodeModel.class);
+    private static final NodeLogger logger = NodeLogger.getLogger("Local aligner");
     
     final static String CFG_ALIGN_TYPE         = "alignment-type";
     final static String CFG_BUILTIN_MATRIX     = "builtin-matrix";
