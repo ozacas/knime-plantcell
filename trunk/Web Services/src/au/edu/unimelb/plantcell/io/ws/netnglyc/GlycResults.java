@@ -11,13 +11,22 @@ import au.edu.unimelb.plantcell.core.UniqueID;
 
 
 /**
- * Represents a set of results from NetNGlyc (all positive results within a batch)
+ * Represents a set of results from NetNGlyc (all positive results within a batch) for a given sequence ID (which
+ * must be provided in the constructor call). Also keeps track of all GlycResults for a given run: see the reset() and
+ * lookup() methods for details.
  * 
  * @author acassin
  *
  */
 public class GlycResults {
+	/**
+	 * This is the regex for parsing results from NetNGlyc: very version and output format sensitive so make sure it
+	 * corresponds to the results coming from your server!
+	 */
 	private final static Pattern p = Pattern.compile("^(S\\d+)\\s+(\\d+)\\s+([A-Z]+)\\s+([\\d\\.]+)\\s+\\((.*)\\)\\s+(\\S+)$");
+	/**
+	 * Current results for each sequence (ID) in the batch. Cleared by reset() after processing each batch by the nodemodel
+	 */
 	private final static Map<String,GlycResults> results_map = new HashMap<String,GlycResults>();
 
 	private String        id;
@@ -32,6 +41,12 @@ public class GlycResults {
 		this.id = id;
 	}
 
+	/**
+	 * Parse the line of hits from NetNGlyc and invoke addHit() to store the results in the results map.
+	 * 
+	 * @param line
+	 * @return the updated instance with the new hit or null if the specified line does not match a hit line
+	 */
 	public static GlycResults grokLine(final String line) {
 		Matcher m = p.matcher(line);
 		if (!m.matches()) {
@@ -66,6 +81,11 @@ public class GlycResults {
 		return jury_agreement;
 	}
 	
+	/**
+	 * Given a matching regular expression results instance. The implementation must match the regex as specified by grokLine()
+	 * 
+	 * @param cols
+	 */
 	private void addHit(final Matcher cols) {
 		assert(cols != null);
 		positive_sites.add(Integer.valueOf(cols.group(2)));
@@ -75,10 +95,20 @@ public class GlycResults {
 		result.add(cols.group(6));
 	}
 
+	/**
+	 * Lookup the specified UniqueID (from a sequence batch loaded from the input table) and find the corresponding GlycResults
+	 * 
+	 * @param uid
+	 * @return null if not found
+	 */
 	public static GlycResults lookup(final UniqueID uid) {
+		assert(uid != null);
 		return results_map.get(uid.toString());
 	}
 
+	/**
+	 * purge all known GlycResults (done for each independent call of NetNGlyc so that hits aren't confused between sequence batches)
+	 */
 	public static void reset() {
 		results_map.clear();
 	}
