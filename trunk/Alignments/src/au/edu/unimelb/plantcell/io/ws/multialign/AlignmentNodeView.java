@@ -168,8 +168,7 @@ public class AlignmentNodeView extends ExternalApplicationNodeView<NodeModel>{
 			CommandLine cl = makeCommandLine();
 			File f = makeTemporaryAlignmentFile(av);
 			addJalViewOpenArguments(cl, f);
-			@SuppressWarnings("unused")
-			int exitStatus = new ExecutorUtils(logger).run(cl);
+			new ExecutorUtils(logger).runNoWait(cl);
 		} catch (Exception ex) {
 			logger.warn(ex.getMessage());
 			ex.printStackTrace();

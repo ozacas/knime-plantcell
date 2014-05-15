@@ -256,6 +256,10 @@ public class MultiAlignerNodeModel extends AbstractAlignerNodeModel {
 	@Override
 	public void validateSequencesToBeAligned(final Map<UniqueID, SequenceValue> seqs) throws InvalidSettingsException {
 		super.validateSequencesToBeAligned(seqs);
+		
+		/*
+		 * Although this defends EBI's terms of service it probably prevents out-of-memory errors creating an in-memory fasta too....
+		 */
 		if (seqs.size() > 1000) {
 			throw new InvalidSettingsException("Refusing to do an online alignment of more than 1000 sequences as per EBI terms of service!");
 		}
@@ -274,6 +278,10 @@ public class MultiAlignerNodeModel extends AbstractAlignerNodeModel {
 		last_call = cur;
 	}
 
+	/**
+	 * May only be called during execute()
+	 * @return
+	 */
 	private ExecutionContext getCurrentExecutionContext() {
 		return m_exec;
 	}
