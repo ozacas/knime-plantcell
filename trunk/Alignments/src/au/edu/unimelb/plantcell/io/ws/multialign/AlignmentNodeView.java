@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -188,9 +189,13 @@ public class AlignmentNodeView extends ExternalApplicationNodeView<NodeModel>{
 		 if (av == null || av.getSequenceCount() < 1)
 			 throw new IOException("Invalid (empty) alignment!");
 		 
-		 File f = File.createTempFile("multialign", ".aln");
-         FileWriter fw = new FileWriter(f);
-         fw.write(av.getClustalAlignment());
+		 File f = File.createTempFile("multialign", "_aligned_seqs.fasta");
+		 PrintWriter fw = new PrintWriter(new FileWriter(f));
+         int n = av.getSequenceCount();
+         for (int i=0; i<n; i++) {
+        	 fw.println(">"+av.getIdentifier(i));
+        	 fw.println(av.getAlignedSequenceString(i));
+         }
          fw.close();
          f.deleteOnExit();
          return f;
