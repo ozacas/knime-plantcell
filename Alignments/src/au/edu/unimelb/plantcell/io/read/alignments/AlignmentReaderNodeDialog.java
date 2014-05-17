@@ -32,7 +32,7 @@ public class AlignmentReaderNodeDialog extends DefaultNodeSettingsPane {
     	this.setHorizontalPlacement(true);
     	final SettingsModelString url = new SettingsModelString(AlignmentReaderNodeModel.CFGKEY_URL, "");
     	addDialogComponent(new DialogComponentString(url,
-    			"Read from..."));
+    			"Read from...", true, 60));
     	DialogComponentButton set_file_button = new DialogComponentButton("File...");
     	DialogComponentButton set_url_button  = new DialogComponentButton("URL...");
     	

@@ -17,7 +17,7 @@
         	<option name="Read from">Select a file with the File button on your computer or enter the URL of an alignment
         	to read.</option>
         	<option name="Interpret data as...">You must select the alignment format (although the node will try to guess by default).
-        	Aligned Fasta is recommended as other formats can shorten ID's to only 10 characters.</option>
+        	Aligned Fasta is recommended as other formats can shorten ID's to a maximum of 10 characters.</option>
         	<option name="Amino acids or nucleotides?">The node does not guess whether the sequences denote amino acids (protein) sequence
         	or nucleotide sequence so you must choose that here</option>
         </options>
