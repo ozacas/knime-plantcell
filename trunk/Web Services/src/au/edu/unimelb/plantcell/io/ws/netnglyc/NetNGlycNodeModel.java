@@ -203,6 +203,8 @@ public class NetNGlycNodeModel extends AbstractWebServiceNodeModel {
 						jury_agreement_cells.add(new StringCell(s));
 					}
 					cells[3] = CollectionCellFactory.createListCell(jury_agreement_cells);
+				} else {
+					cells[0] = new IntCell(0);		// user convenience: n sites = 0 rather than missing value
 				}
 				
 				c1.addRow(new JoinedRow(row, new DefaultRow(row.getKey(), cells)));
