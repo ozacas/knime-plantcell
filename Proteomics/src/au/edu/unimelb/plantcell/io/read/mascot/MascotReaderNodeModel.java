@@ -90,9 +90,13 @@ public class MascotReaderNodeModel extends NodeModel {
      */
     protected MascotReaderNodeModel() {
         // first output port is for spectra data, second is for search parameters
-        super(0, 2);
+        this(0, 2);
     }
 
+    protected MascotReaderNodeModel(int n_in, int n_out) {
+    	super(n_in, n_out);
+    }
+    
     protected static SettingsModel make(String k) {
     	if (k.equals(CFGKEY_FILES)) {
     		return new SettingsModelStringArray(CFGKEY_FILES, new String[] {} );

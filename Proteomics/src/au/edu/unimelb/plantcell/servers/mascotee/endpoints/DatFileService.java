@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.servers.mascotws.DatFile;
+package au.edu.unimelb.plantcell.servers.mascotee.endpoints;
 
 import javax.activation.DataHandler;
 import javax.jws.WebMethod;
@@ -27,6 +27,16 @@ public interface DatFileService {
 	 */
 	@WebMethod
 	public String[] getDatFilesSince(final String YYYYMMdd) throws SOAPException;
+	
+	/**
+	 * Returns the full date of the specified data file eg. given "F003585.dat" this method will 
+	 * search the mascot dat file repository from most recent folder to most ancient and return the full dated
+	 * dat file which may then be downloaded eg. "20140509/F003585.dat"
+	 * 
+	 * @return string of the form YYYYMMdd/F\d+.dat or null if no such dat file is available
+	 * @throws SOAPException if input parameter is illegal
+	 */
+	public String getDatedDatFilePath(String dat_file_name) throws SOAPException;
 	
 	/**
 	 * Given an entry as returned from <code>getDatFiles()</code> this method downloads

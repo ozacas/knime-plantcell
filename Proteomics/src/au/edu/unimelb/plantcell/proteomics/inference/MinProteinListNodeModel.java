@@ -314,6 +314,7 @@ public class MinProteinListNodeModel extends NodeModel {
     		
     	};
     	
+    
     	new ExecutorUtils(exe, logger).run(cmdLine, erh);
     	
     	// 3. output TRUE for those rows which are part of the minimum set, FALSE otherwise
