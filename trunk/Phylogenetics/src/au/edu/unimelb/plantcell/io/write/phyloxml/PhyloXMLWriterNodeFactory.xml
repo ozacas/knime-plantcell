@@ -57,4 +57,7 @@
         <outPort index="0" name="Decoration statistics">What happened during decoration: how many taxa were annotated?</outPort>
     </ports>
  
+ 	<view>
+ 		<view index="0" name="Archaeopteryx">Load the tree view into Archaeopteryx. See www.phyloxml.org for details.</view>
+ 	</view>
 </knimeNode>

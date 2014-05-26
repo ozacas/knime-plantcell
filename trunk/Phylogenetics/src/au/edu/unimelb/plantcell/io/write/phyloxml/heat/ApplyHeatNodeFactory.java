@@ -1,8 +1,13 @@
 package au.edu.unimelb.plantcell.io.write.phyloxml.heat;
 
+import org.knime.core.node.AbstractNodeView;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
+
+import au.edu.unimelb.plantcell.io.read.phyloxml.FileTreeViewInterface;
+import au.edu.unimelb.plantcell.io.read.phyloxml.PhylogeneticTreeView;
 
 /**
  * applies heat to a tree using the forester library
@@ -10,13 +15,13 @@ import org.knime.core.node.NodeView;
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
 public class ApplyHeatNodeFactory 
-        extends NodeFactory<ApplyHeatNodeModel> {
+        extends NodeFactory<NodeModel> {
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public ApplyHeatNodeModel createNodeModel() {
+    public NodeModel createNodeModel() {
         return new ApplyHeatNodeModel();
     }
 
@@ -32,11 +37,18 @@ public class ApplyHeatNodeFactory
      * {@inheritDoc}
      */
     @Override
-    public NodeView<ApplyHeatNodeModel> createNodeView(final int viewIndex,
-            final ApplyHeatNodeModel nodeModel) {
+    public NodeView<NodeModel> createNodeView(final int viewIndex, final NodeModel nodeModel) {
         return null;
     }
-
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public AbstractNodeView<NodeModel> createAbstractNodeView(final int viewIndex, final NodeModel mdl) {
+    	return new PhylogeneticTreeView(mdl, ((FileTreeViewInterface)mdl).getTreeFileForDisplay());
+    }
+    
     /**
      * {@inheritDoc}
      */
