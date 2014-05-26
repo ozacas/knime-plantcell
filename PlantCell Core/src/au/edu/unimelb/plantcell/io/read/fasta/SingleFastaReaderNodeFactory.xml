@@ -11,9 +11,10 @@
         <intro>This nodes reads sequences from a single user-specified FASTA file and creates two columns: one with the sequence
         (including id, description and seq.) and the other with the file's URL. This node is designed to be used in loops using
         the flow variable page: override the variable "single-fasta" not any other variable!
-        
-        </ol>
+     
+     	<p>
         More information about the FASTA file format can be found <a href="http://en.wikipedia.org/wiki/FASTA_format">here</a>
+        </p>
         
         <p>
         Note that whitespace is removed from all sequence data. Only sequence data which conforms to <tt>^[-A-Za-z\*]+$</tt> will 
