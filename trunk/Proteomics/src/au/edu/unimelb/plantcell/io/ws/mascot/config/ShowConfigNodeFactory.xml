@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./default.png" type="Source" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.8 http://knime.org/node/v2.8.xsd">
+    <name>Dat Download</name>
+    
+    <shortDescription>
+        Permits downloading of Mascot DAT files via a JAX-WS web service and will load each dat file into the output table as per the mascot reader. The node also saves the DAT files to the user-specified folder.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>Permits downloading of Mascot (www.matrixscience.com) DAT files via a JAX-WS web service and will load each 
+        dat file into the output table as per the mascot reader. The node also saves the DAT files to the user-specified folder.</intro>
+        
+        
+        <option name="Mascot Service (URL)">Where the mascot dat file service is located. Press the refresh button to ensure
+        the latest data is available.
+        </option>
+        
+        <option name="Since?">Display the servers dat files since the chosen date. Options are:
+        <ul>
+        	<li>Last 24 hours. Only searches submitted in the past day will be shown</li>
+        	<li>Last 7 days</li>
+        	<li>Current month. Since the start of the current month.</li>
+        	<li>Current year. Since the start of the current year.</li>
+        	<li>Since the dawn of time. Since a large amount of files will be listed, this may take considerable time to update. Be patient.</li>
+        </ul>
+        When the current date is changed, an automatic refresh of the list is performed.
+		</option>
+		
+		<option name="Available DAT files">Select those dat files which you want to download and process.</option>
+		
+        <!-- possibly more options that can also be grouped by tabs -->
+     
+        <option name="Mascot DAT File Processing">the second tab contains the same options as per the Mascot DAT file reader node.
+        Please refer to that documentation for a more detailed description</option>
+           
+    
+    </fullDescription>
+    
+    <ports>
+        <outPort index="0" name="Peptide->Spectra match data">Table of reported peptide hits to spectra searched</outPort>
+       	<outPort index="1" name="Mascot search parameters">The search parameters of each .DAT file downloaded are here for reference.</outPort>
+    </ports>    
+  
+</knimeNode>

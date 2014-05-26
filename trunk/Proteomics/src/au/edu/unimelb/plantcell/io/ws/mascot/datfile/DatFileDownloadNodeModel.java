@@ -28,7 +28,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
 import au.edu.unimelb.plantcell.io.read.mascot.MascotReaderNodeModel;
-import au.edu.unimelb.plantcell.servers.mascotws.DatFile.DatFileService;
+import au.edu.unimelb.plantcell.servers.mascotee.endpoints.DatFileService;
 
 /**
  * This is the model implementation of DatFileDownload.
