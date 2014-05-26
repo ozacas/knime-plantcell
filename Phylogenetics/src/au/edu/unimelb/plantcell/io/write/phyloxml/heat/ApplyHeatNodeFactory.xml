@@ -23,4 +23,7 @@
         <outPort index="0" name="Heat statistics">What happened during application of heat: which taxa were used?</outPort>
     </ports>
  
+ 	<views>
+ 		<view index="0" name="Archaeopteryx">Load the tree view into Archaeopteryx. See www.phyloxml.org for details.</view>
+ 	</views>
 </knimeNode>

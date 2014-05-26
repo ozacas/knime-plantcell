@@ -53,6 +53,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.core.cells.SequenceValue;
+import au.edu.unimelb.plantcell.io.read.phyloxml.FileTreeViewInterface;
 
 
 /**
@@ -60,7 +61,7 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
  * 
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
-public class PhyloXMLWriterNodeModel extends NodeModel {
+public class PhyloXMLWriterNodeModel extends NodeModel implements FileTreeViewInterface {
     
     // the logger instance
     private static final NodeLogger logger = NodeLogger.getLogger("PhyloXML Writer");
@@ -614,6 +615,11 @@ public class PhyloXMLWriterNodeModel extends NodeModel {
        
 
     }
+
+	@Override
+	public File getTreeFileForDisplay() {
+		return new File(m_outfile.getStringValue());
+	}
 
 }
 

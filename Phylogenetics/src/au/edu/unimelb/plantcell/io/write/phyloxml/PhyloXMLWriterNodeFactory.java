@@ -1,8 +1,13 @@
 package au.edu.unimelb.plantcell.io.write.phyloxml;
 
+import org.knime.core.node.AbstractNodeView;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
+
+import au.edu.unimelb.plantcell.io.read.phyloxml.FileTreeViewInterface;
+import au.edu.unimelb.plantcell.io.read.phyloxml.PhylogeneticTreeView;
 
 /**
  * Creates a phyloxml document from the input data, decorated with data from the input table.
@@ -10,13 +15,13 @@ import org.knime.core.node.NodeView;
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
 public class PhyloXMLWriterNodeFactory 
-        extends NodeFactory<PhyloXMLWriterNodeModel> {
+        extends NodeFactory<NodeModel> {
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public PhyloXMLWriterNodeModel createNodeModel() {
+    public NodeModel createNodeModel() {
         return new PhyloXMLWriterNodeModel();
     }
 
@@ -32,11 +37,18 @@ public class PhyloXMLWriterNodeFactory
      * {@inheritDoc}
      */
     @Override
-    public NodeView<PhyloXMLWriterNodeModel> createNodeView(final int viewIndex,
-            final PhyloXMLWriterNodeModel nodeModel) {
+    public NodeView<NodeModel> createNodeView(final int viewIndex, final NodeModel nodeModel) {
         return null;
     }
-
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public AbstractNodeView<NodeModel> createAbstractNodeView(final int viewIndex, final NodeModel mdl) {
+    	return new PhylogeneticTreeView(mdl, ((FileTreeViewInterface)mdl).getTreeFileForDisplay());
+    }
+    
     /**
      * {@inheritDoc}
      */

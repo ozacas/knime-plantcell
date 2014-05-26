@@ -26,6 +26,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 import au.edu.unimelb.plantcell.core.MyDataContainer;
+import au.edu.unimelb.plantcell.io.read.phyloxml.FileTreeViewInterface;
 
 /**
  * This node applys heat information (in the form of pairwise data for OTUs to the branches
@@ -39,7 +40,7 @@ import au.edu.unimelb.plantcell.core.MyDataContainer;
  * @author acassin
  *
  */
-public class ApplyHeatNodeModel extends NodeModel {
+public class ApplyHeatNodeModel extends NodeModel implements FileTreeViewInterface {
 
 	private final static NodeLogger logger = NodeLogger.getLogger("Heat to Tree");
 	
@@ -191,6 +192,11 @@ public class ApplyHeatNodeModel extends NodeModel {
 	protected void saveInternals(File arg0, ExecutionMonitor arg1)
 			throws IOException, CanceledExecutionException {
 		// no op
+	}
+
+	@Override
+	public File getTreeFileForDisplay() {
+		return new File(m_out.getStringValue());
 	}
 
 }
