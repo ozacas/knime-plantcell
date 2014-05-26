@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Web Services
 Bundle-SymbolicName: au.edu.unimelb.plantcell.io.ws;singleton:=true
-Bundle-Version: 1.2.20
+Bundle-Version: 1.2.21
 Bundle-ClassPath: lib/aopalliance.jar,
  lib/blast-1.8.1.jar,
  lib/nanoxml-2.2.3.jar,
