@@ -61,10 +61,10 @@ public class Plot3DBarNodeModel extends NodeModel {
     private SummaryStatistics z_stats = null;					// re-computed during loadInternals
     
     @SuppressWarnings("unused")
-	private String[] m_rows = null;		    // row ID's used for highlighting (NOT YET implemented)
-    private Color[] m_colours = null;	    // row colours used for the graph
-    private FloatArrayList m_overlay= null;	// used for an axis-aligned overlay plot (optional)
-    private FloatArrayList m_sizes = null;  // used to scale the size of each datapoint individually
+	private String[]         m_rows = null;		    // row ID's used for highlighting (NOT YET implemented)
+    private Color[]       m_colours = null;	        // row colours used for the graph
+    private FloatArrayList m_overlay= null;	        // used for an axis-aligned overlay plot (optional)
+    private FloatArrayList  m_sizes = null;         // used to scale the size of each datapoint individually
     
     /**
      * Constructor for the node model.
@@ -149,7 +149,7 @@ public class Plot3DBarNodeModel extends NodeModel {
     		}
     	}
     	
-    	m_rows = rowids.toArray(new String[0]);
+    	m_rows    = rowids.toArray(new String[0]);
     	m_colours = colours.toArray(new Color[0]);
     	m_overlay = null;
     	if (has_overlay) {
@@ -182,10 +182,10 @@ public class Plot3DBarNodeModel extends NodeModel {
      */
     @Override
     protected void reset() {
-        m_rows = null;
+        m_rows    = null;
         m_colours = null;
         m_overlay = null;
-        m_sizes = null;
+        m_sizes   = null;
         x_fal.clear();
         y_fal.clear();
         z_fal.clear();
