@@ -167,6 +167,7 @@ public class URLListModel extends AbstractListModel<URL> implements ChangeListen
 	private void validateCurrentModel() {
 		for (String url : m_store.getStringArrayValue()) {
 			try {
+				@SuppressWarnings("unused")
 				URL u = new URL(url);
 			} catch (MalformedURLException mfe) {
 				NodeLogger.getLogger("URL List").warn("Encountered invalid URL during save: "+url);

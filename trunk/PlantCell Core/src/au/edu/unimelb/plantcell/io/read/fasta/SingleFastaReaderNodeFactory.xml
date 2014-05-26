@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./default.png" type="Source">
+    <name>Fasta Reader (single)</name>
+    
+    <shortDescription>
+        This nodes reads sequences from the user-specified FASTA file and outputs a sequence cell and URL for each sequence.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>This nodes reads sequences from a single user-specified FASTA file and creates two columns: one with the sequence
+        (including id, description and seq.) and the other with the file's URL. This node is designed to be used in loops using
+        the flow variable page: override the variable "single-fasta" not any other variable!
+        
+        </ol>
+        More information about the FASTA file format can be found <a href="http://en.wikipedia.org/wiki/FASTA_format">here</a>
+        
+        <p>
+        Note that whitespace is removed from all sequence data. Only sequence data which conforms to <tt>^[-A-Za-z\*]+$</tt> will 
+        be passed thru, as it is otherwise not valid protein or nucleotide sequence data. This reader supports gzip-compressed files
+        and multiple files may be loaded at once via the <tt>FASTA Files</tt> tab in the node configuration.
+        </p>
+        
+        <p>
+        <b>Note:</b>This is not a <i>strict</i> parser according to the letter-of-the-law. Bitter experience points to many deficient and
+        non-conformant fasta files which have to be used within KNIME. Eg. originally a word-processing document.
+        Validation of results (eg. number of sequences loaded, average sequence length etc.) is recommended.
+        </p>
+        </intro>
+        
+        <option name="File to read from...">FASTA format file to read from. May be gzip compressed. Many files can be loaded
+        at once, although it is generally recommended that all files have the same sequence type (eg. protein)</option>
+        
+        <option name="Accession Regular Expression">How much data on the <tt>&gt;</tt>-line to interpret as an identifier. This regular
+        expression must have exactly one pair of capturing parenthesis <tt>()</tt>. Default RE matches up the first whitespace as the identifier.</option>
+       
+        <option name="Description Regular Expression">How much data on the <tt>&gt;</tt>-line to interpret as the description. Default RE matches
+        everything after the default accession regular expression, but the two can overlap if this is desired.</option>
+        
+        <option name="Entry Handler">How to handle multiple (accession, description) entries on a <tt>&gt;</tt>-line (each will be separated by ctrl-A).
+        This node currently supports two ways to handle this:
+        <ul>
+        	<li>Create collection columns for Accession and Description (the collection is ordered in the same way as the file). This option requires
+        	more memory</li>
+        	<li>Load only the first entry in the line, the remainder are ignored. The Accession and Description columns are String columns.</li>
+        </ul>
+        </option>
+        
+        <option name="Use Accession as RowID?">If checked (ie. ticked) the RowID for each sequence 
+        will contain the first matched accession from the file. This avoids having to use a <b>Sequence to Columns</b> node to extract it, which can save time and space. Some (bad) FASTA files may not
+        have unique IDs, which will cause the node to fail if this option is checked.</option>
+        
+    </fullDescription>
+    
+    <ports>
+        <outPort index="0" name="FASTA sequences">Each row contains a single sequence with accession and description data filled in as described above.</outPort>
+      
+        <outPort index="1" name="Sequence Statistics">Outputs key statistics for each file loaded</outPort>
+    </ports>    
+    
+</knimeNode>

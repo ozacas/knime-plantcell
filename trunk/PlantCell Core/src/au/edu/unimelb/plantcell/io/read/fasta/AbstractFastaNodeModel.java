@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,12 +25,16 @@ import au.edu.unimelb.plantcell.core.cells.CommentType;
 import au.edu.unimelb.plantcell.core.cells.SequenceCell;
 import au.edu.unimelb.plantcell.core.cells.SequenceType;
 
+/**
+ * Common methods for reading of sequence files
+ * @author acassin
+ *
+ */
 public abstract class AbstractFastaNodeModel extends NodeModel {
 	  /** the settings key which is used to retrieve and 
           store the settings (from the dialog or from a settings file)    
           (package visibility to be usable from the dialog). */
 	 static final String CFGKEY_FASTA    = "fasta-file";
-	 static final String CFGKEY_ONESHOT_FASTA = "one-shot-fasta";		// for use by loops in KNIME
 	 static final String CFGKEY_ACCSN_RE = "accsn-regexp";
 	 static final String CFGKEY_DESCR_RE = "description-regexp";
 	 static final String CFGKEY_ENTRY_HANDLER = "entry-handler";
@@ -46,8 +51,14 @@ public abstract class AbstractFastaNodeModel extends NodeModel {
 
 	 private boolean m_single_entry_only;
 	 private boolean m_use_accession_as_rid;
-	 private URL  m_url;
+	 private URL     m_url;
 	 
+	/**
+	 * Must use this constructor which specifies how many input and output ports the node has
+	 * 
+	 * @param nrInDataPorts
+	 * @param nrOutDataPorts
+	 */
 	protected AbstractFastaNodeModel(int nrInDataPorts, int nrOutDataPorts) {
 		super(nrInDataPorts, nrOutDataPorts);
 		setSingleEntry(true);
@@ -55,6 +66,14 @@ public abstract class AbstractFastaNodeModel extends NodeModel {
 		setUseAccessionAsRowID(true);
 	}
 
+	/**
+	 * Only required for those nodes which read data from files/URLs. Must throw if no suitable files are available.
+	 * 
+	 * @return
+	 * @throws InvalidSettingsException
+	 */
+	public abstract List<URL> getURLList() throws InvalidSettingsException;
+		
 	@Override
 	protected void loadInternals(File nodeInternDir, ExecutionMonitor exec)
 			throws IOException, CanceledExecutionException {
