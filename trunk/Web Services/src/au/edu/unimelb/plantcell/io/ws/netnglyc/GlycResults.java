@@ -29,6 +29,7 @@ public class GlycResults {
 	 */
 	private final static Map<String,GlycResults> results_map = new HashMap<String,GlycResults>();
 
+	@SuppressWarnings("unused")
 	private String        id;
 	private List<Integer> positive_sites  = new ArrayList<Integer>();
 	private List<String>  positive_sites_aa= new ArrayList<String>();
