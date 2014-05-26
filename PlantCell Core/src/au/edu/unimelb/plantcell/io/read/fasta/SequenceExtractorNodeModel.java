@@ -3,9 +3,11 @@ package au.edu.unimelb.plantcell.io.read.fasta;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
@@ -87,6 +89,11 @@ public class SequenceExtractorNodeModel extends AbstractFastaNodeModel {
       
         DataTableSpec outputSpec = new DataTableSpec(allColSpecs);
         return outputSpec;
+    }
+    
+    @Override
+    public List<URL> getURLList() {
+    	return null;
     }
     
     /**

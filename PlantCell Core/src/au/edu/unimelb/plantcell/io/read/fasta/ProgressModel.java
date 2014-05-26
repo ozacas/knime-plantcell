@@ -85,8 +85,7 @@ public class ProgressModel {
      * @throws IOException
      */
 	public BufferedReader getBufferedReader() throws UnsupportedEncodingException, IOException {
-	    
-        /**
+        /*
          * We define the mapping between FASTA files and java as 7-bit: I dont think
          * any other character encoding is used by these files - maybe UTF8???
          */
