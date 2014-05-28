@@ -2,6 +2,7 @@ package au.edu.unimelb.plantcell.servers.mascotee.endpoints;
 
 import javax.activation.DataHandler;
 import javax.jws.WebService;
+import javax.xml.bind.annotation.XmlMimeType;
 import javax.xml.soap.SOAPException;
 import javax.xml.ws.soap.MTOM;
 
@@ -16,11 +17,17 @@ import javax.xml.ws.soap.MTOM;
 public interface SearchService {
 
 	/**
+	 * Called prior to performing a search, this method checks the input parameters in the specified
+	 * XML for validity and throws an Exception if not valid. Note that input data (eg. query files) is not validated by this method.
+	 */
+	public void validateSearchParameters(String mascotee_xml) throws SOAPException;
+	
+	/**
 	 * Perform a search which does not require a data file to be uploaded (eg. some PMF/Sequence Query)
 	 * @return job ID of the newly submitted job 
 	 * @throws SOAPException an exception if the job cannot be submitted eg. invalid XML
 	 */
-	public String simpleSearch(final String mascotee_xml) throws SOAPException;
+	public String simpleSearch(String mascotee_xml) throws SOAPException;
 	
 	/**
 	 * Like simpleSearch() but this mandates that a single file is part of the search
@@ -29,7 +36,7 @@ public interface SearchService {
 	 * @return
 	 * @throws SOAPException
 	 */
-	public String search(final String mascotee_xml, final DataHandler query_data) throws SOAPException;
+	public String search(String mascotee_xml, @XmlMimeType("application/octet-stream") DataHandler query_data) throws SOAPException;
 	
 	/**
 	 * Get status on a current job
@@ -45,7 +52,7 @@ public interface SearchService {
 	/**
 	 * Get Mascot results (.dat) file
 	 */
-	public DataHandler getResults(String jobID) throws SOAPException;
+	public @XmlMimeType("application/octet-stream") DataHandler getResults(String jobID) throws SOAPException;
 	
 	/**
 	 * Returns the dat file name for the specified job or null if the job failed for some reason.

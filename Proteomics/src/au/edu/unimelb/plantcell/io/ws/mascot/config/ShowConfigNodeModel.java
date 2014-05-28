@@ -9,9 +9,11 @@ import java.net.URL;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Service;
 
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -71,18 +73,42 @@ public class ShowConfigNodeModel extends NodeModel {
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
-    	Service srv = Service.create(new URL(m_url.getStringValue()), MASCOTEE_CONFIG_NAMESPACE);
-
+    	String u = m_url.getStringValue();
+    	Service srv = getConfigService(u);
        	if (srv == null) {
        		throw new InvalidSettingsException("Unable to connect to "+m_url.getStringValue());
        	}
         ConfigService configService = srv.getPort(ConfigService.class);
-     
+        if (configService == null)
+        	throw new Exception("Cannot connect to server!");
+        
         MyDataContainer c = new MyDataContainer(exec.createDataContainer(make_output_spec()), "Config");
+        // 1. dump available databases
+        for (String db : configService.availableDatabases()) {
+        	DataCell[] cells = getCellsAsMissing(c);
+        	cells[0] = new StringCell(u);
+        	cells[1] = new StringCell(db);
+        	cells[2] = new StringCell("database");
+        	cells[3] = getDatabaseRecord(configService, db);
+        	c.addRow(cells);
+        }
         
         return new BufferedDataTable[] { c.close() };
     }
 
+    private DataCell getDatabaseRecord(final ConfigService configService, final String db) {
+    	// TODO
+		return DataType.getMissingCell();
+	}
+
+	private DataCell[] getCellsAsMissing(final MyDataContainer c) {
+    	 DataCell[] cells = new DataCell[c.getTableSpec().getNumColumns()];
+         for (int i=0; i<cells.length; i++) {
+         	cells[i] = DataType.getMissingCell();
+         }
+         return cells;
+    }
+    
     private DataTableSpec make_output_spec() {
 		DataColumnSpec[] cols = new DataColumnSpec[5];
 		cols[0] = new DataColumnSpecCreator("MascotEE URL", StringCell.TYPE).createSpec();
@@ -126,16 +152,14 @@ public class ShowConfigNodeModel extends NodeModel {
        m_password.validateSettings(settings);
     }
 
-    public static Service getMascotService(final String url, final Authenticator auth) throws MalformedURLException {
-    	if (auth != null) {
-    		Authenticator.setDefault(auth);
+    public static Service getConfigService(final String url) throws MalformedURLException {
+    	String u = url;
+    	if (u.endsWith("/")) {
+    		u += "ConfigService?wsdl";
     	}
-    	return getMascotService(url);
-    }
-    
-    public static Service getMascotService(final String url) throws MalformedURLException {
-    	logger.info("Connecting to "+url);
-    	return Service.create(new URL(url), MASCOTEE_CONFIG_NAMESPACE);
+    	URL u2 = new URL(u);
+    	logger.info("Connecting to "+u2.toExternalForm());
+    	return Service.create(u2, MASCOTEE_CONFIG_NAMESPACE);
     }
 
 	@Override

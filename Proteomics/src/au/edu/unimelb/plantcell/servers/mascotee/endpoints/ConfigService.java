@@ -78,4 +78,15 @@ public interface ConfigService {
 	 */
 	public String[] availableTaxa() throws SOAPException;
 	
+	/**
+	 * returns list of available top hits (5, 10, 20, AUTO etc...) which the mascot server supports. Currently
+	 * hardcoded, but eventually will work more sensibly. The first option should be considered the default. 
+	 * Guaranteed non-empty and non-null if no exception is thrown.
+	 */
+	public String[] availableTopHits() throws SOAPException;
+	
+	/**
+	 * returns a list of available peptide charges. Currently hardcoded. Guaranteed non-empty and non-null if no exception is thrown.
+	 */
+	public String[] availablePeptideChargeStates() throws SOAPException;
 }

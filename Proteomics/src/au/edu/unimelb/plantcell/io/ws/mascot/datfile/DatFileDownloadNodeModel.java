@@ -43,7 +43,7 @@ public class DatFileDownloadNodeModel extends MascotReaderNodeModel {
     private final static String HTTP_CLIENT_STREAMING_CHUNK_SIZE = "com.sun.xml.ws.transport.http.client.streaming.chunk.size";
 
     // configuration parameters which the dialog also uses (superclass also has state)
-	public final static String CFGKEY_MASCOT_SERVICE_URL = "mascot-service-url";
+	public final static String CFGKEY_MASCOTEE_URL = "mascot-service-url";
 	public final static String CFGKEY_DAT_FILES_SINCE    = "since-when";
 	public final static String CFGKEY_DAT_FILES          = "available-dat-files";
 	public final static String CFGKEY_SAVETO_FOLDER      = "save-dat-files-to";
@@ -52,7 +52,7 @@ public class DatFileDownloadNodeModel extends MascotReaderNodeModel {
 
 	
 	// default values for the dialog
-	public final static String DEFAULT_MASCOT_SERVICE_URL = "http://mascot.plantcell.unimelb.edu.au:8080/mascot/DatFileService?wsdl";
+	public final static String DEFAULT_MASCOTEE_URL = "http://mascot.plantcell.unimelb.edu.au:8080/mascotee/";
 	private final static QName MASCOT_SERVICE_NAMESPACE = 
 			new QName("http://www.plantcell.unimelb.edu.au/bioinformatics/wsdl", "DatFileService");
 	public final static String[] SINCE_METHODS = {
@@ -66,7 +66,7 @@ public class DatFileDownloadNodeModel extends MascotReaderNodeModel {
 	
 	
 	// persisted state within this class (note that superclass state is also persisted!)
-	private final SettingsModelString            m_url = new SettingsModelString(CFGKEY_MASCOT_SERVICE_URL, DEFAULT_MASCOT_SERVICE_URL);
+	private final SettingsModelString            m_url = new SettingsModelString(CFGKEY_MASCOTEE_URL, DEFAULT_MASCOTEE_URL);
 	private final SettingsModelString       m_strategy = new SettingsModelString(CFGKEY_DAT_FILES_SINCE, SINCE_METHODS[0]);
 	private final SettingsModelStringArray m_dat_files = new SettingsModelStringArray(CFGKEY_DAT_FILES, new String[0]);
 	private final SettingsModelString         m_saveto = new SettingsModelString(CFGKEY_SAVETO_FOLDER, "");
@@ -89,10 +89,15 @@ public class DatFileDownloadNodeModel extends MascotReaderNodeModel {
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
-    	Service srv = Service.create(new URL(m_url.getStringValue()), MASCOT_SERVICE_NAMESPACE);
+    	String u = m_url.getStringValue();
+    	if (u.endsWith("/")) {
+    		u += "DatFileService?wsdl";
+    	}
+    	logger.info("Contacting MascotEE at: "+u);
+    	Service srv = Service.create(new URL(u), MASCOT_SERVICE_NAMESPACE);
 
        	if (srv == null)
-       		throw new InvalidSettingsException("Unable to connect to "+m_url.getStringValue());
+       		throw new InvalidSettingsException("Unable to connect to "+u);
         DatFileService datFileService = srv.getPort(DatFileService.class);
         BindingProvider bp = (BindingProvider) datFileService;
         Map<String,Object> ctx = bp.getRequestContext();
@@ -194,8 +199,12 @@ public class DatFileDownloadNodeModel extends MascotReaderNodeModel {
     }
     
     public static Service getMascotService(final String url) throws MalformedURLException {
-    	logger.info("Connecting to "+url);
-    	return Service.create(new URL(url), MASCOT_SERVICE_NAMESPACE);
+    	String u = url;
+    	if (u.endsWith("/")) {
+    		u += "DatFileService?wsdl";
+    	}
+    	logger.info("Connecting to "+u);
+    	return Service.create(new URL(u), MASCOT_SERVICE_NAMESPACE);
     }
     
 	public static List<String> getDatFilesSince(final Calendar since, final String url, final Authenticator auth) 

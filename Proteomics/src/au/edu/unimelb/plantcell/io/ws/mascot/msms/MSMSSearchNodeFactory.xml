@@ -16,7 +16,7 @@
         <inPort index="0" name="Input table">Input table with search parameters eg. input data</inPort>
         <!-- possibly more input ports here-->
         <outPort index="0" name="Peptide and protein results">Results of ms/ms ion search</outPort>
-        <!-- possibly more output ports here-->
+        <outPort index="1" name="Mascot search parameters">Main configuration parameters used for job, as obtained from results file</outPort>
     </ports>    
    
 </knimeNode>

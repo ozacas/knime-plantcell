@@ -1,7 +1,6 @@
 package au.edu.unimelb.plantcell.servers.mascotee.endpoints;
 
 import javax.activation.DataHandler;
-import javax.jws.WebMethod;
 import javax.jws.WebService;
 import javax.xml.bind.annotation.XmlMimeType;
 import javax.xml.soap.SOAPException;
@@ -25,7 +24,6 @@ public interface DatFileService {
 	 * @return
 	 * @throws SOAPException
 	 */
-	@WebMethod
 	public String[] getDatFilesSince(final String YYYYMMdd) throws SOAPException;
 	
 	/**
@@ -47,7 +45,6 @@ public interface DatFileService {
 	 * @return
 	 * @throws SOAPException
 	 */
-	@WebMethod
 	public @XmlMimeType("application/octet-stream") DataHandler getDatFile(final String dat_file) throws SOAPException;
 	
 }
