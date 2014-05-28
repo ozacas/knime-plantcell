@@ -45,7 +45,7 @@ public class ShowConfigNodeDialog extends DefaultNodeSettingsPane {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				try {
-					Service s = ShowConfigNodeModel.getMascotService(url.getStringValue());
+					Service s = ShowConfigNodeModel.getConfigService(url.getStringValue());
 					if (s == null)
 						throw new InvalidSettingsException("No such service!");
 				} catch (Exception e) {

@@ -76,10 +76,10 @@ public class DatFileDownloadNodeDialog extends DefaultNodeSettingsPane {
     	addDialogComponent(new DialogComponentFileChooser(new SettingsModelString(DatFileDownloadNodeModel.CFGKEY_SAVETO_FOLDER, ""),
     			"dat-file-folder", 0, true, new String[] {}));
     	
-    	createNewGroup("Mascot Service");
-    	final SettingsModelString url = new SettingsModelString(DatFileDownloadNodeModel.CFGKEY_MASCOT_SERVICE_URL, DatFileDownloadNodeModel.DEFAULT_MASCOT_SERVICE_URL);
+    	createNewGroup("MascotEE settings");
+    	final SettingsModelString url = new SettingsModelString(DatFileDownloadNodeModel.CFGKEY_MASCOTEE_URL, DatFileDownloadNodeModel.DEFAULT_MASCOTEE_URL);
     	
-    	addDialogComponent(new DialogComponentString(url, "URL for MascotWS"));
+    	addDialogComponent(new DialogComponentString(url, "MascotEE url"));
     	DialogComponentButton refresh_button = new DialogComponentButton("Refresh");
     	refresh_button.addActionListener(new ActionListener() {
 
