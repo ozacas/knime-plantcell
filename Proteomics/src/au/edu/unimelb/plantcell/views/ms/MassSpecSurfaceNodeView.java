@@ -9,9 +9,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
-import javax.media.opengl.GLCapabilities;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ComboBoxModel;
@@ -38,7 +36,6 @@ import org.jzy3d.plot3d.primitives.AbstractDrawable;
 import org.jzy3d.plot3d.primitives.CompileableComposite;
 import org.jzy3d.plot3d.primitives.Scatter;
 import org.jzy3d.plot3d.primitives.axes.layout.providers.RegularTickProvider;
-import org.jzy3d.plot3d.rendering.canvas.Quality;
 import org.jzy3d.plot3d.rendering.legends.colorbars.ColorbarLegend;
 import org.jzy3d.plot3d.rendering.scene.Graph;
 import org.jzy3d.plot3d.rendering.scene.Scene;
@@ -48,7 +45,6 @@ import org.la4j.matrix.dense.Basic2DMatrix;
 import org.la4j.matrix.functor.MatrixFunction;
 import org.la4j.matrix.functor.MatrixProcedure;
 
-import au.edu.unimelb.plantcell.views.plot3d.MyAxisRenderer;
 import au.edu.unimelb.plantcell.views.plot3d.Plot3DBarNodeView;
 
 /**
