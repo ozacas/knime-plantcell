@@ -16,6 +16,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.activation.DataHandler;
+import javax.mail.util.ByteArrayDataSource;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -158,19 +159,11 @@ public class MSMSSearchNodeModel extends MascotReaderNodeModel {
     	logger.info("Performing ms/ms ion search using MascotEE: "+m_url.getStringValue());
     	
     	// 0. create Search query and validate the parameters using the server
-    	JAXBElement<Search> s = makeSearchQuery();
+    	Search s = makeSearchQuery();
     	
     	SearchService ss = makeSearchService();
     	if (ss == null)
     		throw new InvalidSettingsException("Cannot connect to MascotEE: "+m_url.getStringValue());
-    	String xml = makeXML(s);
-    	try {
-    		ss.validateSearchParameters(xml);
-    	} catch (Exception e) {
-    		logger.warn("Invalid mascot settings detected... aborting!");
-    		logger.warn("Problem reported is: "+e.getMessage());
-    		throw e;
-    	}
     	
     	// 1. queue the searches with the specified mascotee installation
     	List<File> input_mgf_files = makeInputFiles(inData[0],exec);
@@ -186,7 +179,8 @@ public class MSMSSearchNodeModel extends MascotReaderNodeModel {
     	List<String> job_ids = new ArrayList<String>();
     	for (File f : input_mgf_files) {
     		logger.info("Running MS/MS ion search for data file: "+f.getAbsolutePath());
-    		String job_id = ss.search(xml, new DataHandler(f.toURI().toURL()));
+    		
+    		String job_id = ss.validateAndSearch(s);
     		job_ids.add(job_id);
     	}
     	List<String> results_files = waitForAllJobsCompleted(ss, job_ids);
@@ -396,7 +390,7 @@ public class MSMSSearchNodeModel extends MascotReaderNodeModel {
      * 
      * @return
      */
-	private JAXBElement<Search> makeSearchQuery() throws InvalidSettingsException {
+	private Search makeSearchQuery() throws InvalidSettingsException {
 		ObjectFactory   of = new ObjectFactory();
 		MsMsIonSearch  mss = of.createMsMsIonSearch();
 		
@@ -440,11 +434,14 @@ public class MSMSSearchNodeModel extends MascotReaderNodeModel {
 		d.setFormat("Mascot generic");	// HACK TODO FIXME... currently hardcoded
 		d.setInstrument(finaliseInstrument(m_instrument.getStringValue()));
 		d.setPrecursor(finalisePrecursor(m_precursor.getStringValue()));
-		d.setSource("MTOM");		// mgf data attached to SOAP message body using MTOM attachments (receiver must know whether to look for attachment or not)
+		// the suggested filename and data itself (d.setFile() and d.setSuggestedFileName()) are set for each search much later ...
+		// but we set them here so that validation of search parameters does not fail
+		d.setFile(new DataHandler(new ByteArrayDataSource(new byte[0], "")));
+		d.setSuggestedFileName("temp.mgf");
 		mss.setData(d);
 		Search s = of.createSearch();
 		s.setMsMsIonSearch(mss);
-		return of.createMascotEE(s);
+		return s;
 	}
 
 	private MSMSTolerance finaliseMSMSTolerance(final String value, final String unit) {

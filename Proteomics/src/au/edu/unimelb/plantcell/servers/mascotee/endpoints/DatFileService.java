@@ -4,7 +4,6 @@ import javax.activation.DataHandler;
 import javax.jws.WebService;
 import javax.xml.bind.annotation.XmlMimeType;
 import javax.xml.soap.SOAPException;
-import javax.xml.ws.soap.MTOM;
 
 /**
  * Permits the user to download a Mascot .DAT file
@@ -13,7 +12,6 @@ import javax.xml.ws.soap.MTOM;
  *
  */
 @WebService
-@MTOM
 public interface DatFileService {
 
 	/**

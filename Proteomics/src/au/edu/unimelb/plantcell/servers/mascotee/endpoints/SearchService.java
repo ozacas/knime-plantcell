@@ -4,7 +4,8 @@ import javax.activation.DataHandler;
 import javax.jws.WebService;
 import javax.xml.bind.annotation.XmlMimeType;
 import javax.xml.soap.SOAPException;
-import javax.xml.ws.soap.MTOM;
+
+import au.edu.unimelb.plantcell.servers.mascotee.jaxb.Search;
 
 
 /**
@@ -13,30 +14,15 @@ import javax.xml.ws.soap.MTOM;
  *
  */
 @WebService
-@MTOM
 public interface SearchService {
 
 	/**
-	 * Called prior to performing a search, this method checks the input parameters in the specified
-	 * XML for validity and throws an Exception if not valid. Note that input data (eg. query files) is not validated by this method.
-	 */
-	public void validateSearchParameters(String mascotee_xml) throws SOAPException;
-	
-	/**
-	 * Perform a search which does not require a data file to be uploaded (eg. some PMF/Sequence Query)
-	 * @return job ID of the newly submitted job 
-	 * @throws SOAPException an exception if the job cannot be submitted eg. invalid XML
-	 */
-	public String simpleSearch(String mascotee_xml) throws SOAPException;
-	
-	/**
 	 * Like simpleSearch() but this mandates that a single file is part of the search
-	 * @param query_data	data file (byte stream)
-	 * @param mascotee_xml  remainder of mascot search parameters
+	 * @param mascotee_search  mascot search parameters (only one MS/MS, PMF or SeqQuery is supported)
 	 * @return
 	 * @throws SOAPException
 	 */
-	public String search(String mascotee_xml, @XmlMimeType("application/octet-stream") DataHandler query_data) throws SOAPException;
+	public String validateAndSearch(final Search mascotee_xml) throws SOAPException;
 	
 	/**
 	 * Get status on a current job

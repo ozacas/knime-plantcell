@@ -56,7 +56,7 @@ import au.edu.unimelb.plantcell.servers.mascotee.endpoints.ConfigService;
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
 public class MSMSSearchNodeDialog extends DefaultNodeSettingsPane implements ChangeListener {
-	private final int VISIBLE_MODIFICATION_ROWS = 13;		// display 13 mods on screen at once
+	private final int VISIBLE_MODIFICATION_ROWS = 15;		// display 13 mods on screen at once
 	private final static List<String> initial_list = new ArrayList<String>();
 	static {
 		initial_list.add("Please enter a valid MascotEE URL and press refresh.");
