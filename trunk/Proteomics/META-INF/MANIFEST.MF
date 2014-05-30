@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Proteomics
 Bundle-SymbolicName: au.edu.unimelb.plantcell.proteomics; singleton:=true
-Bundle-Version: 1.2.33
+Bundle-Version: 1.2.35
 Bundle-ClassPath: insilicodigestor.jar,
  lib/collections-generic-4.01.jar,
  lib/com.springsource.antlr-2.7.7.jar,
@@ -57,30 +57,20 @@ Bundle-ClassPath: insilicodigestor.jar,
  lib/mascotdatfile-3.4.9.jar,
  lib/jpl-msmatch-1.0.jar
 Bundle-Vendor: http://www.plantcell.unimelb.edu.au/bioinformatics
-Require-Bundle: org.eclipse.core.runtime,
+Require-Bundle: au.edu.unimelb.plantcell.views,
+ org.eclipse.core.runtime,
  org.knime.workbench.core,
  org.knime.workbench.repository,
  org.knime.base,
- au.edu.unimelb.plantcell.networks;bundle-version="1.0.7",
  org.apache.commons.math;bundle-version="2.1.0",
  org.knime.workbench.ui;bundle-version="2.4.0",
  org.apache.log4j;bundle-version="1.2.15",
+ com.knime.enterprise.client.glassfish;bundle-version="4.1.1",
+ au.edu.unimelb.plantcell.networks;bundle-version="1.0.7",
  au.edu.unimelb.plantcell.statistics;bundle-version="1.2.23",
- au.edu.unimelb.plantcell.core,
- au.edu.unimelb.plantcell.views;bundle-version="1.0.3",
- com.knime.enterprise.client.glassfish;bundle-version="4.1.1"
+ au.edu.unimelb.plantcell.core
 Bundle-ActivationPolicy: lazy
-Export-Package: au.edu.unimelb.plantcell.io.read.mascot,
- au.edu.unimelb.plantcell.io.read.pepxml,
- au.edu.unimelb.plantcell.io.read.spectra,
- au.edu.unimelb.plantcell.io.write.spectra,
- au.edu.unimelb.plantcell.proteomics.digestion,
- au.edu.unimelb.plantcell.proteomics.inference,
- au.edu.unimelb.plantcell.proteomics.phosphorylation,
- au.edu.unimelb.plantcell.proteomics.proteinselector,
- au.edu.unimelb.plantcell.proteomics.spectra.quality,
- org.expasy.jpl.core.ms.spectrum.peak,
- org.la4j.decomposition,
+Export-Package: org.la4j.decomposition,
  org.la4j.factory,
  org.la4j.inversion,
  org.la4j.io,
@@ -109,6 +99,7 @@ Import-Package: it.unimi.dsi.fastutil,
  org.apache.commons.collections.keyvalue;version="3.2.0",
  org.apache.commons.collections.list;version="3.2.0",
  org.apache.commons.collections.map;version="3.2.0",
- org.apache.commons.collections.set;version="3.2.0"
+ org.apache.commons.collections.set;version="3.2.0",
+ org.jzy3d.maths
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 

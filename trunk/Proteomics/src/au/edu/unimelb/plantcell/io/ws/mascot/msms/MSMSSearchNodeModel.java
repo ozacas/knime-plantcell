@@ -108,7 +108,8 @@ public class MSMSSearchNodeModel extends MascotReaderNodeModel {
 	public final static String CFGKEY_MASCOTEE_PASSWD= "mascotee-passwd";
 	
 	public final static String   DEFAULT_MASCOTEE_URL = "http://mascot.plantcell.unimelb.edu.au:8080/mascotee/";
-	public final static String[] DATA_SOURCES = new String[] { "from input file (select column)", "aggregated input files (select column)", "from input MS/MS spectra (select column)" };
+	// order for DATA_SOURCES is critical: append new entries to the END so that existing code works (or modify everything ;-)
+	public final static String[] DATA_SOURCES = new String[] { "from input file (select column)", "all input files combined (select column)", "from input MS/MS spectra (select column)" };
 
 	
 	
@@ -179,7 +180,6 @@ public class MSMSSearchNodeModel extends MascotReaderNodeModel {
     	List<String> job_ids = new ArrayList<String>();
     	for (File f : input_mgf_files) {
     		logger.info("Running MS/MS ion search for data file: "+f.getAbsolutePath());
-    		
     		String job_id = ss.validateAndSearch(s);
     		job_ids.add(job_id);
     	}
