@@ -4,13 +4,11 @@ import javax.activation.DataHandler;
 import javax.jws.WebService;
 import javax.xml.bind.annotation.XmlMimeType;
 import javax.xml.soap.SOAPException;
-import javax.xml.ws.soap.MTOM;
 
 /**
  * Session Bean implementation class ConfigService
  */
 @WebService
-@MTOM
 public interface ConfigService {
 
 	/**
