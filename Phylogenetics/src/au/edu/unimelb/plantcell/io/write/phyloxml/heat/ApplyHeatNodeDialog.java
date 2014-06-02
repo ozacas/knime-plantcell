@@ -1,9 +1,13 @@
 package au.edu.unimelb.plantcell.io.write.phyloxml.heat;
 
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
+import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
 import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
@@ -17,10 +21,21 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
 public class ApplyHeatNodeDialog extends DefaultNodeSettingsPane {
-
+	private final SettingsModelString numericHeatColumn = new SettingsModelString(ApplyHeatNodeModel.CFGKEY_HEAT, "");
+	private final SettingsModelString methodColumn = new SettingsModelString(ApplyHeatNodeModel.CFGKEY_METHOD, ApplyHeatNodeModel.DEFAULT_METHODS[0]);
+	
 	@SuppressWarnings("unchecked")
 	protected ApplyHeatNodeDialog() {
         super();
+        
+        methodColumn.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				resetEnabledWidgets();
+			}
+        	
+        });
         
         createNewGroup("What tree do you want to process?");
         addDialogComponent(new DialogComponentFileChooser(
@@ -36,7 +51,12 @@ public class ApplyHeatNodeDialog extends DefaultNodeSettingsPane {
         		));
         		
         createNewTab("Data");
-        createNewGroup("Heat data columns (from input, pairwise)");
+        createNewGroup("Heat data comes from... ");
+        String[] meth = ApplyHeatNodeModel.DEFAULT_METHODS;
+        
+        addDialogComponent(new DialogComponentButtonGroup(
+        		methodColumn, 
+        		"Get colours from?" , true, meth , meth));
         addDialogComponent(
         		new DialogComponentColumnNameSelection(
         				new SettingsModelString(ApplyHeatNodeModel.CFGKEY_A, ""), 
@@ -44,7 +64,7 @@ public class ApplyHeatNodeDialog extends DefaultNodeSettingsPane {
         		);
         addDialogComponent(
         		new DialogComponentColumnNameSelection(
-        				new SettingsModelString(ApplyHeatNodeModel.CFGKEY_HEAT, ""), 
+        				numericHeatColumn, 
         				"Heat (scaled to maximum of column)", 0, true, false, DoubleValue.class)
         		);
         
@@ -58,8 +78,15 @@ public class ApplyHeatNodeDialog extends DefaultNodeSettingsPane {
         addDialogComponent(
         		new DialogComponentStringSelection(new SettingsModelString(ApplyHeatNodeModel.CFGKEY_BRANCH_WIDTH_BY, ApplyHeatNodeModel.WIDTH_STRATEGY[0]),
         				"", ApplyHeatNodeModel.WIDTH_STRATEGY));
-        			
-
     }
+
+	public void resetEnabledWidgets() {
+		numericHeatColumn.setEnabled(methodColumn.getStringValue().equals(ApplyHeatNodeModel.DEFAULT_METHODS[0]));
+	}
+	
+	@Override
+	public void onOpen() {
+		resetEnabledWidgets();
+	}
 }
 
