@@ -39,7 +39,7 @@ public class GlycResults {
 	
 	public GlycResults(String id) {
 		assert(id != null && id.startsWith("S") && id.length() > 0);
-		this.id = id;
+		this.setID(id);
 	}
 
 	/**
@@ -112,5 +112,13 @@ public class GlycResults {
 	 */
 	public static void reset() {
 		results_map.clear();
+	}
+
+	public String getID() {
+		return id;
+	}
+
+	public void setID(String id) {
+		this.id = id;
 	}
 }
