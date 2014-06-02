@@ -46,11 +46,14 @@ public class ApplyHeatNodeModel extends NodeModel implements FileTreeViewInterfa
 	
 	static public final String CFGKEY_IN_TREE = "input-tree";
 	static public final String CFGKEY_OUT_TREE= "output-tree";
-	static public final String CFGKEY_A = "OTU-A";	// external leaf node named A
-	static public final String CFGKEY_HEAT = "heat-value";		// colour is determined by domain of chosen column
+	static public final String CFGKEY_A       = "OTU-A";	// external leaf node named A
+	static public final String CFGKEY_HEAT    = "heat-value";		// colour is determined by domain of chosen column
 	static public final String CFGKEY_HEAT_BY = "heat-propagation-strategy";
 	static public final String CFGKEY_BRANCH_WIDTH_BY = "branch-width-strategy";
 	static public final String CFGKEY_OVERWRITE = "overwrite-output-file?";
+	static public final String CFGKEY_METHOD    = "calc-colour-method";
+	
+	static public final String[] DEFAULT_METHODS = new String[] { "Scale to column maximum (blue-green)", "By row colour" };
 	
 	static public final String[] HEAT_STRATEGY = {  "average of descendant external nodes", 
 													"maximum of descendent external nodes", "average of directly connected nodes only",
