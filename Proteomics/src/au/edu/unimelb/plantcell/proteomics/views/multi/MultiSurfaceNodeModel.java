@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.views.surface.multi;
+package au.edu.unimelb.plantcell.proteomics.views.multi;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -34,8 +34,8 @@ import org.la4j.io.MatrixStream;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.functor.MatrixFunction;
 
-import au.edu.unimelb.plantcell.views.ms.MaximumMatrixProcedure;
-import au.edu.unimelb.plantcell.views.ms.MinimumMatrixProcedure;
+import au.edu.unimelb.plantcell.proteomics.views.MaximumMatrixProcedure;
+import au.edu.unimelb.plantcell.proteomics.views.MinimumMatrixProcedure;
 
 
 /**

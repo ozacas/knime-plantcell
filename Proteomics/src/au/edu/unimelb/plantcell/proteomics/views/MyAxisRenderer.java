@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.views.ms;
+package au.edu.unimelb.plantcell.proteomics.views;
 
 import org.jzy3d.plot3d.primitives.axes.layout.renderers.ITickRenderer;
 

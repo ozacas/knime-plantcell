@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.views.surface.multi;
+package au.edu.unimelb.plantcell.proteomics.views.multi;
 
 import org.knime.core.node.AbstractNodeView;
 import org.knime.core.node.NodeDialogPane;

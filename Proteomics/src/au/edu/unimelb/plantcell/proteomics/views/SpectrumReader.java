@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.views.ms;
+package au.edu.unimelb.plantcell.proteomics.views;
 
 import java.io.File;
 import java.util.ArrayList;

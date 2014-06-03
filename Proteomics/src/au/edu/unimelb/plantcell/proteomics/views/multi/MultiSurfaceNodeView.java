@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.views.surface.multi;
+package au.edu.unimelb.plantcell.proteomics.views.multi;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -27,7 +27,7 @@ import org.jzy3d.plot3d.rendering.scene.Scene;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.functor.MatrixProcedure;
 
-import au.edu.unimelb.plantcell.views.ms.MassSpecSurfaceNodeView;
+import au.edu.unimelb.plantcell.proteomics.views.MassSpecSurfaceNodeView;
 import au.edu.unimelb.plantcell.views.plot3d.MyAxisRenderer;
 
 /**
