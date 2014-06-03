@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.JFileChooser;
@@ -186,6 +187,11 @@ public class MSMSSearchNodeDialog extends DefaultNodeSettingsPane implements Cha
 			}
     		
     	});
+        bg.setToolTipText("Which peptide identifications per spectra do you want to see?");
+        addDialogComponent(bg);
+        addDialogComponent(new DialogComponentNumberEdit(ci,"Identity Threshold Confidence", 5));
+        addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(MascotReaderNodeModel.CFGKEY_WANT_SPECTRA, true), "Want MS/MS spectra?"));
+	
 
 		createNewTab("Misc.");
 		addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(MSMSSearchNodeModel.CFGKEY_REPORT_OVERVIEW, true), "Report overview?"));
@@ -203,13 +209,6 @@ public class MSMSSearchNodeDialog extends DefaultNodeSettingsPane implements Cha
 		addDialogComponent(new DialogComponentString(
 				new SettingsModelString(MSMSSearchNodeModel.CFGKEY_TITLE, ""), "Job Title"
 		));
-		
-        bg.setToolTipText("Which peptide identifications per spectra do you want to see?");
-        addDialogComponent(bg);
-        
-        addDialogComponent(new DialogComponentNumberEdit(ci,"Identity Threshold Confidence", 5));
-        
-        addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(MascotReaderNodeModel.CFGKEY_WANT_SPECTRA, true), "Want MS/MS spectra?"));
 	}
 	
 	protected void updateConfidenceField(String sv) {
@@ -251,7 +250,7 @@ public class MSMSSearchNodeDialog extends DefaultNodeSettingsPane implements Cha
 	public void loadAdditionalSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] inSpec) {
 		try {
 			url.setStringValue(settings.getString(MSMSSearchNodeModel.CFGKEY_MASCOTEE_URL));
-			stateChanged(new ChangeEvent(url));		// trigger mascot config to be loaded from previously configured MascotEE server
+			stateChanged(new ChangeEvent(url));		// get mascot config to be loaded from previously configured MascotEE server
 			
 			// look at configured data source and decide which column selectors to enable
 			String ds = settings.getString(MSMSSearchNodeModel.CFGKEY_DATA_SOURCE);
@@ -269,6 +268,9 @@ public class MSMSSearchNodeDialog extends DefaultNodeSettingsPane implements Cha
 			// look at configured result type and decide what widgets to enable
 			String result_type = settings.getString(MascotReaderNodeModel.CFGKEY_RESULTTYPE);
 			updateConfidenceField(result_type);
+			
+			// ensure database field is correctly initialised now that mascot config has been loaded
+			database.setStringValue(settings.getString(MSMSSearchNodeModel.CFGKEY_DATABASE));
 		} catch (InvalidSettingsException e) {
 			e.printStackTrace();
 		}
@@ -305,6 +307,7 @@ public class MSMSSearchNodeDialog extends DefaultNodeSettingsPane implements Cha
 					Service srv = Service.create(u, MSMSSearchNodeModel.CONFIG_NAMESPACE);
 					ConfigService configService = srv.getPort(ConfigService.class);
 					List<String> newDatabases = fixDownloadedArray(configService.availableDatabases(), "No available databases.");
+					Collections.sort(newDatabases);	// convenience for the user
 					available_databases.replaceListItems(newDatabases, null);
 					List<String> newEnzymes = fixDownloadedArray(configService.availableEnzymes(), "No available enzymes.");
 					available_enzymes.replaceListItems(newEnzymes, null);

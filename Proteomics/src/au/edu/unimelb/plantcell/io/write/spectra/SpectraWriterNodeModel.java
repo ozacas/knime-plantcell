@@ -105,70 +105,20 @@ public class SpectraWriterNodeModel extends NodeModel {
     	while (it.hasNext()) {
     		DataRow r = it.next();
     		SpectraValue sdi = (SpectraValue) r.getCell(col_idx);
-    		double[] mz = sdi.getMZ();
-    		double[] intensity = sdi.getIntensity();
-    		String title = sdi.getID();
     		
     		// never fails (unless exception thrown) and the writer is ready for use...
     		PrintWriter pw = get_pw(use_suffix, suffix_idx, r, file_map, basename);
     		
-    		// HACK TODO: get charge and pepmass via SpectraValue interface?
-    		String charge = "";
-    		String pepmass= null;
-    		String scan = null;
-    		String rt = null;
-    		if (sdi instanceof BasicSpectraCell) {
-    			BasicSpectraCell mgf = (BasicSpectraCell) sdi;
-    			charge = mgf.getCharge();
-    			pepmass= mgf.getPepmass();
-    			if (pepmass != null && pepmass.trim().length() == 0)
-    				pepmass = null;
-    			scan = mgf.getScan();
-    			if (scan.equals(""))
-    				scan = null;
-    			rt   = mgf.getRT();
-    			if (rt.equals(""))
-    				rt = null;
+    		if (savePeakListasMGF(pw, sdi, new EmptyPeakListHandler(false, logger, 0))) {
+    			done++;
+    		} else {
+    			skipped++;
     		}
-    		
+    	
     		if (done % 100 == 0) {
     			exec.checkCanceled();
     			exec.setProgress(((double) done)/todo, "Processing spectra "+done);
     		}
-    		
-    		if (mz == null || mz.length < 0) {
-    			if (!m_save_empty.getBooleanValue()) {
-    				skipped++;
-    				continue;
-    			}
-    			logger.warn(title+ " has no peaks (but saved without peaks anyway)!");
-    		}
-    		
-    		// write the spectra to the output file
-    		pw.println("BEGIN IONS");
-    		// some mascot implementations require PEPMASS right after the BEGIN IONS so...
-    		if (pepmass != null)
-    			pw.println("PEPMASS="+pepmass);
-    		pw.println("TITLE="+title);
-    		String term = "";
-    		if (charge.indexOf("+") < 0) 
-    			term = "+";
-    		pw.println("CHARGE="+charge+term);
-    		if (scan != null) {
-    			pw.println("SCANS="+scan);
-    		}
-    		if (rt != null) {
-    			pw.println("RTINSECONDS="+rt);
-    		}
-    		// any peaks?
-    		if (mz != null && mz.length > 0) {
-	    		for (int i=0; i<mz.length; i++) {
-	    			pw.print(mz[i]);
-	    			pw.print(' ');
-	    			pw.println(intensity[i]);
-	    		}
-    		}
-    		pw.println("END IONS");
     		
     		done++;
     	}
@@ -185,6 +135,76 @@ public class SpectraWriterNodeModel extends NodeModel {
     }
 
     /**
+     * Ugh... this is an ugly API... need to use a design pattern for this... but unfortunately that requires
+     * upgrading everything to mzJava rather than the obsolete javaprotlib. This method is used when code to save a peaklist, so it
+     * is used not just in this node.
+     * 
+     * @param pw  the writer to save to
+     * @param sdi the peaklist to be saved
+     * @return true if the peaklist is saved, false if it is rejected by the specified plh
+     * @throws IOException
+     */
+    public static boolean savePeakListasMGF(final PrintWriter pw, final SpectraValue sdi, final PeakListHandler plh) throws IOException {
+    	if (sdi == null || pw == null) {
+    		throw new IOException("Bogus input parameters!");
+    	}
+		String title = sdi.getID();
+		
+    	// HACK TODO: get charge and pepmass via SpectraValue interface?
+		String charge = "";
+		String pepmass= null;
+		String scan = null;
+		String rt = null;
+		if (sdi instanceof BasicSpectraCell) {
+			BasicSpectraCell mgf = (BasicSpectraCell) sdi;
+			charge = mgf.getCharge();
+			pepmass= mgf.getPepmass();
+			if (pepmass != null && pepmass.trim().length() == 0)
+				pepmass = null;
+			scan = mgf.getScan();
+			if (scan.equals(""))
+				scan = null;
+			rt   = mgf.getRT();
+			if (rt.equals(""))
+				rt = null;
+		}
+		
+		if (plh != null && !plh.accept(sdi)) {
+			return false;
+		}
+		
+		// write the spectra to the output file
+		pw.println("BEGIN IONS");
+		// some mascot implementations require PEPMASS right after the BEGIN IONS so...
+		if (pepmass != null)
+			pw.println("PEPMASS="+pepmass);
+		pw.println("TITLE="+title);
+		String term = "";
+		if (charge.indexOf("+") < 0) 
+			term = "+";
+		pw.println("CHARGE="+charge+term);
+		if (scan != null) {
+			pw.println("SCANS="+scan);
+		}
+		if (rt != null) {
+			pw.println("RTINSECONDS="+rt);
+		}
+		// any peaks?
+		double[] mz = sdi.getMZ();
+		double[] intensity = sdi.getIntensity();
+		if (mz != null && mz.length > 0) {
+    		for (int i=0; i<mz.length; i++) {
+    			pw.print(mz[i]);
+    			pw.print(' ');
+    			pw.println(intensity[i]);
+    		}
+		}
+		
+		pw.println("END IONS");
+		return true;
+	}
+
+	/**
      * Create a print writer which is ready for use based on node configuration and the current row (containing the peak list to be saved).
      * The map is updated to include the PrintWriter for further use if needed
      * 

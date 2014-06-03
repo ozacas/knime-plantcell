@@ -2,7 +2,6 @@ package au.edu.unimelb.plantcell.io.ws.mascot.config;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.Authenticator;
 import java.net.MalformedURLException;
 import java.net.URL;
 
