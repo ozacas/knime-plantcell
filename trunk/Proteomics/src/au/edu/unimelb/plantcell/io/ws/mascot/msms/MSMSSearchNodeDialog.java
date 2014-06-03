@@ -28,6 +28,7 @@ import org.knime.core.node.defaultnodesettings.DialogComponentButton;
 import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
 import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
+import org.knime.core.node.defaultnodesettings.DialogComponentLabel;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumberEdit;
 import org.knime.core.node.defaultnodesettings.DialogComponentPasswordField;
@@ -57,7 +58,7 @@ import au.edu.unimelb.plantcell.servers.mascotee.endpoints.ConfigService;
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
 public class MSMSSearchNodeDialog extends DefaultNodeSettingsPane implements ChangeListener {
-	private final int VISIBLE_MODIFICATION_ROWS = 15;		// display 13 mods on screen at once
+	private final int VISIBLE_MODIFICATION_ROWS = 15;		// display X mods on screen at once
 	private final static List<String> initial_list = new ArrayList<String>();
 	static {
 		initial_list.add("Please enter a valid MascotEE URL and press refresh.");
@@ -134,11 +135,27 @@ public class MSMSSearchNodeDialog extends DefaultNodeSettingsPane implements Cha
 		addDialogComponent(available_databases);
 		addDialogComponent(available_enzymes);
 		
-		this.createNewGroup("Chemical modifications");
 		this.setHorizontalPlacement(true);
 		addDialogComponent(fixed_modifications);
 		addDialogComponent(variable_modifications);
 		this.setHorizontalPlacement(false);
+		final DialogComponentLabel current_label = new DialogComponentLabel("No modifications selected.");
+		fixed_mods.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				updateLabel(current_label, fixed_mods.getStringArrayValue(), variable_mods.getStringArrayValue());
+			}
+		});
+		variable_mods.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				updateLabel(current_label, fixed_mods.getStringArrayValue(), variable_mods.getStringArrayValue());
+			}
+			
+		});
+		addDialogComponent(current_label);
 		
 		createNewGroup("Instrument settings");
 		this.setHorizontalPlacement(true);
@@ -211,6 +228,21 @@ public class MSMSSearchNodeDialog extends DefaultNodeSettingsPane implements Cha
 		));
 	}
 	
+	protected void updateLabel(final DialogComponentLabel current_label,
+			String[] fixedValues, String[] variableValues) {
+		assert(current_label != null && fixedValues != null && variableValues != null);
+		if (fixedValues.length == 0 && variableValues.length == 0) {
+			current_label.setText("No modifications selected.");
+		} else if (fixedValues.length == 0) {
+			current_label.setText(variableValues.length+" variable modifications chosen.");
+		} else if (variableValues.length == 0) {
+			current_label.setText(fixedValues.length+" fixed modifications chosen.");
+		} else {
+			int sum = fixedValues.length + variableValues.length;
+			current_label.setText(sum+" modifications chosen: "+fixedValues.length+" fixed, "+variableValues.length+" variable");
+		}
+	}
+
 	protected void updateConfidenceField(String sv) {
 		if (sv == null) {
 			sv = MascotReaderNodeModel.DEFAULT_RESULTTYPE;
