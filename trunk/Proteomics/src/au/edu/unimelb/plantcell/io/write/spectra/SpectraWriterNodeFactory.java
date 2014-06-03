@@ -35,7 +35,7 @@ public class SpectraWriterNodeFactory
     @Override
     public NodeView<SpectraWriterNodeModel> createNodeView(final int viewIndex,
             final SpectraWriterNodeModel nodeModel) {
-        return new SpectraWriterNodeView(nodeModel);
+        return null;
     }
 
     /**

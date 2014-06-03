@@ -1,10 +1,13 @@
 package au.edu.unimelb.plantcell.io.ws.mascot.msms;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.StringWriter;
+import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -17,10 +20,6 @@ import java.util.regex.Pattern;
 
 import javax.activation.DataHandler;
 import javax.mail.util.ByteArrayDataSource;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
 import javax.xml.soap.SOAPException;
 import javax.xml.ws.BindingProvider;
@@ -46,6 +45,8 @@ import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
 import au.edu.unimelb.plantcell.io.read.mascot.MascotReaderNodeModel;
 import au.edu.unimelb.plantcell.io.read.spectra.SpectraValue;
+import au.edu.unimelb.plantcell.io.write.spectra.EmptyPeakListHandler;
+import au.edu.unimelb.plantcell.io.write.spectra.SpectraWriterNodeModel;
 import au.edu.unimelb.plantcell.servers.mascotee.endpoints.DatFileService;
 import au.edu.unimelb.plantcell.servers.mascotee.endpoints.SearchService;
 import au.edu.unimelb.plantcell.servers.mascotee.jaxb.Constraints;
@@ -68,7 +69,7 @@ import au.edu.unimelb.plantcell.servers.mascotee.jaxb.Search;
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
 public class MSMSSearchNodeModel extends MascotReaderNodeModel {
-	private static final NodeLogger logger = NodeLogger.getLogger("MS/MS Mascot Search");
+	private static final NodeLogger logger = NodeLogger.getLogger("MS/MS Ion Search");
 	
 	public final static QName SEARCH_NAMESPACE = 
 			new QName("http://www.plantcell.unimelb.edu.au/bioinformatics/wsdl", "SearchService");
@@ -180,6 +181,8 @@ public class MSMSSearchNodeModel extends MascotReaderNodeModel {
     	List<String> job_ids = new ArrayList<String>();
     	for (File f : input_mgf_files) {
     		logger.info("Running MS/MS ion search for data file: "+f.getAbsolutePath());
+    		s.getMsMsIonSearch().getData().setFormat("Mascot generic");
+    		s.getMsMsIonSearch().getData().setFile(new DataHandler(f.toURI().toURL()));
     		String job_id = ss.validateAndSearch(s);
     		job_ids.add(job_id);
     	}
@@ -312,7 +315,7 @@ public class MSMSSearchNodeModel extends MascotReaderNodeModel {
 		}
 	}
 
-	private List<File> makeInputFiles(final BufferedDataTable inData, final ExecutionContext exec) throws InvalidSettingsException {
+	private List<File> makeInputFiles(final BufferedDataTable inData, final ExecutionContext exec) throws InvalidSettingsException,IOException {
 		assert(inData != null && exec != null);
 		
 		ArrayList<File> ret = new ArrayList<File>();
@@ -326,10 +329,8 @@ public class MSMSSearchNodeModel extends MascotReaderNodeModel {
 			if (!spec.getType().isCompatible(SpectraValue.class)) {
 				throw new InvalidSettingsException("Chosen column does not contain m/z peaklists!");
 			}
-			// process list of spectra and save to a file based on chosen method...
-			// TODO FIXME...
-			throw new InvalidSettingsException("Not yet supported!");
-		} else if (ds.equals(DATA_SOURCES[0])) {
+			return makeCombinedMGF(inData, col_idx, new File(m_out_mgf.getStringValue()));
+		} else if (ds.equals(DATA_SOURCES[0]) || ds.equals(DATA_SOURCES[1])) {
 			// process list of files and save into array
 			Set<String> files = new HashSet<String>();
 			for (DataRow r : inData) {
@@ -338,9 +339,13 @@ public class MSMSSearchNodeModel extends MascotReaderNodeModel {
 					continue;
 				}
 				files.add(c.toString());
-			}
-			for (String s : files) {
-				ret.add(new File(s));
+			} 
+			if (ds.equals(DATA_SOURCES[0])) {
+				for (String s : files) {
+					ret.add(new File(s));
+				}
+			} else {
+				return makeCombinedMGF(files, new File(m_out_mgf.getStringValue()));
 			}
 		} else {
 			throw new InvalidSettingsException("Not yet supported!");
@@ -348,22 +353,103 @@ public class MSMSSearchNodeModel extends MascotReaderNodeModel {
 		return ret;
 	}
 
-	private String makeXML(final JAXBElement<Search> s) throws IOException {
-    	JAXBContext jaxbContext;
-    	StringWriter sw = null;
+	/**
+	 * Combine the specified files into a single MGF. A simple-minded concatenate is used, which is not quite
+	 * correct: if the mgfs have different default peptide charge states in the preamble, the concatenate may not
+	 * correctly ensure that in the combined result. But the vast majority of MGFs in circulation should be ok.
+	 * 
+	 * @param files files to be combined
+	 * @param output_mgf_folder where to save the combined mgf (must exist prior to call)
+	 * @return a single element list with the combined MGF in it
+	 * @throws InvalidSettingsException
+	 * @throws IOException 
+	 * HACK TODO FIXME
+	 */
+	private List<File> makeCombinedMGF(final Set<String> files, final File output_mgf_folder) throws InvalidSettingsException, IOException {
+		validateMgfFolder(output_mgf_folder);
+		ArrayList<File> ret = new ArrayList<File>();
+		File out = new File(output_mgf_folder, "combined_"+files.size()+"_input_files.mgf");
+		if (out.exists()) {
+			throw new InvalidSettingsException("Will not overwrite existing: "+out.getAbsolutePath());
+		}
+		ret.add(out);
+		PrintWriter out_pw = null;
+		BufferedReader rdr = null;
+		int saved = 0;
 		try {
-			              jaxbContext = JAXBContext.newInstance(Search.class);
-			Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-			                       sw = new StringWriter();
-			jaxbMarshaller.marshal(s, sw);
-			return sw.toString();
-		} catch (JAXBException e) {
-			e.printStackTrace();
-			return "";
-		} finally {
-			if (sw != null) {
-				sw.close();
+			out_pw = new PrintWriter(new FileWriter(out));
+		
+			for (String s : files) {
+				File in = new File(s);
+				rdr     = new BufferedReader(new FileReader(in));
+				String line;
+				while ((line = rdr.readLine()) != null) {
+					out_pw.println(line);
+					if (line.startsWith("BEGIN IONS")) {
+						saved++;
+					}
+				}
+				rdr.close();
+				rdr = null;
 			}
+		} finally {
+				if (rdr != null) {
+					rdr.close();
+				}
+				if (out_pw != null) {
+					out_pw.close();
+				}
+		}
+		logger.info("Saved "+saved+" peaklists into "+out.getAbsolutePath());
+		return ret;
+	}
+
+	/**
+	 * Save the specified spectra column as a single combined 
+	 * @param inData		input data table
+	 * @param col_idx		column with m/z cells
+	 * @param output_mgf_folder folder to save the combined MGF to (the file will be returned). Must exist prior to call.
+	 * @return
+	 * @throws InvalidSettingsException
+	 * @throws IOException 
+	 */
+	private List<File> makeCombinedMGF(final BufferedDataTable inData, int col_idx, final File output_mgf_folder) throws InvalidSettingsException, IOException {
+		assert(col_idx >= 0 && inData != null);
+		validateMgfFolder(output_mgf_folder);
+		
+		ArrayList<File> ret = new ArrayList<File>();
+		File out = new File(output_mgf_folder, "input_spectra_combined.mgf");
+		if (out.exists()) {
+			throw new InvalidSettingsException("Will not overwrite existing: "+out.getAbsolutePath());
+		}
+		PrintWriter pw = null;
+		int saved = 0;
+		try {
+			pw = new PrintWriter(new FileWriter(out));
+			for (DataRow dr : inData) {
+				DataCell dc = dr.getCell(col_idx);
+				if (dc.isMissing()) {
+					continue;
+				}
+				if (dc instanceof SpectraValue) {
+					if (SpectraWriterNodeModel.savePeakListasMGF(pw, (SpectraValue)dc, new EmptyPeakListHandler(false, logger, 0))) {
+						saved++;
+					}
+				}
+			}
+		} finally {
+			if (pw != null) {
+				pw.close();
+			}
+		}
+		
+		logger.info("Saved "+saved+" peaklists into: "+out.getAbsolutePath());
+		return ret;
+	}
+
+	private void validateMgfFolder(final File output_mgf_folder) throws InvalidSettingsException {
+		if (output_mgf_folder == null || !(output_mgf_folder.exists() && output_mgf_folder.isDirectory())) {
+			throw new InvalidSettingsException("Output MGF folder does not exist!");
 		}
 	}
 
@@ -394,12 +480,12 @@ public class MSMSSearchNodeModel extends MascotReaderNodeModel {
 		ObjectFactory   of = new ObjectFactory();
 		MsMsIonSearch  mss = of.createMsMsIonSearch();
 		
-		Identification id = new Identification();
+		Identification id = of.createIdentification();
 		id.setUsername(finaliseUsername(m_user.getStringValue()));
 		id.setEmail(finaliseEmail(m_email.getStringValue()));
 		id.setTitle(finaliseTitle(m_job_title.getStringValue()));
 		mss.setIdentification(id);
-		KeyParameters p = new KeyParameters();
+		KeyParameters p = of.createKeyParameters();
 		p.setDatabase(finaliseDatabase(m_database.getStringValue()));
 		addModifications(p.getFixedMod(), m_fixed_mods.getStringArrayValue());
 		addModifications(p.getVariableMod(), m_variable_mods.getStringArrayValue());
@@ -407,7 +493,7 @@ public class MSMSSearchNodeModel extends MascotReaderNodeModel {
 		p.setMassType(finaliseMassType(m_mass_type.getStringValue()));
 		mss.setParameters(p);
 		
-		Constraints c = new Constraints();
+		Constraints c = of.createConstraints();
 		c.setAllowedTaxa(finaliseTaxonomy(m_taxonomy.getStringValue()));
 		c.setEnzyme(finaliseEnzyme(m_enzyme.getStringValue()));
 		c.setAllowXMissedCleavages(finaliseMissedCleavages(m_missed_cleavages.getIntValue()));
@@ -421,16 +507,16 @@ public class MSMSSearchNodeModel extends MascotReaderNodeModel {
 		c.setMsmsTolerance(mt);
 		mss.setConstraints(c);
 		
-		Reporting r = new Reporting();
+		Reporting r = of.createReporting();
 		r.setOverview(m_report_overview.getBooleanValue());
 		r.setTop(m_report_top.getStringValue());
 		mss.setReporting(r);
 		
-		Quantitation q = new Quantitation();
+		Quantitation q = of.createQuantitation();
 		q.setIcat(m_quant_icat.getBooleanValue());
 		mss.setQuant(q);
 		
-		Data d = new Data();
+		Data d = of.createData();
 		d.setFormat("Mascot generic");	// HACK TODO FIXME... currently hardcoded
 		d.setInstrument(finaliseInstrument(m_instrument.getStringValue()));
 		d.setPrecursor(finalisePrecursor(m_precursor.getStringValue()));
