@@ -12,6 +12,66 @@
         on the specified mascot server, which has been augmented with an installation of MascotEE. 
         </intro>
         
+       	<option name="MascotEE URL">Enter the URL for your MascotEE installation. Press the refresh button
+       	if you need the configure screen to update to a recently made change to Mascot, or change the URL</option>
+       	
+       	<option name="Username &amp; Password">Not currently used, but will be soon to authenticate to MascotEE</option>
+       	
+       	<option name="Input data">The node provides three options:
+       	<ul>
+       		<li>Perform a separate mascot search per row of input (whose data file is given in the chosen column)</li>
+       		<li>Perform a single mascot search with <b>combined</b> MGF data from the files listed in the chosen column</li>
+       		<li>Perform a single mascot search with the chosen peaklists from the input table</li>
+       	</ul>
+       	In all cases, the input data is passed to mascot in MGF format using the implementation from the Spectra Writer node.
+       	</option>
+       	
+       	<option name="Save peaklists into folder">Specify where MGF data created before search is to be stored. The node
+       	will abort if it tries to overwrite an existing file, so it should be an empty folder</option>
+       	
+       	<option name="Save mascot results into folder">Specify where the Mascot results are to be stored. The node
+       	will automatically download and process the results using <a href="https://code.google.com/p/mascotdatfile/">MascotDatFile</a> and load the results into the output ports as well</option>
+       	
+       	<tab name="Key Settings">
+       		<option name="Database to search">Select the sequence database (only those reported from the MascotEE server are shown)</option>
+       		<option name="Proteolytic enzyme">Select the enzyme used in the experiment, or None if you dont want mascot to make assumptions
+       		about peptides formed from digestion of the protein (slow)</option>
+       		<option name="Modifications">Choose the modifications mascot is to consider. Mascot supports both mandatory (fixed)
+       		and occasional (variable) modification. Do not choose too many (more than five is realistic) as results will often
+       		be hard to interpret</option>
+       		<option name="Instrument">Select the available instrument type or leave at default if you are not sure</option>
+       		<option name="Mass type">Choose monisotopic if not sure</option>
+       	</tab>
+       	
+       	<tab name="Search Constraints">
+       		<option name="Missed cleavages">Enzymatic digestion is not perfect, select the missed cleavage sites permitted here.</option>
+       		<option name="Allowed protein mass"></option>
+       		<option name="Peptide charge">Only used if the data does not specify the charge state</option>
+       		<option name="Peptide tolerance"></option>
+       		<option name="MS/MS tolerance"></option>
+       		<option name="Taxonomy">if you have a database with many organisms which you dont want to see hits from, this
+       		option is your friend: choose the subset of the database which mascot is permitted to report</option>
+       	</tab>
+       	
+       	<tab name="Results Processing">
+       		<option name="Report which peptides per query?">Same as the Mascot Reader node</option>
+       		<option name="Identity threshold confidence">Same as the Mascot Reader node</option>
+       		<option name="Want MS/MS spectra?">Same as the Mascot Reader node</option>
+       	</tab>
+       	
+       	<tab name="Misc.">
+       		<option name="Report overview"></option>
+       		<option name="Report top ... hits">How many hits to report?</option>
+       		<option name="ICAT quantitation"></option>
+       		<option name="Precursor"></option>
+       	</tab>
+       	
+       	<tab name="Identification (optional)">
+       		<option name="Username">Only letters, numbers and underscore (_) are permitted</option>
+       		<option name="Email">Enter an email address, some mascot sites will send an email when the job is finished
+       		although PCBRC does not.</option>
+       		<option name="Job title">Enter a human description. MascotEE will add a unique ID to this field (which cant be turned off)</option>
+       	</tab>
     </fullDescription>
     
     <ports>
