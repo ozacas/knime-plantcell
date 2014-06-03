@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.views.ms;
+package au.edu.unimelb.plantcell.proteomics.views;
 
 import org.knime.core.node.AbstractNodeView;
 import org.knime.core.node.NodeDialogPane;

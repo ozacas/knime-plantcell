@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.views.ms;
+package au.edu.unimelb.plantcell.proteomics.views;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
