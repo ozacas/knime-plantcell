@@ -10,6 +10,10 @@
     <fullDescription>
         <intro>Performs an MS/MS ion search using MascotEE based on columns in the input table. Each row is a separate mascot search. 
         This enables search of Mascot generic format (MGF) data on the specified mascot server, which has been augmented with an installation of MascotEE. 
+        
+        <p><B>Note:</B> this node is very strict on the values you supply, this is deliberate so there is no room for misinterpretation of your parameters.
+        As a general rules values <b>must be exactly</b> as they are on the mascot search form. The only exception is the modifications which are comma separated
+        if you have more than one.</p>
         </intro>
         
        	<option name="MascotEE URL">Enter the URL for your MascotEE installation. Press the refresh button
