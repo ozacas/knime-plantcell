@@ -1,5 +1,6 @@
 package au.edu.unimelb.plantcell.io.jemboss.simple;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +26,10 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
 public class EmbossSequenceNodeDialog extends StandardEmbossDialog {
-	private static List<ACDApplication> sequencers = null;
+	/**
+	 * Sequencers are those emboss programs which produce a new sequence as output eg. frame conversion
+	 */
+	private final List<ACDApplication> sequencers = new ArrayList<ACDApplication>();
 
     /**
      * New pane for configuring EmbossPredictor node dialog.
@@ -36,18 +40,7 @@ public class EmbossSequenceNodeDialog extends StandardEmbossDialog {
 	protected EmbossSequenceNodeDialog() {
         super();
         
-        if (sequencers == null)
-        	sequencers = EmbossPredictorNodeModel.getEmbossPrograms(new EmbossProgramSelector() {
-
-				@Override
-				public boolean accept(ACDApplication appl) {
-					boolean ret = (appl.hasSection("input") && 
-		        			appl.getSection("input").hasUnalignedSequenceInput() && 
-		        			appl.hasSequenceOutput());
-					return ret;
-				}
-        		
-        	});
+        refreshSequencersIfNeeded();
         List<String> progs = new ArrayList<String>();
         for (ACDApplication prog : sequencers) {
         	progs.add(prog.getOneLineSummary());
@@ -82,6 +75,27 @@ public class EmbossSequenceNodeDialog extends StandardEmbossDialog {
        
         addAdvancedTab();
     }
+
+	private void refreshSequencersIfNeeded() {
+	     if (sequencers.size() == 0) {
+	    	 try {
+	        	sequencers.addAll(EmbossPredictorNodeModel.getEmbossPrograms(new EmbossProgramSelector() {
+
+					@Override
+					public boolean accept(ACDApplication appl) {
+						boolean ret = (appl.hasSection("input") && 
+			        			appl.getSection("input").hasUnalignedSequenceInput() && 
+			        			appl.hasSequenceOutput());
+						return ret;
+					}
+	        		
+	        	}));
+	    	 } catch (IOException ioe) {
+	    		 sequencers.clear();
+	    		 ioe.printStackTrace();
+	    	 }
+	     }
+	}
     
    
 }

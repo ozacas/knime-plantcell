@@ -3,6 +3,8 @@ package au.edu.unimelb.plantcell.io.jemboss.simple;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.io.IOException;
+
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -25,23 +27,16 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
 public class EmbossPredictorNodeDialog extends StandardEmbossDialog {
-	private static List<ACDApplication> predictors = null;
+	/**
+	 * Predictors are those emboss programs which produce GFF as output ie. feature recognition
+	 */
+	private final List<ACDApplication> predictors = new ArrayList<ACDApplication>();
 	
     @SuppressWarnings("unchecked")
 	protected EmbossPredictorNodeDialog() {
         super();
         
-        if (predictors == null)
-        	predictors = EmbossPredictorNodeModel.getEmbossPrograms(new EmbossProgramSelector() {
-
-				@Override
-				public boolean accept(ACDApplication appl) {
-					return (appl.hasSection("input") && 
-		        			appl.getSection("input").hasUnalignedSequenceInput() && 
-		        			appl.hasGFFoutput());
-				}
-        		
-        	});
+        refreshPredictorsIfNeeded();
         List<String> progs = new ArrayList<String>();
         for (ACDApplication prog : predictors) {
         	progs.add(prog.getOneLineSummary());
@@ -78,5 +73,25 @@ public class EmbossPredictorNodeDialog extends StandardEmbossDialog {
        
         addAdvancedTab();
     }
+
+	private void refreshPredictorsIfNeeded() {
+		 if (predictors.size() == 0) {
+	        	try {
+		        	predictors.addAll(EmbossPredictorNodeModel.getEmbossPrograms(new EmbossProgramSelector() {
+		
+						@Override
+						public boolean accept(ACDApplication appl) {
+							return (appl.hasSection("input") && 
+				        			appl.getSection("input").hasUnalignedSequenceInput() && 
+				        			appl.hasGFFoutput());
+						}
+		        		
+		        	}));
+	        	} catch (IOException ioe) {
+	        		ioe.printStackTrace();
+	        		predictors.clear();
+	        	}
+		 }
+	}
 }
 

@@ -18,6 +18,12 @@ import au.edu.unimelb.plantcell.core.Preferences;
 
 
 public class ACDApplication {
+	/**
+	 * subfolders within the emboss root to try to locate the acd folder...
+	 */
+	public final static String[] DEFAULT_EMBOSS_ACD_PATHS = new String[] { "/share/EMBOSS/acd", "/acd", "/shared/acd" };
+
+	
 	private String m_name;
 	private final HashMap<String,String> m_props = new HashMap<String,String>();
 	private List<ACDSection> m_sections = new ArrayList<ACDSection>();
@@ -102,13 +108,19 @@ public class ACDApplication {
 	public static ACDApplication find(String program) throws IOException, ParseException {
 		if (program.length() < 1)
 			return null;
-		File f = new File(getEmbossDir()+File.separator+"acd", program + ".acd");
-		BufferedReader rdr = new BufferedReader(new InputStreamReader(new FileInputStream(f)));
-		ACDStreamReader acd_rdr = new ACDStreamReader(rdr);
-
-		ACDApplication appl = new ACDApplication(acd_rdr);
-		rdr.close();
-		return appl;
+		for (String s : DEFAULT_EMBOSS_ACD_PATHS) {
+			File root = new File(getEmbossDir(), s);
+			if (!root.exists()) {
+				continue;
+			}
+			File                  f = new File(root, program + ".acd");
+			BufferedReader      rdr = new BufferedReader(new InputStreamReader(new FileInputStream(f)));
+			ACDStreamReader acd_rdr = new ACDStreamReader(rdr);
+			ACDApplication     appl = new ACDApplication(acd_rdr);
+			rdr.close();
+			return appl;
+		}
+		throw new IOException("Unable to locate ACD for program: "+program);
 	}
 
 	public String findInputSequenceParameter() {

@@ -82,10 +82,8 @@ public class EmbossPredictorNodeModel extends NodeModel {
 		super(n_in, n_out);
 	}
     
-    public static List<ACDApplication> getEmbossPrograms(EmbossProgramSelector sel) {
-    	String emboss_dir = ACDApplication.getEmbossDir();
-    	logger.info("Scanning ACD programs from: "+emboss_dir);
-     	File[] acd_files = new File(emboss_dir+"/acd").listFiles();
+    public static List<ACDApplication> getEmbossPrograms(EmbossProgramSelector sel) throws IOException {
+     	File[] acd_files = new ACDManager(logger).getACDFiles();
     	int failed = 0;
     	int ok = 0;
     	List<ACDApplication> progs = new ArrayList<ACDApplication>();
