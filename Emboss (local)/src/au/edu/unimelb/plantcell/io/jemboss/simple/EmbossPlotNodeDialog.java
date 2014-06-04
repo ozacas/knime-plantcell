@@ -1,5 +1,6 @@
 package au.edu.unimelb.plantcell.io.jemboss.simple;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +26,10 @@ import au.edu.unimelb.plantcell.core.cells.SequenceValue;
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
 public class EmbossPlotNodeDialog extends StandardEmbossDialog {
-	private static List<ACDApplication> plotters = null;
+	/**
+	 * Plotters are those emboss programs which produce an image as output ie. visualisation program
+	 */
+	private final List<ACDApplication> plotters = new ArrayList<ACDApplication>();
 	
     /**
      * New pane for configuring EmbossPredictor node dialog.
@@ -36,18 +40,7 @@ public class EmbossPlotNodeDialog extends StandardEmbossDialog {
 	protected EmbossPlotNodeDialog() {
         super();
         
-        if (plotters == null)
-        	plotters = EmbossPredictorNodeModel.getEmbossPrograms(new EmbossProgramSelector() {
-
-				@Override
-				public boolean accept(ACDApplication appl) {
-					boolean ret = (appl.hasSection("input") && 
-		        			appl.getSection("input").hasUnalignedSequenceInput() && 
-		        			appl.hasGraphOutput());
-					return ret;
-				}
-        		
-        	});
+        refreshPlottersIfNeeded();
         List<String> progs = new ArrayList<String>();
         for (ACDApplication prog : plotters) {
         	progs.add(prog.getOneLineSummary());
@@ -80,5 +73,26 @@ public class EmbossPlotNodeDialog extends StandardEmbossDialog {
         
         addAdvancedTab();
     }
+
+	private void refreshPlottersIfNeeded() {
+		 if (plotters.size() == 0) {
+		 	try {
+	        	plotters.addAll(EmbossPredictorNodeModel.getEmbossPrograms(new EmbossProgramSelector() {
+
+					@Override
+					public boolean accept(ACDApplication appl) {
+						boolean ret = (appl.hasSection("input") && 
+			        			appl.getSection("input").hasUnalignedSequenceInput() && 
+			        			appl.hasGraphOutput());
+						return ret;
+					}
+	        		
+	        	}));
+		 	} catch (IOException ioe) {
+		 		ioe.printStackTrace();
+		 		plotters.clear();
+		 	}
+		 }
+	}
 }
 
