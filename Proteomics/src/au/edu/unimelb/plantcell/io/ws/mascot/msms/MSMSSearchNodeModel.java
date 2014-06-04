@@ -2,11 +2,9 @@ package au.edu.unimelb.plantcell.io.ws.mascot.msms;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -21,7 +19,6 @@ import java.util.regex.Pattern;
 import javax.activation.DataHandler;
 import javax.mail.util.ByteArrayDataSource;
 import javax.xml.namespace.QName;
-import javax.xml.soap.SOAPException;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.Service;
 import javax.xml.ws.soap.MTOMFeature;
@@ -47,7 +44,6 @@ import au.edu.unimelb.plantcell.io.read.mascot.MascotReaderNodeModel;
 import au.edu.unimelb.plantcell.io.read.spectra.SpectraValue;
 import au.edu.unimelb.plantcell.io.write.spectra.EmptyPeakListHandler;
 import au.edu.unimelb.plantcell.io.write.spectra.SpectraWriterNodeModel;
-import au.edu.unimelb.plantcell.servers.mascotee.endpoints.DatFileService;
 import au.edu.unimelb.plantcell.servers.mascotee.endpoints.SearchService;
 import au.edu.unimelb.plantcell.servers.mascotee.jaxb.Constraints;
 import au.edu.unimelb.plantcell.servers.mascotee.jaxb.Data;
@@ -75,8 +71,6 @@ public class MSMSSearchNodeModel extends MascotReaderNodeModel {
 			new QName("http://www.plantcell.unimelb.edu.au/bioinformatics/wsdl", "SearchService");
 	public final static QName CONFIG_NAMESPACE = 
 			new QName("http://www.plantcell.unimelb.edu.au/bioinformatics/wsdl", "ConfigService");
-	public final static QName DATFILE_NAMESPACE=
-			new QName("http://www.plantcell.unimelb.edu.au/bioinformatics/wsdl", "DatFileService");
 	
 	public final static String CFGKEY_MASCOTEE_URL = "mascotee-url";
 	public final static String CFGKEY_DATA_SOURCE  = "data-source";
@@ -186,7 +180,7 @@ public class MSMSSearchNodeModel extends MascotReaderNodeModel {
     		String job_id = ss.validateAndSearch(s);
     		job_ids.add(job_id);
     	}
-    	List<String> results_files = waitForAllJobsCompleted(ss, job_ids);
+    	List<String> results_files = new JobCompletionManager(logger).waitForAllJobsCompleted(ss, job_ids);
     	
     	if (results_files.size() != job_ids.size()) {
     		logger.warn("*** Not all jobs completed successfully: downloading results for those which did!");
@@ -196,33 +190,8 @@ public class MSMSSearchNodeModel extends MascotReaderNodeModel {
     	logger.info("Got "+results_files.size()+" mascot .dat files");
     	
     	// 4. load the results into the output table by filename
-    	List<File> downloaded_files = new ArrayList<File>();
-    	DatFileService dat_downloader = makeDatFileService();
-    	for (String dat_file : results_files) {
-    		logger.info("Obtaining date for creation of "+s);
-    		String dated_dat_file = dat_downloader.getDatedDatFilePath(dat_file);
-    		logger.info("Obtained full DAT path: "+dated_dat_file);
-    		if (dated_dat_file == null) {
-    			throw new Exception("Unable to download "+dat_file+" ... continuing anyway.");
-    		}
-    		
-    		DataHandler  dh = dat_downloader.getDatFile(dated_dat_file);
-    		OutputStream os = null;
-    		try {
-    			File output_file = new File(m_out_dat.getStringValue(), dat_file);
-    			if (output_file.exists()) {
-    				throw new Exception("Will not overwrite existing: "+output_file.getAbsolutePath());
-    			}
-    			os = new FileOutputStream(output_file);
-    			dh.writeTo(os);
-    			logger.info("Saved to "+output_file.getAbsolutePath());
-    			downloaded_files.add(output_file);
-    		} finally {
-    			if (os != null) {
-    				os.close();
-    			}
-    		}
-    	}
+    	List<File> downloaded_files = new DatDownloadManager(logger, m_url.getStringValue(), m_out_dat.getStringValue()).downloadDatFiles(results_files);
+    	
 		if (downloaded_files.size() < 1) {
 		  	throw new Exception("No downloaded files available! Nothing to load.");
 		}
@@ -233,88 +202,7 @@ public class MSMSSearchNodeModel extends MascotReaderNodeModel {
 		// now process the downloaded dat files as per the mascot reader node
 		return super.execute(inData, exec);
     }
-    
-    private DatFileService makeDatFileService() throws MalformedURLException {
-    	String url = m_url.getStringValue();
-		if (url.endsWith("/")) {
-			url += "DatFileService?wsdl";
-		}
-		Service      srv = Service.create(new URL(url), DATFILE_NAMESPACE);
-		// MTOM will make an attachment greater than 1MB otherwise inline
-		DatFileService dat = srv.getPort(DatFileService.class, new MTOMFeature(1024 * 1024));
-		BindingProvider bp = (BindingProvider) dat;
-        SOAPBinding binding = (SOAPBinding) bp.getBinding();
-        if (!binding.isMTOMEnabled()) {
-        	logger.warn("MTOM support is unavailable: may run out of java heap space");
-        }
-       
-		return dat;
-	}
-
-	/**
-     * Returns the list of mascot dat files comprising the results for each of the specified jobs to the specified MascotEE server
-     * 
-     * @param ss MascotEE service instance to use
-     * @param job_ids jobs queued which we are to wait for completion
-     * @return only successfully completed jobs are returned
-     * @throws InvalidSettingsException if no dat file is made by mascot for any of the jobs (usually due to bad search parameters). Not the same as no results.
-     * @throws SOAPException 
-     */
-    private List<String> waitForAllJobsCompleted(final SearchService ss, final List<String> job_ids) throws InvalidSettingsException {
-    	assert(job_ids != null && job_ids.size() > 0 && ss != null);
-    	
-		ArrayList<String> dat_file_numbers = new ArrayList<String>();
-		int retries = 0;
-		int max_retries = 5;
-		for (String job_id : job_ids) {
-			while (true) {
-				try {
-					String status = ss.getStatus(job_id);
-					logger.info("Got status "+status+" for job "+job_id);
-					if (status.startsWith("PENDING") || status.startsWith("QUEUED") || status.startsWith("WAITING")) {
-						waitFor(60);
-						continue;
-					}
-					logger.info("Assuming job has completed "+job_id);
-					String dat_file = ss.getResultsDatFile(job_id);
-					if (dat_file == null || !dat_file.endsWith(".dat")) {
-						throw new InvalidSettingsException("bogus mascot .dat file: "+dat_file);
-					}
-					dat_file_numbers.add(dat_file);
-					retries = 0;
-					break;
-				} catch (InvalidSettingsException ise) {
-					// and ISE here means that there were no results from mascot... this is probably bad search parameters
-					// But we only slow down a little bit for this one
-					logger.warn("Did not get any mascot results for "+job_id+", check your search parameters!");
-					throw ise;
-				} catch (Exception e) {
-					e.printStackTrace();
-					waitFor((retries * 100)+100);
-					retries++;
-					if (retries > 5) {
-						break;
-					}
-				}
-			}
-			
-			if (retries > max_retries) {
-				break;
-			}
-		}
-		
-		return dat_file_numbers;
-	}
-
-	private void waitFor(int i) {
-		assert(i > 0);
-		try {
-			Thread.sleep(i * 1000);
-		} catch (InterruptedException ie) {
-			// silence
-		}
-	}
-
+  
 	private List<File> makeInputFiles(final BufferedDataTable inData, final ExecutionContext exec) throws InvalidSettingsException,IOException {
 		assert(inData != null && exec != null);
 		

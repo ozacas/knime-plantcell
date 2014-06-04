@@ -4,8 +4,8 @@ import javax.swing.JFileChooser;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.IntValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -18,11 +18,9 @@ import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumberEdit;
 import org.knime.core.node.defaultnodesettings.DialogComponentPasswordField;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
-import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.core.node.util.ColumnFilter;
 
 import au.edu.unimelb.plantcell.io.read.mascot.MascotReaderNodeModel;
 
@@ -39,19 +37,29 @@ import au.edu.unimelb.plantcell.io.read.mascot.MascotReaderNodeModel;
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
 public class AdvMSMSSearchNodeDialog extends DefaultNodeSettingsPane {
-	private final SettingsModelString m_url = new SettingsModelString(AdvMSMSSearchNodeModel.CFGKEY_MASCOTEE_URL, "");
+	private final SettingsModelString m_url = new SettingsModelString(MSMSSearchNodeModel.CFGKEY_MASCOTEE_URL, MSMSSearchNodeModel.DEFAULT_MASCOTEE_URL);
 	private final SettingsModelDoubleBounded ci = new SettingsModelDoubleBounded(MascotReaderNodeModel.CFGKEY_CONFIDENCE, 
 			MascotReaderNodeModel.DEFAULT_CONFIDENCE, 0.0, 1.0);
-	private final SettingsModelString m_database          = new SettingsModelString(AdvMSMSSearchNodeModel.CFGKEY_DATABASE, "");
-	private final SettingsModelString m_enzyme            = new SettingsModelString(AdvMSMSSearchNodeModel.CFGKEY_ENZYME, "");
-	private final SettingsModelString m_fixed_mods        = new SettingsModelString(AdvMSMSSearchNodeModel.CFGKEY_FIXED_MODS, "");
-	private final SettingsModelString m_variable_mods     = new SettingsModelString(AdvMSMSSearchNodeModel.CFGKEY_VARIABLE_MODS, "");
-	private final SettingsModelString m_mass_type         = new SettingsModelString(AdvMSMSSearchNodeModel.CFGKEY_MASS_TYPE, "");
-	private final SettingsModelString m_instrument        = new SettingsModelString(AdvMSMSSearchNodeModel.CFGKEY_INSTRUMENT, "");
-	private final SettingsModelString m_taxon             = new SettingsModelString(AdvMSMSSearchNodeModel.CFGKEY_TAXONOMY, "");
-	private final SettingsModelString m_top_hits          = new SettingsModelString(AdvMSMSSearchNodeModel.CFGKEY_REPORT_TOP, "");
-	private final SettingsModelString m_peptide_charge    = new SettingsModelString(AdvMSMSSearchNodeModel.CFGKEY_PEPTIDE_CHARGE, "");
-	private final SettingsModelString m_allowed_prot_mass = new SettingsModelString(AdvMSMSSearchNodeModel.CFGKEY_ALLOWED_PROTEIN_MASS, "");
+	private final SettingsModelString m_database          = new SettingsModelString(MSMSSearchNodeModel.CFGKEY_DATABASE, "");
+	private final SettingsModelString m_mgf               = new SettingsModelString(AdvMSMSSearchNodeModel.CFGKEY_MGF_INPUT, "");
+	private final SettingsModelString m_enzyme            = new SettingsModelString(MSMSSearchNodeModel.CFGKEY_ENZYME, "");
+	private final SettingsModelString m_fixed_mods        = new SettingsModelString(MSMSSearchNodeModel.CFGKEY_FIXED_MODS, "");
+	private final SettingsModelString m_variable_mods     = new SettingsModelString(MSMSSearchNodeModel.CFGKEY_VARIABLE_MODS, "");
+	private final SettingsModelString m_mass_type         = new SettingsModelString(MSMSSearchNodeModel.CFGKEY_MASSTYPE, "");
+	private final SettingsModelString m_instrument        = new SettingsModelString(MSMSSearchNodeModel.CFGKEY_INSTRUMENT, "");
+	private final SettingsModelString m_taxon             = new SettingsModelString(MSMSSearchNodeModel.CFGKEY_TAXONOMY, "");
+	private final SettingsModelString m_peptide_charge    = new SettingsModelString(MSMSSearchNodeModel.CFGKEY_PEPTIDE_CHARGE, "");
+	private final SettingsModelString m_allowed_prot_mass = new SettingsModelString(MSMSSearchNodeModel.CFGKEY_ALLOWED_PROTEIN_MASS, "");
+	private final SettingsModelString m_missed_cleavages  = new SettingsModelString(MSMSSearchNodeModel.CFGKEY_MISSED_CLEAVAGES, "");
+	private final SettingsModelString m_username          = new SettingsModelString(MSMSSearchNodeModel.CFGKEY_USERNAME, "");
+	private final SettingsModelString m_email             = new SettingsModelString(MSMSSearchNodeModel.CFGKEY_EMAIL, "");
+	private final SettingsModelString m_job_title         = new SettingsModelString(MSMSSearchNodeModel.CFGKEY_TITLE, "");
+	private final SettingsModelString m_report_overview   = new SettingsModelString(MSMSSearchNodeModel.CFGKEY_REPORT_OVERVIEW, "");
+	private final SettingsModelString m_report_top        = new SettingsModelString(MSMSSearchNodeModel.CFGKEY_REPORT_TOP, "");
+	private final SettingsModelString m_quant_icat        = new SettingsModelString(MSMSSearchNodeModel.CFGKEY_QUANT_ICAT, "");
+	private final SettingsModelString m_precursor         = new SettingsModelString(MSMSSearchNodeModel.CFGKEY_PRECURSOR, "");
+	private final SettingsModelString m_peptide_tolerance = new SettingsModelString(AdvMSMSSearchNodeModel.CFGKEY_PEPTIDE_TOLERANCE, "");
+	private final SettingsModelString m_msms_tolerance    = new SettingsModelString(AdvMSMSSearchNodeModel.CFGKEY_MSMS_TOLERANCE, "");
 	
 	
 	
@@ -65,70 +73,40 @@ public class AdvMSMSSearchNodeDialog extends DefaultNodeSettingsPane {
     	addDialogComponent(new DialogComponentString(new SettingsModelString(MSMSSearchNodeModel.CFGKEY_MASCOTEE_USER, ""), "Username"));
     	addDialogComponent(new DialogComponentPasswordField(new SettingsModelString(MSMSSearchNodeModel.CFGKEY_MASCOTEE_PASSWD, ""), "Password"));
     	
+    	createNewGroup("Column with data files");
+    	addDialogComponent(new DialogComponentColumnNameSelection(m_mgf, "Column with MGF file locations\n(eg. Location column from List Files node)", 0, StringValue.class));
+    	
 		createNewGroup("Store mascot result files into...");
 		addDialogComponent(new DialogComponentFileChooser(
 				new SettingsModelString(MSMSSearchNodeModel.CFGKEY_OUT_DAT, ""), "mascot-results-folder", JFileChooser.OPEN_DIALOG, true));
 		
-		createNewTab("Mascot Settings");
+		createNewTab("Key Settings");
 		addDialogComponent(new DialogComponentColumnNameSelection(m_database,   "Search Database", 0, StringValue.class));
 		addDialogComponent(new DialogComponentColumnNameSelection(m_enzyme,     "Enzyme", 0, StringValue.class));
-		addDialogComponent(new DialogComponentColumnNameSelection(m_fixed_mods, "Fixed Modifications", 0, false, true, new ColumnFilter() {
-
-			@Override
-			public boolean includeColumn(DataColumnSpec colSpec) {
-				return (colSpec.getType().isCollectionType() && 
-						colSpec.getType().getCollectionElementType().isCompatible(StringValue.class));
-			}
-
-			@Override
-			public String allFilteredMsg() {
-				return "Fixed modifications must be a list (eg. groupby list) of String cells";
-			}
-			
-		}));
-		addDialogComponent(new DialogComponentColumnNameSelection(m_variable_mods, "Variable Modifications", 0, false, true, new ColumnFilter() {
-
-			@Override
-			public boolean includeColumn(DataColumnSpec colSpec) {
-				return (colSpec.getType().isCollectionType() && 
-						colSpec.getType().getCollectionElementType().isCompatible(StringValue.class));
-			}
-
-			@Override
-			public String allFilteredMsg() {
-				return "Variable modifications must be a list (eg. groupby list) of String cells";
-			}
-			
-		}));
+		addDialogComponent(new DialogComponentColumnNameSelection(m_fixed_mods, "Fixed Modifications", 0, false, true, StringValue.class));
+		addDialogComponent(new DialogComponentColumnNameSelection(m_variable_mods, "Variable Modifications", 0, false, true, StringValue.class));
 		addDialogComponent(new DialogComponentColumnNameSelection(m_instrument, "Instrument", 0, StringValue.class));
 		addDialogComponent(new DialogComponentColumnNameSelection(m_mass_type, "Mass Type", 0, StringValue.class));
 		addDialogComponent(new DialogComponentColumnNameSelection(m_allowed_prot_mass, "Allowed protein mass", 0, StringValue.class));
 		addDialogComponent(new DialogComponentColumnNameSelection(m_peptide_charge, "Peptide charge", 0, StringValue.class));
 		addDialogComponent(new DialogComponentColumnNameSelection(m_taxon, "Taxonomy", 0, StringValue.class));
+		addDialogComponent(new DialogComponentColumnNameSelection(m_missed_cleavages, "Missed Cleavages", 0, IntValue.class));
 		
-		/*addDialogComponent(dc_report_overview);
-		addDialogComponent(dc_report_top);
-		addDialogComponent(dc_icat_quant);
-		addDialogComponent(dc_precursor);
-		addDialogComponent(dc_username);
-		addDialogComponent(dc_email);
-		addDialogComponent(dc_job_title);*/
-	
-		createNewTab("Tolerance");
-		createNewGroup("Peptide Tolerance");
-		this.setHorizontalPlacement(true);
-		addDialogComponent(new DialogComponentString(new SettingsModelString(MSMSSearchNodeModel.CFGKEY_PEPTIDE_TOL_VALUE, ""), ""));
-		String[] peptide_units = new String[] { "Da", "mmu", "%", "ppm" };
-		addDialogComponent(new DialogComponentStringSelection(new SettingsModelString(MSMSSearchNodeModel.CFGKEY_PEPTIDE_TOL_UNITS, ""), "", peptide_units));
-		this.setHorizontalPlacement(false);
+		createNewGroup("Tolerance");
+		addDialogComponent(new DialogComponentColumnNameSelection(m_peptide_tolerance, "Peptide tolerance", 0, StringValue.class));
+		addDialogComponent(new DialogComponentColumnNameSelection(m_msms_tolerance, "MS/MS tolerance", 0, StringValue.class));
 		
-		createNewGroup("MS/MS Tolerance");
-		this.setHorizontalPlacement(true);
-		addDialogComponent(new DialogComponentString(new SettingsModelString(MSMSSearchNodeModel.CFGKEY_MSMS_TOL_VALUE, ""), ""));
-		String[] msms_units = new String[] { "Da", "mmu" };
-		addDialogComponent(new DialogComponentStringSelection(new SettingsModelString(MSMSSearchNodeModel.CFGKEY_MSMS_TOL_UNITS, ""), "", msms_units));
-		this.setHorizontalPlacement(false);
-	
+		createNewTab("Non-critical settings");
+		addDialogComponent(new DialogComponentColumnNameSelection(m_report_overview, "Report overview?", 0, false, true, IntValue.class));
+		addDialogComponent(new DialogComponentColumnNameSelection(m_report_top, "Report top", 0, false, true, StringValue.class));
+		addDialogComponent(new DialogComponentColumnNameSelection(m_quant_icat, "ICAT quantitation?", 0, false, true, IntValue.class));
+		addDialogComponent(new DialogComponentColumnNameSelection(m_precursor, "Precursor", 0, false, true, StringValue.class));
+		
+		createNewGroup("Identification");
+		addDialogComponent(new DialogComponentColumnNameSelection(m_username, "Username", 0, false, true, StringValue.class));
+		addDialogComponent(new DialogComponentColumnNameSelection(m_email, "Email address", 0, false, true, StringValue.class));
+		addDialogComponent(new DialogComponentColumnNameSelection(m_job_title, "Job title", 0, false, true, StringValue.class));
+		
 		createNewTab("Results Processing");
     	final SettingsModelString result_type = new SettingsModelString(MascotReaderNodeModel.CFGKEY_RESULTTYPE, MascotReaderNodeModel.DEFAULT_RESULTTYPE);
     	DialogComponentButtonGroup bg = new DialogComponentButtonGroup(result_type, true, "Report which peptide hits per query?", 
