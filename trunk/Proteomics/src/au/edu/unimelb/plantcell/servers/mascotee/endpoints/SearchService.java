@@ -17,6 +17,11 @@ import au.edu.unimelb.plantcell.servers.mascotee.jaxb.Search;
 public interface SearchService {
 
 	/**
+	 * Validates the search parameters, but does not perform the search. Will throw if something is wrong.
+	 */
+	public void validateParameters(final Search mascotee_xml) throws SOAPException;
+	
+	/**
 	 * Like simpleSearch() but this mandates that a single file is part of the search
 	 * @param mascotee_search  mascot search parameters (only one MS/MS, PMF or SeqQuery is supported)
 	 * @return
