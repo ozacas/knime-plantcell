@@ -107,7 +107,18 @@ public class AdvMSMSSearchNodeModel extends MascotReaderNodeModel {
     	if (mgf_idx < 0) {
     		throw new InvalidSettingsException("Unknown MGF input data column: "+m_mgf.getStringValue()+" - reconfigure?");
     	}
-    	// process each row in turn, creating the search query and running the search to completion
+    	// 1. For the user: we validate all search queries before starting to submit them. In this way they can be sure
+    	// their parameters are correct before they go home for the night/weekend
+    	logger.info("*** Validating each search before Mascot run.");
+    	for (DataRow r : inData[0]) {
+    		Search s = makeSearchQuery(r, inData[0].getSpec());
+    		logger.info("Validating search settings for row: "+r.getKey().getString());
+    		exec.checkCanceled();
+    		ss.validateParameters(s);
+    	}
+    	logger.info("*** Validation completed successfully.");
+    	
+    	// 2. process each row in turn, creating the search query and running the search to completion
     	List<String> result_files = new ArrayList<String>();
     	int done = 0;
     	int total_rows = inData[0].getRowCount();
