@@ -30,7 +30,7 @@ public class ApplyHeatNodeFactory
      */
     @Override
     public int getNrNodeViews() {
-        return 0;
+        return 1;
     }
 
     /**

@@ -73,7 +73,7 @@ public class PhylogeneticTreeView extends AbstractNodeView<NodeModel> {
         }
        
         cl.addArgument(m_tree_to_display.getAbsolutePath());
-        new ExecutorUtils().run(cl);
+        new ExecutorUtils().runNoWait(cl);
 	}
 
 	@Override

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="./default.png" type="Sink">
-    <name>Tree Pruner</name>
+    <name>Tree Pruner (not working)</name>
     
     <shortDescription>
         Removes nodes from a tree according to the chosen criteria

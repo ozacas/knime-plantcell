@@ -18,13 +18,38 @@ import org.knime.core.node.NodeLogger;
  *
  */
 public abstract class AbstractHeatModel {
-	@SuppressWarnings("unused")
 	private NodeLogger logger;
+	private final ColourManager cm;
+	private ModerationSelector ms;
+	private HeatModerator     hm;
 
-	public AbstractHeatModel(final NodeLogger l) {
-		logger = l;
+	public AbstractHeatModel(final NodeLogger l, final ColourManager cm) {
+		this.logger = l;
+		this.cm     = cm;
+		this.ms     = null;
+		this.hm     = null;
+	}
+	
+	public HeatModerator getHeatModerator() {
+		return hm;
+	}
+	
+	public ModerationSelector getModerationSelector() {
+		return ms;
 	}
 
+	public ColourManager getColourManager() {
+		return cm;
+	}
+	
+	public void setHeatModerator(HeatModerator hm) {
+		this.hm = hm;
+	}
+	
+	public void setModerationSelector(ModerationSelector ms) {
+		this.ms = ms;
+	}
+	
 	protected String double_list_summary(List<Double> kid_heat) {
 		StringBuilder sb = new StringBuilder();
 		sb.append('[');
@@ -69,25 +94,6 @@ public abstract class AbstractHeatModel {
 		}
 	}
 	
-	protected Double average(final List<Double> kid_heat) {
-		if (kid_heat == null || kid_heat.size() < 1)
-			return 0.0d;
-		double sum = 0.0d;
-		for (Double d : kid_heat) {
-			sum += d;
-		}
-		return sum / kid_heat.size();
-	}
-	
-	protected Double maximum(final List<Double> vec) {
-		Double max = -Double.NEGATIVE_INFINITY;
-		for (Double d : vec) {
-			if (d > max)
-				max =d;
-		}
-		return max;
-	}
-	
 	public String asTaxaName(final DataCell c) {
 		if (c == null)
 			return "";
@@ -101,15 +107,7 @@ public abstract class AbstractHeatModel {
 			return Double.valueOf(((IntValue)c).getIntValue());
 		return Double.NaN;
 	}
-	
-	protected void propagateToRoot(PhylogenyNode n,
-			PropagationFunction propagationFunction) {
-		propagationFunction.propagate(n, this);
-		if (!n.isRoot()) {
-			propagateToRoot(n.getParent(), propagationFunction);
-		}
-	}
-	
+
 	/**
 	 * Called before the start of each Phylogeny to indicate to the model that analysis of a new tree is starting.
 	 * Typically models will respond by initialising their state.
@@ -125,28 +123,10 @@ public abstract class AbstractHeatModel {
 	 * 
 	 * @param n never null
 	 */
-	public abstract void apply(final PhylogenyNode n);
-	
-	/**
-	 * Return the amount of heat associated with the specified node (or perhaps more accurately the branch which connects
-	 * it to the rest of the tree). Tip nodes as well as internal nodes of the tree are called by the default implementation.
-	 * 
-	 * @param n 
-	 * @return
-	 */
-	public abstract Double getHeat(final PhylogenyNode n);
-	
-	public List<Double> getHeat(List<PhylogenyNode> l) {
-		ArrayList<Double> ret = new ArrayList<Double>();
-		for (PhylogenyNode n : l) {
-			Double d = getHeat(n);
-			if (d != null && !d.isNaN()) {
-				ret.add(d);
-			}
-		}
-		return ret;
+	public void apply(final PhylogenyNode n) throws Exception {
+		getColourManager().decorate(n, getModerationSelector(), getHeatModerator());
 	}
-	
+
 	/**
 	 * Called after traversal of the tree (ie. <code>apply()</code>) is complete, this method may
 	 * finalise the heat values as computed during apply. Or nothing.

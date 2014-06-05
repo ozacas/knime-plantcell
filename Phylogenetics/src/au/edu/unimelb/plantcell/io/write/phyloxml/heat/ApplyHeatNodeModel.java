@@ -1,7 +1,9 @@
 package au.edu.unimelb.plantcell.io.write.phyloxml.heat;
 
+import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import org.forester.io.parsers.PhylogenyParser;
 import org.forester.io.parsers.util.ParserUtils;
@@ -48,16 +50,21 @@ public class ApplyHeatNodeModel extends NodeModel implements FileTreeViewInterfa
 	static public final String CFGKEY_OUT_TREE= "output-tree";
 	static public final String CFGKEY_A       = "OTU-A";	// external leaf node named A
 	static public final String CFGKEY_HEAT    = "heat-value";		// colour is determined by domain of chosen column
-	static public final String CFGKEY_HEAT_BY = "heat-propagation-strategy";
-	static public final String CFGKEY_BRANCH_WIDTH_BY = "branch-width-strategy";
+	static public final String CFGKEY_PROPAGATION_FN = "heat-propagation-strategy";
+	static public final String CFGKEY_WIDTH_FN = "branch-width-strategy";
 	static public final String CFGKEY_OVERWRITE = "overwrite-output-file?";
 	static public final String CFGKEY_METHOD    = "calc-colour-method";
 	
-	static public final String[] DEFAULT_METHODS = new String[] { "Scale to column maximum (blue-green)", "By row colour" };
+	static public final String[] DEFAULT_METHODS = new String[] { "Scale to column maximum (blue-red)", "By row colour" };
 	
-	static public final String[] HEAT_STRATEGY = {  "average of descendant external nodes", 
-													"maximum of descendent external nodes", "average of directly connected nodes only",
-													"maximum of directly connected nodes only" };
+	static public final String[] HEAT_STRATEGY = {  "average of child OTU's", 
+													"maximum of child OTU's", 
+													"minimum of child OTU's",
+													"median of child OTU's",
+													"average of directly connected nodes only",
+													"maximum of directly connected nodes only", 
+													"median of directly connected nodes only", 
+													"minimum of directly connected nodes only" };
 	static public final String[] WIDTH_STRATEGY = { "None (leave as is)", "Number of taxa (with heat) supporting branch" };
 													
 	/**
@@ -67,9 +74,10 @@ public class ApplyHeatNodeModel extends NodeModel implements FileTreeViewInterfa
 	private final SettingsModelString m_out= new SettingsModelString(CFGKEY_OUT_TREE, "");
 	private final SettingsModelString m_a  = new SettingsModelString(CFGKEY_A, "");
 	private final SettingsModelString m_heat = new SettingsModelString(CFGKEY_HEAT, "");
-	private final SettingsModelString m_heat_by = new SettingsModelString(CFGKEY_HEAT_BY, HEAT_STRATEGY[0]);
-	private final SettingsModelString m_width_by = new SettingsModelString(CFGKEY_BRANCH_WIDTH_BY, WIDTH_STRATEGY[0]);
+	private final SettingsModelString m_heat_by = new SettingsModelString(CFGKEY_PROPAGATION_FN, HEAT_STRATEGY[0]);
+	private final SettingsModelString m_width_by = new SettingsModelString(CFGKEY_WIDTH_FN, WIDTH_STRATEGY[0]);
 	private final SettingsModelBoolean m_overwrite = new SettingsModelBoolean(CFGKEY_OVERWRITE, false);
+	private final SettingsModelString m_colour_method = new SettingsModelString(CFGKEY_METHOD, DEFAULT_METHODS[0]);
 	
 	
 	public ApplyHeatNodeModel() {
@@ -87,39 +95,41 @@ public class ApplyHeatNodeModel extends NodeModel implements FileTreeViewInterfa
     	File outfile = new File(m_out.getStringValue());
     	if (outfile.exists() && !m_overwrite.getBooleanValue())
     		throw new InvalidSettingsException("Will not overwrite existing: "+outfile.getAbsolutePath());
-    	logger.info("Saving heatmapped tree to "+m_out.getStringValue());
     	PhylogenyParser parser = ParserUtils.createParserDependingOnFileType(infile, true);
     	Phylogeny[]       phys = PhylogenyMethods.readPhylogenies(parser, infile);
     	
-    	// NB: we apply the heat to all trees in the input file    	
-    	AbstractHeatModel  hm = makeHeatModel(m_heat_by.getStringValue());
-    	AbstractWidthModel wm = makeWidthModel(m_width_by.getStringValue());
-    	
-    	for (Phylogeny p : phys) {
-    		PhylogenyNodeIterator it = p.iteratorExternalForward();
-    		hm.start(p, inData[0], a_idx, heat_idx);
-    		wm.start(p);
-    		while (it.hasNext()) {
-    			PhylogenyNode n = it.next();
-    			// apply the width and heat models as chosen by the user for each node (internal or tip/external)
-    			hm.apply(n);
-    			wm.apply(n);
-    		}
-    		hm.finish(p);
-        	wm.finish(p);
+    	try {
+	    	// NB: we apply the heat to all trees in the input file    	
+	    	AbstractHeatModel  hm = makeHeatModel(m_heat_by.getStringValue());
+	    	AbstractWidthModel wm = makeWidthModel(m_width_by.getStringValue());
+	    	
+	    	for (Phylogeny p : phys) {
+	    		PhylogenyNodeIterator it = p.iteratorExternalForward();
+	    		hm.start(p, inData[0], a_idx, heat_idx);
+	    		wm.start(p);
+	    		while (it.hasNext()) {
+	    			PhylogenyNode n = it.next();
+	    			// apply the width and heat models as chosen by the user for each node (internal or tip/external)
+	    			hm.apply(n);
+	    			wm.apply(n);
+	    		}
+	    		hm.finish(p);
+	        	wm.finish(p);
+	    	}
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    		throw e;
     	}
     
-    	
-    	// TODO: copy input rows into output table
-    	MyDataContainer c1 = new MyDataContainer(exec.createDataContainer(inData[0].getSpec()), "Row");
+       	MyDataContainer c1 = new MyDataContainer(exec.createDataContainer(inData[0].getSpec()), "Row");
     	for (DataRow r : inData[0]) {
     		c1.addRow(r);
     	}
     	
     	// and save it out...
+    	logger.info("Saving heatmapped tree to "+m_out.getStringValue());
     	PhylogenyWriter writer = new PhylogenyWriter();
     	writer.toPhyloXML(phys, 0, outfile, ForesterUtil.LINE_SEPARATOR);
-    	
 		return new BufferedDataTable[] { c1.close() };
 	}
 	
@@ -129,8 +139,34 @@ public class ApplyHeatNodeModel extends NodeModel implements FileTreeViewInterfa
 
 	private AbstractHeatModel makeHeatModel(final String wantedModel) throws InvalidSettingsException {
 		assert(wantedModel != null);
-		if (wantedModel.equalsIgnoreCase("average of descendant external nodes")) {
-			AbstractHeatModel hm = new DefaultHeatModel(logger);
+		boolean is_numeric = m_colour_method.getStringValue().equals(ApplyHeatNodeModel.DEFAULT_METHODS[0]);
+		ColourManager cm =  is_numeric ? new ColourGradient(logger, Color.RED, Color.BLUE) : new RowColourManager();
+		AbstractHeatModel hm = new DefaultHeatModel(logger, cm);
+		String wm = wantedModel.toLowerCase();
+		HeatModerator moderator = makeHeatModerator(wm);
+		hm.setHeatModerator(moderator);
+		
+		if (wm.endsWith("otu's")) {
+			ModerationSelector ms = new ModerationSelector() {
+
+				@Override
+				public List<PhylogenyNode> select(PhylogenyNode n) {
+					return (n.isExternal()) ? null : n.getAllExternalDescendants();
+				}
+				
+			};
+			hm.setModerationSelector(ms);
+			return hm;
+		} else if (wm.endsWith("connected nodes only")) {
+			ModerationSelector ms = new ModerationSelector() {
+
+				@Override
+				public List<PhylogenyNode> select(PhylogenyNode n) {
+					return (n.isExternal()) ? null : n.getDescendants();
+				}
+				
+			};
+			hm.setModerationSelector(ms);
 			return hm;
 		}
 		
@@ -138,7 +174,49 @@ public class ApplyHeatNodeModel extends NodeModel implements FileTreeViewInterfa
 		throw new InvalidSettingsException("Unknown/unsupported heat model: "+wantedModel);
 	}
 
-    /**
+    private HeatModerator makeHeatModerator(String wanted_model_lowercased) throws InvalidSettingsException {
+		if (wanted_model_lowercased.startsWith("average")) {
+			return new HeatModerator() {
+
+				@Override
+				public double moderate(List<Double> l) {
+					return average(l);
+				}
+				
+			};
+		} else if (wanted_model_lowercased.startsWith("maximum")) {
+			return new HeatModerator() {
+
+				@Override
+				public double moderate(List<Double> l) {
+					return maximum(l);
+				}
+				
+			};
+		} else if (wanted_model_lowercased.startsWith("minimum")) {
+			return new HeatModerator() {
+
+				@Override
+				public double moderate(List<Double> l) {
+					return minimum(l);
+				}
+				
+			};
+		} else if (wanted_model_lowercased.startsWith("median")) {
+			return new HeatModerator() {
+
+				@Override
+				public double moderate(List<Double> l) {
+					return median(l);
+				}
+				
+			};
+		}
+		
+		throw new InvalidSettingsException("Unknown heat moderation model: "+wanted_model_lowercased);
+	}
+
+	/**
      * {@inheritDoc}
      */
     @Override
@@ -159,6 +237,7 @@ public class ApplyHeatNodeModel extends NodeModel implements FileTreeViewInterfa
 		m_heat_by.saveSettingsTo(settings);
 		m_width_by.saveSettingsTo(settings);
 		m_overwrite.saveSettingsTo(settings);
+		m_colour_method.saveSettingsTo(settings);
 	}
 	
 	@Override
@@ -171,6 +250,7 @@ public class ApplyHeatNodeModel extends NodeModel implements FileTreeViewInterfa
 		m_heat_by.loadSettingsFrom(settings);
 		m_width_by.loadSettingsFrom(settings);
 		m_overwrite.loadSettingsFrom(settings);
+		m_colour_method.loadSettingsFrom(settings);
 	}
 
 	@Override
@@ -183,6 +263,7 @@ public class ApplyHeatNodeModel extends NodeModel implements FileTreeViewInterfa
 		m_heat_by.validateSettings(settings);
 		m_width_by.validateSettings(settings);
 		m_overwrite.validateSettings(settings);
+		m_colour_method.validateSettings(settings);
 	}
 
 	@Override

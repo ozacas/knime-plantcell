@@ -24,6 +24,6 @@
     </ports>
  
  	<views>
- 		<view index="0" name="Archaeopteryx">Load the tree view into Archaeopteryx. See www.phyloxml.org for details.</view>
+ 		<view index="0" name="Archaeopteryx">Display the "hot" tree using Archaeopteryx</view>
  	</views>
 </knimeNode>
