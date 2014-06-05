@@ -23,6 +23,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 public class ApplyHeatNodeDialog extends DefaultNodeSettingsPane {
 	private final SettingsModelString numericHeatColumn = new SettingsModelString(ApplyHeatNodeModel.CFGKEY_HEAT, "");
 	private final SettingsModelString methodColumn = new SettingsModelString(ApplyHeatNodeModel.CFGKEY_METHOD, ApplyHeatNodeModel.DEFAULT_METHODS[0]);
+	private final SettingsModelString propagation_fn = new SettingsModelString(ApplyHeatNodeModel.CFGKEY_PROPAGATION_FN, ApplyHeatNodeModel.HEAT_STRATEGY[0]);
 	
 	@SuppressWarnings("unchecked")
 	protected ApplyHeatNodeDialog() {
@@ -50,8 +51,7 @@ public class ApplyHeatNodeDialog extends DefaultNodeSettingsPane {
         		new SettingsModelBoolean(ApplyHeatNodeModel.CFGKEY_OVERWRITE, false), "Overwrite output file?"
         		));
         		
-        createNewTab("Data");
-        createNewGroup("Heat data comes from... ");
+        createNewTab("Heat Settings");
         String[] meth = ApplyHeatNodeModel.DEFAULT_METHODS;
         
         addDialogComponent(new DialogComponentButtonGroup(
@@ -68,20 +68,20 @@ public class ApplyHeatNodeDialog extends DefaultNodeSettingsPane {
         				"Heat (scaled to maximum of column)", 0, true, false, DoubleValue.class)
         		);
         
-        createNewTab("Heat Settings");
-        createNewGroup("Heat Calculation");
+        createNewGroup("Heat Propagation");
         addDialogComponent(
-        		new DialogComponentStringSelection(new SettingsModelString(ApplyHeatNodeModel.CFGKEY_HEAT_BY, ApplyHeatNodeModel.HEAT_STRATEGY[0]),
-        				"", ApplyHeatNodeModel.HEAT_STRATEGY));
+        		new DialogComponentStringSelection(propagation_fn, "", ApplyHeatNodeModel.HEAT_STRATEGY));
         
-        createNewGroup("Branch width Calculation");
+        createNewGroup("Branch width");
         addDialogComponent(
-        		new DialogComponentStringSelection(new SettingsModelString(ApplyHeatNodeModel.CFGKEY_BRANCH_WIDTH_BY, ApplyHeatNodeModel.WIDTH_STRATEGY[0]),
-        				"", ApplyHeatNodeModel.WIDTH_STRATEGY));
+        		new DialogComponentStringSelection(new SettingsModelString(ApplyHeatNodeModel.CFGKEY_WIDTH_FN, 
+        				ApplyHeatNodeModel.WIDTH_STRATEGY[0]), "", ApplyHeatNodeModel.WIDTH_STRATEGY));
     }
 
 	public void resetEnabledWidgets() {
-		numericHeatColumn.setEnabled(methodColumn.getStringValue().equals(ApplyHeatNodeModel.DEFAULT_METHODS[0]));
+		boolean yes_or_no = methodColumn.getStringValue().equals(ApplyHeatNodeModel.DEFAULT_METHODS[0]);
+		numericHeatColumn.setEnabled(yes_or_no);
+		propagation_fn.setEnabled(yes_or_no);
 	}
 	
 	@Override
