@@ -32,9 +32,9 @@
    
    	  <node category-path="/Bioinformatics/Read" factory-class="au.edu.unimelb.plantcell.io.read.mascot.MascotReaderNodeFactory" id="au.edu.unimelb.plantcell.io.read.mascot.MascotReaderNodeFactory"/>
    
-   	  <node category-path="/Bioinformatics/Views" factory-class="au.edu.unimelb.plantcell.views.ms.MassSpecSurfaceNodeFactory" id="au.edu.unimelb.plantcell.views.ms.MassSpecSurfaceNodeFactory"/>
+   	  <node category-path="/Bioinformatics/Views" factory-class="au.edu.unimelb.plantcell.proteomics.views.MassSpecSurfaceNodeFactory" id="au.edu.unimelb.plantcell.proteomics.views.MassSpecSurfaceNodeFactory"/>
    
-      <node category-path="/Bioinformatics/Views" factory-class="au.edu.unimelb.plantcell.views.surface.multi.MultiSurfaceNodeFactory" id="au.edu.unimelb.plantcell.views.surface.multi.MultiSurfaceNodeFactory"/>
+      <node category-path="/Bioinformatics/Views" factory-class="au.edu.unimelb.plantcell.proteomics.views.multi.MultiSurfaceNodeFactory" id="au.edu.unimelb.plantcell.proteomics.views.multi.MultiSurfaceNodeFactory"/>
    
 	  <node category-path="/Bioinformatics/Mass Spectrometry/Proteomics/Mascot" factory-class="au.edu.unimelb.plantcell.io.ws.mascot.datfile.DatFileDownloadNodeFactory" id="au.edu.unimelb.plantcell.io.ws.mascot.datfile.DatFileDownloadNodeFactory"/>
 	  <node category-path="/Bioinformatics/Mass Spectrometry/Proteomics/Mascot" factory-class="au.edu.unimelb.plantcell.io.ws.mascot.msms.MSMSSearchNodeFactory" id="au.edu.unimelb.plantcell.io.ws.mascot.msms.MSMSSearchNodeFactory" />
