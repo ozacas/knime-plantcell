@@ -197,7 +197,14 @@ public class MSMSSearchNodeModel extends MascotReaderNodeModel {
 		}
 		  
 		// now that the files are downloaded we need to initialise the superclass with the chosen files...
+		logger.info("Successfully downloaded "+downloaded_files.size()+" mascot .DAT files");
 		super.setFiles(downloaded_files);
+		
+		// purge temporary job files from MascotEE server
+		logger.info("Removing temporary files from MascotEE server (Mascot results are not removed)");
+		for (String jid : job_ids) {
+			ss.purgeJob(jid);
+		}
 		  
 		// now process the downloaded dat files as per the mascot reader node
 		return super.execute(inData, exec);
