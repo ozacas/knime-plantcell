@@ -122,6 +122,7 @@ public class AdvMSMSSearchNodeModel extends MascotReaderNodeModel {
     	List<String> result_files = new ArrayList<String>();
     	int done = 0;
     	int total_rows = inData[0].getRowCount();
+    	ArrayList<String> job_ids = new ArrayList<String>();
     	for (DataRow r : inData[0]) {
     		logger.info("Creating search for row: "+r.getKey().getString());
     		Search s = makeSearchQuery(r, inData[0].getSpec());
@@ -129,7 +130,6 @@ public class AdvMSMSSearchNodeModel extends MascotReaderNodeModel {
     		exec.checkCanceled();
     		logger.info("Running search for row: "+r.getKey().toString());
     		String jobID = ss.validateAndSearch(s);
-    		ArrayList<String> job_ids = new ArrayList<String>();
     		job_ids.add(jobID);
     		exec.checkCanceled();
     		List<String> result = new JobCompletionManager(logger).waitForAllJobsCompleted(ss, job_ids);
@@ -143,6 +143,11 @@ public class AdvMSMSSearchNodeModel extends MascotReaderNodeModel {
     	
     	logger.info("Successfully downloaded "+dat_files.size()+" mascot .DAT files");
     	super.setFiles(dat_files);
+    	
+    	logger.info("Removing temporary files from MascotEE server (Mascot results are not removed)");
+    	for (String jid : job_ids) {
+    		ss.purgeJob(jid);
+    	}
     	logger.info("Loading mascot .DAT files into node output");
     	
     	return super.execute(inData, exec);
@@ -498,6 +503,7 @@ public class AdvMSMSSearchNodeModel extends MascotReaderNodeModel {
     	m_msms_tolerance.saveSettingsTo(settings);
     	m_out_dat.saveSettingsTo(settings);
     	m_mgf.saveSettingsTo(settings);
+    	m_missed_cleavages.saveSettingsTo(settings);
     }
     
     @Override
@@ -525,6 +531,7 @@ public class AdvMSMSSearchNodeModel extends MascotReaderNodeModel {
     	m_msms_tolerance.validateSettings(settings);
     	m_out_dat.validateSettings(settings);
     	m_mgf.validateSettings(settings);
+    	m_missed_cleavages.validateSettings(settings);
     }
     
     @Override
@@ -552,5 +559,6 @@ public class AdvMSMSSearchNodeModel extends MascotReaderNodeModel {
     	m_msms_tolerance.loadSettingsFrom(settings);
     	m_out_dat.loadSettingsFrom(settings);
     	m_mgf.loadSettingsFrom(settings);
+    	m_missed_cleavages.loadSettingsFrom(settings);
     }
 }
