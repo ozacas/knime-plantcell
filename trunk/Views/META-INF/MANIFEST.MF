@@ -21,7 +21,8 @@ Require-Bundle: org.eclipse.core.runtime,
  org.knime.workbench.ui;bundle-version="2.7.1",
  au.edu.unimelb.plantcell.core
 Bundle-ActivationPolicy: lazy
-Export-Package: javax.media.opengl,
+Export-Package: au.edu.unimelb.plantcell.views.plot3d;x-friends:="au.edu.unimelb.plantcell.proteomics",
+ javax.media.opengl,
  org.jzy3d.bridge,
  org.jzy3d.bridge.awt,
  org.jzy3d.bridge.swing,
