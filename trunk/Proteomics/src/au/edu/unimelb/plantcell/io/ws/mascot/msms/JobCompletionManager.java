@@ -1,6 +1,7 @@
 package au.edu.unimelb.plantcell.io.ws.mascot.msms;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.xml.soap.SOAPException;
@@ -29,10 +30,12 @@ public class JobCompletionManager {
     public List<String> waitForAllJobsCompleted(final SearchService ss, final List<String> job_ids) throws InvalidSettingsException {
     	assert(job_ids != null && job_ids.size() > 0 && ss != null);
     	
-		ArrayList<String> dat_file_numbers = new ArrayList<String>();
 		int retries = 0;
 		int max_retries = 5;
+		HashSet<String> dat_file_numbers = new HashSet<String>();
+		logger.info("Waiting for jobs to complete: "+job_ids.size()+" mascot jobs.");
 		for (String job_id : job_ids) {
+			logger.info("Getting job status for "+job_id);
 			while (true) {
 				try {
 					String status = ss.getStatus(job_id);
@@ -69,7 +72,9 @@ public class JobCompletionManager {
 			}
 		}
 		
-		return dat_file_numbers;
+		ArrayList<String> ret = new ArrayList<String>();
+		ret.addAll(dat_file_numbers);
+		return ret;
 	}
 
 	private void waitFor(int i) {

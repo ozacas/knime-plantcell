@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.activation.DataHandler;
@@ -38,7 +39,7 @@ public class DatDownloadManager {
 		this.output_folder = output_folder;
 	}
 	
-	public List<File> downloadDatFiles(final List<String> results_files) throws Exception {
+	public List<File> downloadDatFiles(final Collection<String> results_files) throws Exception {
 		DatFileService dat_downloader = makeDatFileService();
 		ArrayList<File> downloaded_files = new ArrayList<File>();
 		for (String dat_file : results_files) {
