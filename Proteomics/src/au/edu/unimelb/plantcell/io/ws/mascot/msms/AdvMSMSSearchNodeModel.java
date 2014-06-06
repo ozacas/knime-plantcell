@@ -4,7 +4,9 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -119,7 +121,7 @@ public class AdvMSMSSearchNodeModel extends MascotReaderNodeModel {
     	logger.info("*** Validation completed successfully.");
     	
     	// 2. process each row in turn, creating the search query and running the search to completion
-    	List<String> result_files = new ArrayList<String>();
+    	Set<String> result_files = new HashSet<String>();
     	int done = 0;
     	int total_rows = inData[0].getRowCount();
     	ArrayList<String> job_ids = new ArrayList<String>();
