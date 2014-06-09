@@ -134,14 +134,14 @@ public class AdvMSMSSearchNodeModel extends MascotReaderNodeModel {
     		String jobID = ss.validateAndSearch(s);
     		job_ids.add(jobID);
     		exec.checkCanceled();
-    		List<String> result = new JobCompletionManager(logger).waitForAllJobsCompleted(ss, job_ids);
+    		List<String> result = new JobCompletionManager(logger, exec).waitForJobCompleted(ss, jobID);
     		result_files.addAll(result);
     		
     		exec.setProgress(((double)done)/total_rows);
     	}
     	
     	logger.info("Got "+result_files.size()+" mascot .DAT files for processing. Now downloading...");
-    	List<File> dat_files = new DatDownloadManager(logger, m_url.getStringValue(), m_out_dat.getStringValue()).downloadDatFiles(result_files);
+    	List<File> dat_files = new DatDownloadManager(logger, m_url.getStringValue(), m_out_dat.getStringValue(), exec).downloadDatFiles(result_files);
     	
     	logger.info("Successfully downloaded "+dat_files.size()+" mascot .DAT files");
     	super.setFiles(dat_files);
