@@ -16,6 +16,7 @@ import javax.xml.ws.Service;
 import javax.xml.ws.soap.MTOMFeature;
 import javax.xml.ws.soap.SOAPBinding;
 
+import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.NodeLogger;
 
 import au.edu.unimelb.plantcell.servers.mascotee.endpoints.DatFileService;
@@ -32,17 +33,20 @@ public class DatDownloadManager {
 	private NodeLogger logger;
 	private String url;
 	private String output_folder;
+	private final ExecutionContext exec;
 	
-	public DatDownloadManager(final NodeLogger logger, final String url, final String output_folder) {
+	public DatDownloadManager(final NodeLogger logger, final String url, final String output_folder, final ExecutionContext exec) {
 		this.logger = logger;
 		this.url = url;
 		this.output_folder = output_folder;
+		this.exec = exec;
 	}
 	
 	public List<File> downloadDatFiles(final Collection<String> results_files) throws Exception {
 		DatFileService dat_downloader = makeDatFileService();
 		ArrayList<File> downloaded_files = new ArrayList<File>();
 		for (String dat_file : results_files) {
+			exec.checkCanceled();
 			logger.info("Obtaining date for creation of "+dat_file);
 			String dated_dat_file = dat_downloader.getDatedDatFilePath(dat_file);
 			logger.info("Obtained full DAT path: "+dated_dat_file);

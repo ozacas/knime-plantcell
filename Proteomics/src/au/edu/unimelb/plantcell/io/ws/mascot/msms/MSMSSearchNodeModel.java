@@ -180,7 +180,8 @@ public class MSMSSearchNodeModel extends MascotReaderNodeModel {
     		String job_id = ss.validateAndSearch(s);
     		job_ids.add(job_id);
     	}
-    	List<String> results_files = new JobCompletionManager(logger).waitForAllJobsCompleted(ss, job_ids);
+    	logger.info("Waiting for "+job_ids.size()+" jobs to complete.");
+    	List<String> results_files = new JobCompletionManager(logger, exec).waitForAllJobsCompleted(ss, job_ids);
     	
     	if (results_files.size() != job_ids.size()) {
     		logger.warn("*** Not all jobs completed successfully: downloading results for those which did!");
@@ -190,7 +191,7 @@ public class MSMSSearchNodeModel extends MascotReaderNodeModel {
     	logger.info("Got "+results_files.size()+" mascot .dat files");
     	
     	// 4. load the results into the output table by filename
-    	List<File> downloaded_files = new DatDownloadManager(logger, m_url.getStringValue(), m_out_dat.getStringValue()).downloadDatFiles(results_files);
+    	List<File> downloaded_files = new DatDownloadManager(logger, m_url.getStringValue(), m_out_dat.getStringValue(), exec).downloadDatFiles(results_files);
     	
 		if (downloaded_files.size() < 1) {
 		  	throw new Exception("No downloaded files available! Nothing to load.");
