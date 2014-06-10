@@ -14,6 +14,13 @@ import org.knime.core.node.NodeLogger;
 
 import au.edu.unimelb.plantcell.servers.mascotee.endpoints.SearchService;
 
+/**
+ * Responsible for waiting until the specified Mascot searches are complete. May take considerable time
+ * and must be carefully written to handle temporary network failures.
+ * 
+ * @author acassin
+ *
+ */
 public class JobCompletionManager {
 	private NodeLogger logger;
 	private final ExecutionContext exec;
@@ -52,7 +59,9 @@ public class JobCompletionManager {
 						waitFor(60);
 						continue;
 					}
-					logger.info("Assuming job has completed "+job_id);
+					if (status.equals("UNKNOWN")) {
+						throw new InvalidSettingsException("Got unknown job status from MascotEE for job "+job_id+"... aborting!");
+					}
 					String dat_file = ss.getResultsDatFile(job_id);
 					if (dat_file == null || !dat_file.endsWith(".dat")) {
 						throw new InvalidSettingsException("bogus mascot .dat file: "+dat_file);
