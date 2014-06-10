@@ -87,4 +87,25 @@ public interface ConfigService {
 	 * returns a list of available peptide charges. Currently hardcoded. Guaranteed non-empty and non-null if no exception is thrown.
 	 */
 	public String[] availablePeptideChargeStates() throws SOAPException;
+
+	/**
+	 * Returns a detailed specification (text-based) of the chosen enzyme incl. specificity. 
+	 * The specified enzyme must be in this mascot configuration or an exception will be thrown.
+	 */
+	public String getDetailedEnzymeRecord(final String enzyme) throws SOAPException;
+	
+	/**
+	 * Returns a detailed specification (text-based) of the chosen database record. An exception will be thrown if the
+	 * specified database is not present in the specified mascot configuration.
+	 */
+	public String getDetailedDatabaseRecord(final String db) throws SOAPException;
+
+	/**
+	 * Returns a detailed specification (text-based) of the chosen chemical modification in the current mascot configuration. An exception
+	 * will be thrown if it does not exist.
+	 * 
+	 * @param mod
+	 * @return
+	 */
+	public String getDetailedModificationRecord(final String mod) throws SOAPException;
 }

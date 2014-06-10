@@ -22,7 +22,7 @@ import org.knime.core.node.NodeLogger;
 import au.edu.unimelb.plantcell.servers.mascotee.endpoints.DatFileService;
 
 /**
- * Responsible for fetching DAT files from the MascotEE server
+ * Responsible for fetching DAT files from the MascotEE server. 
  * @author acassin
  *
  */
@@ -36,10 +36,10 @@ public class DatDownloadManager {
 	private final ExecutionContext exec;
 	
 	public DatDownloadManager(final NodeLogger logger, final String url, final String output_folder, final ExecutionContext exec) {
-		this.logger = logger;
-		this.url = url;
+		this.logger        = logger;
+		this.url           = url;
 		this.output_folder = output_folder;
-		this.exec = exec;
+		this.exec          = exec;
 	}
 	
 	public List<File> downloadDatFiles(final Collection<String> results_files) throws Exception {

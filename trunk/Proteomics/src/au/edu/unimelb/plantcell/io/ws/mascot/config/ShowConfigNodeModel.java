@@ -6,6 +6,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import javax.xml.namespace.QName;
+import javax.xml.soap.SOAPException;
 import javax.xml.ws.Service;
 
 import org.knime.core.data.DataCell;
@@ -92,12 +93,74 @@ public class ShowConfigNodeModel extends NodeModel {
         	c.addRow(cells);
         }
         
+        // 2. dump available instruments
+        for (String ins : configService.availableInstruments()) {
+        	DataCell[] cells = getCellsAsMissing(c);
+        	cells[0] = new StringCell(u);
+        	cells[1] = new StringCell(ins);
+        	cells[2] = new StringCell("instrument");
+        	cells[3] = getInstrumentRecord(configService, ins);
+        	c.addRow(cells);
+        }
+        
+        // 3. dump available enzymes
+        for (String cle : configService.availableEnzymes()) {
+        	DataCell[] cells = getCellsAsMissing(c);
+        	cells[0] = new StringCell(u);
+        	cells[1] = new StringCell(cle);
+        	cells[2] = new StringCell("enzyme");
+        	cells[3] = getEnzymeRecord(configService, cle);
+        	c.addRow(cells);
+        }
+        
+        // 4. modifications
+        for (String mod : configService.availableModifications()) {
+        	DataCell[] cells = getCellsAsMissing(c);
+        	cells[0] = new StringCell(u);
+        	cells[1] = new StringCell(mod);
+        	cells[2] = new StringCell("modification");
+        	cells[3] = getModificationRecord(configService, mod);
+        	c.addRow(cells);
+        }
+        
+        // 5. mascot configuration parameters
+        for (String s : configService.availableConfigParameters()) {
+        	DataCell[] cells = getCellsAsMissing(c);
+        	cells[0] = new StringCell(u);
+        	cells[1] = new StringCell(s);
+        	cells[2] = new StringCell("Parameter");
+        	cells[3] = new StringCell(configService.getParamValue(s));
+        	c.addRow(cells);
+        }
+        
         return new BufferedDataTable[] { c.close() };
     }
 
-    private DataCell getDatabaseRecord(final ConfigService configService, final String db) {
-    	// TODO
-		return DataType.getMissingCell();
+	private DataCell getModificationRecord(final ConfigService configService, final String mod) throws SOAPException {
+		return new StringCell(configService.getDetailedModificationRecord(mod));
+	}
+
+	@Override
+    public DataTableSpec[] configure(final DataTableSpec[] inSpecs) {
+    	return new DataTableSpec[] { make_output_spec() };
+    }
+    
+    private DataCell getEnzymeRecord(final ConfigService configService, final String cle) throws SOAPException {
+		return new StringCell(configService.getDetailedEnzymeRecord(cle));
+	}
+
+	private DataCell getInstrumentRecord(final ConfigService configService, final String ins) throws SOAPException {
+		String[] fragRules = configService.getFragmentationRulesForInstrument(ins);
+		StringBuilder sb = new StringBuilder();
+    	for (String s : fragRules) {
+    		sb.append(s);
+    		sb.append('\n');
+    	}
+    	return new StringCell(sb.toString());
+	}
+
+	private DataCell getDatabaseRecord(final ConfigService configService, final String db) throws SOAPException {
+		return new StringCell(configService.getDetailedDatabaseRecord(db));
 	}
 
 	private DataCell[] getCellsAsMissing(final MyDataContainer c) {
