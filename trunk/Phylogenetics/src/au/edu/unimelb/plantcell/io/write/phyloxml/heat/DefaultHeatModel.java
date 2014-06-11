@@ -44,5 +44,7 @@ public class DefaultHeatModel extends AbstractHeatModel {
 			}
 		}
 		logger.info("Failed to associate heat with "+failed+" rows, succeeded for "+success);
+		
+		getColourManager().propagate(getModerationSelector(), getHeatModerator());
 	}
 }
