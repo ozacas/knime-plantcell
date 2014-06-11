@@ -29,12 +29,16 @@ public interface ColourManager {
 	 * @param n
 	 * @throws Exception 
 	 */
-	public void decorate(final PhylogenyNode n, final ModerationSelector ms, final HeatModerator hm) throws Exception;
+	public void decorate(final PhylogenyNode n) throws Exception;
 	
 	/**
-	 * Returns true if the colour model supports propagation, false otherwise. If true, the PropagationFunction will not be used.
-	 * @return
+	 * Usually not all nodes have heat specified. This method is called immediately after all known heat is applied to nodes (using addHeat())
+	 * and can be used to propagate heat to other nodes as required. For example, internal nodes may have a colour reflecting the average
+	 * heat of child nodes below it (or at least those with known heat).
+	 * 
+	 * @param ms used to tailor which nodes are included in a heat re-calculation for a given node in the tree
+	 * @param hm used to customise how the heat is recalculated eg. average/maximum/min/...
 	 */
-	public boolean canPropagate();
+	public void propagate(final ModerationSelector ms, final HeatModerator hm);
 	
 }

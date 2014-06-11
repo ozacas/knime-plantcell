@@ -18,13 +18,11 @@ import org.knime.core.node.NodeLogger;
  *
  */
 public abstract class AbstractHeatModel {
-	private NodeLogger logger;
 	private final ColourManager cm;
 	private ModerationSelector ms;
 	private HeatModerator     hm;
 
 	public AbstractHeatModel(final NodeLogger l, final ColourManager cm) {
-		this.logger = l;
 		this.cm     = cm;
 		this.ms     = null;
 		this.hm     = null;
@@ -124,7 +122,7 @@ public abstract class AbstractHeatModel {
 	 * @param n never null
 	 */
 	public void apply(final PhylogenyNode n) throws Exception {
-		getColourManager().decorate(n, getModerationSelector(), getHeatModerator());
+		getColourManager().decorate(n);
 	}
 
 	/**
