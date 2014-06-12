@@ -105,6 +105,15 @@ public abstract class AbstractHeatModel {
 			return Double.valueOf(((IntValue)c).getIntValue());
 		return Double.NaN;
 	}
+	
+	/**
+	 * Does the node have any concept of heat for the specified node (either user-supplied or moderated)? Must not
+	 * be called until after start() has completed for correct results.
+	 * 
+	 * @param n
+	 * @return
+	 */
+	public abstract boolean hasHeat(final PhylogenyNode n);
 
 	/**
 	 * Called before the start of each Phylogeny to indicate to the model that analysis of a new tree is starting.
