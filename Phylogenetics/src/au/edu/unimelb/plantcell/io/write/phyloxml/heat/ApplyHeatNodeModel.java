@@ -65,7 +65,7 @@ public class ApplyHeatNodeModel extends NodeModel implements FileTreeViewInterfa
 													"maximum of directly connected nodes only", 
 													"median of directly connected nodes only", 
 													"minimum of directly connected nodes only" };
-	static public final String[] WIDTH_STRATEGY = { "None (leave as is)", "Number of taxa (with heat) supporting branch" };
+	static public final String[] WIDTH_STRATEGY = { "None (leave as is)", "Number of taxa (with heat) supporting branch", "% of taxa (with heat) supporting branch" };
 													
 	/**
 	 * persisted configured state
@@ -106,7 +106,7 @@ public class ApplyHeatNodeModel extends NodeModel implements FileTreeViewInterfa
 	    	for (Phylogeny p : phys) {
 	    		PhylogenyNodeIterator it = p.iteratorExternalForward();
 	    		hm.start(p, inData[0], a_idx, heat_idx);
-	    		wm.start(p);
+	    		wm.start(p, hm);
 	    		while (it.hasNext()) {
 	    			PhylogenyNode n = it.next();
 	    			// apply the width and heat models as chosen by the user for each node (internal or tip/external)
@@ -133,8 +133,16 @@ public class ApplyHeatNodeModel extends NodeModel implements FileTreeViewInterfa
 		return new BufferedDataTable[] { c1.close() };
 	}
 	
-	private AbstractWidthModel makeWidthModel(final String wantedModel) {
-		return new DefaultWidthModel();
+	private AbstractWidthModel makeWidthModel(final String wantedModel) throws InvalidSettingsException {
+		String meth = m_width_by.getStringValue();
+		if (meth.startsWith("None")) {
+			return new DefaultWidthModel(logger);
+		} else if (meth.startsWith("Number")) {
+			return new CountOfHotTaxaWidthModel(logger);
+		} else if (meth.startsWith("%")) {
+			return new CountOfHotTaxaWidthModel(logger, true);
+		}
+		throw new InvalidSettingsException("Unknown/unsupport method: "+meth);
 	}
 
 	private AbstractHeatModel makeHeatModel(final String wantedModel) throws InvalidSettingsException {

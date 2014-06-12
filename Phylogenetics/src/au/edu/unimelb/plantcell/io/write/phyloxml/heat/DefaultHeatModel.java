@@ -1,5 +1,7 @@
 package au.edu.unimelb.plantcell.io.write.phyloxml.heat;
 
+import java.util.HashSet;
+
 import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
 import org.knime.core.data.DataRow;
@@ -18,6 +20,7 @@ public class DefaultHeatModel extends AbstractHeatModel {
 	//private final Map<PhylogenyNode,Double> heat = new HashMap<PhylogenyNode,Double>();
 	//private Double max, min;
 	private NodeLogger logger;
+	private final HashSet<PhylogenyNode> has_heat = new HashSet<PhylogenyNode>();
 	
 	public DefaultHeatModel(final NodeLogger l, final ColourManager cm) {
 		super(l, cm);
@@ -30,6 +33,7 @@ public class DefaultHeatModel extends AbstractHeatModel {
 	public void start(final Phylogeny p, final BufferedDataTable in, int a_col, int heat_col) throws InvalidSettingsException {
 		int success = 0;
 		int failed = 0;
+		has_heat.clear();
 		for (DataRow r : in) {
 			String taxa_name = asTaxaName(r.getCell(a_col));
 			Double heat_value= asNumber(r.getCell(heat_col));
@@ -39,6 +43,7 @@ public class DefaultHeatModel extends AbstractHeatModel {
 				continue;
 			if (getColourManager().addHeat(n, in.getSpec().getRowColor(r).getColor(), heat_value)) {
 				success++;
+				has_heat.add(n);
 			} else {
 				failed++;
 			}
@@ -46,5 +51,10 @@ public class DefaultHeatModel extends AbstractHeatModel {
 		logger.info("Failed to associate heat with "+failed+" rows, succeeded for "+success);
 		
 		getColourManager().propagate(getModerationSelector(), getHeatModerator());
+	}
+
+	@Override
+	public boolean hasHeat(PhylogenyNode n) {
+		return has_heat.contains(n);
 	}
 }

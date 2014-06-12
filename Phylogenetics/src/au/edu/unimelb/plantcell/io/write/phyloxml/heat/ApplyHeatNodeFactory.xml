@@ -8,14 +8,37 @@
     </shortDescription>
     
     <fullDescription>
-        <intro>This modifies the input tree configured to include heat: a numeric value translated via a colour gradient to colour the branches of the tree. Optionally, branch widths may be set by the number of valid pairwise datapoints for taxa below the branch in the tree.
+        <intro>This node creates a new tree from an input tree with branches modified to reflect a colour scheme (configured below)
+        and optionally, branch size. Currently there are two colour options: 
+        <ul>
+        <li>a numeric column translated via a colour gradient to colour the branches. The numeric values supplied can be propagated using
+        several functions over the whole tree (average, min, median, maximum) to propagate partial information over the whole tree</li>
+        
+        <li>using the KNIME row colour to colour the branches connecting the taxa to the rest of the tree. 
+        In this case, propagation is not supported.</li>
+        </ul>
         </intro>
         
-        
-        <option name="Input tree">The tree to apply heat to. Ths node always creates a new tree: the input is not modified in any way</option>
+        <option name="Input tree">The tree to apply heat to. The input tree is not modified in any way.</option>
 
-        <option name="Output file">The tree, after decoration with your data, is saved to this location. Always <a href="http://www.phyloxml.org">PhyloXML format</a></option>
+        <option name="Output file">The tree, after decoration with your data, is saved to this location. It is always in 
+        <a href="http://www.phyloxml.org">PhyloXML format</a></option>
 
+		<tab name="Heat Settings">
+			<option name="Get colours from?">Choose the option to use either a numeric column (which must also be chosen) or get the heat from the
+			input table row colours</option>
+			
+			<option name="Taxa (node) name">Heat values are applied only to nodes with the specified name. The column with the names must be chosen here.
+			These node names can be obtained using the Tree Reader node, for example.</option>
+			
+			<option name="Numeric column">When the node is configured to get colours from a numeric column, this option determines which column
+			in the input table is used</option>
+			
+			<option name="Heat propagation strategy">Currently, the node only supports heat for the branches that connect leaf nodes (taxa/OTUs) to the tree.
+			But if you want to apply heat to all branches, you'll need to choose an option here to control how that calculation is done. Choices are limited for now.</option>
+			
+			<option name="Branch width strategy">Optionally (if not none) you may set the branch width using this option</option>
+		</tab>
     </fullDescription>
     
     <ports>
