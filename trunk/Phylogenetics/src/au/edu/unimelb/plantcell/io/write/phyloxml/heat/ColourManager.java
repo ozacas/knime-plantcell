@@ -32,9 +32,9 @@ public interface ColourManager {
 	public void decorate(final PhylogenyNode n) throws Exception;
 	
 	/**
-	 * Usually not all nodes have heat specified. This method is called immediately after all known heat is applied to nodes (using addHeat())
+	 * Usually not all nodes have heat specified. Some heat models will call this method immediately after all known heat is applied to nodes (using addHeat())
 	 * and can be used to propagate heat to other nodes as required. For example, internal nodes may have a colour reflecting the average
-	 * heat of child nodes below it (or at least those with known heat).
+	 * heat of child nodes below it (or at least those with known heat). ColourManager's must not call this function internally, it is controlled by the {@link AbstractHeatModel}
 	 * 
 	 * @param ms used to tailor which nodes are included in a heat re-calculation for a given node in the tree
 	 * @param hm used to customise how the heat is recalculated eg. average/maximum/min/...

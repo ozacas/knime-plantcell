@@ -55,9 +55,9 @@ public class ApplyHeatNodeModel extends NodeModel implements FileTreeViewInterfa
 	static public final String CFGKEY_OVERWRITE = "overwrite-output-file?";
 	static public final String CFGKEY_METHOD    = "calc-colour-method";
 	
-	static public final String[] DEFAULT_METHODS = new String[] { "Scale to column maximum (blue-red)", "By row colour" };
-	
-	static public final String[] HEAT_STRATEGY = {  "average of child OTU's", 
+	// order is important: add new methods to the END of the array
+	static public final String[] DEFAULT_METHODS = new String[] { "Scale to column maximum (blue..red)", "By row colour", "Apply bootstrap values from input (blue..red)" };
+	static public final String[] HEAT_STRATEGY = {  "average of child OTU's",
 													"maximum of child OTU's", 
 													"minimum of child OTU's",
 													"median of child OTU's",
@@ -147,9 +147,16 @@ public class ApplyHeatNodeModel extends NodeModel implements FileTreeViewInterfa
 
 	private AbstractHeatModel makeHeatModel(final String wantedModel) throws InvalidSettingsException {
 		assert(wantedModel != null);
-		boolean is_numeric = m_colour_method.getStringValue().equals(ApplyHeatNodeModel.DEFAULT_METHODS[0]);
-		ColourManager cm =  is_numeric ? new ColourGradient(logger, Color.RED, Color.BLUE) : new RowColourManager();
-		AbstractHeatModel hm = new DefaultHeatModel(logger, cm);
+		boolean use_bootstrap = m_colour_method.getStringValue().startsWith("Apply bootstrap");
+		boolean is_numeric = m_colour_method.getStringValue().equals(ApplyHeatNodeModel.DEFAULT_METHODS[0]) || use_bootstrap;
+		
+		ColourManager cm = null;
+		if (is_numeric) {
+			cm = new ColourGradient(logger, Color.RED, Color.BLUE);
+		} else {
+			cm = new RowColourManager();
+		}
+		AbstractHeatModel hm = use_bootstrap ? new BootstrapHeatModel(logger, cm) : new DefaultHeatModel(logger, cm);
 		String wm = wantedModel.toLowerCase();
 		HeatModerator moderator = makeHeatModerator(wm);
 		hm.setHeatModerator(moderator);
