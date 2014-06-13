@@ -33,7 +33,8 @@ import au.edu.unimelb.plantcell.servers.mascotee.endpoints.ConfigService;
  * This is the model implementation of ShowConfigNodeModel
  * 
  * Dumps a tabular representation of the current mascot config (as recorded by the MascotEE config service) into the output table. Useful
- * mainly for debugging, although people might use it to get access to the definition of a particular modification or other parameter.
+ * mainly for debugging, although people might use it to get access to the definition of a particular modification or other parameter. Be
+ * careful to ensure that changes to this class are compatible with subclasses.
  *
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
@@ -47,7 +48,7 @@ public class ShowConfigNodeModel extends NodeModel {
 
 	
 	// default values for the dialog
-	public final static String DEFAULT_MASCOTEE_SERVICE_URL = "http://mascot.plantcell.unimelb.edu.au:8080/mascot/ConfigService?wsdl";
+	public final static String DEFAULT_MASCOTEE_SERVICE_URL = "http://mascot.plantcell.unimelb.edu.au:8080/mascotee/ConfigService?wsdl";
 	private final static QName MASCOTEE_CONFIG_NAMESPACE = 
 			new QName("http://www.plantcell.unimelb.edu.au/bioinformatics/wsdl", "ConfigService");
 	
@@ -73,7 +74,7 @@ public class ShowConfigNodeModel extends NodeModel {
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
-    	String u = m_url.getStringValue();
+    	String u = getURL();
     	Service srv = getConfigService(u);
        	if (srv == null) {
        		throw new InvalidSettingsException("Unable to connect to "+m_url.getStringValue());
@@ -83,6 +84,8 @@ public class ShowConfigNodeModel extends NodeModel {
         	throw new Exception("Cannot connect to server!");
         
         MyDataContainer c = new MyDataContainer(exec.createDataContainer(make_output_spec()), "Config");
+        exec.checkCanceled();
+        
         // 1. dump available databases
         for (String db : configService.availableDatabases()) {
         	DataCell[] cells = getCellsAsMissing(c);
@@ -92,7 +95,7 @@ public class ShowConfigNodeModel extends NodeModel {
         	cells[3] = getDatabaseRecord(configService, db);
         	c.addRow(cells);
         }
-        
+        exec.checkCanceled();
         // 2. dump available instruments
         for (String ins : configService.availableInstruments()) {
         	DataCell[] cells = getCellsAsMissing(c);
@@ -102,7 +105,7 @@ public class ShowConfigNodeModel extends NodeModel {
         	cells[3] = getInstrumentRecord(configService, ins);
         	c.addRow(cells);
         }
-        
+        exec.checkCanceled();
         // 3. dump available enzymes
         for (String cle : configService.availableEnzymes()) {
         	DataCell[] cells = getCellsAsMissing(c);
@@ -112,7 +115,7 @@ public class ShowConfigNodeModel extends NodeModel {
         	cells[3] = getEnzymeRecord(configService, cle);
         	c.addRow(cells);
         }
-        
+        exec.checkCanceled();
         // 4. modifications
         for (String mod : configService.availableModifications()) {
         	DataCell[] cells = getCellsAsMissing(c);
@@ -122,7 +125,7 @@ public class ShowConfigNodeModel extends NodeModel {
         	cells[3] = getModificationRecord(configService, mod);
         	c.addRow(cells);
         }
-        
+        exec.checkCanceled();
         // 5. mascot configuration parameters
         for (String s : configService.availableConfigParameters()) {
         	DataCell[] cells = getCellsAsMissing(c);
@@ -135,6 +138,10 @@ public class ShowConfigNodeModel extends NodeModel {
         
         return new BufferedDataTable[] { c.close() };
     }
+
+	protected String getURL() {
+		return m_url.getStringValue();
+	}
 
 	private DataCell getModificationRecord(final ConfigService configService, final String mod) throws SOAPException {
 		return new StringCell(configService.getDetailedModificationRecord(mod));
@@ -171,7 +178,7 @@ public class ShowConfigNodeModel extends NodeModel {
          return cells;
     }
     
-    private DataTableSpec make_output_spec() {
+    protected DataTableSpec make_output_spec() {
 		DataColumnSpec[] cols = new DataColumnSpec[5];
 		cols[0] = new DataColumnSpecCreator("MascotEE URL", StringCell.TYPE).createSpec();
 		cols[1] = new DataColumnSpecCreator("Mascot Parameter Name", StringCell.TYPE).createSpec();
@@ -215,6 +222,9 @@ public class ShowConfigNodeModel extends NodeModel {
     }
 
     public static Service getConfigService(final String url) throws MalformedURLException {
+    	if (url == null || url.length() < 1) {
+    		throw new MalformedURLException("Missing MascotEE URL!");
+    	}
     	String u = url;
     	if (u.endsWith("/")) {
     		u += "ConfigService?wsdl";

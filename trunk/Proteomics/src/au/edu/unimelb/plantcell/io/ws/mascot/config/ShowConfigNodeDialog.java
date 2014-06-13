@@ -26,6 +26,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
 public class ShowConfigNodeDialog extends DefaultNodeSettingsPane {
+	private final SettingsModelString url = new SettingsModelString(ShowConfigNodeModel.CFGKEY_MASCOT_SERVICE_URL, ShowConfigNodeModel.DEFAULT_MASCOTEE_SERVICE_URL);
 
     /**
      * New pane for configuring the DatFileDownload node.
@@ -36,7 +37,6 @@ public class ShowConfigNodeDialog extends DefaultNodeSettingsPane {
     
    
     	createNewGroup("MascotEE Service");
-    	final SettingsModelString url = new SettingsModelString(ShowConfigNodeModel.CFGKEY_MASCOT_SERVICE_URL, ShowConfigNodeModel.DEFAULT_MASCOTEE_SERVICE_URL);
     	
     	addDialogComponent(new DialogComponentString(url, "MascotEE URL"));
     	DialogComponentButton checknow_button = new DialogComponentButton("Check Now...");
@@ -61,5 +61,8 @@ public class ShowConfigNodeDialog extends DefaultNodeSettingsPane {
     	this.setHorizontalPlacement(false);
     }
     
+    protected String getCurrentMascotEEUrl() {
+    	return url.getStringValue();
+    }
 }
 

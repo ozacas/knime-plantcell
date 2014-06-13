@@ -10,8 +10,7 @@ import org.knime.core.node.NodeView;
  *
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
-public class ShowConfigNodeFactory 
-        extends NodeFactory<ShowConfigNodeModel> {
+public class ShowConfigNodeFactory extends NodeFactory<ShowConfigNodeModel> {
 
     /**
      * {@inheritDoc}
@@ -33,8 +32,7 @@ public class ShowConfigNodeFactory
      * {@inheritDoc}
      */
     @Override
-    public NodeView<ShowConfigNodeModel> createNodeView(final int viewIndex,
-            final ShowConfigNodeModel nodeModel) {
+    public NodeView<ShowConfigNodeModel> createNodeView(final int viewIndex, final ShowConfigNodeModel nodeModel) {
         return null;
     }
 

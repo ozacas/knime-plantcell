@@ -39,9 +39,6 @@ import au.edu.unimelb.plantcell.servers.mascotee.endpoints.DatFileService;
 public class DatFileDownloadNodeModel extends MascotReaderNodeModel {
 	private static final NodeLogger logger = NodeLogger.getLogger("Mascot Dat Downloader");
 	
-    // rather than import an entire 1.2MB jar... its really a JAXWSProperties key...
-    private final static String HTTP_CLIENT_STREAMING_CHUNK_SIZE = "com.sun.xml.ws.transport.http.client.streaming.chunk.size";
-
     // configuration parameters which the dialog also uses (superclass also has state)
 	public final static String CFGKEY_MASCOTEE_URL = "mascot-service-url";
 	public final static String CFGKEY_DAT_FILES_SINCE    = "since-when";
@@ -62,8 +59,6 @@ public class DatFileDownloadNodeModel extends MascotReaderNodeModel {
 		"Current year",
 		"Since the dawn of time (will take a long time)"
 	};
-
-	
 	
 	// persisted state within this class (note that superclass state is also persisted!)
 	private final SettingsModelString            m_url = new SettingsModelString(CFGKEY_MASCOTEE_URL, DEFAULT_MASCOTEE_URL);
@@ -86,7 +81,8 @@ public class DatFileDownloadNodeModel extends MascotReaderNodeModel {
     /**
      * {@inheritDoc}
      */
-    @Override
+    @SuppressWarnings("restriction")
+	@Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
     	String u = m_url.getStringValue();
@@ -101,7 +97,7 @@ public class DatFileDownloadNodeModel extends MascotReaderNodeModel {
         DatFileService datFileService = srv.getPort(DatFileService.class);
         BindingProvider bp = (BindingProvider) datFileService;
         Map<String,Object> ctx = bp.getRequestContext();
-        ctx.put(HTTP_CLIENT_STREAMING_CHUNK_SIZE, 8192);
+        ctx.put(com.sun.xml.ws.developer.JAXWSProperties.HTTP_CLIENT_STREAMING_CHUNK_SIZE, 8192);
         SOAPBinding binding = (SOAPBinding) bp.getBinding();
         binding.setMTOMEnabled(true);
         
