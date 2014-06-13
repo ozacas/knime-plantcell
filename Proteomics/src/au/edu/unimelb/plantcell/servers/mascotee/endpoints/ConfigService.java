@@ -2,7 +2,6 @@ package au.edu.unimelb.plantcell.servers.mascotee.endpoints;
 
 import javax.activation.DataHandler;
 import javax.jws.WebService;
-import javax.xml.bind.annotation.XmlMimeType;
 import javax.xml.soap.SOAPException;
 
 /**
@@ -49,10 +48,9 @@ public interface ConfigService {
 	 * data will be FASTA format, unless mascot supports another kind of database. Only the first matching file (if there
 	 * are multiple) is returned via this method
 	 * @param dbName name of mascot database
-	 * @Param idx must be in the range <code>0..countDatabaseSequenceFiles(dbName)-1]</code>
+	 * @param idx must be in the range <code>0..countDatabaseSequenceFiles(dbName)-1]</code>
 	 */
-	public @XmlMimeType("application/octet-stream") DataHandler getDatabaseSequenceFile(final String dbName, int idx) 
-			throws SOAPException;
+	public DataHandler getDatabaseSequenceFile(final String dbName, int idx) throws SOAPException;
 	
 	/**
 	 * Return list of available configuration settings as described in mascot/config/mascot.dat
@@ -87,7 +85,7 @@ public interface ConfigService {
 	 * returns a list of available peptide charges. Currently hardcoded. Guaranteed non-empty and non-null if no exception is thrown.
 	 */
 	public String[] availablePeptideChargeStates() throws SOAPException;
-
+	
 	/**
 	 * Returns a detailed specification (text-based) of the chosen enzyme incl. specificity. 
 	 * The specified enzyme must be in this mascot configuration or an exception will be thrown.
@@ -99,10 +97,10 @@ public interface ConfigService {
 	 * specified database is not present in the specified mascot configuration.
 	 */
 	public String getDetailedDatabaseRecord(final String db) throws SOAPException;
-
+	
 	/**
-	 * Returns a detailed specification (text-based) of the chosen chemical modification in the current mascot configuration. An exception
-	 * will be thrown if it does not exist.
+	 * Returns a detailed specification (text-based) of the chosen chemical modification in the current mascot 
+	 * configuration. An exception will be thrown if it does not exist.
 	 * 
 	 * @param mod
 	 * @return

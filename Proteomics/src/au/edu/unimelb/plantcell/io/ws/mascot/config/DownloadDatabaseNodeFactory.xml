@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./default.png" type="Source" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.8 http://knime.org/node/v2.8.xsd">
+    <name>Download database</name>
+    
+    <shortDescription>
+        Permits downloading of Mascot databases (FASTA files)
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>Downloads the chosen Mascot database (FASTA files) using MascotEE. Useful for obtaining or computing decoy sequences for estimation
+        of false-discovery rate.</intro>
+        
+        
+        <option name="MascotEE URL">The default is currently valid for plantcell.unimelb.edu.au users, however
+        any url may be entered here where MascotEE has been installed.
+        </option>
+      
+      	<option name="Mascot database">Enter the database you would like to load</option>
+      	
+    	<option name="Save download to...">File to save data to (in addition to the output port)</option>
+    </fullDescription>
+    
+    <ports>
+        <outPort index="0" name="Mascot database sequences">Sequences are loaded into this output port</outPort>
+    </ports>    
+  
+</knimeNode>
