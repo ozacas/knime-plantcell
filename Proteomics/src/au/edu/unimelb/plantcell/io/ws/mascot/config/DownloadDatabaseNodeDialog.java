@@ -56,8 +56,8 @@ public class DownloadDatabaseNodeDialog extends ShowConfigNodeDialog {
 	
 	protected void update_available_databases(final DialogComponentStringSelection db_list, final String mascotee_url) {
 		try {
-				Service	srv= ShowConfigNodeModel.getConfigService(mascotee_url);
-				ConfigService configService = srv.getPort(ConfigService.class);
+				Service	                 srv = ShowConfigNodeModel.getConfigService(mascotee_url);
+				ConfigService  configService = srv.getPort(ConfigService.class);
 				String[] available_databases = configService.availableDatabases();
 				if (available_databases == null || available_databases.length < 1) {
 					available_databases = new String[] { "No available databases." };

@@ -2,6 +2,7 @@ package au.edu.unimelb.plantcell.io.ws.mascot.config;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.MalformedURLException;
 
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -15,6 +16,8 @@ import org.knime.core.node.defaultnodesettings.DialogComponentButton;
 import org.knime.core.node.defaultnodesettings.DialogComponentPasswordField;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+
+import au.edu.unimelb.plantcell.servers.mascotee.endpoints.ConfigService;
 
 /**
  * <code>NodeDialog</code> for the "DatFileDownload" Node.
@@ -42,13 +45,12 @@ public class ShowConfigNodeDialog extends DefaultNodeSettingsPane {
 			}
     		
     	});
-    	final SettingsModelString user = new SettingsModelString(ShowConfigNodeModel.CFGKEY_USERNAME, "");
+    	final SettingsModelString user   = new SettingsModelString(ShowConfigNodeModel.CFGKEY_USERNAME, "");
     	final SettingsModelString passwd = new SettingsModelString(ShowConfigNodeModel.CFGKEY_PASSWORD, "");
-    
    
     	createNewGroup("MascotEE Service");
-    	
-    	addDialogComponent(new DialogComponentString(url, "MascotEE URL"));
+    	this.setHorizontalPlacement(true);
+    	addDialogComponent(new DialogComponentString(url, "MascotEE URL", true, 60));
     	DialogComponentButton checknow_button = new DialogComponentButton("Check Now...");
     	checknow_button.addActionListener(new ActionListener() {
 
@@ -58,17 +60,32 @@ public class ShowConfigNodeDialog extends DefaultNodeSettingsPane {
 					Service s = ShowConfigNodeModel.getConfigService(url.getStringValue());
 					if (s == null)
 						throw new InvalidSettingsException("No such service!");
+					ConfigService cs = s.getPort(ConfigService.class);
+					String       url = cs.getURL();
+					if (url == null) {
+						throw new MalformedURLException("No URL!");
+					}
+					JOptionPane.showMessageDialog(null, "Server provided URL: "+url);
 				} catch (Exception e) {
 					JOptionPane.showMessageDialog(null, new JLabel(e.getMessage()), e.getMessage(), 0);
 				}
 			}
     		
     	});
+    	addDialogComponent(checknow_button);
+    	this.setHorizontalPlacement(false);
     	
+    	createNewGroup("Authentication");
     	this.setHorizontalPlacement(true);
-    	addDialogComponent(new DialogComponentString(user, "Username"));
+    	addDialogComponent(new DialogComponentString(user,          "Username"));
     	addDialogComponent(new DialogComponentPasswordField(passwd, "Password"));
     	this.setHorizontalPlacement(false);
+    	
+    }
+    
+    @Override
+    public void onOpen() {
+    	updateInResponseToURLChange(url.getStringValue());
     }
     
     protected String getCurrentMascotEEUrl() {

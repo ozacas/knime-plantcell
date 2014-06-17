@@ -226,7 +226,7 @@ public class ShowConfigNodeModel extends NodeModel {
     		throw new MalformedURLException("Missing MascotEE URL!");
     	}
     	String u = url;
-    	if (u.endsWith("/")) {
+    	if (u.endsWith("/") || u.endsWith("mascotee")) {
     		u += "ConfigService?wsdl";
     	}
     	URL u2 = new URL(u);
