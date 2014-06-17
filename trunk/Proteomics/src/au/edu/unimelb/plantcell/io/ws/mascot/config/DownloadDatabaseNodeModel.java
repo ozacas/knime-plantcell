@@ -2,6 +2,7 @@ package au.edu.unimelb.plantcell.io.ws.mascot.config;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -67,20 +68,23 @@ public class DownloadDatabaseNodeModel extends ShowConfigNodeModel {
     	// 1. download database via webservice and store in the user configured path (will throw if it already exists)
     	FileOutputStream fos = null;
     	File fasta = null;
+    	boolean is_aa = true;
     	try {
 	    	Service srv = ShowConfigNodeModel.getConfigService(getURL());
 	    	ConfigService configService = srv.getPort(ConfigService.class, new MTOMFeature());
 	        
-	        logger.info("Downloading "+m_db.getStringValue()+" database from "+getURL());
-	    	DataHandler dh = configService.getDatabaseSequenceFile(m_db.getStringValue(), 0);
-	    	if (dh == null) {
+	        logger.info("Downloading "+m_db.getStringValue()+" database from "+getURL()); 
+	    	String url = configService.getDatabaseSequenceURL(m_db.getStringValue(), 0);
+	    	is_aa = configService.isDatabaseAA(m_db.getStringValue());
+	    	if (url == null) {
 	    		throw new Exception("No mascot data available!");
 	    	}
+	    	logger.info("Downloading database using "+url);
 	    	Path p = Paths.get(m_out_fasta.getStringValue());
-	    	fos = new FileOutputStream(p.toFile());
-	    	dh.writeTo(fos);
-	    	fos.close();
 	    	fasta = p.toFile();
+	    	fos = new FileOutputStream(fasta);
+	    	DataHandler dh = new DataHandler(new URL(url));
+	    	dh.writeTo(fos);
 	    	logger.info("Downloaded "+fasta.length()+" bytes from server.");
     	} catch (Exception e) {
     		e.printStackTrace();
@@ -94,7 +98,7 @@ public class DownloadDatabaseNodeModel extends ShowConfigNodeModel {
     	
     	// 2. load downloaded file into output table
     	logger.info("Loading sequences into output table... ");
-    	FastaIterator it = new FastaIterator(fasta, SequenceType.AA);
+    	FastaIterator it = new FastaIterator(fasta, is_aa ? SequenceType.AA : SequenceType.DNA);
     	while (it.hasNext()) {
     		SequenceValue sv = it.next();
     		DataCell[] cells = new DataCell[2];

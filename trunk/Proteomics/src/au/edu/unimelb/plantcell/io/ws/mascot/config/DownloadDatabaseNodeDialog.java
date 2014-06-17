@@ -48,6 +48,12 @@ public class DownloadDatabaseNodeDialog extends ShowConfigNodeDialog {
 		addDialogComponent(refresh_button);
 	}
 
+	@Override
+	public void updateInResponseToURLChange(final String new_url) {
+		super.updateInResponseToURLChange(new_url);
+		update_available_databases(db_list, new_url);
+	}
+	
 	protected void update_available_databases(final DialogComponentStringSelection db_list, final String mascotee_url) {
 		try {
 				Service	srv= ShowConfigNodeModel.getConfigService(mascotee_url);

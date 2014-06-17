@@ -8,11 +8,12 @@
     
     <fullDescription>
         <intro>Downloads the chosen Mascot database (FASTA files) using MascotEE. Useful for obtaining or computing decoy sequences for estimation
-        of false-discovery rate.</intro>
+        of false-discovery rate. Or just getting access to the sequence data which mascot uses for search.</intro>
         
         
         <option name="MascotEE URL">The default is currently valid for plantcell.unimelb.edu.au users, however
-        any url may be entered here where MascotEE has been installed.
+        any url may be entered here where MascotEE has been installed. If you change the url, the available databases will automatically
+        update but you can press the 'refresh' button as well.
         </option>
       
       	<option name="Mascot database">Enter the database you would like to load</option>

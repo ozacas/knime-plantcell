@@ -53,12 +53,24 @@ public interface ConfigService {
 	public DataHandler getDatabaseSequenceFile(final String dbName, int idx) throws SOAPException;
 	
 	/**
+	 * Returns REST-style GET url which returns the same data as getDatabaseSequenceFile()
+	 */
+	public String getDatabaseSequenceURL(final String dbName, int idx) throws SOAPException;
+	
+	/**
+	 * Is the specified database AA or NA? Will throw an exception if neither...
+	 * @return true if the database contains protein sequence, false if nucleic acid data
+	 * (which mascot will auto-six-frame translate when searching)
+	 */
+	public boolean isDatabaseAA(final String dbName) throws SOAPException;
+	
+	/**
 	 * Return list of available configuration settings as described in mascot/config/mascot.dat
 	 */
 	public String[] availableConfigParameters() throws SOAPException;
 	
 	/**
-	 * Return value association with the specified parameter name
+	 * Return value association with the specified configuration parameter name
 	 * @param name one of the config parameters as returned by <code>availableConfigParameters()</code>
 	 */
 	public String getParamValue(final String paramName) throws SOAPException;
@@ -106,4 +118,14 @@ public interface ConfigService {
 	 * @return
 	 */
 	public String getDetailedModificationRecord(final String mod) throws SOAPException;
+	
+	/**
+	 * Return the administratively configured MascotEE URL. This is configured via XML
+	 * directives in your application server, or in the MascotEE .jar file. The URL is
+	 * the root of all MascotEE url's (either SOAP or REST-style) and may require
+	 * authentication
+	 */
+	public String getURL() throws SOAPException;
+	
+	
 }

@@ -2,21 +2,17 @@ package au.edu.unimelb.plantcell.io.ws.mascot.datfile;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.net.Authenticator;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Map;
 
 import javax.activation.DataHandler;
 import javax.xml.namespace.QName;
 import javax.xml.soap.SOAPException;
-import javax.xml.ws.BindingProvider;
 import javax.xml.ws.Service;
-import javax.xml.ws.soap.SOAPBinding;
 
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
@@ -81,8 +77,7 @@ public class DatFileDownloadNodeModel extends MascotReaderNodeModel {
     /**
      * {@inheritDoc}
      */
-    @SuppressWarnings("restriction")
-	@Override
+    @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
     	String u = m_url.getStringValue();
@@ -94,12 +89,7 @@ public class DatFileDownloadNodeModel extends MascotReaderNodeModel {
 
        	if (srv == null)
        		throw new InvalidSettingsException("Unable to connect to "+u);
-        DatFileService datFileService = srv.getPort(DatFileService.class);
-        BindingProvider bp = (BindingProvider) datFileService;
-        Map<String,Object> ctx = bp.getRequestContext();
-        ctx.put(com.sun.xml.ws.developer.JAXWSProperties.HTTP_CLIENT_STREAMING_CHUNK_SIZE, 8192);
-        SOAPBinding binding = (SOAPBinding) bp.getBinding();
-        binding.setMTOMEnabled(true);
+       	DatFileService dfs = srv.getPort(DatFileService.class);
         
         // first retrieve all the desired dat files into the chosen folder
         String[] wanted_dat_files = m_dat_files.getStringArrayValue();
@@ -111,25 +101,27 @@ public class DatFileDownloadNodeModel extends MascotReaderNodeModel {
         	throw new InvalidSettingsException("Output folder, "+out.getAbsolutePath()+" is not an accessible directory!");
         }
         ArrayList<File> downloaded_files = new ArrayList<File>();
-        for (String s : wanted_dat_files) {
-        	logger.info("Saving mascot dat file: "+s);
-        	File   dat_out = new File(out, s.replaceAll("[^A-Z0-9a-z\\.]", "_"));
-        	DataHandler dh = datFileService.getDatFile(s);
-        	FileOutputStream fos = new FileOutputStream(dat_out);
-        	InputStream is = dh.getInputStream();
-        	byte[] buf = new byte[128 * 1024];
-        	int got;
-        	while ((got = is.read(buf, 0, buf.length)) >= 0) {
-        		if (got > 0)
-        			fos.write(buf, 0, got);
-        	}
-        	fos.close();
-        	is.close();
-        	if (dat_out.length() < 1) {
-        		logger.warn("Zero-sized file for downloaded DAT file: "+dat_out.getAbsolutePath()+": file ignored!");
-        	} else {
-        		downloaded_files.add(dat_out);
-        	}
+        try {
+	        for (String s : wanted_dat_files) {
+	        	logger.info("Saving mascot dat file: "+s);
+	        	File   dat_out = new File(out, s.replaceAll("[^A-Z0-9a-z\\.]", "_"));
+	        	String url     = dfs.getDatFileURL(s);
+	        	logger.info("Getting "+s+" using URL: "+url);
+	        	
+	        	DataHandler       dh = new DataHandler(new URL(url));
+	        	FileOutputStream fos = new FileOutputStream(dat_out);
+	        	dh.writeTo(fos);
+	        	fos.close();
+	        	
+	        	if (dat_out.length() < 1) {
+	        		logger.warn("Zero-sized file for downloaded DAT file: "+dat_out.getAbsolutePath()+": file ignored!");
+	        	} else {
+	        		downloaded_files.add(dat_out);
+	        	}
+	        }
+        } catch (Exception e) {
+        	e.printStackTrace();
+        	throw e;
         }
         
         if (downloaded_files.size() < 1) {
