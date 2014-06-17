@@ -45,4 +45,11 @@ public interface DatFileService {
 	 */
 	public @XmlMimeType("application/octet-stream") DataHandler getDatFile(final String dat_file) throws SOAPException;
 	
+	/**
+	 * Returns a rest-style URL rather than MTOM data
+	 * @param dat_file
+	 * @return
+	 * @throws SOAPException
+	 */
+	public String getDatFileURL(final String dat_file) throws SOAPException;
 }

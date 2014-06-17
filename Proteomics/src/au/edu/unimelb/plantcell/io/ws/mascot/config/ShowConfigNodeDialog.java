@@ -5,6 +5,8 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.xml.ws.Service;
 
 import org.knime.core.node.InvalidSettingsException;
@@ -32,6 +34,14 @@ public class ShowConfigNodeDialog extends DefaultNodeSettingsPane {
      * New pane for configuring the DatFileDownload node.
      */
     protected ShowConfigNodeDialog() {
+    	url.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				updateInResponseToURLChange(url.getStringValue());
+			}
+    		
+    	});
     	final SettingsModelString user = new SettingsModelString(ShowConfigNodeModel.CFGKEY_USERNAME, "");
     	final SettingsModelString passwd = new SettingsModelString(ShowConfigNodeModel.CFGKEY_PASSWORD, "");
     
@@ -63,6 +73,10 @@ public class ShowConfigNodeDialog extends DefaultNodeSettingsPane {
     
     protected String getCurrentMascotEEUrl() {
     	return url.getStringValue();
+    }
+    
+    protected void updateInResponseToURLChange(final String new_url) {
+    	// this class does nothing, but subclasses will want to override
     }
 }
 
