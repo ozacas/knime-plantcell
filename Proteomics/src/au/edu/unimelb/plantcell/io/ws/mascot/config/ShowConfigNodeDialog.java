@@ -80,7 +80,6 @@ public class ShowConfigNodeDialog extends DefaultNodeSettingsPane {
     	addDialogComponent(new DialogComponentString(user,          "Username"));
     	addDialogComponent(new DialogComponentPasswordField(passwd, "Password"));
     	this.setHorizontalPlacement(false);
-    	
     }
     
     @Override

@@ -3,7 +3,8 @@
     <name>Show Config</name>
     
     <shortDescription>
-        Permits downloading of Mascot DAT files via a JAX-WS web service and will load each dat file into the output table as per the mascot reader. The node also saves the DAT files to the user-specified folder.
+        Permits downloading of Mascot DAT files via a JAX-WS web service and will load each dat file 
+        into the output table as per the mascot reader. The node also saves the DAT files to the user-specified folder.
     </shortDescription>
     
     <fullDescription>
@@ -13,8 +14,6 @@
         <option name="MascotEE URL">The default is currently valid for plantcell.unimelb.edu.au users, however
         any url may be entered here where MascotEE has been installed.
         </option>
-      
-    
     </fullDescription>
     
     <ports>
