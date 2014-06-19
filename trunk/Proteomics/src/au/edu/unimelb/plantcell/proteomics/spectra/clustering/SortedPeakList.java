@@ -25,7 +25,11 @@ public class SortedPeakList {
 		assert(mz.length == intensities.length);
 		m_sorted.clear();
 		for (int i=0; i<mz.length; i++) {
-			m_sorted.add(new Peak(mz[i], intensities[i]));
+			double mass = mz[i];
+			double ity = intensities[i];
+			if (acceptPeak(mass, ity)) {
+				m_sorted.add(new Peak(mass, ity));
+			}
 		}
 		
 		Collections.sort(m_sorted, new Comparator<Peak>() {
@@ -49,6 +53,21 @@ public class SortedPeakList {
 			}
 			
 		});
+	}
+	
+	public boolean hasPeaks() {
+		return (m_sorted.size() > 0);
+	}
+	
+	/**
+	 * This implementation always accepts all peaks as specified by (mz,intensity). But subclasses may wish to filter as required.
+	 * 
+	 * @param mz
+	 * @param intensity
+	 * @return
+	 */
+	public boolean acceptPeak(double mz, double intensity) {
+		return true;
 	}
 	
 	public double[] getMZ() {
