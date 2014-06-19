@@ -14,7 +14,13 @@
         </intro>
         
         <option name="Spectra column">Choose the column to perform filtering on</option>
-     
+    
+     	<option name="Include spectra which...">Describes which of the distances must match and the filtering behaviour when they do.</option>
+     	
+     	<option name="Mass separation">Enter multiple numbers reflecting the mass difference between two peaks in the spectra
+     	which must be tested. Multiple numbers must be separated by whitespace.</option>
+     	
+     	<option name="Tolerance">A positive value representing the allowed margin on peak position error</option>
     </fullDescription>
     
     <ports>

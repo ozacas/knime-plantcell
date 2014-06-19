@@ -45,7 +45,7 @@ public class SeparationFilterNodeDialog extends DefaultNodeSettingsPane {
         		));
 	
         createNewGroup("Mass separations to try to find...");
-        DialogComponent dc = new DialogComponentMultiLineString(distances, "Current separations to try to find (separate by space):");
+        DialogComponent dc = new DialogComponentMultiLineString(distances, "(separate multiple by whitespace):");
         addDialogComponent(dc);
 	}
 }

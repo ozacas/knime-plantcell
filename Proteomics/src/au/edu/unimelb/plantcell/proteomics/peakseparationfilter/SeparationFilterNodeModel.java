@@ -42,8 +42,8 @@ public class SeparationFilterNodeModel extends NodeModel {
     public final static String CFGKEY_MASS_DISTANCES = "mass-distance";
     public final static String CFGKEY_DISTANCE_TOLERANCE = "distance-tolerance";
 
-    public final static String[] LOGICAL_OPERATIONS = new String[] { "accept only if any matching distance", "accept only if all matching distances",
-    																"reject if any matching distance", "reject if all matching distances" };
+    public final static String[] LOGICAL_OPERATIONS = new String[] { "accept spectra if any separation matches", "accept spectra only if all separations match",
+    																"reject if any separation matches", "reject if all separations match" };
     
     public SettingsModelString m_spectra        = new SettingsModelString(CFGKEY_SPECTRA_COLUMN, "");
     public SettingsModelString m_logic          = new SettingsModelString(CFGKEY_LOGIC, LOGICAL_OPERATIONS[0]);	// accept spectra with ANY matching specified distance(s)
@@ -78,12 +78,21 @@ public class SeparationFilterNodeModel extends NodeModel {
     	}
 		logger.info("Found "+distances.length+" peak separations to search for.");
 		final HashSet<Double> accepted_distances = new HashSet<Double>();
-		MatchedPeaksCallback mpcb = new MatchedPeaksCallback() {
-
+		MatchedSeparationCallback mpcb = new MatchedSeparationCallback() {
+			@SuppressWarnings("unused")
+			private SpectraValue cur;
+			
 			@Override
 			public boolean acceptHit(double mz1, double mz2, double accepted_distance) {
 				accepted_distances.add(accepted_distance);
+				// expensive due to the amount of logging it generates, so disabled
+				//logger.debug("Found distance "+accepted_distance+" between "+mz1+" and "+mz2+" for spectra: "+cur.getID());
 				return true;
+			}
+
+			@Override
+			public void setSpectra(SpectraValue sv) {
+				cur = sv;
 			}
 			
 		};
@@ -122,7 +131,7 @@ public class SeparationFilterNodeModel extends NodeModel {
 	 * @param sv
 	 * @return
 	 */
-	private void processSpectra(SpectraValue sv, final MatchedPeaksCallback mpcb) throws InvalidSettingsException {
+	private void processSpectra(SpectraValue sv, final MatchedSeparationCallback mpcb) throws InvalidSettingsException {
 		if (sv == null) {
 			throw new InvalidSettingsException("Spectra cannot be non-existant!");
 		}
@@ -138,6 +147,7 @@ public class SeparationFilterNodeModel extends NodeModel {
 		double max_distance         = getMaximumDistanceFromUserDistances();
 		double tolerance            = m_tolerance.getDoubleValue();
 		double[] distances          = getUserSpecifiedDistances();
+		mpcb.setSpectra(sv);
 		for (int i=0; i<sorted_mz.length; i++) {
 			double mz     = sorted_mz[i];
 			double min_mz = mz - max_distance - tolerance;
@@ -189,7 +199,7 @@ public class SeparationFilterNodeModel extends NodeModel {
 	 * @return
 	 */
 	private boolean findSuitableOtherPeak(double mz, double min_mz, double max_mz, int i,
-			double[] user_distances, double[] mzs, double[] itys, final MatchedPeaksCallback mpcb) {
+			double[] user_distances, double[] mzs, double[] itys, final MatchedSeparationCallback mpcb) {
 		// NB: since the peaklist is already sorted we need scan only in both directions from the i'th peak
 		// until the current peak is outside [min_mz, max_mz]
 		int j = i-1;
@@ -209,7 +219,7 @@ public class SeparationFilterNodeModel extends NodeModel {
 		return false;
 	}
 
-	private boolean hasAcceptableDistance(double mz, double mz2, double[] user_distances, final MatchedPeaksCallback mpcb) {
+	private boolean hasAcceptableDistance(double mz, double mz2, double[] user_distances, final MatchedSeparationCallback mpcb) {
 		assert(user_distances != null && user_distances.length > 0 && mpcb != null);
 		
 		double tolerance = m_tolerance.getDoubleValue();
@@ -318,7 +328,8 @@ public class SeparationFilterNodeModel extends NodeModel {
     }
     
     /**
-     * Refuses peaks which have no intensity
+     * Refuses peaks which have no intensity as they cannot participate in the matching algorithm
+     * 
      * @author acassin
      *
      */
