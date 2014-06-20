@@ -2,13 +2,22 @@ package au.edu.unimelb.plantcell.proteomics.peakseparationfilter;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.collection.CollectionCellFactory;
+import org.knime.core.data.collection.ListCell;
+import org.knime.core.data.def.DefaultRow;
+import org.knime.core.data.def.IntCell;
+import org.knime.core.data.def.JoinedRow;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -78,16 +87,24 @@ public class SeparationFilterNodeModel extends NodeModel {
     	}
 		logger.info("Found "+distances.length+" peak separations to search for.");
 		final HashSet<Double> accepted_distances = new HashSet<Double>();
+		final HashSet<String> accepted_peaks = new HashSet<String>();
+		
 		MatchedSeparationCallback mpcb = new MatchedSeparationCallback() {
 			@SuppressWarnings("unused")
 			private SpectraValue cur;
 			
 			@Override
 			public boolean acceptHit(double mz1, double mz2, double accepted_distance) {
-				accepted_distances.add(accepted_distance);
+				String key1 = ""+mz1+" -> " + mz2;
+				String key2 = ""+mz2+" -> " + mz1;
+				if (!(accepted_peaks.contains(key1) || accepted_peaks.contains(key2))) {
+					accepted_distances.add(accepted_distance);
+					accepted_peaks.add(key1);
+				}
+				
 				// expensive due to the amount of logging it generates, so disabled
 				//logger.debug("Found distance "+accepted_distance+" between "+mz1+" and "+mz2+" for spectra: "+cur.getID());
-				return true;
+				return false;		// dont give up with remaining tests... 
 			}
 
 			@Override
@@ -105,11 +122,20 @@ public class SeparationFilterNodeModel extends NodeModel {
     		SpectraValue sv = (SpectraValue) spectra_cell;
     		if (sv.getNumPeaks() > 0) {
         		accepted_distances.clear();
+        		accepted_peaks.clear();
     			processSpectra(sv, mpcb);
 	    		if (implementFilterLogic(accepted_distances, distances)) {
 	    			accepted++;
 	    			logger.debug("Accepted "+sv.getID()+ "(row "+r.getKey().getString()+") as it has required peak(s) separation");
-	    			c.addRow(r);
+	    			DataCell[] cells = new DataCell[2];
+	    			cells[0] = new IntCell(accepted_peaks.size());
+	    			ArrayList<DataCell> peak_pairs = new ArrayList<DataCell>(accepted_peaks.size());
+	    			for (String s : accepted_peaks) {
+	    				peak_pairs.add(new StringCell(s));
+	    			}
+	    			cells[1] = CollectionCellFactory.createListCell(peak_pairs);
+	    			DataRow appended_r = new DefaultRow(r.getKey(), cells);
+	    			c.addRow(new JoinedRow(r, appended_r));
 	    			exec.checkCanceled();
 	    		}
     		}
@@ -226,7 +252,11 @@ public class SeparationFilterNodeModel extends NodeModel {
 		for (double distance : user_distances) {
 			double sep = Math.abs(mz - mz2);
 			if (sep  >= (distance-tolerance) && sep <= (distance+tolerance)) {
-				return mpcb.acceptHit(mz, mz2, distance);
+				if (mpcb.acceptHit(mz, mz2, distance)) {
+					return true;
+				} else {
+					// continue with remaining tests...
+				}
 			}
 		}
 		return false;
@@ -253,7 +283,10 @@ public class SeparationFilterNodeModel extends NodeModel {
 	}
 
 	private DataTableSpec make_output_spec(DataTableSpec inSpec) {
-		return inSpec;
+		DataColumnSpec[] cols = new DataColumnSpec[2];
+		cols[0] = new DataColumnSpecCreator("Number of matching peak separations found", IntCell.TYPE).createSpec();
+		cols[1] = new DataColumnSpecCreator("Peak pairs", ListCell.getCollectionType(StringCell.TYPE)).createSpec();
+		return new DataTableSpec(inSpec, new DataTableSpec(cols));
 	}
 
 	/**
