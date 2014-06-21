@@ -51,12 +51,17 @@ public class MyEditorCellFactory extends AbstractCellFactory {
 		PeakList pl = new PeakListImpl.Builder(sv.getMZ()).intensities(sv.getIntensity()).
 				msLevel(sv.getMSLevel()).precursor(precursor).build();
 		int size = pl.size();
-		pl = m_editor.transform(pl);
-		int n_transformed = pl.size();	// HACK TODO BUG FIXME: not how many peaks are altered....
-		ret[0] = new IntCell(n_transformed);
-		ret[1] = new IntCell(size);
-		ret[2] = SpectraUtilityFactory.createCell(pl);
-		return ret;
+		try {
+			pl = m_editor.transform(pl);
+			int n_transformed = pl.size();	// HACK TODO BUG FIXME: not how many peaks are altered....
+			ret[0] = new IntCell(n_transformed);
+			ret[1] = new IntCell(size);
+			ret[2] = SpectraUtilityFactory.createCell(pl);
+			return ret;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
 	}
 
 	@Override

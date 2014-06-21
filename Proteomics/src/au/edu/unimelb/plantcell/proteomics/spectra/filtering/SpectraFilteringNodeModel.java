@@ -54,7 +54,7 @@ public class SpectraFilteringNodeModel extends NodeModel {
 													"Normalise to highest intensity peak", "Normalise to lowest intensity peak",
 													"Normalise to total peak intensity", "Log-transform peak intensities", 
 													"Transform peak intensities to normalised ranks", "Square-root transform peak intensities",
-													"Centroid peaks (adaptive)", "Centroid peaks (specify window and tolerance below)",
+													"Centroid peaks (adaptive)", "Centroid peaks (specify window size below)",
 													"Intensity threshold (set tolerance below to determine threshold)"
 												};
 	static {
@@ -120,10 +120,8 @@ public class SpectraFilteringNodeModel extends NodeModel {
 
 	private AbstractPeakListEditor make_editor(String meth) throws InvalidSettingsException {
 		AbstractPeakListEditor editor = null;
-		if (meth.startsWith("Centroid peaks (adaptive)")) {
-			editor = new MyCentroider(true);
-		} else if (meth.startsWith("Centroid peaks (specify")) {
-			editor = new MyCentroider(m_window_size.getDoubleValue(), m_tolerance.getDoubleValue());
+		if (meth.startsWith("Centroid peaks")) {
+			editor = meth.endsWith("(adaptive)") ? new AdaptiveCentroider(logger) : new MyCentroider(logger, m_window_size.getDoubleValue());
 		} else if (meth.startsWith("Log-transform")) {
 			editor = new IntensityTransformer(IntensityTransformer.LOG);
 		} else if (meth.startsWith("Transform peak intensities to normalised rank")) {
