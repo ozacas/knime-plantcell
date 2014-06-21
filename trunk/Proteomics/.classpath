@@ -20,7 +20,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/jpl-commons-base-1.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jpl-commons-collection-1.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jpl-commons-collection.graph-1.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/jpl-core-1.0.jar" sourcepath="C:/Users/andrew.cassin/Downloads/jpl-core-1.0-src.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jpl-core-1.0.jar" sourcepath="/home/acassin/jars/javaprotlib/jpl-core-1.0-src.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jpl-io-1.0.jar" sourcepath="C:/Users/andrew.cassin/Downloads/jpl-io-1.0-src.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jpl-io-hdp-1.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jrap-stax.jar"/>
