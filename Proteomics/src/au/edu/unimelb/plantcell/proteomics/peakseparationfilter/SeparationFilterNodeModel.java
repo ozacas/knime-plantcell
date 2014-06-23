@@ -46,9 +46,9 @@ public class SeparationFilterNodeModel extends NodeModel {
 	// the logger instance
     private static final NodeLogger logger = NodeLogger.getLogger("Peak Separation Filter");
         
-    public final static String CFGKEY_SPECTRA_COLUMN = "spectra-column";
-    public final static String CFGKEY_LOGIC = "accept-or-reject";
-    public final static String CFGKEY_MASS_DISTANCES = "mass-distance";
+    public final static String CFGKEY_SPECTRA_COLUMN     = "spectra-column";
+    public final static String CFGKEY_LOGIC              = "accept-or-reject";
+    public final static String CFGKEY_MASS_DISTANCES     = "mass-distance";
     public final static String CFGKEY_DISTANCE_TOLERANCE = "distance-tolerance";
 
     public final static String[] LOGICAL_OPERATIONS = new String[] { "accept spectra if any separation matches", "accept spectra only if all separations match",
@@ -161,7 +161,7 @@ public class SeparationFilterNodeModel extends NodeModel {
 		if (sv == null) {
 			throw new InvalidSettingsException("Spectra cannot be non-existant!");
 		}
-		// TODO... implement fragment state charge handling?
+		// TODO... implement fragment charge handling?
 		
 		// get the peaks for consideration...
 		SortedPeakList spl = new MySortedPeakList(sv);			// removes zero intensity peaks
