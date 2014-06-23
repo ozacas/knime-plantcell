@@ -26,7 +26,8 @@
     <ports>
         <inPort index="0" name="Spectra to filter">Input table with spectra column to process</inPort>
         <!-- possibly more input ports here-->
-        <outPort index="0" name="Filtered results">Input rows which match the chosen filtering method are shown</outPort>
+        <outPort index="0" name="Filtered results">Input rows which match the chosen filtering method are shown. Two additional columns are
+        present: the number of matching peak pairs and the actual matching peak pairs themselves.</outPort>
         <!-- possibly more output ports here-->
     </ports>    
    
