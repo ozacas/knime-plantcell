@@ -150,7 +150,12 @@
    				  level-id="Protein Inference"
    				  name="Protein Inference"
    				  path="/Bioinformatics/Mass Spectrometry/Proteomics" />
-   	
+   				  
+   		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
+   				  icon="icons/proteowizard.png"
+   				  level-id="Proteowizard"
+   				  name="Proteowizard"
+   				  path="/Bioinformatics/Mass Spectrometry/Proteomics" />
            
    		<category description="Nodes written by http://www.plantcell.unimelb.edu.au"
    				  icon="icons/default.png"
@@ -171,6 +176,14 @@
             category-path="/Bioinformatics/Read"
             factory-class="au.edu.unimelb.plantcell.io.read.fasta.FastaReaderNodeFactory"
             id="au.edu.unimelb.plantcell.io.read.fasta"/>
+   </extension>
+   
+    <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/Bioinformatics/Read"
+            factory-class="au.edu.unimelb.plantcell.io.read.fasta.SingleFastaReaderNodeFactory"
+            id="au.edu.unimelb.plantcell.io.read.singlefasta"/>
    </extension>
    
    <extension
