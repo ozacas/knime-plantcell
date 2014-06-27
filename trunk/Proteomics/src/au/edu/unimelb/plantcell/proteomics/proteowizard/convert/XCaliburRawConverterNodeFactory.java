@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.io.convert;
+package au.edu.unimelb.plantcell.proteomics.proteowizard.convert;
 
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;

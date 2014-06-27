@@ -9,11 +9,7 @@
       <node category-path="/Bioinformatics/Mass Spectrometry/Proteomics" factory-class="au.edu.unimelb.plantcell.proteomics.spectra.clustering.SpectraCorrelationNodeFactory" id="au.edu.unimelb.plantcell.proteomics.spectra.clustering.SpectraCorrelationNodeFactory"/>
       <node category-path="/Bioinformatics/Mass Spectrometry/Proteomics" factory-class="au.edu.unimelb.plantcell.proteomics.spectra.filtering.SpectraFilteringNodeFactory" id="au.edu.unimelb.plantcell.proteomics.spectra.filtering.SpectraFilteringNodeFactory"/>
       <node category-path="/Bioinformatics/Mass Spectrometry/Proteomics" factory-class="au.edu.unimelb.plantcell.proteomics.itraq.ITraqAnalyzerNodeFactory" id="au.edu.unimelb.plantcell.proteomics.itraq.ITraqAnalyzerNodeFactory"/>
-      
-      <node category-path="/Bioinformatics/Read" factory-class="au.edu.unimelb.plantcell.io.convert.AnalystWiffConverterNodeFactory" id="au.edu.unimelb.plantcell.proteomics.io.convert.AnalystWiffConverterNodeFactory"/>
-      
-      <node category-path="/Bioinformatics/Read" factory-class="au.edu.unimelb.plantcell.io.convert.XCaliburRawConverterNodeFactory" id="au.edu.unimelb.plantcell.proteomics.io.convert.XCaliburRAWNodeFactory"/>
-      		
+      	
       <node category-path="/Bioinformatics/Under Development/Deprecated" factory-class="au.edu.unimelb.plantcell.proteomics.proteinselector.RepresentativeProteinSelectorNodeFactory" id="au.edu.unimelb.plantcell.proteomics.proteinselector.RepresentativeProteinSelectorNodeFactory"/>
    
       <node category-path="/Bioinformatics/Under Development/Deprecated" factory-class="au.edu.unimelb.plantcell.io.read.pepxml.PepXMLReaderNodeFactory" id="au.edu.unimelb.plantcell.io.read.pepxml.PepXMLReaderNodeFactory"/>
@@ -37,19 +33,33 @@
       <node category-path="/Bioinformatics/Views" factory-class="au.edu.unimelb.plantcell.proteomics.views.multi.MultiSurfaceNodeFactory" id="au.edu.unimelb.plantcell.proteomics.views.multi.MultiSurfaceNodeFactory"/>
    
 	  <node category-path="/Bioinformatics/Mass Spectrometry/Proteomics/Mascot" 
-	  			factory-class="au.edu.unimelb.plantcell.io.ws.mascot.datfile.DatFileDownloadNodeFactory" 
-	  			id="au.edu.unimelb.plantcell.io.ws.mascot.datfile.DatFileDownloadNodeFactory"/>
+	  	factory-class="au.edu.unimelb.plantcell.io.ws.mascot.datfile.DatFileDownloadNodeFactory" 
+	  	id="au.edu.unimelb.plantcell.io.ws.mascot.datfile.DatFileDownloadNodeFactory"/>
 	  <node category-path="/Bioinformatics/Mass Spectrometry/Proteomics/Mascot" 
-	  			factory-class="au.edu.unimelb.plantcell.io.ws.mascot.msms.MSMSSearchNodeFactory" 
-	  			id="au.edu.unimelb.plantcell.io.ws.mascot.msms.MSMSSearchNodeFactory" />
+	  	factory-class="au.edu.unimelb.plantcell.io.ws.mascot.msms.MSMSSearchNodeFactory" 
+	  	id="au.edu.unimelb.plantcell.io.ws.mascot.msms.MSMSSearchNodeFactory" />
 	  <node category-path="/Bioinformatics/Mass Spectrometry/Proteomics/Mascot" 
-	  			factory-class="au.edu.unimelb.plantcell.io.ws.mascot.config.ShowConfigNodeFactory" 
-	  			id="au.edu.unimelb.plantcell.io.ws.mascot.config.ShowConfigNodeFactory"/>
-	  			
-	  <node category-path="/Bioinformatics/Mass Spectrometry/Proteomics"
-	  			factory-class="au.edu.unimelb.plantcell.proteomics.peakseparationfilter.SeparationFilterNodeFactory"
-	  			id="au.edu.unimelb.plantcell.proteomics.peakseparationfilter.SeparationFilterNodeFactory"/>
+	  	factory-class="au.edu.unimelb.plantcell.io.ws.mascot.config.ShowConfigNodeFactory" 
+	  	id="au.edu.unimelb.plantcell.io.ws.mascot.config.ShowConfigNodeFactory"/>
+	  <node category-path="/Bioinformatics/Mass Spectrometry/Proteomics/Mascot" 
+	  	factory-class="au.edu.unimelb.plantcell.io.ws.mascot.msms.AdvMSMSSearchNodeFactory" 
+	  	id="au.edu.unimelb.plantcell.io.ws.mascot.msms.AdvMSMSSearchNodeFactory" />
+	  <node category-path="/Bioinformatics/Mass Spectrometry/Proteomics/Mascot" 
+	  	factory-class="au.edu.unimelb.plantcell.io.ws.mascot.config.DownloadDatabaseNodeFactory" 
+	 	id="au.edu.unimelb.plantcell.io.ws.mascot.config.DownloadDatabaseNodeFactory" />
 	  
+	   <node category-path="/Bioinformatics/Mass Spectrometry/Proteomics" 
+	  	 	factory-class="au.edu.unimelb.plantcell.proteomics.peakseparationfilter.SeparationFilterNodeFactory" 
+	   		id="au.edu.unimelb.plantcell.proteomics.peakseparationfilter.SeparationFilterNodeFactory"/>
+	   		
+	   <node category-path="/Bioinformatics/Mass Spectrometry/Proteomics/Proteowizard" 
+	   		factory-class="au.edu.unimelb.plantcell.proteomics.proteowizard.convert.AnalystWiffConverterNodeFactory" 
+	   		id="au.edu.unimelb.plantcell.proteomics.io.convert.AnalystWiffConverterNodeFactory"/>
+      
+       <node category-path="/Bioinformatics/Mass Spectrometry/Proteomics/Proteowizard" 
+       		factory-class="au.edu.unimelb.plantcell.proteomics.proteowizard.convert.XCaliburRawConverterNodeFactory" 
+       		id="au.edu.unimelb.plantcell.proteomics.io.convert.XCaliburRAWNodeFactory"/>
+      	
 </extension>
    	
 </plugin>

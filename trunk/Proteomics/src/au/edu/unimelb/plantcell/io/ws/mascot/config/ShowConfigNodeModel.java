@@ -62,7 +62,7 @@ public class ShowConfigNodeModel extends NodeModel {
     /**
      * Constructor for the node model.
      */
-    protected ShowConfigNodeModel() {
+    public ShowConfigNodeModel() {
     	super(0,1);
         m_username.setEnabled(false);
         m_password.setEnabled(false);
