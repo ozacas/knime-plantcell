@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.io.convert;
+package au.edu.unimelb.plantcell.proteomics.proteowizard.convert;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
@@ -35,8 +35,8 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
 /**
- * <code>NodeDialog</code> for the "AnalystWiffConverter" Node.
- * Using a JAX-WS web service, this node converts a wiff file (optionally a .wiff.scan file too) to an open-format and then loads it as per Spectra Reader.
+ * <code>NodeDialog</code> for the "XCaliburRawConverter" Node.
+ * Converts XCalibur(tm) Raw files to open formats: mzML, mzXML or MGF using msconvert invoked via a SOAP webservice
  *
  * This node dialog derives from {@link DefaultNodeSettingsPane} which allows
  * creation of a simple dialog with standard components. If you need a more 
@@ -45,13 +45,13 @@ import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
  * 
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
-public class AnalystWiffConverterNodeDialog extends DefaultNodeSettingsPane {
+public class XCaliburRawConverterNodeDialog extends DefaultNodeSettingsPane {
 	private final SettingsModelStringArray file_list = new SettingsModelStringArray(XCaliburRawConverterNodeModel.CFGKEY_RAWFILES, new String[] { });
 
     /**
      * New pane for configuring the XCaliburRawConverter node.
      */
-    protected AnalystWiffConverterNodeDialog() {
+    protected XCaliburRawConverterNodeDialog() {
     	   super();
            final JList<String> flist = new JList<String>(file_list.getStringArrayValue());
            file_list.addChangeListener( new ChangeListener() {
@@ -93,7 +93,7 @@ public class AnalystWiffConverterNodeDialog extends DefaultNodeSettingsPane {
            raw_file_panel.add(new JScrollPane(flist), BorderLayout.CENTER);
            final JPanel button_panel = new JPanel();
            button_panel.setLayout(new GridLayout(2, 1));
-           final JButton add_button = new JButton("Add WIFF files...");
+           final JButton add_button = new JButton("Add XCalibur RAW files...");
            final JButton remove_button = new JButton("Remove Selected");
            add_button.addActionListener(new ActionListener() {
 
@@ -108,7 +108,7 @@ public class AnalystWiffConverterNodeDialog extends DefaultNodeSettingsPane {
    						if (arg0.isDirectory())
    							return true;
    						String fname = arg0.getName().toLowerCase();
-   						if (fname.endsWith(".wiff")) {
+   						if (fname.endsWith(".raw")) {
    							return true;
    						}
    						return false;
@@ -116,7 +116,7 @@ public class AnalystWiffConverterNodeDialog extends DefaultNodeSettingsPane {
 
    					@Override
    					public String getDescription() {
-   						return "AB Sciex Analyst(tm) WIFF Files";
+   						return "XCalibur RAW files";
    					}
    				};
    				
@@ -179,8 +179,8 @@ public class AnalystWiffConverterNodeDialog extends DefaultNodeSettingsPane {
         		   new SettingsModelString(XCaliburRawConverterNodeModel.CFGKEY_ENDPOINT, "http://10.36.10.96:9090/"),
         		   "Endpoint address (advanced users only)"
         		   ));
-           addTabAt(0, "Analyst(tm) WIFF Files", raw_file_panel);
-           selectTab("Analyst(tm) WIFF Files");
+           addTabAt(0, "XCalibur RAW Files", raw_file_panel);
+           selectTab("XCalibur RAW Files");
     }
     
     

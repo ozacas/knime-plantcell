@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.io.convert;
+package au.edu.unimelb.plantcell.proteomics.proteowizard.config;
 
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
@@ -10,15 +10,15 @@ import org.knime.core.node.NodeView;
  *
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
-public class AnalystWiffConverterNodeFactory 
-        extends NodeFactory<AnalystWiffConverterNodeModel> {
+public class ShowConfigNodeFactory 
+        extends NodeFactory<ShowConfigNodeModel> {
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public AnalystWiffConverterNodeModel createNodeModel() {
-        return new AnalystWiffConverterNodeModel();
+    public ShowConfigNodeModel createNodeModel() {
+        return new ShowConfigNodeModel();
     }
 
     /**
@@ -33,8 +33,8 @@ public class AnalystWiffConverterNodeFactory
      * {@inheritDoc}
      */
     @Override
-    public NodeView<AnalystWiffConverterNodeModel> createNodeView(final int viewIndex,
-            final AnalystWiffConverterNodeModel nodeModel) {
+    public NodeView<ShowConfigNodeModel> createNodeView(final int viewIndex,
+            final ShowConfigNodeModel nodeModel) {
         return null;
     }
 
@@ -51,7 +51,7 @@ public class AnalystWiffConverterNodeFactory
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new AnalystWiffConverterNodeDialog();
+        return new ShowConfigNodeDialog();
     }
 
 }

@@ -1,4 +1,4 @@
-package au.edu.unimelb.plantcell.io.convert;
+package au.edu.unimelb.plantcell.proteomics.proteowizard.convert;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -38,7 +38,7 @@ import au.edu.unimelb.plantcell.io.read.spectra.MGFDataProcessor;
 import au.edu.unimelb.plantcell.io.read.spectra.SpectraReaderNodeModel;
 import au.edu.unimelb.plantcell.io.read.spectra.mzMLDataProcessor;
 import au.edu.unimelb.plantcell.io.read.spectra.mzXMLDataProcessor;
-import au.edu.unimelb.plantcell.servers.proteowizard.MSConvert;
+import au.edu.unimelb.plantcell.servers.msconvertee.endpoints.MSConvert;
 
 
 
@@ -256,7 +256,7 @@ public class XCaliburRawConverterNodeModel extends NodeModel {
           }
           
           String id = null;
-          if (is_wiff) {
+         /* if (is_wiff) {
         	  FileDataSource wiff_scan = null;
         	  File tmp = new File(input_file.getParentFile(), input_file.getName()+".scan");
         	  if (tmp.exists() && tmp.isFile() && tmp.canRead()) {
@@ -275,7 +275,7 @@ public class XCaliburRawConverterNodeModel extends NodeModel {
           } else {
         	  logger.info("Submitting raw file: "+input_file.getName());
         	  id = msc.convertThermo(new DataHandler(new FileDataSource(input_file)), input_file.length(), out_format);
-          }
+          }*/
           if (id == null)
         	  throw new IOException("Unable to convert raw file - server gave no job ID!");
           logger.info("Got job id: "+id+" for file: "+input_file.getAbsolutePath());

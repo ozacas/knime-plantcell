@@ -1,9 +1,11 @@
-package au.edu.unimelb.plantcell.servers.proteowizard;
+package au.edu.unimelb.plantcell.servers.msconvertee.endpoints;
+
+import java.util.List;
 
 import javax.activation.DataHandler;
-import javax.jws.WebMethod;
 import javax.jws.WebService;
 import javax.xml.bind.annotation.XmlMimeType;
+import javax.xml.soap.SOAPException;
 
 
 /**
@@ -17,55 +19,58 @@ import javax.xml.bind.annotation.XmlMimeType;
 @WebService
 public interface MSConvert {
 	/**
+	 * Returns list of supported features
+	 */
+	public List<MSConvertFeature> supportedFeatures();
+	
+	/**
+	 * Service support all of the specified features?
+	 */
+	public boolean supportsAllFeatures(final MSConvertFeature[] features) throws SOAPException;
+	
+	/**
+	 * Service support any of the specified features?
+	 */
+	public boolean supportsAnyFeature(final MSConvertFeature[] features) throws SOAPException;
+	
+	/**
+	 * Validates all parameters of the job and throws an exception if any invalid settings are detected.
+	 * Does no conversion. In theory, this should be queued as well as you could launch a denial of service attack
+	 * otherwise.
+	 */
+	public void validateJob(final ProteowizardJob job) throws SOAPException;
+	
+	/**
 	 * Submit and convert the supplied XCalibur (.raw) file from Thermo-Finnigan to mzML format. The conversion is
 	 * asynchronous: it will take time. So a jobID is returned for the caller to poll until COMPLETED (indicates successful conversion)
 	 * 
 	 * @param format one of mzML, mzXML or MGF
 	 */
-	@WebMethod public String convertThermo(@XmlMimeType("application/octet-stream") DataHandler raw_file, 
-			long raw_length, String format);
+	public String convert(final ProteowizardJob job) throws SOAPException; 
 	
 	/**
-	 * Similar to convertThermo(), but for a single WIFF file conversion (ie. no .scan file is present). Better
-	 * to use this method than call <code>convertWiff(wiff, null, ...);</code>
+	 * Get job status - starts with one of [QUEUED, RUNNING, FAILED, ERROR, COMPLETED] with the rest of the
+	 * string possibly describing the nature of the problem.
 	 */
-	@WebMethod public String convertWIFFsingle(@XmlMimeType("application/octet-stream") DataHandler wiff, 
-			long wiff_length, String format);
-	
-	/**
-	 * Submit and convert the supplied Applied Biosystems WIFF format (incl. .wiff.scan if appropriate) to the desired format
-	 * 
-	 * @param wiff .wiff file supplied by user
-	 * @Param wiff_scan .wiff.scan file (if null indicates not available)
-	 * @param format one of mzML, mzXML or MGF
-	 */
-	@WebMethod public String convertWIFF(@XmlMimeType("application/octet-stream") DataHandler wiff, 
-			@XmlMimeType("application/octet-stream") DataHandler wiff_scan, 
-			long wiff_length, long wiff_scan_length,
-			String format);
-	
-	/**
-	 * Get job status - one of [QUEUED, RUNNING, FAILED, COMPLETED, NO QUEUE]
-	 */
-	@WebMethod public String getStatus(String jobID);
+	public String getStatus(String jobID) throws SOAPException;
 	
 	/**
 	 * Returns the number of result file(s) available, as produced by the conversion. Usually 1, but the
 	 * caller should iterate through them all. Always [0..getResultFileCount()-1]. Do not call this method
 	 * unless the conversion status is COMPLETED.
 	 */
-	@WebMethod public int getResultFileCount(String jobID);
+	public int getResultFileCount(String jobID) throws SOAPException;
 	
 	/**
 	 * Returns the name of the file (including extension) for the client to use
 	 */
-	@WebMethod public String getResultFilename(String jobID, int file_index);
+	public String getResultFilename(String jobID, int file_index) throws SOAPException;
 	
 	/**
 	 * Returns the size of the converted file (in bytes) for the caller to check that all bytes have been transferred (checksum maybe?).
 	 * Returns -1 on error or if the specified file does not exist.
 	 */
-	@WebMethod public long getResultFilesize(String jobID, int file_index);
+	public long getResultFilesize(String jobID, int file_index) throws SOAPException;
 	
 	/**
 	 * Download the converted file, this will be deleted upon successful download. Results are only
@@ -76,7 +81,7 @@ public interface MSConvert {
 	 * @param jobID the job to retrieve results for
 	 * @param file_index which file (if more than one during the conversion process) to retrieve
 	 */
-	@WebMethod public @XmlMimeType("application/octet-stream") DataHandler getResultFile(String jobID, int file_index);
+	public @XmlMimeType("application/octet-stream") DataHandler getResultFile(String jobID, int file_index) throws SOAPException;
 	
 	/**
 	 * Purge all result files for the specified job ID from the server. No results for the specified
@@ -84,5 +89,5 @@ public interface MSConvert {
 	 * it may not obey it at all. The server purges results entirely at its discretion: this call is a hint that the data
 	 * will not be required anymore. Consider it a friendly notification ;-)
 	 */
-	@WebMethod public void purgeJobFiles(String jobID);
+	public void purgeJobFiles(String jobID) throws SOAPException;
 }
