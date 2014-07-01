@@ -256,8 +256,7 @@ public class ApplyHeatNodeModel extends NodeModel implements FileTreeViewInterfa
 	}
 	
 	@Override
-	protected void loadValidatedSettingsFrom(NodeSettingsRO settings)
-			throws InvalidSettingsException {
+	protected void loadValidatedSettingsFrom(NodeSettingsRO settings) throws InvalidSettingsException {
 		m_in.loadSettingsFrom(settings);
 		m_out.loadSettingsFrom(settings);
 		m_a.loadSettingsFrom(settings);

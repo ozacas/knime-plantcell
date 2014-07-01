@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.forester.io.parsers.PhylogenyParser;
 import org.forester.io.parsers.util.ParserUtils;
 import org.forester.io.writers.PhylogenyWriter;
@@ -278,7 +279,7 @@ public class PhyloXMLWriterNodeModel extends NodeModel implements FileTreeViewIn
     				NodeData nd = n.getNodeData();
     				Taxonomy t = new Taxonomy();
     				String name = species_map.get(taxa);
-    				t.setScientificName(name);
+    				t.setScientificName(safeXml(name));
     				String image_url = (image_idx >= 0) ? uri_map.get(taxa) : null;
     				if (image_url != null) {
     					t.addUri(new Uri(image_url, "", "image"));
@@ -301,7 +302,7 @@ public class PhyloXMLWriterNodeModel extends NodeModel implements FileTreeViewIn
 						// only add an annotation to the phyloxml if a description for the sequence is available
 						if (sv.hasDescription()) {
 							Annotation annot = new Annotation();
-							annot.setDesc(sv.getDescription());
+							annot.setDesc(safeXml(sv.getDescription()));
     						s.addAnnotation(annot);
 						}
 						// but all sequences objects should have sequence...
@@ -414,7 +415,11 @@ public class PhyloXMLWriterNodeModel extends NodeModel implements FileTreeViewIn
     	
     }
 
-    private void propagate_to_root(final HashMap<String, HashSet<String>> node2bval, 
+    private String safeXml(final String s) {
+		return StringEscapeUtils.escapeXml(s);
+	}
+
+	private void propagate_to_root(final HashMap<String, HashSet<String>> node2bval, 
     								final PhylogenyNode n, final String value) {
     	assert(node2bval != null && n != null && value != null);
     	String id = "" + n.getId();
@@ -485,7 +490,7 @@ public class PhyloXMLWriterNodeModel extends NodeModel implements FileTreeViewIn
 				continue;
 			}
 			
-			ProteinDomain pd = new ProteinDomain(label.toString(), 
+			ProteinDomain pd = new ProteinDomain(safeXml(label.toString()), 
 												Integer.valueOf(start.toString())+1, 
 												Integer.valueOf(end.toString())+1, 1.0);
 			da.addDomain(pd);
