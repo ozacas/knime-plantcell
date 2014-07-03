@@ -19,9 +19,15 @@ import javax.xml.soap.SOAPException;
 @WebService
 public interface MSConvert {
 	/**
-	 * Returns list of supported features
+	 * Returns list of all features recognised/supported by MSConvertEE. Features not supported will not be here ;)
 	 */
-	public List<MSConvertFeature> supportedFeatures();
+	public MSConvertFeature[] allFeatures() throws SOAPException;
+	
+	/**
+	 * Returns list of supported features
+	 * @throws SOAPException 
+	 */
+	public List<MSConvertFeature> supportedFeatures() throws SOAPException;
 	
 	/**
 	 * Service support all of the specified features?
