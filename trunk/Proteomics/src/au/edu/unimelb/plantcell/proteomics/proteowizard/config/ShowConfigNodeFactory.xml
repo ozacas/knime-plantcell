@@ -1,29 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="./proteowizard.png" type="Source">
-    <name>WIFF Converter (remote)</name>
+    <name>Proteowizard Show Config</name>
     
     <shortDescription>
-        Using a JAX-WS web service, this node converts a wiff file (optionally a .wiff.scan file too) to an open-format and then loads it as per Spectra Reader.
+		Displays the features supported by an MSConvertEE server, so that the user can determine which pipeline steps
+        will function as far as Proteomics data processing is concerned
     </shortDescription>
     
     <fullDescription>
-        <intro>Using ProteoWizard msconvert, via a JAX-WS web service, this node converts an Analyst(tm) wiff file (optionally a .wiff.scan file too) to an open-format and then 
-        loads it as per Spectra Reader. As this node accesses a server behind the PCBRC firewall, it is only usable from on-site.
-        Only MS/MS (and higher) spectra are loaded into the output table.</intro>
+        <intro>Displays the features supported by an MSConvertEE server, so that the user can determine which pipeline steps
+        will function as far as Proteomics data processing is concerned. MSConvertEE supports most features provided by Proteowizard's msconvert,
+        and has many of the same limitations since it uses it, and optionally, vendor specific DLL's too. Remember that the server
+        must be installed with the appropriate vendor software to function with vendor raw data. This requires agreement to the vendor's
+        software license.</intro>
         
-        
-        <option name="Analyst WIFF(tm) Files">Select the files to be converted</option>
-        <option name="Output folder">Where the converted files are saved</option>
-        <option name="Overwrite existing?">If checked, this node will overwrite existing files otherwise it will abort.</option>
-        <option name="Output format">Choose one of mzML (recommended), mzXML or Mascot Generic Format (MGF)</option>
-      
     </fullDescription>
     
     <ports>
-        <outPort index="0" name="Spectra table">A table of spectra loaded from the converted files</outPort>
-        
-        <outPort index="1" name="File summary">Contains a metadata summary of each file loaded.</outPort>
+        <outPort index="0" name="MSConvertEE Configuration">A table of spectra loaded from the converted files</outPort>
     </ports>    
    
 </knimeNode>

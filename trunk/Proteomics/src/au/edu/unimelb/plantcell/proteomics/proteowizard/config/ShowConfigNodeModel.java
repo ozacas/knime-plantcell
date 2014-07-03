@@ -31,23 +31,22 @@ import au.edu.unimelb.plantcell.servers.msconvertee.endpoints.MSConvert;
 import au.edu.unimelb.plantcell.servers.msconvertee.endpoints.MSConvertFeature;
 
 /**
- * This is the model implementation of AnalystWiffConverter.
- * Using a JAX-WS web service, this node converts a wiff file (optionally a .wiff.scan file too) to an open-format and then loads it as per Spectra Reader.
+ * This is the model implementation of Proteowizard show configuration node.
  *
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
 public class ShowConfigNodeModel extends NodeModel {
-	private static final QName MSCONVERTEE_QNAME = new QName("", "");
+	private static final QName MSCONVERTEE_QNAME = new QName("http://impl.msconvertee.servers.plantcell.unimelb.edu.au/", "MSConvertImplService");
 	 // the logger instance
     private static final NodeLogger logger = NodeLogger.getLogger("Proteowizard Show Config");
   
-	static final String CFGKEY_RAWFILES = "raw-files";
-	static final String CFGKEY_OUTPUT_FORMAT = "output-format";
-	static final String CFGKEY_OUTPUT_FOLDER = "output-folder";
-	static final String CFGKEY_OVERWRITE     = "overwrite-existing-files?";
 	static final String CFGKEY_ENDPOINT      = "service-endpoint";
+	static final String CFGKEY_USERNAME      = "username";
+	static final String CFGKEY_PASSWD        = "password";
 	
-	private final SettingsModelString  m_endpoint  = new SettingsModelString(CFGKEY_ENDPOINT, "http://localhost:8080/msconvertee/MSConvertConfig?wsdl");
+	private final SettingsModelString  m_endpoint  = new SettingsModelString(CFGKEY_ENDPOINT, "http://localhost:8080/msconvertee/webservices/MSConvertImpl?wsdl");
+	private final SettingsModelString  m_username  = new SettingsModelString(CFGKEY_USERNAME, "");
+	private final SettingsModelString  m_passwd    = new SettingsModelString(CFGKEY_PASSWD, "");
 	
     /**
      * Constructor for the node model.
@@ -62,6 +61,7 @@ public class ShowConfigNodeModel extends NodeModel {
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
+    	logger.info("Connecting to "+m_endpoint.getStringValue());
     	MyDataContainer c = new MyDataContainer(exec.createDataContainer(make_output_spec()[0]), "Feature");
     	Service         s = Service.create(new URL(m_endpoint.getStringValue()), MSCONVERTEE_QNAME);
     	MSConvert port = s.getPort(MSConvert.class);
@@ -74,6 +74,19 @@ public class ShowConfigNodeModel extends NodeModel {
     		cells[3] = DataType.getMissingCell();
     		c.addRow(cells);
     	}
+    	for (MSConvertFeature feat : port.allFeatures()) {
+    		// ignore features which have already been added to the output table or should not be seen by the user
+    		if (feat == MSConvertFeature.UNSUPPORTED_FEATURE || supported_features.contains(feat)) {
+    			continue;
+    		}
+    		DataCell[] cells = new DataCell[4];
+    		cells[0] = new StringCell(m_endpoint.getStringValue());
+    		cells[1] = new StringCell(feat.name());
+    		cells[2] = BooleanCell.FALSE;
+    		cells[3] = DataType.getMissingCell();
+    		c.addRow(cells);
+    	}
+    	logger.info("Obtained MSConvertEE configuration successfully.");
     	return new BufferedDataTable[] {c.close()};
     }
 
@@ -109,15 +122,18 @@ public class ShowConfigNodeModel extends NodeModel {
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
          m_endpoint.saveSettingsTo(settings);
+         m_username.saveSettingsTo(settings);
+         m_passwd.saveSettingsTo(settings);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)  throws InvalidSettingsException {
          m_endpoint.loadSettingsFrom(settings);
+         m_username.loadSettingsFrom(settings);
+         m_passwd.loadSettingsFrom(settings);
     }
 
     /**
@@ -127,6 +143,8 @@ public class ShowConfigNodeModel extends NodeModel {
     protected void validateSettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
          m_endpoint.validateSettings(settings);
+         m_username.validateSettings(settings);
+         m_passwd.validateSettings(settings);
     }
     
     /**
