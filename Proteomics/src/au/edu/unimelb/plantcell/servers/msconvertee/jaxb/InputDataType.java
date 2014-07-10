@@ -10,21 +10,23 @@ package au.edu.unimelb.plantcell.servers.msconvertee.jaxb;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for PrecursorCorrectionType complex type.
+ * <p>Java class for inputDataType complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="PrecursorCorrectionType">
+ * &lt;complexType name="inputDataType">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;attribute name="recalculate" type="{http://www.w3.org/2001/XMLSchema}boolean" />
- *       &lt;attribute name="refine" type="{http://www.w3.org/2001/XMLSchema}boolean" />
+ *       &lt;sequence>
+ *         &lt;element name="data" type="{http://www.w3.org/2001/XMLSchema}base64Binary"/>
+ *         &lt;element name="suggestedName" type="{http://www.w3.org/2001/XMLSchema}string"/>
+ *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
  * &lt;/complexType>
@@ -33,60 +35,61 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "PrecursorCorrectionType")
-public class PrecursorCorrectionType {
+@XmlType(name = "inputDataType", propOrder = {
+    "data",
+    "suggestedName"
+})
+public class InputDataType {
 
-    @XmlAttribute
-    protected Boolean recalculate;
-    @XmlAttribute
-    protected Boolean refine;
+    @XmlElement(required = true)
+    protected byte[] data;
+    @XmlElement(required = true)
+    protected String suggestedName;
 
     /**
-     * Gets the value of the recalculate property.
+     * Gets the value of the data property.
      * 
      * @return
      *     possible object is
-     *     {@link Boolean }
-     *     
+     *     byte[]
      */
-    public Boolean isRecalculate() {
-        return recalculate;
+    public byte[] getData() {
+        return data;
     }
 
     /**
-     * Sets the value of the recalculate property.
+     * Sets the value of the data property.
      * 
      * @param value
      *     allowed object is
-     *     {@link Boolean }
-     *     
+     *     byte[]
      */
-    public void setRecalculate(Boolean value) {
-        this.recalculate = value;
+    public void setData(byte[] value) {
+        this.data = ((byte[]) value);
     }
 
     /**
-     * Gets the value of the refine property.
+     * Gets the value of the suggestedName property.
      * 
      * @return
      *     possible object is
-     *     {@link Boolean }
+     *     {@link String }
      *     
      */
-    public Boolean isRefine() {
-        return refine;
+    public String getSuggestedName() {
+        return suggestedName;
     }
 
     /**
-     * Sets the value of the refine property.
+     * Sets the value of the suggestedName property.
      * 
      * @param value
      *     allowed object is
-     *     {@link Boolean }
+     *     {@link String }
      *     
      */
-    public void setRefine(Boolean value) {
-        this.refine = value;
+    public void setSuggestedName(String value) {
+        this.suggestedName = value;
     }
 
 }

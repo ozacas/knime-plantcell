@@ -1,7 +1,6 @@
 package au.edu.unimelb.plantcell.proteomics.proteowizard.convert;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -11,8 +10,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.activation.DataHandler;
-import javax.activation.FileDataSource;
 import javax.xml.namespace.QName;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.Service;
@@ -256,6 +253,7 @@ public class XCaliburRawConverterNodeModel extends NodeModel {
           }
           
           String id = null;
+          return new ArrayList<File>();// TODO BUG FIXME to the new MSConvert API
          /* if (is_wiff) {
         	  FileDataSource wiff_scan = null;
         	  File tmp = new File(input_file.getParentFile(), input_file.getName()+".scan");
@@ -275,7 +273,7 @@ public class XCaliburRawConverterNodeModel extends NodeModel {
           } else {
         	  logger.info("Submitting raw file: "+input_file.getName());
         	  id = msc.convertThermo(new DataHandler(new FileDataSource(input_file)), input_file.length(), out_format);
-          }*/
+          }
           if (id == null)
         	  throw new IOException("Unable to convert raw file - server gave no job ID!");
           logger.info("Got job id: "+id+" for file: "+input_file.getAbsolutePath());
@@ -330,7 +328,7 @@ public class XCaliburRawConverterNodeModel extends NodeModel {
                   }
           } while (status.equals("PENDING") || status.equals("QUEUED") || status.equals("RUNNING"));
     	
-          return outfiles;
+          return outfiles;*/
 	}
 
 	/**

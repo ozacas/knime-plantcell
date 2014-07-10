@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./proteowizard.png" type="Manipulator">
+    <name>MS Level Filter</name>
+    
+    <shortDescription>
+       Removes all but the selected MS scans from the specified input file. Converts input file to the chosen data format.
+    </shortDescription>
+    
+    <fullDescription>
+       Removes all but the selected MS scans from the specified input file. Converts input file to the chosen data format.
+      
+    </fullDescription>
+    
+    <ports>
+        <outPort index="0" name="Output spectra">MS/MS spectra from each file are automatically loaded into the output table,
+        similar to the Spectra Reader node.</outPort>
+        
+		<outPort index="1" name="File summary">Contains descriptive metadata about each file loaded.</outPort>
+    </ports>    
+  
+</knimeNode>

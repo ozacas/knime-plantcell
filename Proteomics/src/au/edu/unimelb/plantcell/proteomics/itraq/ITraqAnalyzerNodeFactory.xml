@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <knimeNode icon="./default.png" type="Manipulator" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.8 http://knime.org/node/v2.8.xsd">
-    <name>iTRAQ&#174; Analyzer</name>	<!--  174 == registered trademark -->
+    <name>iTRAQ&#174; Analyzer (incomplete)</name>	<!--  174 == registered trademark -->
     
     <shortDescription>
         Given a (set of) proteomics runs, with identified peptides, proteins and iTRAQ quantitation values this nodes performs an analysis and provides normalised results for the user in easy-to-read format. Based on method published in the scientific literature.
