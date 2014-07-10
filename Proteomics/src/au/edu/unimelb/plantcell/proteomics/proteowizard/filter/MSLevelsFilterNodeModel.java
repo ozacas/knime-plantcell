@@ -10,6 +10,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.activation.DataHandler;
 import javax.xml.namespace.QName;
@@ -32,6 +34,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
@@ -62,6 +65,7 @@ public class MSLevelsFilterNodeModel extends NodeModel {
 	public final static String CFGKEY_ACCEPTED_MSLEVELS = "ms-levels-to-accept";
 	public final static String CFGKEY_SAVETO = "save-to-folder";
 	public final static String CFGKEY_TABLE_DESIRED = "table-output-desired";
+	public final static String CFGKEY_OVERWRITE_RESULTS = "overwrite-existing-output";
 	
 	public final static String[] TABLE_OUTPUT_DESIRED = new String[] { "File summary (incl. stdout & stderr)",
 		"MS/MS (and higher) spectra only", "All spectra (slow)" };
@@ -70,6 +74,7 @@ public class MSLevelsFilterNodeModel extends NodeModel {
 	private final SettingsModelString m_username = new SettingsModelString(CFGKEY_USERNAME, "");
 	private final SettingsModelString m_password = new SettingsModelString(CFGKEY_PASSWORD, "");
 	private final SettingsModelString m_output_format = new SettingsModelString(CFGKEY_OUTPUT_DATA_FORMAT, "");
+	private final SettingsModelBoolean m_overwrite = new SettingsModelBoolean(CFGKEY_OVERWRITE_RESULTS, Boolean.FALSE);
 	private final SettingsModelString m_save_to = new SettingsModelString(CFGKEY_SAVETO, "");
 	private final SettingsModelString m_input_column  = new SettingsModelString(CFGKEY_INPUT_FILE_COLUMN, "");
 	private final SettingsModelStringArray m_mslevels = new SettingsModelStringArray(CFGKEY_ACCEPTED_MSLEVELS, new String[] {});
@@ -103,7 +108,7 @@ public class MSLevelsFilterNodeModel extends NodeModel {
 		ObjectFactory of = new ObjectFactory();
 		MsLevelType mslevels = of.createMsLevelType();
 		for (String s : m_mslevels.getStringArrayValue()) {
-			mslevels.getMsLevel().add(Integer.valueOf(s));
+			mslevels.getMsLevel().add(Integer.valueOf(s.trim()));
 		}
 		MSConvert msc = makeServiceProxy(m_url.getStringValue());
 		MyDataContainer c = new MyDataContainer(exec.createDataContainer(
@@ -119,8 +124,8 @@ public class MSLevelsFilterNodeModel extends NodeModel {
 			FilterParametersType fpt = of.createFilterParametersType();
 			fpt.setMsLevelFilter(mslevels);
 			j.setFilterParameters(fpt);
-			DataHandler dh = new DataHandler(toURL(input_file_cell.toString()));
-			String jID = msc.convert(j, new DataHandler[] {dh});
+			DataHandler[] dh = setupDataFiles(j, input_file_cell.toString());
+			String jID = msc.convert(j, dh);
 			waitForCompletion(msc, jID, new String[] { "FINISH", "COMPLETE" }, exec);
 			// if we get here, we can download the results and save them and then make the output table desired
 			ListOfDataFile results = msc.getResults(jID);
@@ -132,9 +137,56 @@ public class MSLevelsFilterNodeModel extends NodeModel {
 			done++; 
 		}
 		logger.info("Filtered and converted: "+done+" files.");
-		return new BufferedDataTable[] {};
+		return new BufferedDataTable[] {c.close()};
 	}
 	
+	/**
+	 * Returns a list of DataHandlers for each data file represented by url. Modifies the specified {@link ProteowizardJob}
+	 * to specify the input list of data files.
+	 * 
+	 * @param j	modified by this call (must not be null
+	 * @param url input data file (must not be null)
+	 * @return
+	 */
+	private DataHandler[] setupDataFiles(ProteowizardJob j, String url) throws IOException {
+		assert(j != null && url != null);
+		URL u = toURL(url);
+		DataHandler dh = new DataHandler(u);
+		j.setInputDataFormat(guessInputDataFormat(u));
+		j.getInputDataNames().clear();
+		j.getInputDataNames().add(extractLastPathComponent(u.getPath()));
+		return new DataHandler[] {dh};
+	}
+
+	private String extractLastPathComponent(String path) throws IOException {
+		Pattern p = Pattern.compile("^.*[/\\\\]([^/\\\\]+?)$");
+		Matcher m = p.matcher(path);
+		if (m.matches()) {
+			String grp1 = m.group(1);
+			return grp1;
+		} else {
+			throw new IOException("No last path component of filename!");
+		}
+	}
+
+	private String guessInputDataFormat(URL url) throws IOException {
+		assert(url != null);
+		String path = url.getPath().trim().toLowerCase();
+		if (path.endsWith(".raw")) {
+			return "RAW";
+		} else if (path.endsWith(".mgf")) {
+			return "MGF";
+		} else if (path.endsWith(".mzml")) {
+			return "MzML";
+		} else if (path.endsWith(".mzxml") || path.endsWith(".xml")) {
+			return "MzXML";
+		} else if (path.endsWith(".wiff")) {
+			return "WIFF";
+		} else {
+			throw new IOException("Unsupported file type: "+path);
+		}
+	}
+
 	private void makeDesiredTable(MyDataContainer c, String desired_table,
 			ListOfDataFile results, String folder_to_save_to, ExecutionContext exec) throws IOException { 
 		assert(exec != null && results != null && c != null);
@@ -218,7 +270,7 @@ public class MSLevelsFilterNodeModel extends NodeModel {
 		for (DataFileType dft : results.getDataFile()) {
 			String name = safeName(dft.getSuggestedName());
 			File out = new File(output_folder, name);
-			if (out.exists()) {
+			if (out.exists() && !m_overwrite.getBooleanValue()) {
 				throw new IOException("Will not overwrite existing: "+out.getAbsolutePath());
 			}
 			FileOutputStream fos = null;
@@ -325,6 +377,8 @@ public class MSLevelsFilterNodeModel extends NodeModel {
 		m_table_desired.saveSettingsTo(settings);
 		m_username.saveSettingsTo(settings);
 		m_password.saveSettingsTo(settings);
+		m_save_to.saveSettingsTo(settings);
+		m_overwrite.saveSettingsTo(settings);
 	}
 
 	@Override
@@ -337,6 +391,9 @@ public class MSLevelsFilterNodeModel extends NodeModel {
 		m_table_desired.validateSettings(settings);
 		m_username.validateSettings(settings);
 		m_password.validateSettings(settings);
+		m_save_to.validateSettings(settings);
+		m_overwrite.validateSettings(settings);
+
 	}
 
 	@Override
@@ -349,6 +406,8 @@ public class MSLevelsFilterNodeModel extends NodeModel {
 		m_table_desired.loadSettingsFrom(settings);
 		m_username.loadSettingsFrom(settings);
 		m_password.loadSettingsFrom(settings);
+		m_save_to.loadSettingsFrom(settings);
+		m_overwrite.loadSettingsFrom(settings);
 	}
 
 	@Override

@@ -6,11 +6,13 @@ import javax.swing.ListSelectionModel;
 
 import org.knime.core.data.StringValue;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
 import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringListSelection;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
@@ -24,12 +26,14 @@ public class MSLevelsFilterNodeDialog extends DefaultNodeSettingsPane {
 					new SettingsModelString(MSLevelsFilterNodeModel.CFGKEY_URL, "http://localhost:8080/msconvertee/webservices/MSConvertImpl?wsdl"),
 					"MSConvertEE URL"
 				));
+		setHorizontalPlacement(true);
 		addDialogComponent(new DialogComponentString(
 				new SettingsModelString(MSLevelsFilterNodeModel.CFGKEY_USERNAME, ""), "Username"
 				));
 		addDialogComponent(new DialogComponentString(
 				new SettingsModelString(MSLevelsFilterNodeModel.CFGKEY_PASSWORD, ""), "Password"
 				));
+		setHorizontalPlacement(false);
 		this.closeCurrentGroup();
 		
 		createNewGroup("Data Handling");
@@ -38,6 +42,9 @@ public class MSLevelsFilterNodeDialog extends DefaultNodeSettingsPane {
 				));
 		addDialogComponent(new DialogComponentFileChooser(
 				new SettingsModelString(MSLevelsFilterNodeModel.CFGKEY_SAVETO, ""), "msconvert-output", 0, true));
+		addDialogComponent(new DialogComponentBoolean(
+				new SettingsModelBoolean(MSLevelsFilterNodeModel.CFGKEY_OVERWRITE_RESULTS, Boolean.FALSE), "Overwrite existing files?"
+				));
 		this.closeCurrentGroup();
 		
 		createNewGroup("Output table should contain... ");
@@ -63,7 +70,7 @@ public class MSLevelsFilterNodeDialog extends DefaultNodeSettingsPane {
 	private void addFilterSettings() {
 		ArrayList<String> levels = new ArrayList<String>();
 		for (int i=1; i<10; i++) {
-			levels.add(String.valueOf(i));
+			levels.add(String.valueOf(i)+"   "); // HACK: Integer.valueOf() will work even with trailing spaces, so this just makes the box a little wider
 		}
 		addDialogComponent(new DialogComponentStringListSelection(
 				new SettingsModelStringArray(MSLevelsFilterNodeModel.CFGKEY_ACCEPTED_MSLEVELS, new String[] {}),
