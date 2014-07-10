@@ -17,18 +17,16 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * specify a list of m/z values to accept. 0 may be used to specify accept when no precursor is available.
- * 
- * <p>Java class for mzPrecursorFilterType complex type.
+ * <p>Java class for ScanNumberFilterType complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="mzPrecursorFilterType">
+ * &lt;complexType name="ScanNumberFilterType">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="acceptMZ" type="{http://www.w3.org/2001/XMLSchema}string" maxOccurs="unbounded"/>
+ *         &lt;element name="acceptScan" type="{http://www.w3.org/2001/XMLSchema}int" maxOccurs="unbounded"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -38,41 +36,41 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "mzPrecursorFilterType", propOrder = {
-    "acceptMZ"
+@XmlType(name = "ScanNumberFilterType", propOrder = {
+    "acceptScan"
 })
-public class MzPrecursorFilterType {
+public class ScanNumberFilterType {
 
-    @XmlElement(required = true)
-    protected List<String> acceptMZ;
+    @XmlElement(type = Integer.class)
+    protected List<Integer> acceptScan;
 
     /**
-     * Gets the value of the acceptMZ property.
+     * Gets the value of the acceptScan property.
      * 
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the acceptMZ property.
+     * This is why there is not a <CODE>set</CODE> method for the acceptScan property.
      * 
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
-     *    getAcceptMZ().add(newItem);
+     *    getAcceptScan().add(newItem);
      * </pre>
      * 
      * 
      * <p>
      * Objects of the following type(s) are allowed in the list
-     * {@link String }
+     * {@link Integer }
      * 
      * 
      */
-    public List<String> getAcceptMZ() {
-        if (acceptMZ == null) {
-            acceptMZ = new ArrayList<String>();
+    public List<Integer> getAcceptScan() {
+        if (acceptScan == null) {
+            acceptScan = new ArrayList<Integer>();
         }
-        return this.acceptMZ;
+        return this.acceptScan;
     }
 
 }

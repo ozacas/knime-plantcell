@@ -16,24 +16,19 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for KeepNThresholdType complex type.
+ * <p>Java class for peakPickingType complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="KeepNThresholdType">
+ * &lt;complexType name="peakPickingType">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
+ *         &lt;element name="preferVendor" type="{http://www.w3.org/2001/XMLSchema}boolean"/>
  *         &lt;element name="msLevels" type="{http://www.plantcell.unimelb.edu.au/bioinformatics/schemas/v1/msconvertee}MsLevelType"/>
  *       &lt;/sequence>
- *       &lt;attribute name="what">
- *         &lt;simpleType>
- *           &lt;restriction base="{http://www.plantcell.unimelb.edu.au/bioinformatics/schemas/v1/msconvertee}MostOrLeast">
- *           &lt;/restriction>
- *         &lt;/simpleType>
- *       &lt;/attribute>
- *       &lt;attribute name="n" type="{http://www.w3.org/2001/XMLSchema}int" />
+ *       &lt;attribute name="fixMetadata" type="{http://www.w3.org/2001/XMLSchema}boolean" />
  *     &lt;/restriction>
  *   &lt;/complexContent>
  * &lt;/complexType>
@@ -42,17 +37,33 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "KeepNThresholdType", propOrder = {
+@XmlType(name = "peakPickingType", propOrder = {
+    "preferVendor",
     "msLevels"
 })
-public class KeepNThresholdType {
+public class PeakPickingType {
 
+    protected boolean preferVendor;
     @XmlElement(required = true)
     protected MsLevelType msLevels;
     @XmlAttribute
-    protected MostOrLeast what;
-    @XmlAttribute
-    protected Integer n;
+    protected Boolean fixMetadata;
+
+    /**
+     * Gets the value of the preferVendor property.
+     * 
+     */
+    public boolean isPreferVendor() {
+        return preferVendor;
+    }
+
+    /**
+     * Sets the value of the preferVendor property.
+     * 
+     */
+    public void setPreferVendor(boolean value) {
+        this.preferVendor = value;
+    }
 
     /**
      * Gets the value of the msLevels property.
@@ -79,51 +90,27 @@ public class KeepNThresholdType {
     }
 
     /**
-     * Gets the value of the what property.
+     * Gets the value of the fixMetadata property.
      * 
      * @return
      *     possible object is
-     *     {@link MostOrLeast }
+     *     {@link Boolean }
      *     
      */
-    public MostOrLeast getWhat() {
-        return what;
+    public Boolean isFixMetadata() {
+        return fixMetadata;
     }
 
     /**
-     * Sets the value of the what property.
+     * Sets the value of the fixMetadata property.
      * 
      * @param value
      *     allowed object is
-     *     {@link MostOrLeast }
+     *     {@link Boolean }
      *     
      */
-    public void setWhat(MostOrLeast value) {
-        this.what = value;
-    }
-
-    /**
-     * Gets the value of the n property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Integer }
-     *     
-     */
-    public Integer getN() {
-        return n;
-    }
-
-    /**
-     * Sets the value of the n property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Integer }
-     *     
-     */
-    public void setN(Integer value) {
-        this.n = value;
+    public void setFixMetadata(Boolean value) {
+        this.fixMetadata = value;
     }
 
 }

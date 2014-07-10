@@ -14,19 +14,17 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * Specify a range of (unitless) numeric values to accept. low must be less than, or equal to high.
- * 
- * <p>Java class for WindowFilterType complex type.
+ * <p>Java class for ScanTimeFilterType complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="WindowFilterType">
+ * &lt;complexType name="ScanTimeFilterType">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="low" type="{http://www.w3.org/2001/XMLSchema}double"/>
- *         &lt;element name="high" type="{http://www.w3.org/2001/XMLSchema}double"/>
+ *         &lt;element name="lower" type="{http://www.w3.org/2001/XMLSchema}double"/>
+ *         &lt;element name="upper" type="{http://www.w3.org/2001/XMLSchema}double"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -36,45 +34,45 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "WindowFilterType", propOrder = {
-    "low",
-    "high"
+@XmlType(name = "ScanTimeFilterType", propOrder = {
+    "lower",
+    "upper"
 })
-public class WindowFilterType {
+public class ScanTimeFilterType {
 
-    protected double low;
-    protected double high;
+    protected double lower;
+    protected double upper;
 
     /**
-     * Gets the value of the low property.
+     * Gets the value of the lower property.
      * 
      */
-    public double getLow() {
-        return low;
+    public double getLower() {
+        return lower;
     }
 
     /**
-     * Sets the value of the low property.
+     * Sets the value of the lower property.
      * 
      */
-    public void setLow(double value) {
-        this.low = value;
+    public void setLower(double value) {
+        this.lower = value;
     }
 
     /**
-     * Gets the value of the high property.
+     * Gets the value of the upper property.
      * 
      */
-    public double getHigh() {
-        return high;
+    public double getUpper() {
+        return upper;
     }
 
     /**
-     * Sets the value of the high property.
+     * Sets the value of the upper property.
      * 
      */
-    public void setHigh(double value) {
-        this.high = value;
+    public void setUpper(double value) {
+        this.upper = value;
     }
 
 }
