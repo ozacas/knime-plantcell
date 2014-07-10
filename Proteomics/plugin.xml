@@ -62,6 +62,9 @@
        <node category-path="/Bioinformatics/Mass Spectrometry/Proteomics/Proteowizard" 
        		factory-class="au.edu.unimelb.plantcell.proteomics.proteowizard.config.ShowConfigNodeFactory" 
        		id="au.edu.unimelb.plantcell.proteomics.proteowizard.config.ShowConfigNodeFactory"/>
+       <node category-path="/Bioinformatics/Mass Spectrometry/Proteomics/Proteowizard"
+       		 factory-class="au.edu.unimelb.plantcell.proteomics.proteowizard.filter.MSLevelsFilterNodeFactory"
+       		 id="au.edu.unimelb.plantcell.proteomics.proteowizard.filter.MSLevelsFilterNodeFactory" />
       	
 </extension>
    	
