@@ -26,13 +26,10 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
-import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
-import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
-import org.knime.core.node.defaultnodesettings.DialogComponentString;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
+
+import au.edu.unimelb.plantcell.proteomics.proteowizard.filter.MSLevelsFilterNodeDialog;
+import au.edu.unimelb.plantcell.proteomics.proteowizard.filter.MSLevelsFilterNodeModel;
 
 /**
  * <code>NodeDialog</code> for the "AnalystWiffConverter" Node.
@@ -45,7 +42,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
  * 
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
-public class AnalystWiffConverterNodeDialog extends DefaultNodeSettingsPane {
+public class AnalystWiffConverterNodeDialog extends MSLevelsFilterNodeDialog {
 	private final SettingsModelStringArray file_list = new SettingsModelStringArray(XCaliburRawConverterNodeModel.CFGKEY_RAWFILES, new String[] { });
 
     /**
@@ -160,29 +157,19 @@ public class AnalystWiffConverterNodeDialog extends DefaultNodeSettingsPane {
            button_panel.add(add_button);
            button_panel.add(remove_button);
            raw_file_panel.add(button_panel, BorderLayout.EAST);
-           
-           setDefaultTabTitle("Options");
-           addDialogComponent(new DialogComponentButtonGroup(
-        		   new SettingsModelString(XCaliburRawConverterNodeModel.CFGKEY_OUTPUT_FORMAT, "mzML"), 
-        		   false, "Output format", new String[] { "mzML", "mzXML", "MGF" }));
-           
-           addDialogComponent(new DialogComponentFileChooser(
-        		   new SettingsModelString(XCaliburRawConverterNodeModel.CFGKEY_OUTPUT_FOLDER, "c:/temp"),
-        		   "raw-output-folder", JFileChooser.SAVE_DIALOG, true));
-           
-           addDialogComponent(new DialogComponentBoolean(
-        		   new SettingsModelBoolean(XCaliburRawConverterNodeModel.CFGKEY_OVERWRITE, Boolean.FALSE),
-        		   "Overwrite existing files in output folder?"
-        		   ));
-           
-           addDialogComponent(new DialogComponentString(
-        		   new SettingsModelString(XCaliburRawConverterNodeModel.CFGKEY_ENDPOINT, "http://10.36.10.96:9090/"),
-        		   "Endpoint address (advanced users only)"
-        		   ));
-           addTabAt(0, "Analyst(tm) WIFF Files", raw_file_panel);
-           selectTab("Analyst(tm) WIFF Files");
+          
+           addTabAt(0, getAnalystTabName(), raw_file_panel);
+           selectTab(getAnalystTabName());
     }
     
+    public String getAnalystTabName() {
+    	return "AB-SCIEX Analyst(tm) WIFF Files";
+    }
+    
+    @Override
+    protected void addFilterSettings() {
+    	// NO-OP
+    }
     
     @Override
     public void loadAdditionalSettingsFrom(NodeSettingsRO settings, DataTableSpec[] specs) throws NotConfigurableException {
@@ -196,6 +183,8 @@ public class AnalystWiffConverterNodeDialog extends DefaultNodeSettingsPane {
     @Override
     public void saveAdditionalSettingsTo(NodeSettingsWO settings) {
     	file_list.saveSettingsTo(settings);
+    	// need to save this to keep superclass happy
+    	settings.addStringArray(MSLevelsFilterNodeModel.CFGKEY_ACCEPTED_MSLEVELS, new String[] {});
     }
 }
 

@@ -26,13 +26,10 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
-import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
-import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
-import org.knime.core.node.defaultnodesettings.DialogComponentString;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
+
+import au.edu.unimelb.plantcell.proteomics.proteowizard.filter.MSLevelsFilterNodeDialog;
+import au.edu.unimelb.plantcell.proteomics.proteowizard.filter.MSLevelsFilterNodeModel;
 
 /**
  * <code>NodeDialog</code> for the "XCaliburRawConverter" Node.
@@ -45,7 +42,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
  * 
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
-public class XCaliburRawConverterNodeDialog extends DefaultNodeSettingsPane {
+public class XCaliburRawConverterNodeDialog extends MSLevelsFilterNodeDialog {
 	private final SettingsModelStringArray file_list = new SettingsModelStringArray(XCaliburRawConverterNodeModel.CFGKEY_RAWFILES, new String[] { });
 
     /**
@@ -161,24 +158,6 @@ public class XCaliburRawConverterNodeDialog extends DefaultNodeSettingsPane {
            button_panel.add(remove_button);
            raw_file_panel.add(button_panel, BorderLayout.EAST);
            
-           setDefaultTabTitle("Options");
-           addDialogComponent(new DialogComponentButtonGroup(
-        		   new SettingsModelString(XCaliburRawConverterNodeModel.CFGKEY_OUTPUT_FORMAT, "mzML"), 
-        		   false, "Output format", new String[] { "mzML", "mzXML", "MGF" }));
-           
-           addDialogComponent(new DialogComponentFileChooser(
-        		   new SettingsModelString(XCaliburRawConverterNodeModel.CFGKEY_OUTPUT_FOLDER, "c:/temp"),
-        		   "raw-output-folder", JFileChooser.SAVE_DIALOG, true));
-           
-           addDialogComponent(new DialogComponentBoolean(
-        		   new SettingsModelBoolean(XCaliburRawConverterNodeModel.CFGKEY_OVERWRITE, Boolean.FALSE),
-        		   "Overwrite existing files in output folder?"
-        		   ));
-           
-           addDialogComponent(new DialogComponentString(
-        		   new SettingsModelString(XCaliburRawConverterNodeModel.CFGKEY_ENDPOINT, "http://10.36.10.96:9090/"),
-        		   "Endpoint address (advanced users only)"
-        		   ));
            addTabAt(0, "XCalibur RAW Files", raw_file_panel);
            selectTab("XCalibur RAW Files");
     }
@@ -196,6 +175,7 @@ public class XCaliburRawConverterNodeDialog extends DefaultNodeSettingsPane {
     @Override
     public void saveAdditionalSettingsTo(NodeSettingsWO settings) {
     	file_list.saveSettingsTo(settings);
+    	settings.addStringArray(MSLevelsFilterNodeModel.CFGKEY_ACCEPTED_MSLEVELS, new String[]{});
     }
 }
 

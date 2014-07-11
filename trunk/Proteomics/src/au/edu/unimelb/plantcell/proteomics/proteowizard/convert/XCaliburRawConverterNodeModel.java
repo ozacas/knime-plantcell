@@ -2,7 +2,6 @@ package au.edu.unimelb.plantcell.proteomics.proteowizard.convert;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -10,23 +9,19 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.xml.namespace.QName;
+import javax.activation.DataHandler;
+import javax.activation.FileDataSource;
 import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Service;
 import javax.xml.ws.soap.SOAPBinding;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
 import au.edu.unimelb.plantcell.core.MyDataContainer;
@@ -35,7 +30,10 @@ import au.edu.unimelb.plantcell.io.read.spectra.MGFDataProcessor;
 import au.edu.unimelb.plantcell.io.read.spectra.SpectraReaderNodeModel;
 import au.edu.unimelb.plantcell.io.read.spectra.mzMLDataProcessor;
 import au.edu.unimelb.plantcell.io.read.spectra.mzXMLDataProcessor;
+import au.edu.unimelb.plantcell.proteomics.proteowizard.filter.MSLevelsFilterNodeModel;
+import au.edu.unimelb.plantcell.servers.core.jaxb.results.ListOfDataFile;
 import au.edu.unimelb.plantcell.servers.msconvertee.endpoints.MSConvert;
+import au.edu.unimelb.plantcell.servers.msconvertee.endpoints.ProteowizardJob;
 
 
 
@@ -45,7 +43,7 @@ import au.edu.unimelb.plantcell.servers.msconvertee.endpoints.MSConvert;
  *
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
-public class XCaliburRawConverterNodeModel extends NodeModel {
+public class XCaliburRawConverterNodeModel extends MSLevelsFilterNodeModel {
 	 // the logger instance
     private static final NodeLogger logger = NodeLogger.getLogger("RAW Converter");
     
@@ -53,24 +51,21 @@ public class XCaliburRawConverterNodeModel extends NodeModel {
     private final static String HTTP_CLIENT_STREAMING_CHUNK_SIZE = "com.sun.xml.ws.transport.http.client.streaming.chunk.size";
 
 	static final String CFGKEY_RAWFILES = "raw-files";
-	static final String CFGKEY_OUTPUT_FORMAT = "output-format";
-	static final String CFGKEY_OUTPUT_FOLDER = "output-folder";
-	static final String CFGKEY_OVERWRITE     = "overwrite-existing-files?";
-	static final String CFGKEY_ENDPOINT      = "service-endpoint";
 	
 	private final SettingsModelStringArray m_files = new SettingsModelStringArray(CFGKEY_RAWFILES, new String[] {});
-	private final SettingsModelString m_outformat  = new SettingsModelString(CFGKEY_OUTPUT_FORMAT, "mzML");
-	private final SettingsModelString m_outfolder  = new SettingsModelString(CFGKEY_OUTPUT_FOLDER, "c:/temp");
-	private final SettingsModelBoolean m_overwrite = new SettingsModelBoolean(CFGKEY_OVERWRITE, Boolean.FALSE);
-	private final SettingsModelString  m_endpoint  = new SettingsModelString(CFGKEY_ENDPOINT, "http://10.36.10.96:9090/");
-	
+
     /**
      * Constructor for the node model.
      */
-    protected XCaliburRawConverterNodeModel() {
+    public XCaliburRawConverterNodeModel() {
          super(0, 2);
     }
 
+    @Override
+    protected NodeLogger getNodeLogger() {
+    	return logger;
+    }
+    
     /**
      * {@inheritDoc}
      */
@@ -78,7 +73,8 @@ public class XCaliburRawConverterNodeModel extends NodeModel {
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
     	
-    	logger.info("Converting "+m_files.getStringArrayValue().length + " raw files to "+m_outformat.getStringValue());
+    	NodeLogger logger = getNodeLogger();
+    	logger.info("Converting "+m_files.getStringArrayValue().length + " raw files to "+getOutputFormat());
     	
     	// 1. convert each file placing result in destination folder. Abort if something looks bad...
     	List<File> entries = new ArrayList<File>();
@@ -95,8 +91,8 @@ public class XCaliburRawConverterNodeModel extends NodeModel {
     		 * Its possible that a single input file may result in multiple (pieces) of output each in separate files.
     		 * So we handle this case.
     		 */
-    		Collection<File> outfiles = convert_and_save(logger, m_endpoint.getStringValue().trim(), m_overwrite.getBooleanValue(),
-    				false, input_file, new File(m_outfolder.getStringValue()), m_outformat.getStringValue());
+    		Collection<File> outfiles = convert_and_save(logger, getServiceEndpoint(), shouldOverwriteExistingFiles(),
+    				false, input_file, getOutputFolder(), getOutputFormat());
     	
     		for (File f : outfiles) {
     	        	if (f.canRead() && f.isFile()) {
@@ -215,25 +211,15 @@ public class XCaliburRawConverterNodeModel extends NodeModel {
      * @return
      * @throws Exception
      */
-    public static Collection<File> convert_and_save(NodeLogger logger, String endpoint, boolean overwrite_existing_files, 
-    		boolean is_wiff, File input_file, 
-    		File output_folder, String out_format) throws Exception {
+    public Collection<File> convert_and_save(final NodeLogger logger, String endpoint, boolean overwrite_existing_files, 
+    		boolean is_wiff, final File input_file, final File output_folder, String out_format) throws Exception {
     	  assert(logger != null && input_file != null && output_folder != null && out_format != null && out_format.length() > 0);
     	  
     	  if (!output_folder.exists()) {
     		  throw new IOException("No such folder or directory: "+output_folder.getAbsolutePath());
     	  }
     	 
-    	  // JAX-WS RI seems sensitive to excess slashes between the host and path parts of the URL so...
-    	  while (endpoint.endsWith("/")) {
-    		  endpoint = endpoint.substring(0, endpoint.length()-1);
-    	  }
-    	  URL    u = new URL(endpoint+"/msconvert/msconvert?wsdl");
-          QName qn = new QName("http://proteowizard.servers.plantcell.unimelb.edu.au/", "MSConvertImplService");
-
-          Service s = Service.create(u, qn);
-          MSConvert msc = s.getPort(MSConvert.class);
-          
+          MSConvert msc = makeServiceProxy(endpoint);
           if (msc == null) 
         	  throw new IOException("Cannot create proxy to MSConvert service!");
                     
@@ -253,97 +239,48 @@ public class XCaliburRawConverterNodeModel extends NodeModel {
           }
           
           String id = null;
-          return new ArrayList<File>();// TODO BUG FIXME to the new MSConvert API
-         /* if (is_wiff) {
-        	  FileDataSource wiff_scan = null;
-        	  File tmp = new File(input_file.getParentFile(), input_file.getName()+".scan");
-        	  if (tmp.exists() && tmp.isFile() && tmp.canRead()) {
-        		  wiff_scan = new FileDataSource(tmp);
-        	  }
+    	  ProteowizardJob j = new ProteowizardJob();
+    	  j.setOutputFormat(out_format);
+
+          if (is_wiff) {
         	  logger.info("Submitting wiff file: "+input_file.getName());
-        	  if (wiff_scan != null)
-        		  logger.info("Submitting "+wiff_scan.getName()+" for conversion too.");
-        	  FileDataSource wiff_file = new FileDataSource(input_file);
-        	  // we use the single method when there is only one file to avoid WebService passing null interop problems...
-        	  if (wiff_scan == null)
-        		  id = msc.convertWIFFsingle(new DataHandler(wiff_file), input_file.length(), out_format);
-        	  else 
-        		  id = msc.convertWIFF(new DataHandler(wiff_file), new DataHandler(wiff_scan), 
-        				  				input_file.length(), tmp.length(), out_format);
+        	  ArrayList<DataHandler> dh_list = new ArrayList<DataHandler>();
+        	  dh_list.add(new DataHandler(new FileDataSource(input_file)));
+        	  j.getInputDataNames().add(input_file.getName());
+        	  String scan_name = input_file.getName()+".scan";
+        	  File tmp = new File(input_file.getParentFile(), scan_name);
+        	  j.setInputDataFormat("WIFF");
+        	  if (tmp.exists() && tmp.isFile() && tmp.canRead()) {
+        		  dh_list.add(new DataHandler(new FileDataSource(tmp)));
+        		  logger.info("Submitting "+tmp.getName()+" for conversion too.");
+        		  j.getInputDataNames().add(scan_name);
+        	  }
+        	 
+        	  id = msc.convert(j, dh_list.toArray(new DataHandler[0]));
           } else {
         	  logger.info("Submitting raw file: "+input_file.getName());
-        	  id = msc.convertThermo(new DataHandler(new FileDataSource(input_file)), input_file.length(), out_format);
+        	  j.setInputDataFormat("RAW");
+        	  j.getInputDataNames().add(input_file.getName());
+        	  id = msc.convert(j, new DataHandler[] {new DataHandler(new FileDataSource(input_file))});
           }
           if (id == null)
         	  throw new IOException("Unable to convert raw file - server gave no job ID!");
           logger.info("Got job id: "+id+" for file: "+input_file.getAbsolutePath());
-          String status = "";
-          List<File> outfiles = new ArrayList<File>();
-          do {
-                  Thread.sleep(10 * 1000);
-                  status = msc.getStatus(id);
-                  logger.debug("Got job status "+status);
-
-                  if (status.startsWith("COMPLETE")) {
-                          int n_files = msc.getResultFileCount(id);
-                          logger.info("Found "+n_files+" results files for download, after conversion for "+id);
-
-                          for (int i=0; i<n_files; i++) {
-                        	  logger.info("Downloading result file #"+(i+1)+ " of "+n_files+".");
-                    	  	  long expected = msc.getResultFilesize(id, i);
-                    	  	  logger.info("Expecting to receive "+expected+" bytes of data.");
-                             
-                    	  	  DataHandler dh = null;
-                    	  	  try {
-	                              dh = msc.getResultFile(id, i);
-	                             
-	                              File tmp_file = new File(output_folder, "result_"+part+"_"+(i+1)+"of"+n_files+"."+out_format);
-	                              if (tmp_file.exists() && !overwrite_existing_files)
-	                            	  throw new IOException("Will not overwrite existing file: "+tmp_file.getAbsolutePath());
-	                              
-	                              FileOutputStream fos = new FileOutputStream(tmp_file);
-	                              dh.writeTo(fos);
-	                              fos.close();
-	                              
-	                              logger.info("Saved "+tmp_file.length()+" bytes into "+tmp_file.getAbsolutePath());
-	                              if (tmp_file.length() != expected)
-	                            	  throw new IOException("Did not get expected number of bytes - server problem?");
-	                              outfiles.add(tmp_file);
-                    	  	  } finally {
-                    	  		  // HACK BUG TODO FIXME: need better code than this to cleanup the download attachment temp file!
-	                              //if (dh != null && dh instanceof StreamingDataHandler) {
-	                            	//  ((StreamingDataHandler) dh).close();
-	                              //}
-                    	  	  }
-                          }
-                          
-                          // if we get this far without throwing, we know that we have downloaded all the result files, so we
-                          // can hint to the server we know no longer need the results for this job
-                          msc.purgeJobFiles(id);
-                          // NB: we only purge for successful jobs to aid in debugging...
-                          break;
-                  }
-                  if (status.startsWith("FAIL") || status.startsWith("NO")) {
-                	  throw new IOException("Conversion job failed: "+status+"... aborting!");
-                  }
-          } while (status.equals("PENDING") || status.equals("QUEUED") || status.equals("RUNNING"));
+          // if we get here, we can download the results and save them and then make the output table desired
+       	  ListOfDataFile results = msc.getResults(id);
+       	  if (results == null || results.getDataFile() == null || results.getDataFile().size() < 1) {
+       	      throw new IOException("No results from msconvert for job: "+id);
+       	  }
     	
-          return outfiles;*/
+       	  List<File> savedFiles = saveResults(results, getOutputFolder());
+       	  return savedFiles;
 	}
-
-	/**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void reset() {
-    }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
-            throws InvalidSettingsException {
+	public DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
     	/**
     	 * HACK TODO FIXME: we should use a design pattern...
     	 */
@@ -355,11 +292,8 @@ public class XCaliburRawConverterNodeModel extends NodeModel {
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
+    	 super.saveSettingsTo(settings);
          m_files.saveSettingsTo(settings);
-         m_outfolder.saveSettingsTo(settings);
-         m_outformat.saveSettingsTo(settings);
-         m_overwrite.saveSettingsTo(settings);
-         m_endpoint.saveSettingsTo(settings);
     }
 
     /**
@@ -368,11 +302,8 @@ public class XCaliburRawConverterNodeModel extends NodeModel {
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
+    	  super.loadValidatedSettingsFrom(settings);
     	  m_files.loadSettingsFrom(settings);
-          m_outfolder.loadSettingsFrom(settings);
-          m_outformat.loadSettingsFrom(settings);
-          m_overwrite.loadSettingsFrom(settings);
-          m_endpoint.loadSettingsFrom(settings);
     }
 
     /**
@@ -381,30 +312,8 @@ public class XCaliburRawConverterNodeModel extends NodeModel {
     @Override
     protected void validateSettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
+    	  super.validateSettings(settings);
     	  m_files.validateSettings(settings);
-          m_outfolder.validateSettings(settings);
-          m_outformat.validateSettings(settings);
-          m_overwrite.validateSettings(settings);
-          m_endpoint.validateSettings(settings);
     }
-    
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadInternals(final File internDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
-    }
-    
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveInternals(final File internDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
-    }
-
 }
 
