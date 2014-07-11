@@ -10,14 +10,10 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
 import au.edu.unimelb.plantcell.core.MyDataContainer;
@@ -33,36 +29,32 @@ import au.edu.unimelb.plantcell.io.read.spectra.mzXMLDataProcessor;
  *
  * @author http://www.plantcell.unimelb.edu.au/bioinformatics
  */
-public class AnalystWiffConverterNodeModel extends NodeModel {
+public class AnalystWiffConverterNodeModel extends XCaliburRawConverterNodeModel {
 	 // the logger instance
     private static final NodeLogger logger = NodeLogger.getLogger("WIFF Converter");
   
 	static final String CFGKEY_RAWFILES = "raw-files";
-	static final String CFGKEY_OUTPUT_FORMAT = "output-format";
-	static final String CFGKEY_OUTPUT_FOLDER = "output-folder";
-	static final String CFGKEY_OVERWRITE     = "overwrite-existing-files?";
-	static final String CFGKEY_ENDPOINT      = "service-endpoint";
 	
 	private final SettingsModelStringArray m_files = new SettingsModelStringArray(CFGKEY_RAWFILES, new String[] {});
-	private final SettingsModelString m_outformat  = new SettingsModelString(CFGKEY_OUTPUT_FORMAT, "mzML");
-	private final SettingsModelString m_outfolder  = new SettingsModelString(CFGKEY_OUTPUT_FOLDER, "c:/temp");
-	private final SettingsModelBoolean m_overwrite = new SettingsModelBoolean(CFGKEY_OVERWRITE, Boolean.FALSE);
-	private final SettingsModelString  m_endpoint  = new SettingsModelString(CFGKEY_ENDPOINT, "http://10.36.10.96:9090/");
-	
+		
     /**
      * Constructor for the node model.
      */
-    protected AnalystWiffConverterNodeModel() {
-        super(0, 2);
+    public AnalystWiffConverterNodeModel() {
+        super();
     }
 
+    public NodeLogger getNodeLogger() {
+    	return logger;
+    }
+    
     /**
      * {@inheritDoc}
      */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
-    	logger.info("Converting "+m_files.getStringArrayValue().length + " WIFF files to "+m_outformat.getStringValue());
+    	getNodeLogger().info("Converting "+m_files.getStringArrayValue().length + " WIFF files to "+getOutputFormat());
     	
     	// 1. convert each file placing result in destination folder. Abort if something looks bad...
     	List<File> entries = new ArrayList<File>();
@@ -78,10 +70,9 @@ public class AnalystWiffConverterNodeModel extends NodeModel {
     		 * Its possible that a single input file may result in multiple (pieces) of output each in separate files.
     		 * So we handle this case.
     		 */
-    		Collection<File> outfiles = XCaliburRawConverterNodeModel.convert_and_save(logger, m_endpoint.getStringValue().trim(), 
-    				m_overwrite.getBooleanValue(), true,
-    				input_file, new File(m_outfolder.getStringValue()), 
-    				m_outformat.getStringValue());
+    		Collection<File> outfiles = convert_and_save(logger, getServiceEndpoint(), 
+    				shouldOverwriteExistingFiles(), true,
+    				input_file, getOutputFolder(), getOutputFormat());
     	
     		for (File f : outfiles) {
     	        	if (f.canRead() && f.isFile()) {
@@ -141,7 +132,6 @@ public class AnalystWiffConverterNodeModel extends NodeModel {
         	throw new InvalidSettingsException("No files to load - did you enable the right file formats?");
         }
         
-       
         /*
          * For each filtered file we try each processor which can process the file in the order
          * constructed above
@@ -186,15 +176,7 @@ public class AnalystWiffConverterNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void reset() {
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
-            throws InvalidSettingsException {
+    public DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         return SpectraReaderNodeModel.make_output_spec(true);
     }
 
@@ -203,11 +185,8 @@ public class AnalystWiffConverterNodeModel extends NodeModel {
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
+    	 super.saveSettingsTo(settings);
     	 m_files.saveSettingsTo(settings);
-         m_outfolder.saveSettingsTo(settings);
-         m_outformat.saveSettingsTo(settings);
-         m_overwrite.saveSettingsTo(settings);
-         m_endpoint.saveSettingsTo(settings);
     }
 
     /**
@@ -216,11 +195,8 @@ public class AnalystWiffConverterNodeModel extends NodeModel {
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
+    	 super.loadValidatedSettingsFrom(settings);
     	 m_files.loadSettingsFrom(settings);
-         m_outfolder.loadSettingsFrom(settings);
-         m_outformat.loadSettingsFrom(settings);
-         m_overwrite.loadSettingsFrom(settings);
-         m_endpoint.loadSettingsFrom(settings);
     }
 
     /**
@@ -229,31 +205,8 @@ public class AnalystWiffConverterNodeModel extends NodeModel {
     @Override
     protected void validateSettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
+    	 super.validateSettings(settings);
     	 m_files.validateSettings(settings);
-         m_outfolder.validateSettings(settings);
-         m_outformat.validateSettings(settings);
-         m_overwrite.validateSettings(settings);
-         m_endpoint.validateSettings(settings);
-    }
-    
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadInternals(final File internDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
-        // TODO: generated method stub
-    }
-    
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveInternals(final File internDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
-        // TODO: generated method stub
     }
 
 }

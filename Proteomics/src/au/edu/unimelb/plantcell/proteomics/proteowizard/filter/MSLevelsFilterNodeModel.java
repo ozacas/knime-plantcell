@@ -70,12 +70,12 @@ public class MSLevelsFilterNodeModel extends NodeModel {
 	public final static String[] TABLE_OUTPUT_DESIRED = new String[] { "File summary (incl. stdout & stderr)",
 		"MS/MS (and higher) spectra only", "All spectra (slow)" };
 	
-	private final SettingsModelString m_url = new SettingsModelString(CFGKEY_URL, "");
-	private final SettingsModelString m_username = new SettingsModelString(CFGKEY_USERNAME, "");
-	private final SettingsModelString m_password = new SettingsModelString(CFGKEY_PASSWORD, "");
+	private final SettingsModelString m_url           = new SettingsModelString(CFGKEY_URL, "");
+	private final SettingsModelString m_username      = new SettingsModelString(CFGKEY_USERNAME, "");
+	private final SettingsModelString m_password      = new SettingsModelString(CFGKEY_PASSWORD, "");
 	private final SettingsModelString m_output_format = new SettingsModelString(CFGKEY_OUTPUT_DATA_FORMAT, "");
-	private final SettingsModelBoolean m_overwrite = new SettingsModelBoolean(CFGKEY_OVERWRITE_RESULTS, Boolean.FALSE);
-	private final SettingsModelString m_save_to = new SettingsModelString(CFGKEY_SAVETO, "");
+	private final SettingsModelBoolean m_overwrite    = new SettingsModelBoolean(CFGKEY_OVERWRITE_RESULTS, Boolean.FALSE);
+	private final SettingsModelString m_save_to       = new SettingsModelString(CFGKEY_SAVETO, "");
 	private final SettingsModelString m_input_column  = new SettingsModelString(CFGKEY_INPUT_FILE_COLUMN, "");
 	private final SettingsModelStringArray m_mslevels = new SettingsModelStringArray(CFGKEY_ACCEPTED_MSLEVELS, new String[] {});
 	private final SettingsModelString m_table_desired = new SettingsModelString(CFGKEY_TABLE_DESIRED, TABLE_OUTPUT_DESIRED[0]);
@@ -90,16 +90,54 @@ public class MSLevelsFilterNodeModel extends NodeModel {
 		super(nrInDataPorts, nrOutDataPorts);
 	}
 	
-	protected static MSConvert makeServiceProxy(String url) throws Exception {
+	protected MSConvert makeServiceProxy(String url) throws Exception {
+		getNodeLogger().info("Connecting to "+url);
 		Service         s = Service.create(new URL(url), MSCONVERTEE_QNAME);
 		if (s == null) {
 			throw new IOException("Cannot create/connect to MSConvertEE service: "+url);
 		}
 		return s.getPort(MSConvert.class);
 	}
+	
+	protected NodeLogger getNodeLogger() {
+		return logger;
+	}
+	
+	/**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void reset() {
+    	// NO-OP
+    }
+    
+	protected String getServiceEndpoint() {
+		String u = m_url.getStringValue().trim();
+		if (u.endsWith("?wsdl")) {
+			return u;
+		} else if (u.endsWith("MSConvertImpl")) {
+			return u+"?wsdl";
+		} else if (u.endsWith("webservices/") || u.endsWith("webservices")) {
+			if (!u.endsWith("/")) {
+				u += "/";
+			}
+			return u+"MSConvertImpl?wsdl";
+		} else if (u.endsWith("msconvertee") || u.endsWith("msconvertee/")) {
+			if (!u.endsWith("/")) {
+				u += "/";
+			}
+			return u+"webservices/MSConvertImpl?wsdl";
+		}
+		// oh well... we just try what was entered and hope for the best...
+		return u;
+	}
+	
+	protected String getOutputFormat() {
+		return m_output_format.getStringValue();
+	}
 
 	@Override
-	public BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec) throws Exception {
+	protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec) throws Exception {
 		int file_idx = inData[0].getSpec().findColumnIndex(m_input_column.getStringValue());
 		if (file_idx < 0) {
 			throw new InvalidSettingsException("No such column: "+m_input_column.getStringValue()+" - reconfigure?");
@@ -110,9 +148,11 @@ public class MSLevelsFilterNodeModel extends NodeModel {
 		for (String s : m_mslevels.getStringArrayValue()) {
 			mslevels.getMsLevel().add(Integer.valueOf(s.trim()));
 		}
-		MSConvert msc = makeServiceProxy(m_url.getStringValue());
+		MSConvert msc = makeServiceProxy(getServiceEndpoint());
 		MyDataContainer c = new MyDataContainer(exec.createDataContainer(
 				make_output_spec(m_table_desired.getStringValue(), inData[0].getSpec())), "Row");
+		
+		// iterate each file...
 		for (DataRow r : inData[0]) {
 			DataCell input_file_cell = r.getCell(file_idx);
 			if (input_file_cell == null || input_file_cell.isMissing()) {
@@ -120,7 +160,7 @@ public class MSLevelsFilterNodeModel extends NodeModel {
 			}
 			exec.checkCanceled();
 			ProteowizardJob j = new ProteowizardJob();
-			j.setOutputFormat(m_output_format.getStringValue());
+			j.setOutputFormat(getOutputFormat());
 			FilterParametersType fpt = of.createFilterParametersType();
 			fpt.setMsLevelFilter(mslevels);
 			j.setFilterParameters(fpt);
@@ -133,10 +173,10 @@ public class MSLevelsFilterNodeModel extends NodeModel {
 				throw new IOException("No results from msconvert for job: "+jID);
 			}
 			exec.checkCanceled();
-			makeDesiredTable(c, m_table_desired.getStringValue(), results, m_save_to.getStringValue(), exec);
+			makeDesiredTable(c, m_table_desired.getStringValue(), results, exec);
 			done++; 
 		}
-		logger.info("Filtered and converted: "+done+" files.");
+		getNodeLogger().info("Filtered and converted: "+done+" files.");
 		return new BufferedDataTable[] {c.close()};
 	}
 	
@@ -148,7 +188,7 @@ public class MSLevelsFilterNodeModel extends NodeModel {
 	 * @param url input data file (must not be null)
 	 * @return
 	 */
-	private DataHandler[] setupDataFiles(ProteowizardJob j, String url) throws IOException {
+	protected DataHandler[] setupDataFiles(ProteowizardJob j, String url) throws IOException {
 		assert(j != null && url != null);
 		URL u = toURL(url);
 		DataHandler dh = new DataHandler(u);
@@ -158,7 +198,7 @@ public class MSLevelsFilterNodeModel extends NodeModel {
 		return new DataHandler[] {dh};
 	}
 
-	private String extractLastPathComponent(String path) throws IOException {
+	protected String extractLastPathComponent(String path) throws IOException {
 		Pattern p = Pattern.compile("^.*[/\\\\]([^/\\\\]+?)$");
 		Matcher m = p.matcher(path);
 		if (m.matches()) {
@@ -169,7 +209,7 @@ public class MSLevelsFilterNodeModel extends NodeModel {
 		}
 	}
 
-	private String guessInputDataFormat(URL url) throws IOException {
+	protected String guessInputDataFormat(URL url) throws IOException {
 		assert(url != null);
 		String path = url.getPath().trim().toLowerCase();
 		if (path.endsWith(".raw")) {
@@ -186,13 +226,16 @@ public class MSLevelsFilterNodeModel extends NodeModel {
 			throw new IOException("Unsupported file type: "+path);
 		}
 	}
+	
+	protected File getOutputFolder() {
+		return new File(m_save_to.getStringValue());
+	}
 
-	private void makeDesiredTable(MyDataContainer c, String desired_table,
-			ListOfDataFile results, String folder_to_save_to, ExecutionContext exec) throws IOException { 
+	private void makeDesiredTable(MyDataContainer c, String desired_table, ListOfDataFile results, ExecutionContext exec) throws IOException { 
 		assert(exec != null && results != null && c != null);
 		
 		// 1. save results
-		List<File> savedFiles = saveResults(results, new File(folder_to_save_to));
+		List<File> savedFiles = saveResults(results, getOutputFolder());
 		
 		// 2. process results into desired table
 		if (desired_table.equals(TABLE_OUTPUT_DESIRED[0]))  {
@@ -270,7 +313,7 @@ public class MSLevelsFilterNodeModel extends NodeModel {
 		for (DataFileType dft : results.getDataFile()) {
 			String name = safeName(dft.getSuggestedName());
 			File out = new File(output_folder, name);
-			if (out.exists() && !m_overwrite.getBooleanValue()) {
+			if (out.exists() && !shouldOverwriteExistingFiles()) {
 				throw new IOException("Will not overwrite existing: "+out.getAbsolutePath());
 			}
 			FileOutputStream fos = null;
@@ -353,21 +396,31 @@ public class MSLevelsFilterNodeModel extends NodeModel {
 	}
 
 	@Override
-	public DataTableSpec[] configure(final DataTableSpec[] inSpecs) {
-		DataTableSpec outSpec = null;
+	public DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
+		String out_table = m_table_desired.getStringValue();
+		if (out_table == null || out_table.equals("")) {
+			out_table = TABLE_OUTPUT_DESIRED[0];
+		}
+		DataTableSpec outSpec = make_output_spec(out_table, inSpecs[0]);
 		return new DataTableSpec[] { outSpec };
 	}
 	
 	@Override
 	protected void loadInternals(File nodeInternDir, ExecutionMonitor exec)
-			throws IOException, CanceledExecutionException {		
+			throws IOException, CanceledExecutionException {	
+		// NO-OP
 	}
 
 	@Override
 	protected void saveInternals(File nodeInternDir, ExecutionMonitor exec)
 			throws IOException, CanceledExecutionException {
+		// NO-OP
 	}
 
+	protected boolean shouldOverwriteExistingFiles() {
+		return m_overwrite.getBooleanValue();
+	}
+	
 	@Override
 	protected void saveSettingsTo(NodeSettingsWO settings) {
 		m_url.saveSettingsTo(settings);
@@ -409,9 +462,4 @@ public class MSLevelsFilterNodeModel extends NodeModel {
 		m_save_to.loadSettingsFrom(settings);
 		m_overwrite.loadSettingsFrom(settings);
 	}
-
-	@Override
-	protected void reset() {
-	}
-
 }

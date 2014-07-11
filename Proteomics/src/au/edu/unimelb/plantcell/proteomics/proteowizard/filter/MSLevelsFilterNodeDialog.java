@@ -60,14 +60,18 @@ public class MSLevelsFilterNodeDialog extends DefaultNodeSettingsPane {
 				"", 0, true, StringValue.class
 		));
 		
-		createNewTab("Filter Settings");
+		createNewTab(getAdditionalSettingsTabName());
 		addFilterSettings();
 	}
 
+	public String getAdditionalSettingsTabName() {
+		return "Filter Settings";
+	}
+	
 	/**
 	 * Settings for each proteowizard filter node are added here so they appear on a separate tab in the configure dialog
 	 */
-	private void addFilterSettings() {
+	protected void addFilterSettings() {
 		ArrayList<String> levels = new ArrayList<String>();
 		for (int i=1; i<10; i++) {
 			levels.add(String.valueOf(i)+"   "); // HACK: Integer.valueOf() will work even with trailing spaces, so this just makes the box a little wider
@@ -75,6 +79,6 @@ public class MSLevelsFilterNodeDialog extends DefaultNodeSettingsPane {
 		addDialogComponent(new DialogComponentStringListSelection(
 				new SettingsModelStringArray(MSLevelsFilterNodeModel.CFGKEY_ACCEPTED_MSLEVELS, new String[] {}),
 				"Select the scan levels to accept", levels, ListSelectionModel.MULTIPLE_INTERVAL_SELECTION, true, 10
-				));
+		));
 	}
 }
