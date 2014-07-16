@@ -90,7 +90,7 @@ public class XCaliburRawConverterNodeDialog extends MSLevelsFilterNodeDialog {
            raw_file_panel.add(new JScrollPane(flist), BorderLayout.CENTER);
            final JPanel button_panel = new JPanel();
            button_panel.setLayout(new GridLayout(2, 1));
-           final JButton add_button = new JButton("Add XCalibur RAW files...");
+           final JButton add_button = new JButton("Add files...");
            final JButton remove_button = new JButton("Remove Selected");
            add_button.addActionListener(new ActionListener() {
 
@@ -98,26 +98,8 @@ public class XCaliburRawConverterNodeDialog extends MSLevelsFilterNodeDialog {
    			public void actionPerformed(ActionEvent arg0) {
    				JFileChooser open_dialog = new JFileChooser();
    				open_dialog.setMultiSelectionEnabled(true);
-   				FileFilter filter = new FileFilter() {
-
-   					@Override
-   					public boolean accept(File arg0) {
-   						if (arg0.isDirectory())
-   							return true;
-   						String fname = arg0.getName().toLowerCase();
-   						if (fname.endsWith(".raw")) {
-   							return true;
-   						}
-   						return false;
-   					}
-
-   					@Override
-   					public String getDescription() {
-   						return "XCalibur RAW files";
-   					}
-   				};
    				
-   			    open_dialog.setFileFilter(filter);
+   			    open_dialog.setFileFilter(getFileFilter());
    				int ret = open_dialog.showOpenDialog(null);
    				if (ret == JFileChooser.APPROVE_OPTION) {
    					HashSet<String> files = new HashSet<String>();
@@ -158,10 +140,55 @@ public class XCaliburRawConverterNodeDialog extends MSLevelsFilterNodeDialog {
            button_panel.add(remove_button);
            raw_file_panel.add(button_panel, BorderLayout.EAST);
            
-           addTabAt(0, "XCalibur RAW Files", raw_file_panel);
-           selectTab("XCalibur RAW Files");
+           addTabAt(0, getPrintableFilename(), raw_file_panel);
+           selectTab(getPrintableFilename());
     }
     
+    /**
+     * Used in the dialog to give clues to the user as to what input is required. Must be human readable.
+     * Subclasses should override for their files.
+     * 
+     * @return
+     */
+    protected String getPrintableFilename() {
+    	return "XCalibur RAW files";
+    }
+    
+    /**
+     * Return those files which are suitable for selection during execute().
+     * 
+     * @return an instance which will display only those files suitable for the dialog. Must not be null
+     */
+    protected FileFilter getFileFilter() {
+    	return new FileFilter() {
+
+				@Override
+				public boolean accept(File arg0) {
+					if (arg0.isDirectory())
+						return true;
+					String fname = arg0.getName().toLowerCase();
+					if (fname.endsWith(".raw")) {
+						return true;
+					}
+					return false;
+				}
+
+				@Override
+				public String getDescription() {
+					return getPrintableFilename();
+				}
+			};
+    }
+    
+    @Override
+    public void addInputDataSources() {
+    	// NO-OP since this node doesnt support reading list of files from input port
+    }
+    
+    @Override
+    public void addFilterSettings() {
+    	// NO-OP since this node does not support filtering of converted data
+    }
     
     @Override
     public void loadAdditionalSettingsFrom(NodeSettingsRO settings, DataTableSpec[] specs) throws NotConfigurableException {
