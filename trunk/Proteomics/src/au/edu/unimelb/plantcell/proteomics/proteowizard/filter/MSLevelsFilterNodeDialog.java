@@ -19,7 +19,6 @@ import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 public class MSLevelsFilterNodeDialog extends DefaultNodeSettingsPane {
 	private final static String[] FORMATS = new String[] { "mzML", "mzXML", "mz5", "MGF" };
 	
-	@SuppressWarnings("unchecked")
 	protected MSLevelsFilterNodeDialog() {
 		createNewGroup("MSConvertEE URL");
 		addDialogComponent(new DialogComponentString(
@@ -54,17 +53,20 @@ public class MSLevelsFilterNodeDialog extends DefaultNodeSettingsPane {
 				));
 		this.closeCurrentGroup();
 		
+		addInputDataSources();
+		addFilterSettings();
+	}
+
+	@SuppressWarnings("unchecked")
+	protected void addInputDataSources() {
 		createNewGroup("Read list of files to process from...");
 		addDialogComponent(new DialogComponentColumnNameSelection(
 				new SettingsModelString(MSLevelsFilterNodeModel.CFGKEY_INPUT_FILE_COLUMN, ""), 
 				"", 0, true, StringValue.class
 		));
-		
-		createNewTab(getAdditionalSettingsTabName());
-		addFilterSettings();
 	}
-
-	public String getAdditionalSettingsTabName() {
+	
+	protected String getAdditionalSettingsTabName() {
 		return "Filter Settings";
 	}
 	
@@ -72,6 +74,7 @@ public class MSLevelsFilterNodeDialog extends DefaultNodeSettingsPane {
 	 * Settings for each proteowizard filter node are added here so they appear on a separate tab in the configure dialog
 	 */
 	protected void addFilterSettings() {
+		createNewTab(getAdditionalSettingsTabName());
 		ArrayList<String> levels = new ArrayList<String>();
 		for (int i=1; i<10; i++) {
 			levels.add(String.valueOf(i)+"   "); // HACK: Integer.valueOf() will work even with trailing spaces, so this just makes the box a little wider

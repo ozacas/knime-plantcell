@@ -14,8 +14,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
-
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.io.read.spectra.AbstractDataProcessor;
 import au.edu.unimelb.plantcell.io.read.spectra.MGFDataProcessor;
@@ -33,10 +31,6 @@ public class AnalystWiffConverterNodeModel extends XCaliburRawConverterNodeModel
 	 // the logger instance
     private static final NodeLogger logger = NodeLogger.getLogger("WIFF Converter");
   
-	static final String CFGKEY_RAWFILES = "raw-files";
-	
-	private final SettingsModelStringArray m_files = new SettingsModelStringArray(CFGKEY_RAWFILES, new String[] {});
-		
     /**
      * Constructor for the node model.
      */
@@ -186,7 +180,6 @@ public class AnalystWiffConverterNodeModel extends XCaliburRawConverterNodeModel
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
     	 super.saveSettingsTo(settings);
-    	 m_files.saveSettingsTo(settings);
     }
 
     /**
@@ -196,7 +189,6 @@ public class AnalystWiffConverterNodeModel extends XCaliburRawConverterNodeModel
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
     	 super.loadValidatedSettingsFrom(settings);
-    	 m_files.loadSettingsFrom(settings);
     }
 
     /**
@@ -206,7 +198,6 @@ public class AnalystWiffConverterNodeModel extends XCaliburRawConverterNodeModel
     protected void validateSettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
     	 super.validateSettings(settings);
-    	 m_files.validateSettings(settings);
     }
 
 }

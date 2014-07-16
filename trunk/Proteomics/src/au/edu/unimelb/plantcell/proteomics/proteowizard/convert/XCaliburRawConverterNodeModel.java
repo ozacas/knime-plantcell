@@ -52,7 +52,7 @@ public class XCaliburRawConverterNodeModel extends MSLevelsFilterNodeModel {
 
 	static final String CFGKEY_RAWFILES = "raw-files";
 	
-	private final SettingsModelStringArray m_files = new SettingsModelStringArray(CFGKEY_RAWFILES, new String[] {});
+	protected final SettingsModelStringArray m_files = new SettingsModelStringArray(CFGKEY_RAWFILES, new String[] {});
 
     /**
      * Constructor for the node model.
