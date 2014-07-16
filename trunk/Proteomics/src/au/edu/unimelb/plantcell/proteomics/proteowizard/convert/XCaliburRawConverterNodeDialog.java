@@ -202,7 +202,10 @@ public class XCaliburRawConverterNodeDialog extends MSLevelsFilterNodeDialog {
     @Override
     public void saveAdditionalSettingsTo(NodeSettingsWO settings) {
     	file_list.saveSettingsTo(settings);
+    	
+    	// add in settings which this dialog does not need/provide but the superclass does require them
     	settings.addStringArray(MSLevelsFilterNodeModel.CFGKEY_ACCEPTED_MSLEVELS, new String[]{});
+    	settings.addString(MSLevelsFilterNodeModel.CFGKEY_INPUT_FILE_COLUMN, "");
     }
 }
 

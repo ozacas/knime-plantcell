@@ -111,8 +111,11 @@ public class MSLevelsFilterNodeModel extends NodeModel {
     	// NO-OP
     }
     
-	protected String getServiceEndpoint() {
+	protected String getServiceEndpoint() throws MalformedURLException {
 		String u = m_url.getStringValue().trim();
+		if (u == null || u.length() < 1) {
+			throw new MalformedURLException("MSConvertEE URL cannot be missing!");
+		}
 		if (u.endsWith("?wsdl")) {
 			return u;
 		} else if (u.endsWith("MSConvertImpl")) {
