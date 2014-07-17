@@ -21,6 +21,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
 import au.edu.unimelb.plantcell.core.MyDataContainer;
@@ -30,6 +31,10 @@ import au.edu.unimelb.plantcell.proteomics.proteowizard.filter.MSLevelsFilterNod
 import au.edu.unimelb.plantcell.servers.core.jaxb.results.ListOfDataFile;
 import au.edu.unimelb.plantcell.servers.msconvertee.endpoints.MSConvert;
 import au.edu.unimelb.plantcell.servers.msconvertee.endpoints.ProteowizardJob;
+import au.edu.unimelb.plantcell.servers.msconvertee.jaxb.FilterParametersType;
+import au.edu.unimelb.plantcell.servers.msconvertee.jaxb.MsLevelType;
+import au.edu.unimelb.plantcell.servers.msconvertee.jaxb.ObjectFactory;
+import au.edu.unimelb.plantcell.servers.msconvertee.jaxb.PeakPickingType;
 
 
 
@@ -46,9 +51,13 @@ public class XCaliburRawConverterNodeModel extends MSLevelsFilterNodeModel {
     // rather than import an entire 1.2MB jar... its really a JAXWSProperties key...
     private final static String HTTP_CLIENT_STREAMING_CHUNK_SIZE = "com.sun.xml.ws.transport.http.client.streaming.chunk.size";
 
-	static final String CFGKEY_RAWFILES = "raw-files";
+	public static final String CFGKEY_RAWFILES    = "raw-files";
+	public static final String CFGKEY_PP_ON		  = "peak-picking-on";
+	public static final String CFGKEY_PP_VENDOR   = "peak-picking-prefer-vendor";
 	
 	protected final SettingsModelStringArray m_files = new SettingsModelStringArray(CFGKEY_RAWFILES, new String[] {});
+	protected final SettingsModelBoolean m_pp_on = new SettingsModelBoolean(CFGKEY_PP_ON, Boolean.FALSE);		// centroid off by default for backward compatibility
+	protected final SettingsModelBoolean m_pp_vendor = new SettingsModelBoolean(CFGKEY_PP_VENDOR, Boolean.FALSE);	// vendor DLL does the centroiding?
 
     /**
      * Constructor for the node model.
@@ -205,6 +214,7 @@ public class XCaliburRawConverterNodeModel extends MSLevelsFilterNodeModel {
           String id = null;
     	  ProteowizardJob j = new ProteowizardJob();
     	  j.setOutputFormat(out_format);
+    	  addCentroidFilterIfDesired(j);
 
           if (is_wiff) {
         	  logger.info("Submitting wiff file: "+input_file.getName());
@@ -240,7 +250,23 @@ public class XCaliburRawConverterNodeModel extends MSLevelsFilterNodeModel {
        	  return new OutputFiles(savedFiles);
 	}
 
-    /**
+    protected void addCentroidFilterIfDesired(ProteowizardJob j) {
+		if (m_pp_on.getBooleanValue()) {
+			ObjectFactory of = new ObjectFactory();
+			FilterParametersType fpt = of.createFilterParametersType();
+			PeakPickingType ppt = of.createPeakPickingType();
+			ppt.setPreferVendor(m_pp_vendor.getBooleanValue());
+			MsLevelType mst = of.createMsLevelType();
+			for (String t : getMSLevelsFromUser()) {
+				mst.getMsLevel().add(Integer.valueOf(t.trim()));
+			}
+			ppt.setMsLevels(mst);
+			fpt.setPeakPicking(ppt);
+			j.setFilterParameters(fpt);
+		}
+	}
+
+	/**
      * Called by configure(), this method must create any required output table specs based on the current
      * model settings and return the appropriate tables for the node. Subclasses are expected to override as required.
      * 
@@ -269,6 +295,8 @@ public class XCaliburRawConverterNodeModel extends MSLevelsFilterNodeModel {
     protected void saveSettingsTo(final NodeSettingsWO settings) {
     	 super.saveSettingsTo(settings);
          m_files.saveSettingsTo(settings);
+         m_pp_on.saveSettingsTo(settings);
+         m_pp_vendor.saveSettingsTo(settings);
     }
 
     /**
@@ -279,6 +307,13 @@ public class XCaliburRawConverterNodeModel extends MSLevelsFilterNodeModel {
             throws InvalidSettingsException {
     	  super.loadValidatedSettingsFrom(settings);
     	  m_files.loadSettingsFrom(settings);
+    	  if (settings.containsKey(CFGKEY_PP_ON)) {
+    		  m_pp_on.loadSettingsFrom(settings);
+    		  m_pp_vendor.loadSettingsFrom(settings);
+    	  } else {
+    		  m_pp_on.setBooleanValue(false);
+    		  m_pp_vendor.setBooleanValue(false);
+    	  }
     }
 
     /**
@@ -289,6 +324,10 @@ public class XCaliburRawConverterNodeModel extends MSLevelsFilterNodeModel {
             throws InvalidSettingsException {
     	  super.validateSettings(settings);
     	  m_files.validateSettings(settings);
+    	  if (settings.containsKey(CFGKEY_PP_ON)) {
+    		  m_pp_on.validateSettings(settings);
+    		  m_pp_vendor.validateSettings(settings);
+    	  }
     }
 }
 

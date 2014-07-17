@@ -26,6 +26,8 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
 import au.edu.unimelb.plantcell.proteomics.proteowizard.filter.MSLevelsFilterNodeDialog;
@@ -187,7 +189,15 @@ public class XCaliburRawConverterNodeDialog extends MSLevelsFilterNodeDialog {
     
     @Override
     public void addFilterSettings() {
-    	// NO-OP since this node does not support filtering of converted data
+    	createNewTab("Centroid Settings");
+    	addDialogComponent(new DialogComponentBoolean(
+    			new SettingsModelBoolean(XCaliburRawConverterNodeModel.CFGKEY_PP_ON, Boolean.FALSE), "Centroid chosen MS levels? (yes if checked)"
+    	));
+    	addDialogComponent(new DialogComponentBoolean(
+    			new SettingsModelBoolean(XCaliburRawConverterNodeModel.CFGKEY_PP_VENDOR, Boolean.FALSE), 
+    			"Use Vendor Centroiding (if possible)"));
+
+    	addMSLevelsComponent("Select MS levels to centroid");
     }
     
     @Override
@@ -204,7 +214,6 @@ public class XCaliburRawConverterNodeDialog extends MSLevelsFilterNodeDialog {
     	file_list.saveSettingsTo(settings);
     	
     	// add in settings which this dialog does not need/provide but the superclass does require them
-    	settings.addStringArray(MSLevelsFilterNodeModel.CFGKEY_ACCEPTED_MSLEVELS, new String[]{});
     	settings.addString(MSLevelsFilterNodeModel.CFGKEY_INPUT_FILE_COLUMN, "");
     }
 }

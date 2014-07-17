@@ -59,12 +59,22 @@
        <node category-path="/Bioinformatics/Mass Spectrometry/Proteomics/Proteowizard" 
        		factory-class="au.edu.unimelb.plantcell.proteomics.proteowizard.convert.XCaliburRawConverterNodeFactory" 
        		id="au.edu.unimelb.plantcell.proteomics.io.convert.XCaliburRAWNodeFactory"/>
+       		
        <node category-path="/Bioinformatics/Mass Spectrometry/Proteomics/Proteowizard" 
        		factory-class="au.edu.unimelb.plantcell.proteomics.proteowizard.config.ShowConfigNodeFactory" 
        		id="au.edu.unimelb.plantcell.proteomics.proteowizard.config.ShowConfigNodeFactory"/>
+       		
        <node category-path="/Bioinformatics/Mass Spectrometry/Proteomics/Proteowizard"
        		 factory-class="au.edu.unimelb.plantcell.proteomics.proteowizard.filter.MSLevelsFilterNodeFactory"
        		 id="au.edu.unimelb.plantcell.proteomics.proteowizard.filter.MSLevelsFilterNodeFactory" />
+       		 
+       <node category-path="/Bioinformatics/Mass Spectrometry/Proteomics/Proteowizard"
+       		 factory-class="au.edu.unimelb.plantcell.proteomics.proteowizard.filter.ThresholdFilterNodeFactory"
+       		 id="au.edu.unimelb.plantcell.proteomics.proteowizard.filter.ThresholdFilterNodeFactory" />
+       		 
+       <node category-path="/Bioinformatics/Mass Spectrometry/Proteomics/Proteowizard"
+       		 factory-class="au.edu.unimelb.plantcell.proteomics.proteowizard.filter.MS2DenoiseFilterNodeFactory"
+       		 id="au.edu.unimelb.plantcell.proteomics.proteowizard.filter.MS2DenoiseFilterNodeFactory" />
       	
 </extension>
    	
