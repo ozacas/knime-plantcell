@@ -96,6 +96,7 @@ public class ThresholdFilterNodeModel extends MSLevelsFilterNodeModel {
 	}
 
 	private void setThresholdParameters(final ProteowizardJob j) {
+		assert(j != null);
 		ObjectFactory         of = new ObjectFactory();
 		FilterParametersType fpt = of.createFilterParametersType();
 		ThresholdParametersType thres = of.createThresholdParametersType();

@@ -20,6 +20,9 @@ import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.servers.core.jaxb.results.ListOfDataFile;
 import au.edu.unimelb.plantcell.servers.msconvertee.endpoints.MSConvert;
 import au.edu.unimelb.plantcell.servers.msconvertee.endpoints.ProteowizardJob;
+import au.edu.unimelb.plantcell.servers.msconvertee.jaxb.FilterParametersType;
+import au.edu.unimelb.plantcell.servers.msconvertee.jaxb.MS2DenoiseType;
+import au.edu.unimelb.plantcell.servers.msconvertee.jaxb.ObjectFactory;
 
 /**
  * Filters the chosen data files (from input table) using the Proteowizard msconvert utility via
@@ -35,9 +38,9 @@ public class MS2DenoiseFilterNodeModel extends MSLevelsFilterNodeModel {
 	public static final String CFGKEY_WINDOW   = "window-size-in-daltons";
 	public static final String CFGKEY_RELAX      = "multicharge-fragment-relaxation";
 	
-	private SettingsModelIntegerBounded m_n = new SettingsModelIntegerBounded(CFGKEY_N, 6, 1, 1000);
+	private SettingsModelIntegerBounded     m_n = new SettingsModelIntegerBounded(CFGKEY_N, 6, 1, 1000);
 	private SettingsModelDoubleBounded m_window = new SettingsModelDoubleBounded(CFGKEY_WINDOW, 30.0d, 1.0d, 10000.0d);
-	private SettingsModelBoolean m_relax = new SettingsModelBoolean(CFGKEY_RELAX, Boolean.TRUE);
+	private SettingsModelBoolean        m_relax = new SettingsModelBoolean(CFGKEY_RELAX, Boolean.TRUE);
 	
 	public MS2DenoiseFilterNodeModel() {
 		super(1,1);
@@ -67,6 +70,7 @@ public class MS2DenoiseFilterNodeModel extends MSLevelsFilterNodeModel {
 			exec.checkCanceled();
 			ProteowizardJob j = new ProteowizardJob();
 			j.setOutputFormat(getOutputFormat());
+			addDenoiseFilterSettings(j);
 		
 			DataHandler[] dh = setupDataFiles(j, input_file_cell.toString());
 			String jID = msc.convert(j, dh);
@@ -83,6 +87,18 @@ public class MS2DenoiseFilterNodeModel extends MSLevelsFilterNodeModel {
 		}
 		getNodeLogger().info("Filtered and converted: "+done+" files.");
 		return new BufferedDataTable[] {c.close()};
+	}
+
+	private void addDenoiseFilterSettings(final ProteowizardJob j) {
+		assert(j != null);
+		ObjectFactory         of = new ObjectFactory();
+		FilterParametersType fpt = of.createFilterParametersType();
+		MS2DenoiseType      ms2f = of.createMS2DenoiseType();
+		ms2f.setPeaksInWindow(m_n.getIntValue());
+		ms2f.setWindowWidth(m_window.getDoubleValue());
+		ms2f.setMultichargeFragmentRelaxation(m_relax.getBooleanValue());
+		fpt.setMs2Denoise(ms2f);
+		j.setFilterParameters(fpt);
 	}
 
 	@Override
