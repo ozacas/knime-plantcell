@@ -3,7 +3,6 @@ package au.edu.unimelb.plantcell.proteomics.proteowizard.convert;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -26,10 +25,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.io.read.spectra.AbstractDataProcessor;
-import au.edu.unimelb.plantcell.io.read.spectra.MGFDataProcessor;
 import au.edu.unimelb.plantcell.io.read.spectra.SpectraReaderNodeModel;
-import au.edu.unimelb.plantcell.io.read.spectra.mzMLDataProcessor;
-import au.edu.unimelb.plantcell.io.read.spectra.mzXMLDataProcessor;
 import au.edu.unimelb.plantcell.proteomics.proteowizard.filter.MSLevelsFilterNodeModel;
 import au.edu.unimelb.plantcell.servers.core.jaxb.results.ListOfDataFile;
 import au.edu.unimelb.plantcell.servers.msconvertee.endpoints.MSConvert;
@@ -77,11 +73,8 @@ public class XCaliburRawConverterNodeModel extends MSLevelsFilterNodeModel {
     	logger.info("Converting "+m_files.getStringArrayValue().length + " raw files to "+getOutputFormat());
     	
     	// 1. convert each file placing result in destination folder. Abort if something looks bad...
-    	List<File> entries = new ArrayList<File>();
-    	boolean has_mzml = false;
-    	boolean has_mzxml= false;
-    	boolean has_mgf  = false;
     	int done = 0;
+    	OutputFiles entries = new OutputFiles();
     	for (String s : m_files.getStringArrayValue()) {
     		File input_file = new File(s);
     		if (!input_file.exists() || !input_file.canRead()) 
@@ -91,20 +84,17 @@ public class XCaliburRawConverterNodeModel extends MSLevelsFilterNodeModel {
     		 * Its possible that a single input file may result in multiple (pieces) of output each in separate files.
     		 * So we handle this case.
     		 */
-    		Collection<File> outfiles = convert_and_save(logger, getServiceEndpoint(), shouldOverwriteExistingFiles(),
-    				false, input_file, getOutputFolder(), getOutputFormat());
+    		OutputFiles outfiles = convert_and_save(logger, getServiceEndpoint(), shouldOverwriteExistingFiles(), false,
+    										input_file, getOutputFolder(), getOutputFormat());
     	
-    		for (File f : outfiles) {
-    	        	if (f.canRead() && f.isFile()) {
-    	        		entries.add(f);
-    	        		if (f.getName().toLowerCase().endsWith("mzml"))
-    	        			has_mzml = true;
-    	        		if (f.getName().toLowerCase().endsWith("mzxml") || f.getName().toLowerCase().endsWith("xml"))
-    	        			has_mzxml = true;
-    	        		if (f.getName().toLowerCase().endsWith("mgf"))
-    	        			has_mgf = true;
-    	        	}
-    	    }
+    		outfiles.filterAndAccumulateTo(entries, new OutputFileFilter() {
+
+				@Override
+				public boolean accept(final File f, final OutputFileFormat format) {
+					return (f.canRead() && f.isFile() && format.isSupportedByPlantCell());
+				}
+    			
+    		});
     		exec.checkCanceled();
     		exec.setProgress((0.5d * ++done) / m_files.getStringArrayValue().length);
     	
@@ -115,7 +105,7 @@ public class XCaliburRawConverterNodeModel extends MSLevelsFilterNodeModel {
         reset();
         
         // make output specs and output containers
-        DataTableSpec[] outSpecs = SpectraReaderNodeModel.make_output_spec(true);
+        DataTableSpec[] outSpecs = makeOutputTables(null);
         MyDataContainer container = new MyDataContainer(exec.createDataContainer(outSpecs[0]), "Scan");
         MyDataContainer file_container = new MyDataContainer(exec.createDataContainer(outSpecs[1]), "File");
        
@@ -124,29 +114,7 @@ public class XCaliburRawConverterNodeModel extends MSLevelsFilterNodeModel {
         done = 0;
         
         // instantiate the data processor's for each desired filetype
-        ArrayList<AbstractDataProcessor> dp_list = new ArrayList<AbstractDataProcessor>();
-        if (has_mzml)
-        	dp_list.add(new mzMLDataProcessor(logger, null, false));
-        if (has_mgf)
-        	dp_list.add(new MGFDataProcessor(logger));
-        if (has_mzxml)
-        	dp_list.add(new mzXMLDataProcessor(logger));
-      
-        if (dp_list.size() == 0) {
-        	throw new InvalidSettingsException("No suitable filetypes found! Conversion successful?");
-        }
-        
-        ArrayList<File> filtered_entries = new ArrayList<File>();
-        for (File f : entries) {
-        	if (! f.isFile()) {
-        		continue;
-        	}
-        	for (AbstractDataProcessor p : dp_list) {
-        		if (p.can(f)) {
-        			filtered_entries.add(f);
-        		}
-        	}
-        }
+        OutputFiles filtered_entries = entries.filterByDataProcessor(logger, OutputFileFormat.supportedFormats());	// dp_list is side-effected to contain supported data processors
         int cnt = filtered_entries.size();
         
         if (cnt > 0) {
@@ -154,7 +122,6 @@ public class XCaliburRawConverterNodeModel extends MSLevelsFilterNodeModel {
         } else {
         	throw new InvalidSettingsException("No files to load - did you enable the right file formats?");
         }
-        
        
         /*
          * For each filtered file we try each processor which can process the file in the order
@@ -168,16 +135,13 @@ public class XCaliburRawConverterNodeModel extends MSLevelsFilterNodeModel {
         		exec.checkCanceled();
         		exec.setProgress(((double)done)/cnt, "Processing file "+f.getName());
             	
-	    		for (int i=0; i<dp_list.size(); i++) {
-	    			AbstractDataProcessor dp = dp_list.get(i);
-	    			if (dp.can(f)) {
-	    				dp.setInput(f.getAbsolutePath());
-	    				dp.process(true, exec, container, file_container);
-	    				dp.finish();
-	    				// short-circuit if successfully processed
-	    				break;
-	    			}
-	    		}
+	    		for (AbstractDataProcessor dp : filtered_entries.getDataProcessors(f, logger, OutputFileFormat.supportedFormats())) {
+    				dp.setInput(f.getAbsolutePath());
+    				dp.process(true, exec, container, file_container);
+    				dp.finish();
+    				// short-circuit if successfully processed
+    				break;
+	       		}
     		} catch (CanceledExecutionException ce) {
     			container.close();
     			file_container.close();
@@ -211,7 +175,7 @@ public class XCaliburRawConverterNodeModel extends MSLevelsFilterNodeModel {
      * @return
      * @throws Exception
      */
-    public Collection<File> convert_and_save(final NodeLogger logger, String endpoint, boolean overwrite_existing_files, 
+    public OutputFiles convert_and_save(final NodeLogger logger, String endpoint, boolean overwrite_existing_files, 
     		boolean is_wiff, final File input_file, final File output_folder, String out_format) throws Exception {
     	  assert(logger != null && input_file != null && output_folder != null && out_format != null && out_format.length() > 0);
     	  
@@ -273,18 +237,29 @@ public class XCaliburRawConverterNodeModel extends MSLevelsFilterNodeModel {
        	  }
     	
        	  List<File> savedFiles = saveResults(results, getOutputFolder());
-       	  return savedFiles;
+       	  return new OutputFiles(savedFiles);
 	}
 
+    /**
+     * Called by configure(), this method must create any required output table specs based on the current
+     * model settings and return the appropriate tables for the node. Subclasses are expected to override as required.
+     * 
+     * @param inSpecs input data tables (if any). Implementations must handle null gracefully (as some nodes have no input ports)
+     * @return must not be null
+     */
+    protected DataTableSpec[] makeOutputTables(final DataTableSpec[] inSpecs) {
+    	/**
+    	 * HACK TODO FIXME: we should use a design pattern...
+    	 */
+        return SpectraReaderNodeModel.make_output_spec(true);
+    }
+    
     /**
      * {@inheritDoc}
      */
     @Override
 	public DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
-    	/**
-    	 * HACK TODO FIXME: we should use a design pattern...
-    	 */
-        return SpectraReaderNodeModel.make_output_spec(true);
+    	return makeOutputTables(inSpecs);
     }
 
     /**
