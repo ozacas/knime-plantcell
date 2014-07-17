@@ -2,9 +2,6 @@ package au.edu.unimelb.plantcell.proteomics.proteowizard.convert;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
@@ -14,12 +11,9 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+
 import au.edu.unimelb.plantcell.core.MyDataContainer;
 import au.edu.unimelb.plantcell.io.read.spectra.AbstractDataProcessor;
-import au.edu.unimelb.plantcell.io.read.spectra.MGFDataProcessor;
-import au.edu.unimelb.plantcell.io.read.spectra.SpectraReaderNodeModel;
-import au.edu.unimelb.plantcell.io.read.spectra.mzMLDataProcessor;
-import au.edu.unimelb.plantcell.io.read.spectra.mzXMLDataProcessor;
 
 /**
  * This is the model implementation of AnalystWiffConverter.
@@ -51,10 +45,7 @@ public class AnalystWiffConverterNodeModel extends XCaliburRawConverterNodeModel
     	getNodeLogger().info("Converting "+m_files.getStringArrayValue().length + " WIFF files to "+getOutputFormat());
     	
     	// 1. convert each file placing result in destination folder. Abort if something looks bad...
-    	List<File> entries = new ArrayList<File>();
-    	boolean has_mzml = false;
-    	boolean has_mzxml= false;
-    	boolean has_mgf  = false;
+    	OutputFiles entries = new OutputFiles();
     	for (String s : m_files.getStringArrayValue()) {
     		File input_file = new File(s);
     		if (!input_file.exists() || !input_file.canRead()) 
@@ -64,21 +55,18 @@ public class AnalystWiffConverterNodeModel extends XCaliburRawConverterNodeModel
     		 * Its possible that a single input file may result in multiple (pieces) of output each in separate files.
     		 * So we handle this case.
     		 */
-    		Collection<File> outfiles = convert_and_save(logger, getServiceEndpoint(), 
+    		OutputFiles outfiles = convert_and_save(logger, getServiceEndpoint(), 
     				shouldOverwriteExistingFiles(), true,
     				input_file, getOutputFolder(), getOutputFormat());
-    	
-    		for (File f : outfiles) {
-    	        	if (f.canRead() && f.isFile()) {
-    	        		entries.add(f);
-    	        		if (f.getName().toLowerCase().endsWith("mzml"))
-    	        			has_mzml = true;
-    	        		if (f.getName().toLowerCase().endsWith("mzxml") || f.getName().toLowerCase().endsWith("xml"))
-    	        			has_mzxml = true;
-    	        		if (f.getName().toLowerCase().endsWith("mgf"))
-    	        			has_mgf = true;
-    	        	}
-    	    }
+    		
+    		outfiles.filterAndAccumulateTo(entries, new OutputFileFilter() {
+
+    			@Override
+				public boolean accept(final File f, final OutputFileFormat format) {
+					return (f.canRead() && f.isFile() && format.isSupportedByPlantCell());
+				}
+    			
+    		});
     	}
     	
     	// 2. now process the files and load the spectra for the user
@@ -86,38 +74,15 @@ public class AnalystWiffConverterNodeModel extends XCaliburRawConverterNodeModel
         reset();
         
         // make output specs and output containers
-        DataTableSpec[] outSpecs = SpectraReaderNodeModel.make_output_spec(true);
-        MyDataContainer container = new MyDataContainer(exec.createDataContainer(outSpecs[0]), "Scan");
+        DataTableSpec[] outSpecs       = makeOutputTables(null);
+        MyDataContainer container      = new MyDataContainer(exec.createDataContainer(outSpecs[0]), "Scan");
         MyDataContainer file_container = new MyDataContainer(exec.createDataContainer(outSpecs[1]), "File");
        
         // NB: here we dont check with the readers for each filename (maybe take too long with a large number of readers...)
         //     instead, we just hardcode what is supported
         int done = 0;
         
-        // instantiate the data processor's for each desired filetype
-        ArrayList<AbstractDataProcessor> dp_list = new ArrayList<AbstractDataProcessor>();
-        if (has_mzml)
-        	dp_list.add(new mzMLDataProcessor(logger, null, false));
-        if (has_mgf)
-        	dp_list.add(new MGFDataProcessor(logger));
-        if (has_mzxml)
-        	dp_list.add(new mzXMLDataProcessor(logger));
-      
-        if (dp_list.size() == 0) {
-        	throw new InvalidSettingsException("No suitable filetypes found! Conversion successful?");
-        }
-        
-        ArrayList<File> filtered_entries = new ArrayList<File>();
-        for (File f : entries) {
-        	if (! f.isFile()) {
-        		continue;
-        	}
-        	for (AbstractDataProcessor p : dp_list) {
-        		if (p.can(f)) {
-        			filtered_entries.add(f);
-        		}
-        	}
-        }
+        OutputFiles filtered_entries = entries.filterByDataProcessor(logger, OutputFileFormat.supportedFormats());
         int cnt = filtered_entries.size();
         
         if (cnt > 0) {
@@ -138,15 +103,12 @@ public class AnalystWiffConverterNodeModel extends XCaliburRawConverterNodeModel
         		exec.checkCanceled();
         		exec.setProgress(((double)done)/cnt, "Processing file "+f.getName());
             	
-	    		for (int i=0; i<dp_list.size(); i++) {
-	    			AbstractDataProcessor dp = dp_list.get(i);
-	    			if (dp.can(f)) {
-	    				dp.setInput(f.getAbsolutePath());
-	    				dp.process(true, exec, container, file_container);
-	    				dp.finish();
-	    				// short-circuit if successfully processed
-	    				break;
-	    			}
+	    		for (AbstractDataProcessor dp : filtered_entries.getDataProcessors(f, logger, OutputFileFormat.supportedFormats())) {
+    				dp.setInput(f.getAbsolutePath());
+    				dp.process(true, exec, container, file_container);
+    				dp.finish();
+    				// short-circuit if successfully processed
+    				break;
 	    		}
     		} catch (CanceledExecutionException ce) {
     			container.close();
@@ -171,7 +133,7 @@ public class AnalystWiffConverterNodeModel extends XCaliburRawConverterNodeModel
      */
     @Override
     public DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
-        return SpectraReaderNodeModel.make_output_spec(true);
+        return super.configure(inSpecs);
     }
 
     /**
