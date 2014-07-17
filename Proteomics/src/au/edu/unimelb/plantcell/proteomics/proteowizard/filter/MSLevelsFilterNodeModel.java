@@ -138,22 +138,33 @@ public class MSLevelsFilterNodeModel extends NodeModel {
 	protected String getOutputFormat() {
 		return m_output_format.getStringValue();
 	}
+	
+	protected String getInputFileColumnName() {
+		return m_input_column.getStringValue();
+	}
+	
+	protected int getInputFileColumnIndex(DataTableSpec spec) {
+		if (spec == null) {
+			return -1;
+		}
+		return spec.findColumnIndex(getInputFileColumnName());
+	}
 
 	@Override
 	protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec) throws Exception {
-		int file_idx = inData[0].getSpec().findColumnIndex(m_input_column.getStringValue());
+		int file_idx = getInputFileColumnIndex(inData[0].getSpec());
 		if (file_idx < 0) {
 			throw new InvalidSettingsException("No such column: "+m_input_column.getStringValue()+" - reconfigure?");
 		}
 		int done = 0;
 		ObjectFactory of = new ObjectFactory();
 		MsLevelType mslevels = of.createMsLevelType();
-		for (String s : m_mslevels.getStringArrayValue()) {
+		for (String s : getMSLevelsFromUser()) {
 			mslevels.getMsLevel().add(Integer.valueOf(s.trim()));
 		}
 		MSConvert msc = makeServiceProxy(getServiceEndpoint());
 		MyDataContainer c = new MyDataContainer(exec.createDataContainer(
-				make_output_spec(m_table_desired.getStringValue(), inData[0].getSpec())), "Row");
+				make_output_spec(getDesiredTable(), inData[0].getSpec())), "Row");
 		
 		// iterate each file...
 		for (DataRow r : inData[0]) {
@@ -176,13 +187,21 @@ public class MSLevelsFilterNodeModel extends NodeModel {
 				throw new IOException("No results from msconvert for job: "+jID);
 			}
 			exec.checkCanceled();
-			makeDesiredTable(c, m_table_desired.getStringValue(), results, exec);
+			makeDesiredTable(c, results, exec);
 			done++; 
 		}
 		getNodeLogger().info("Filtered and converted: "+done+" files.");
 		return new BufferedDataTable[] {c.close()};
 	}
 	
+	protected String getDesiredTable() {
+		return m_table_desired.getStringValue();
+	}
+
+	protected String[] getMSLevelsFromUser() {
+		return m_mslevels.getStringArrayValue();
+	}
+
 	/**
 	 * Returns a list of DataHandlers for each data file represented by url. Modifies the specified {@link ProteowizardJob}
 	 * to specify the input list of data files.
@@ -234,8 +253,10 @@ public class MSLevelsFilterNodeModel extends NodeModel {
 		return new File(m_save_to.getStringValue());
 	}
 
-	private void makeDesiredTable(MyDataContainer c, String desired_table, ListOfDataFile results, ExecutionContext exec) throws IOException { 
+	protected void makeDesiredTable(MyDataContainer c, ListOfDataFile results, ExecutionContext exec) throws IOException { 
 		assert(exec != null && results != null && c != null);
+		
+		String desired_table = getDesiredTable();
 		
 		// 1. save results
 		List<File> savedFiles = saveResults(results, getOutputFolder());
@@ -346,7 +367,7 @@ public class MSLevelsFilterNodeModel extends NodeModel {
 		return "results_"+suggestedName;
 	}
 
-	private DataTableSpec make_output_spec(final String desired_table, final DataTableSpec spec) {
+	protected DataTableSpec make_output_spec(final String desired_table, final DataTableSpec spec) {
 		DataColumnSpec[] cols;
 		
 		if (desired_table.equals(TABLE_OUTPUT_DESIRED[0])) {
@@ -361,7 +382,7 @@ public class MSLevelsFilterNodeModel extends NodeModel {
 		return null;
 	}
 
-	private void waitForCompletion(final MSConvert msc, String jID, String[] expected_states, final ExecutionContext exec) throws IOException, CanceledExecutionException {
+	protected void waitForCompletion(final MSConvert msc, String jID, String[] expected_states, final ExecutionContext exec) throws IOException, CanceledExecutionException {
 		String status;
 		do {
 			try {
@@ -400,7 +421,7 @@ public class MSLevelsFilterNodeModel extends NodeModel {
 
 	@Override
 	public DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
-		String out_table = m_table_desired.getStringValue();
+		String out_table = getDesiredTable();
 		if (out_table == null || out_table.equals("")) {
 			out_table = TABLE_OUTPUT_DESIRED[0];
 		}

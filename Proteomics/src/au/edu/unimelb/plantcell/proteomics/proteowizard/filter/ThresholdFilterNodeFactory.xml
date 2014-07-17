@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./proteowizard.png" type="Manipulator">
+    <name>Peak Threshold Filter</name>
+    
+    <shortDescription>
+        Removes peaks from the chosen MS scans. User must configure the data files to be processed (names of the files are
+      	obtained from the input table) and the peak filtering method desired.
+    </shortDescription>
+    
+    <fullDescription>
+      	Removes peaks from the chosen MS scans. User must configure the data files to be processed (names of the files are
+      	obtained from the input table) and the peak filtering method desired. The data is sent to an MSConvertEE server for
+      	processing and the results loaded into the table, in a format as requested by the user.
+    </fullDescription>
+    
+    <ports>
+    	<inPort index="0" name="Input files">An input table with URLs or file locations for the input files in a single column</inPort>
+    	
+        <outPort index="0" name="Filtered Results">A table in the chosen format for downstream nodes to process</outPort>
+    </ports>    
+  
+</knimeNode>

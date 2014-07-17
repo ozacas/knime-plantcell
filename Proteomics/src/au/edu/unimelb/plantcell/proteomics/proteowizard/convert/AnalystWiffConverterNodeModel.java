@@ -32,6 +32,7 @@ public class AnalystWiffConverterNodeModel extends XCaliburRawConverterNodeModel
         super();
     }
 
+    @Override
     public NodeLogger getNodeLogger() {
     	return logger;
     }

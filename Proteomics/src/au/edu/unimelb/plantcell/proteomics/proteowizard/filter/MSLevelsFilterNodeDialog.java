@@ -75,13 +75,24 @@ public class MSLevelsFilterNodeDialog extends DefaultNodeSettingsPane {
 	 */
 	protected void addFilterSettings() {
 		createNewTab(getAdditionalSettingsTabName());
+		addMSLevelsComponent(null);
+	}
+	
+	protected void addMSLevelsComponent(String label) {
+		addMSLevelsComponent(label, 10);
+	}
+	
+	protected void addMSLevelsComponent(String label, int n) {
+		if (label == null) {
+			label = "Select the scan levels to accept";
+		}
 		ArrayList<String> levels = new ArrayList<String>();
 		for (int i=1; i<10; i++) {
 			levels.add(String.valueOf(i)+"   "); // HACK: Integer.valueOf() will work even with trailing spaces, so this just makes the box a little wider
 		}
 		addDialogComponent(new DialogComponentStringListSelection(
 				new SettingsModelStringArray(MSLevelsFilterNodeModel.CFGKEY_ACCEPTED_MSLEVELS, new String[] {}),
-				"Select the scan levels to accept", levels, ListSelectionModel.MULTIPLE_INTERVAL_SELECTION, true, 10
+				label, levels, ListSelectionModel.MULTIPLE_INTERVAL_SELECTION, true, n
 		));
 	}
 }
