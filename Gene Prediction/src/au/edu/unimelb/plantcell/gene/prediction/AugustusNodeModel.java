@@ -219,7 +219,7 @@ public class AugustusNodeModel extends NodeModel {
         	exe.setWorkingDirectory(tmp_fasta.getParentFile());		// arbitrary choice
         	exe.setWatchdog(new ExecuteWatchdog(ExecuteWatchdog.INFINITE_TIMEOUT));
         	
-        	int exitCode = new ExecutorUtils(exe, logger).run(cmdLine);
+        	int exitCode = new ExecutorUtils(exe, logger, env).run(cmdLine);
         	if (exe.isFailure(exitCode)) {
         		if (exe.getWatchdog().killedProcess())
         			throw new Exception("Augustus failed - watchdog says no...");
