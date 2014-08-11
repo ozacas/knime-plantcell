@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecuteResultHandler;
@@ -12,7 +13,11 @@ import org.knime.core.node.NodeLogger;
 
 /**
  * Convenience wrapper around apache commons exec which ensures subcommands are run
- * in a separate thread to ensure correct interaction with the KNIME platform.
+ * in a separate thread to ensure correct interaction with the KNIME platform. Supports:
+ * 1) environment variables as specified at construction time
+ * 2) logging via the supplied logger
+ * 3) use of the specified executor instance for execution of command-line
+ * 4) run with/without waiting for the invoked program to finish
  * 
  * @author acassin
  *
@@ -23,16 +28,21 @@ public class ExecutorUtils {
 	private Thread t;
 	
 	public ExecutorUtils() {
-		this(new DefaultExecutor(), NodeLogger.getLogger("ExecutorUtils"));
+		this(new DefaultExecutor(), NodeLogger.getLogger("ExecutorUtils"), null);
 	}
 	
 	public ExecutorUtils(final NodeLogger l) {
-		this(new DefaultExecutor(), l);
+		this(new DefaultExecutor(), l, null);
 	}
 	
 	public ExecutorUtils(final DefaultExecutor de, final NodeLogger l) {
+		this(de, l, null);
+	}
+	
+	public ExecutorUtils(final DefaultExecutor de, final NodeLogger l, Map<String,String> environment) {
 		assert(de != null && l != null);
 		r      = new MyRunnable(de);
+		r.setEnvironment(environment);
 		logger = l;
 		t      = null;
 	}
@@ -112,6 +122,7 @@ public class ExecutorUtils {
 		private DefaultExecuteResultHandler results_handler;
 		private boolean waitForCompletion;
 		private int     exit_status;
+		private Map<String,String> environment_map;
 		
 		public MyRunnable(final DefaultExecutor de) {
 			assert(de != null);
@@ -119,6 +130,10 @@ public class ExecutorUtils {
 			results_handler = null;
 			setWaitForCompletion(true);
 			setExitStatus(-1);
+		}
+		
+		public void setEnvironment(final Map<String,String> environment) {
+			environment_map = environment;
 		}
 		
 		public void setWaitForCompletion(boolean wait) {
@@ -152,7 +167,11 @@ public class ExecutorUtils {
 			logger.info("Running: "+cl.toString());
 			try {
 				if (results_handler != null) {
-					exec.execute(cl, results_handler);
+					if (environment_map != null) {
+						exec.execute(cl, environment_map, results_handler);
+					} else {
+						exec.execute(cl, results_handler);
+					}
 					if (waitForCompletion()) {
 						results_handler.waitFor();
 						exit_status = results_handler.getExitValue();
@@ -160,7 +179,11 @@ public class ExecutorUtils {
 						exit_status = -1;
 					}
 				} else {
-					exit_status = exec.execute(cl);
+					if (environment_map != null) {
+						exit_status = exec.execute(cl, environment_map);
+					} else {
+						exit_status = exec.execute(cl);
+					}
 				}				
 			} catch (IOException|InterruptedException e) {
 				e.printStackTrace();
