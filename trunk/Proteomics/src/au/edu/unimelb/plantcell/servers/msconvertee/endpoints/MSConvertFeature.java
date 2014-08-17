@@ -24,6 +24,9 @@ public enum MSConvertFeature {
 	// data compression
 	COMPRESS_BINARY_DATA, COMPRESS_ENTIRE_FILE, 
 	
+	// vendor support flags (not all readers are tested for at the moment)
+	VENDOR_WIFF, VENDOR_THERMO_RAW, VENDOR_MASSLYNX_RAW, 
+	
 	// this feature is NEVER available and is used by test cases to test the negative result
 	UNSUPPORTED_FEATURE, 
 }
