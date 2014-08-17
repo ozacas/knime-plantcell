@@ -2,6 +2,7 @@ package au.edu.unimelb.plantcell.io.read.fasta;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -9,6 +10,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.core.runtime.URIUtil;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.StringCell;
@@ -241,7 +243,14 @@ public abstract class AbstractFastaNodeModel extends NodeModel {
  			return u.toString();
  		String proto = u.getProtocol();
  		if (proto.startsWith("file")) {
- 			return u.getPath();
+ 			try {
+ 				// recommended by http://wiki.eclipse.org/Eclipse/UNC_Paths
+				return URIUtil.toFile(URIUtil.toURI(u)).getAbsolutePath();
+			} catch (URISyntaxException e) {
+				e.printStackTrace();
+				// fallback to this, but somewhat buggy...
+				return u.getPath();
+			}
  		}
  		else
  			return u.toString();

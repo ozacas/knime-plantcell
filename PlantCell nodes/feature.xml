@@ -2,9 +2,9 @@
 <feature
       id="au.edu.unimelb.plantcell.www"
       label="PlantCell KNIME nodes"
-      version="1.2.51"
+      version="1.2.60"
       provider-name="http://www.plantcell.unimelb.edu.au/"
-      os="linux,solaris,win32"
+      os="linux,macosx,solaris,win32"
       exclusive="true">
 
    <description url="http://www.plantcell.unimelb.edu.au/bioinformatics">

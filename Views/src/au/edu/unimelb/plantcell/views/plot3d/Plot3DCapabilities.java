@@ -56,7 +56,8 @@ public class Plot3DCapabilities {
      * @param the OpenGL capabilities for the KNIME instance
      * @return must not be null
      */
-    private static Quality getOpenGLQuality(final Logger logger, final GLCapabilities glc) {
+    @SuppressWarnings("unused")
+	private static Quality getOpenGLQuality(final Logger logger, final GLCapabilities glc) {
     	Quality q = Quality.Nicest;
     	boolean no_depth_if_transparency = q.isDisableDepthBufferWhenAlpha();
         if (!no_depth_if_transparency) {
