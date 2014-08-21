@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Phylogeny Nodes
 Bundle-SymbolicName: au.edu.unimelb.plantcell.phylogenetics;singleton:=true
-Bundle-Version: 1.0.11
+Bundle-Version: 1.0.12
 Bundle-ClassPath: phylogenyprocessor.jar,
  lib/forester.jar
 Bundle-Vendor: http://www.plantcell.unimelb.edu.au/bioinformatics
