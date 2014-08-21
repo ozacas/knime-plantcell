@@ -24,6 +24,11 @@
             factory-class="au.edu.unimelb.plantcell.io.pruner.TreePruneNodeFactory"
             id="au.edu.unimelb.plantcell.io.pruner.TreePruneNodeFactory"/>
             
+      <node
+            category-path="/Bioinformatics/Phylogenetics"
+            factory-class="au.edu.unimelb.plantcell.phylogenetics.rename.RenameNodeFactory"
+            id="au.edu.unimelb.plantcell.phylogenetics.rename.RenameNodeFactory"/>
+            
  	  <node
             category-path="/Bioinformatics/Read"
             factory-class="au.edu.unimelb.plantcell.io.read.phyloxml.PhyloXMLReaderNodeFactory"
