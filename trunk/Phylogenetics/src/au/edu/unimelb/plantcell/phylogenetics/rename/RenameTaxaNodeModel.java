@@ -2,6 +2,7 @@ package au.edu.unimelb.plantcell.phylogenetics.rename;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,7 +38,7 @@ import au.edu.unimelb.plantcell.io.read.phyloxml.FileTreeViewInterface;
  * 
  * @author Andrew Cassin
  */
-public class RenameNodeModel extends NodeModel implements FileTreeViewInterface {
+public class RenameTaxaNodeModel extends NodeModel implements FileTreeViewInterface {
    	private static final NodeLogger logger = NodeLogger.getLogger("Tree Node Rename");
     
     public final static String CFGKEY_INPUT_FILE  = "input-file";
@@ -56,7 +57,7 @@ public class RenameNodeModel extends NodeModel implements FileTreeViewInterface 
     /**
      * Constructor for the node model.
      */
-    protected RenameNodeModel() {
+    protected RenameTaxaNodeModel() {
         super(1, 1);
     }
 
@@ -68,7 +69,7 @@ public class RenameNodeModel extends NodeModel implements FileTreeViewInterface 
             final ExecutionContext exec) throws Exception {
 
     	logger.info("Reading tree from "+m_in.getStringValue());
-    	File infile  = new File(m_in.getStringValue());
+    	File infile  = new File(new URL(m_in.getStringValue()).toURI());
     	File outfile = new File(m_out.getStringValue());
     	if (outfile.exists() && !m_overwrite.getBooleanValue())
     		throw new InvalidSettingsException("Will not overwrite existing: "+outfile.getAbsolutePath());
@@ -78,8 +79,8 @@ public class RenameNodeModel extends NodeModel implements FileTreeViewInterface 
     	
     	int old_name = inData[0].getSpec().findColumnIndex(m_original_node_name.getStringValue());
     	int new_name = inData[0].getSpec().findColumnIndex(m_new_node_name.getStringValue());
-    	if (old_name < 0 || new_name < 0 || old_name != new_name) {
-    		throw new InvalidSettingsException("Problem with columns - reconfigure?");
+    	if (old_name < 0 || new_name < 0) {
+    		throw new InvalidSettingsException("Cannot locate old/new taxa name columns - reconfigure?");
     	}
     	
     	int missed = 0;
@@ -90,12 +91,18 @@ public class RenameNodeModel extends NodeModel implements FileTreeViewInterface 
     		if (old_cell.isMissing() || new_cell.isMissing()) {
     			missed++;
     		}
-    		old2new.put(old_cell.toString(), new_cell.toString());
+    		String old_id = old_cell.toString();
+    		String new_id = new_cell.toString();
+    		if (old2new.containsKey(old_id)) {
+    			throw new InvalidSettingsException("Only one rename for "+old_id+" is permitted.");
+    		}
+    		old2new.put(old_id, new_id);
     	}
     	if (missed > 0) {
     		logger.info("Skipped "+missed+" rows as they have missing values for old & new node names");
     	}
     	
+    	int changed = 0;
     	for (Phylogeny p  : phys) {
     		PhylogenyNodeIterator it = p.iteratorPreorder();
     		while (it.hasNext()) {
@@ -103,13 +110,14 @@ public class RenameNodeModel extends NodeModel implements FileTreeViewInterface 
     			String old = n.getName();
     			if (old2new.containsKey(old)) {
     				n.setName(old2new.get(old));
+    				changed++;
     			}
     		}
     	}
     	
     	PhylogenyWriter writer = new PhylogenyWriter();
     	writer.toPhyloXML(phys, 0, outfile, ForesterUtil.LINE_SEPARATOR);
-    	
+    	logger.info("Saved tree with "+changed+" changed taxa names into "+outfile.getAbsolutePath());
         return new BufferedDataTable[]{inData[0]};
     }
    

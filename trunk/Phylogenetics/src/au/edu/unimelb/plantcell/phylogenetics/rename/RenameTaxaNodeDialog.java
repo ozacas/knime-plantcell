@@ -21,41 +21,40 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
  * 
  * @author Andrew Cassin
  */
-public class RenameNodeDialog extends DefaultNodeSettingsPane {
+public class RenameTaxaNodeDialog extends DefaultNodeSettingsPane {
 	
     /**
      * New pane for configuring PhylogenyProcessor node dialog.
      * This is just a suggestion to demonstrate possible default dialog
      * components.
      */
-    @SuppressWarnings("unchecked")
-	protected RenameNodeDialog() {
+	@SuppressWarnings("unchecked")
+	protected RenameTaxaNodeDialog() {
         super();
 
         createNewGroup("Input tree file (PhyloXML, Newick, NEXUS)");
         addDialogComponent(new DialogComponentFileChooser(
-        		new SettingsModelString(RenameNodeModel.CFGKEY_INPUT_FILE, ""), "phyloxml-tree", JFileChooser.OPEN_DIALOG, 
+        		new SettingsModelString(RenameTaxaNodeModel.CFGKEY_INPUT_FILE, ""), "phyloxml-tree", JFileChooser.OPEN_DIALOG, 
         		false, ".phyloxml|.xml|.nexus|.newick|.nw|.nhx"
         		));
         
         createNewGroup("Output tree file (always PhyloXML)");
         addDialogComponent(new DialogComponentFileChooser(
-        		new SettingsModelString(RenameNodeModel.CFGKEY_OUTPUT_FILE, ""), "saved-phyloxml-tree", JFileChooser.SAVE_DIALOG, 
+        		new SettingsModelString(RenameTaxaNodeModel.CFGKEY_OUTPUT_FILE, ""), "saved-phyloxml-tree", JFileChooser.SAVE_DIALOG, 
         		false, ".phyloxml"
         		));
         addDialogComponent(new DialogComponentBoolean(
-        		new SettingsModelBoolean(RenameNodeModel.CFGKEY_OVERWRITE, Boolean.FALSE), "overwrite existing files?"
+        		new SettingsModelBoolean(RenameTaxaNodeModel.CFGKEY_OVERWRITE, Boolean.FALSE), "overwrite existing files?"
         		));
         
         createNewGroup("Rename nodes where old and replace with new where...");
         addDialogComponent(new DialogComponentColumnNameSelection(
-        		new SettingsModelString(RenameNodeModel.CFGKEY_OLD_NAME, ""), "Old node name from... ", 0, false, true, StringValue.class
+        		new SettingsModelString(RenameTaxaNodeModel.CFGKEY_OLD_NAME, ""), "Old node name from... ", 0, false, true, StringValue.class
         		));
         addDialogComponent(new DialogComponentColumnNameSelection(
-        		new SettingsModelString(RenameNodeModel.CFGKEY_NEW_NAME, ""), "New node name from... ", 0, false, true, StringValue.class
+        		new SettingsModelString(RenameTaxaNodeModel.CFGKEY_NEW_NAME, ""), "New node name from... ", 0, false, true, StringValue.class
         		));
     }
-    
     
 }
 
