@@ -26,8 +26,8 @@
             
       <node
             category-path="/Bioinformatics/Phylogenetics"
-            factory-class="au.edu.unimelb.plantcell.phylogenetics.rename.RenameNodeFactory"
-            id="au.edu.unimelb.plantcell.phylogenetics.rename.RenameNodeFactory"/>
+            factory-class="au.edu.unimelb.plantcell.phylogenetics.rename.RenameTaxaNodeFactory"
+            id="au.edu.unimelb.plantcell.phylogenetics.rename.RenameTaxaNodeFactory"/>
             
  	  <node
             category-path="/Bioinformatics/Read"
