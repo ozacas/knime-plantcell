@@ -1,6 +1,5 @@
 package au.edu.unimelb.plantcell.phylogenetics.rename;
 
-import org.knime.base.node.preproc.rename.RenameNodeModel;
 import org.knime.core.node.AbstractNodeView;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
@@ -16,14 +15,14 @@ import au.edu.unimelb.plantcell.io.read.phyloxml.PhylogeneticTreeView;
  *
  * @author Andrew Cassin
  */
-public class RenameNodeFactory extends NodeFactory<NodeModel> {
+public class RenameTaxaNodeFactory extends NodeFactory<NodeModel> {
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public RenameNodeModel createNodeModel() {
-        return new RenameNodeModel();
+    public RenameTaxaNodeModel createNodeModel() {
+        return new RenameTaxaNodeModel();
     }
 
     /**
@@ -63,7 +62,7 @@ public class RenameNodeFactory extends NodeFactory<NodeModel> {
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new RenameNodeDialog();
+        return new RenameTaxaNodeDialog();
     }
 
 }
