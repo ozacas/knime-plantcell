@@ -6,21 +6,17 @@ import java.io.File;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.media.opengl.GLCapabilities;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 
 import org.jzy3d.chart.Chart;
 import org.jzy3d.colors.Color;
-import org.jzy3d.global.Settings;
 import org.jzy3d.maths.Coord3d;
 import org.jzy3d.plot3d.primitives.Scatter;
-import org.jzy3d.plot3d.rendering.canvas.Quality;
 import org.jzy3d.plot3d.rendering.scene.Graph;
 import org.jzy3d.plot3d.rendering.scene.Scene;
 import org.knime.core.node.ExternalApplicationNodeView;
 
-import au.edu.unimelb.plantcell.views.plot3d.MyCameraMouseController;
 import au.edu.unimelb.plantcell.views.plot3d.Plot3DCapabilities;
 
 
@@ -34,7 +30,6 @@ public class PeakHeatmapNodeView extends ExternalApplicationNodeView<SpectraRead
 	private final Chart c;
 	private final JFrame f;
 	
-	@SuppressWarnings("restriction")
 	protected PeakHeatmapNodeView(SpectraReaderNodeModel model) {
 		super(model);
 

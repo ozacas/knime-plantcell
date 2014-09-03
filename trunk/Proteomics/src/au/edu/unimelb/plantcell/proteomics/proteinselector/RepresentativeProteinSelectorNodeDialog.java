@@ -2,7 +2,6 @@ package au.edu.unimelb.plantcell.proteomics.proteinselector;
 
 import javax.swing.ListSelectionModel;
 import java.util.*;
-import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.*;
 import org.knime.core.data.StringValue;
 
@@ -24,7 +23,8 @@ public class RepresentativeProteinSelectorNodeDialog extends DefaultNodeSettings
      * This is just a suggestion to demonstrate possible default dialog
      * components.
      */
-    protected RepresentativeProteinSelectorNodeDialog() {
+    @SuppressWarnings("unchecked")
+	protected RepresentativeProteinSelectorNodeDialog() {
         super();
         SettingsModelString      m_matches = (SettingsModelString) RepresentativeProteinSelectorNodeModel.make(RepresentativeProteinSelectorNodeModel.CFGKEY_PEPTIDE_MATCHES);
         SettingsModelStringArray m_strategy= (SettingsModelStringArray) RepresentativeProteinSelectorNodeModel.make(RepresentativeProteinSelectorNodeModel.CFGKEY_STRATEGY);

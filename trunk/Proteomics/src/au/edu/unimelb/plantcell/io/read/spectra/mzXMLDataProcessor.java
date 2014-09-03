@@ -2,7 +2,12 @@ package au.edu.unimelb.plantcell.io.read.spectra;
 
 import java.io.File;
 
+import org.knime.core.data.BooleanValue;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.IntValue;
+import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
@@ -67,7 +72,8 @@ public class mzXMLDataProcessor extends AbstractDataProcessor {
 	}
 
 	protected void process_scans(ExecutionContext exec, MyDataContainer scan_container) throws Exception {
-		int ncols = scan_container.getTableSpec().getNumColumns();
+		DataTableSpec scs = scan_container.getTableSpec();
+		int ncols = scs.getNumColumns();
 	
 		for (int i=1; i<=m_p.getScanCount(); i++) {
 			ScanHeader sh = m_p.rapHeader(i);
@@ -81,9 +87,11 @@ public class mzXMLDataProcessor extends AbstractDataProcessor {
 			cells[2] = new StringCell(sh.getRetentionTime());
 			cells[3] = new DoubleCell(sh.getBasePeakIntensity());
 			cells[4] = new DoubleCell(sh.getBasePeakMz());
-			cells[5] = new IntCell(sh.getCentroided());
-			cells[6] = new IntCell(sh.getDeisotoped());
-			cells[7] = new IntCell(sh.getChargeDeconvoluted());
+			
+			cells[5] = intOrBoolean(scs.getColumnSpec(5).getType(), sh.getCentroided());
+			cells[6] = intOrBoolean(scs.getColumnSpec(6).getType(), sh.getDeisotoped());
+			cells[7] = intOrBoolean(scs.getColumnSpec(7).getType(), sh.getChargeDeconvoluted());
+			
 			cells[8] = new IntCell(sh.getMsLevel());
 			cells[10]= new IntCell(sh.getPrecursorCharge());
 			cells[11]= new StringCell(String.valueOf(sh.getPrecursorScanNum()));
@@ -113,6 +121,15 @@ public class mzXMLDataProcessor extends AbstractDataProcessor {
 		logger.info("Processed "+m_p.getScanCount()+" spectra in "+m_file.getName());
 	}
 	
+	private DataCell intOrBoolean(final DataType type, int val) {
+		if (type.isASuperTypeOf(BooleanCell.TYPE)) {
+			return (val > 0) ? BooleanCell.TRUE : BooleanCell.FALSE;
+		} else if (type.isCompatible(IntValue.class)) {
+			return new IntCell(val);
+		}
+		return DataType.getMissingCell();
+	}
+
 	/**
 	 * Report the file summary
 	 * @param exec

@@ -30,7 +30,7 @@ public class RepresentativeProteinSelectorNodeModel extends NodeModel {
     
     // the logger instance
     private static final NodeLogger logger = NodeLogger
-            .getLogger(RepresentativeProteinSelectorNodeModel.class);
+            .getLogger("Heuristic Protein Selector");
         
     /** the settings key which is used to retrieve and 
         store the settings (from the dialog or from a settings file)    
@@ -76,7 +76,8 @@ public class RepresentativeProteinSelectorNodeModel extends NodeModel {
     /**
      * {@inheritDoc}
      */
-    @Override
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+	@Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
 
